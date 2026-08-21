@@ -1,6 +1,7 @@
 {
   "assignee": "",
   "blocked_by": [
+    "ancora-yzu.10",
     "ancora-yzu.5",
     "ancora-yzu.6"
   ],
@@ -14,5 +15,5 @@
   "status": "open",
   "title": "L9: Gate assembly (spec.check, spec.validate, --json)",
   "type": "task",
-  "updated_at": "2026-08-21T19:01:15Z"
+  "updated_at": "2026-08-21T19:01:16Z"
 }
