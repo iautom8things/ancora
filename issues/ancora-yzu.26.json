@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-08-21T19:00:35Z",
+  "description": "No spec subject (cleanup across workflows repo, dotfiles subscribers, ancora scripts)\n\nStage: M10 (05b-stages-migration.md). Plan run dir on epic ancora-yzu.\n\nDeliverable:\nWorkflows repo: collapse the shim to bare mix spec.check; add --base origin/${{ github.base_ref }} on PR events; keep fetch-depth: 0 (permanent and load-bearing); update the run-spec-check input description that still names realization drift vs the committed baseline; delete detect-spec-gate.sh and its test; de-shim rehearsal on one repo next PR before calling it done. Sync ancora.md to the five verified non-consumer subscribers (from M4; any repo flagged there follows its own follow-up ticket). Delete scripts/replay/ from ancora; bench/gate_bench.exs stays. Final sweep: grep vault + dotfiles + all four consumers for the old read-protocol sentence, retired commands, flags, env vars, and finding codes (the shared retired-vocabulary list); zero hits outside frozen specled_ex, or fix in place. Close the migration epic; per-repo bw hygiene per the deliver workflow. Commit (workflows): chore: remove specled_ex gate path; ancora is the only spec gate.\n\nVerification:\n- Tests to pass: workflows repo CI; one post-de-shim PR observed green\n- Behaviors to demonstrate: detect-spec-gate.sh absent; de-shim rehearsal link; five subscribers synced (links); scripts/replay/ absent from ancora; final grep sweep zero outside specled_ex\n- Verification cadence:\n  - Iteration tier: grep sweep locally\n  - Final tier: de-shim rehearsal green; sweep zero\n  - Verifier tier: the rehearsal link and the sweep output\n- Standing bounce-class checks: every sync target and every sweep path listed on the ticket\n- Call-site Integration: n/a\n\nOut of Scope (files):\n- ancora lib/**, test/**, .spec/**\n- consumer repo code beyond the rules sync\nAllowed touches (this stage may modify):\n- chapterspot/workflows spec-check workflow and helper script\n- five non-consumer subscriber repos: .claude/rules/ancora.md via sync-agent-rules\n- ancora: scripts/replay/** (delete only)\n- vault/dotfiles/consumer docs where the sweep finds retired vocabulary\n\nOut of Scope (intent):\n- no detector or task changes\n- no deletion of bench/gate_bench.exs\n\nMerge gate:\n- [ ] De-shim rehearsal green\n- [ ] Subscriber sync complete with links\n- [ ] Final sweep zero outside specled_ex\n- [ ] Migration epic closed\n- [ ] Auditor APPROVE comment on the ticket",
+  "id": "ancora-yzu.26",
+  "labels": [],
+  "parent": "ancora-yzu",
+  "priority": 2,
+  "status": "open",
+  "title": "M10: De-shim, subscriber sync, harness deletion, final sweep",
+  "type": "task",
+  "updated_at": "2026-08-21T19:00:35Z"
+}
