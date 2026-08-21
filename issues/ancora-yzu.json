@@ -5,10 +5,12 @@
   "created": "2026-08-21T18:54:33Z",
   "description": "Distilled from mega-plan think-l7h (src-specled_ex/2026-08-20-spec-anchored-successor). Spec dir: .spec/\nWorktree: /Users/mz/src/ancora\nBranch: main\nPlan run dir: /Users/mz/vaults/rmbrs-vault/plans/src-specled_ex/2026-08-20-spec-anchored-successor/runs/20260821-082855-claude\nStage specs: 05a-stages-library.md (L1-L14), 05b-stages-migration.md (M0-M10). Conventions: 00-global-contracts.md. Architecture: 03-architecture.md as revised by 05-refined-plan.md AR1-AR10.\nSpec commit: ecc5e24",
   "id": "ancora-yzu",
-  "labels": [],
+  "labels": [
+    "slug:spec-anchored-successor"
+  ],
   "priority": 2,
   "status": "open",
   "title": "ancora: spec-anchored successor to specled_ex",
   "type": "epic",
-  "updated_at": "2026-08-21T18:54:33Z"
+  "updated_at": "2026-08-21T18:55:13Z"
 }
