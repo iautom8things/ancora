@@ -1,7 +1,8 @@
 {
   "assignee": "",
   "blocked_by": [
-    "ancora-yzu.22"
+    "ancora-yzu.22",
+    "ancora-yzu.23"
   ],
   "blocks": [],
   "created": "2026-08-21T19:00:35Z",
@@ -13,5 +14,5 @@
   "status": "open",
   "title": "M9: Atlas migration PR + perf acceptance",
   "type": "task",
-  "updated_at": "2026-08-21T19:01:17Z"
+  "updated_at": "2026-08-21T19:01:18Z"
 }
