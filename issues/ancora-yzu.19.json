@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-08-21T18:59:40Z",
+  "description": "No spec subject (ritual; Manuel supervises the go/no-go)\n\nStage: M3 (05b-stages-migration.md). Plan run dir on epic ancora-yzu.\n\nDeliverable:\nExecuted ritual with results recorded in the plan run dir and on this ticket: 1) harness self-test passes (mandatory precondition); 2) harness runs the SELECTION.md set against ancora 1.0.0-rc.x; 3) pass bar met (AR8) means flag day proceeds; exit 1 means flag day blocked and detector findings are triaged against the unit suite first; exit 2 means flag day blocked and the instrument is fixed, not the detector. Also run bench/gate_bench.exs once for an early perf read (the binding acceptance run is M9).\n\nVerification:\n- Tests to pass: harness exit 0 on the full selection\n- Behaviors to demonstrate: per-PR drift findings naming a function each PR changed; control PR zero findings at warning+ in derived/* and change/*; bench median recorded\n- Verification cadence: single ritual run; rerun only after a fix\n- Standing bounce-class checks: n/a\n- Call-site Integration: n/a\n\nOut of Scope (files):\n- everything; this ticket changes no code. Results go to the run dir and this ticket.\nAllowed touches (this stage may modify):\n- plan run dir results file; ticket comments\n\nOut of Scope (intent):\n- no detector change to make the bar pass; a failure is a blocker, not a tuning prompt\n- no flag day before this passes\n\nMerge gate:\n- [ ] Self-test passed\n- [ ] Harness exit 0 on SELECTION.md\n- [ ] Results recorded in run dir and on the ticket\n- [ ] Manuel go/no-go recorded as a ticket comment",
+  "id": "ancora-yzu.19",
+  "labels": [],
+  "parent": "ancora-yzu",
+  "priority": 2,
+  "status": "open",
+  "title": "M3: Replay validation ritual (go/no-go)",
+  "type": "task",
+  "updated_at": "2026-08-21T18:59:40Z"
+}
