@@ -3,7 +3,7 @@
   "blocked_by": [],
   "blocks": [],
   "created": "2026-08-21T18:54:33Z",
-  "description": "Distilled from mega-plan think-l7h (src-specled_ex/2026-08-20-spec-anchored-successor). Spec dir: .spec/\nWorktree: /Users/mz/src/ancora\nBranch: main\nPlan run dir: /Users/mz/vaults/rmbrs-vault/plans/src-specled_ex/2026-08-20-spec-anchored-successor/runs/20260821-082855-claude\nStage specs: 05a-stages-library.md (L1-L14), 05b-stages-migration.md (M0-M10). Conventions: 00-global-contracts.md. Architecture: 03-architecture.md as revised by 05-refined-plan.md AR1-AR10.\nSpec commit: ecc5e24",
+  "description": "Distilled from mega-plan think-l7h (src-specled_ex/2026-08-20-spec-anchored-successor). Spec dir: .spec/\nWorktree: /Users/mz/src/ancora\nBranch: main\nConsole: https://claude.ai/code/artifact/74a33f74-815b-4239-9ead-719014d5db06\nPlan run dir: /Users/mz/vaults/rmbrs-vault/plans/src-specled_ex/2026-08-20-spec-anchored-successor/runs/20260821-082855-claude\nStage specs: 05a-stages-library.md (L1-L14), 05b-stages-migration.md (M0-M10). Conventions: 00-global-contracts.md. Architecture: 03-architecture.md as revised by 05-refined-plan.md AR1-AR10.\nSpec commit: ecc5e24",
   "id": "ancora-yzu",
   "labels": [
     "slug:spec-anchored-successor"
@@ -12,5 +12,5 @@
   "status": "open",
   "title": "ancora: spec-anchored successor to specled_ex",
   "type": "epic",
-  "updated_at": "2026-08-21T18:55:13Z"
+  "updated_at": "2026-08-21T19:05:49Z"
 }
