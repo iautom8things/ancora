@@ -2,7 +2,8 @@
   "assignee": "",
   "blocked_by": [],
   "blocks": [
-    "ancora-yzu.3"
+    "ancora-yzu.3",
+    "ancora-yzu.7"
   ],
   "created": "2026-08-21T18:55:13Z",
   "description": "No spec subject (repo skeleton; behavioral subjects start at L2)\n\nStage: L1 (05a-stages-library.md). Plan run dir on epic ancora-yzu.\n\nDeliverable:\nMix project skeleton on top of the existing spec commit in /Users/mz/src/ancora: mix.exs (app :ancora, Elixir ~\u003e 1.18, package metadata stub), deps declared exactly: yaml_elixir ~\u003e 2.11, zoi ~\u003e 0.17, jason ~\u003e 1.4, earmark_parser, stream_data (dev/test only). Zero native deps. GitHub Actions CI on the 1.18/OTP 26 + 1.19/OTP 28 matrix running mix compile --warnings-as-errors, mix test, mix format --check-formatted, mix deps.unlock --check-unused. LICENSE (MIT, Manuel Zubieta copyright, plus the line: Portions derived from spec_led_ex, Copyright (c) Mike Hostetler, MIT licensed). NOTICE file skeleton (ported-module origins appended per port stage). README skeleton with the one-line upstream acknowledgment and positioning language (traceability and drift detection, never proof). CHANGELOG skeleton. .gitignore for _build, deps, tmp. Decide and record the GitHub remote (not created by /distill). Commit: chore: bootstrap ancora (mix project, CI matrix, license, attribution).\n\nVerification:\n- Tests to pass: mix test (empty suite passes), mix compile --warnings-as-errors\n- Behaviors to demonstrate: mix deps.get resolves exactly the five deps; CI matrix file lints; README contains no occurrence of proof or verified behavior\n- Verification cadence:\n  - Iteration tier: mix compile and mix deps.get only\n  - Final tier: the four common merge-gate commands green\n  - Verifier tier: read mix.exs, LICENSE, NOTICE, README; run mix deps.tree\n- Standing bounce-class checks: n/a (no callable surface)\n- Call-site Integration: n/a\n\nOut of Scope (files):\n- lib/ancora/** (no product modules in this stage)\n- .spec/** (already committed by distill)\nAllowed touches (this stage may modify):\n- mix.exs, mix.lock, .formatter.exs, .gitignore, .tool-versions\n- .github/workflows/**\n- LICENSE, NOTICE, README.md, CHANGELOG.md\n- lib/ancora.ex (empty facade stub only), test/test_helper.exs\n\nOut of Scope (intent):\n- no sixth dependency; MDEx and rustler never enter the tree\n- no product code, no mix tasks\n- no spec edits\n\nMerge gate:\n- [ ] mix compile --warnings-as-errors\n- [ ] mix test\n- [ ] mix format --check-formatted\n- [ ] mix deps.unlock --check-unused\n- [ ] Scope check: diff touches only Allowed globs (mechanical)\n- [ ] Auditor APPROVE comment on the ticket",
@@ -13,5 +14,5 @@
   "status": "open",
   "title": "L1: ancora repo bootstrap",
   "type": "task",
-  "updated_at": "2026-08-21T19:01:06Z"
+  "updated_at": "2026-08-21T19:01:15Z"
 }
