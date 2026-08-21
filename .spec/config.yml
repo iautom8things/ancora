@@ -1,0 +1,12 @@
+# .spec/config.yml — ancora v1. All keys optional; defaults shown.
+default_base: origin/main
+test_paths:
+  - test
+# lib_paths:            # defaults to ["lib"] or the literal elixirc_paths in mix.exs
+#   - lib
+severities: {}          # one map, keys validated against Ancora.Finding
+# overrides:
+#   - subject: ancora.scaffold
+#     code: derived/unanchored_subject
+#     severity: info
+#     reason: "integration-only until L12 lands"
