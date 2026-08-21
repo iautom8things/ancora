@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "ancora-yzu.22"
+  ],
   "blocks": [],
   "created": "2026-08-21T19:00:34Z",
   "description": "No spec subject (consumer repo migration; Engage)\n\nStage: M7 (05b-stages-migration.md). Plan run dir on epic ancora-yzu. Common migration checklist items 1-12 from 05b apply (see M6 for the expanded list).\n\nDeliverable:\nEngage PR: SHA ref to hex, keep only: [:dev, :test], runtime: false; strip 31 realized_by: / 28 api_boundary-era blocks / 101 execute:; delete realization_hashes.json (35 KB). Engage corpus is verified almost entirely by retired kinds (~104 source_file against ~9 tagged_tests entries): the migration ADR must state the spec/requirement_unverified count and whether any requirement-tagging follow-up is planned; its pruning pass will retire more of the corpus than any other repo. Lightest PR refers to mechanics, not corpus health; say so in the ADR. All common checklist items as in M6.\n\nVerification:\n- Tests to pass: Engage CI green end to end including the shim new path\n- Behaviors to demonstrate: mix spec.check green on the PR head; format/retired_construct = 0; config/unknown_key = 0; realization_hashes.json deleted; migration ADR with counts, pruning list, and override reasons; .claude/rules/specled.md absent; retired-vocabulary grep zero\n- Verification cadence:\n  - Iteration tier: mix spec.check --base origin/main and mix spec.status in Engage\n  - Final tier: Engage CI green\n  - Verifier tier: checklist 1-12 against the diff; no suite runs\n- Standing bounce-class checks: every checklist item ticked with evidence\n- Call-site Integration: n/a\n\nOut of Scope (files):\n- /Users/mz/src/ancora/**\n- any other consumer repo\nAllowed touches (this stage may modify):\n- Engage: mix.exs, mix.lock, .spec/**, .claude/**, CLAUDE.md, AGENTS.md, CI config if it names retired flags\n\nOut of Scope (intent):\n- never config-off a code without an ADR line; never edit spec text to dodge a finding\n- a red on an unpriced finding class stops this PR\n\nMerge gate:\n- [ ] Engage CI green including the shim new path\n- [ ] Checklist items 1-12 checked in the PR description\n- [ ] Migration ADR merged with the PR\n- [ ] Auditor APPROVE comment on the ticket",
@@ -11,5 +13,5 @@
   "status": "open",
   "title": "M7: Engage migration PR",
   "type": "task",
-  "updated_at": "2026-08-21T19:00:34Z"
+  "updated_at": "2026-08-21T19:01:17Z"
 }
