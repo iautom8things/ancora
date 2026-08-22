@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }}
+    runs-on: ubuntu-latest
+    env:
+      MIX_ENV: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - elixir: "1.18.4"
+            otp: "26.2.5"
+          - elixir: "1.19.5"
+            otp: "28.3.1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup BEAM
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - name: Install Hex and Rebar
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile
+        run: mix compile --warnings-as-errors
+
+      - name: Test
+        run: mix test
+
+      - name: Check formatting
+        run: mix format --check-formatted
+
+      - name: Check unused dependencies
+        run: mix deps.unlock --check-unused

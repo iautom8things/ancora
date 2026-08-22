@@ -1,0 +1,18 @@
+NOTICE
+======
+
+This file records the origin of modules ported into ancora.
+
+Ported-module origins are appended at each port stage.
+
+Upstream
+--------
+
+Portions of this project are derived from spec_led_ex,
+Copyright (c) Mike Hostetler, MIT licensed.
+See LICENSE for the full license text.
+
+Ported modules
+--------------
+
+(none yet)
