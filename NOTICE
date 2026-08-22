@@ -15,4 +15,14 @@ See LICENSE for the full license text.
 Ported modules
 --------------
 
-(none yet)
+- Ancora.Severity — from specled_ex SpecLedEx.BranchCheck.Severity
+  (one severities map; accept_drift source atom dropped; severity_source
+  is :config | :trailer | :default)
+- Ancora.Trailer — from specled_ex SpecLedEx.BranchCheck.Trailer
+  (Spec-Ack: grammar; presets removed; downgrade-only info|warning)
+- Ancora.Config — from specled_ex SpecLedEx.Config
+  (schema rewritten: default_base, test_paths, lib_paths, severities,
+  overrides; no prose/test_tags/realization/guardrails)
+- Ancora.ModalClass — from specled_ex SpecLedEx.ModalClass
+  (ported for the append/must_downgraded guard)
+- Ancora.Finding — new registry; SpecLedEx.FindingMessage folded in
