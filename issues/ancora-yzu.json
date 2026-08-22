@@ -13,11 +13,15 @@
     {
       "text": "LESSONS\n- [untested-clause] Do not treat Process.sleep overlap or VM-global ETS/Process.registered snapshots as concurrent-isolation coverage; a Would-fail-if claim must fail if the production flag is actually omitted. (from ancora-yzu.7)\n- [unwired-call-path] A single-function-head claim (Git.read_blob/2) is false if BaseView.blobs talks to BatchPort.fetch and opens an ephemeral port instead of that head. (from ancora-yzu.7)\n- [seam-substitution] An AST walk of Port.open argument text is not coverage of @port_opts spliced at the call site. (from ancora-yzu.7)",
       "timestamp": "2026-08-22T01:46:33Z"
+    },
+    {
+      "text": "LESSONS\n- [untested-clause] Do not treat Process.sleep overlap or VM-global ETS/Process.registered snapshots as concurrent-isolation coverage; a Would-fail-if claim must fail if the production flag is actually omitted. (from ancora-yzu.7)\n- [unwired-call-path] A single-function-head claim (Git.read_blob/2) is false if BaseView.blobs talks to BatchPort.fetch and opens an ephemeral port instead of that head. (from ancora-yzu.7)\n- [seam-substitution] An AST walk of a call's argument text is not coverage of options spliced at the real call site. (from ancora-yzu.7)\n- [untested-clause] Logger-on-stderr is not proven by asserting :logger handler type == :standard_error; capture both streams. (from ancora-yzu.6)",
+      "timestamp": "2026-08-22T02:04:02Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "ancora: spec-anchored successor to specled_ex",
   "type": "epic",
-  "updated_at": "2026-08-22T01:46:33Z"
+  "updated_at": "2026-08-22T02:04:02Z"
 }
