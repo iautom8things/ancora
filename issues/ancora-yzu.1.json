@@ -9,9 +9,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu1-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.1/grok-yzu1-impl-1/log\n\nCommit: Atlas 8787b052157bba7cd9501dd45a1f75573fb5191b; Builder 76b28b595d8b420ba7159e844e9500d6e48fdc7a\nFiles touched: Atlas mix.exs, mix.lock; Builder mix.exs, mix.lock\nTests added: none (cross-repo pin; no ancora behavior, no callable surface)\nVerification stubs flipped: none\nVerification tier: change-scoped — mix deps.get in Atlas and Builder (second pass no-op); mix format --check-formatted mix.exs in both; mix spec.validate --root /Users/mz/src/ancora-pin-specled-sha from /Users/mz/src/specled_ex; full-system\n  proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Pinned Atlas and Builder spec_led_ex to the already-locked SHA c2d2134914d1e26166ff5e4259a8a515362d0fc8 (specled_ex 0.11.0) instead of floating default-branch/main. That keeps mix deps.get a no-op and insulates the fleet from HEAD 0.17.0. PRs: https://github.com/ChapterSpot/atlas/pull/152 and https://github.com/ChapterSpot/builder/pull/138.",
+      "timestamp": "2026-08-22T00:39:32Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "M0: Pin Atlas and Builder to a specled_ex SHA",
   "type": "task",
-  "updated_at": "2026-08-22T00:32:54Z"
+  "updated_at": "2026-08-22T00:39:32Z"
 }
