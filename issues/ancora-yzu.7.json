@@ -57,11 +57,15 @@
     {
       "text": "ESCALATED\nBounce cap exhausted. Remaining Gap: git_test.exs:28-44 decoy Path.join(root, \"not-a-repo\") is still inside the tmp repo, so git -C walks to parent .git and idle-port plus git show would still pass. Ticket left open. Independent library work continues.",
       "timestamp": "2026-08-22T02:28:30Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: yzu7-impl-6\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.7/grok-yzu7-impl-6/log\n\nCommit: c3c567f0aabd32c8a6abb1f8959c1e43b28bc277\nFiles touched: test/ancora/git_test.exs\nTests added: Ancora.GitTest \"read_blob uses the run's batch port\" (decoy now a sibling of the tmp repo under tmp; Git.run(decoy, show) must fail; then Git.read_blob/2 still returns blob bytes through the already-open BatchPort)\nVerification stubs flipped: none (tagged_tests format; no execute: flag)\nVerification tier: change-scoped — mix compile --warnings-as-errors; mix format --check-formatted; mix test --stale test/ancora/git_test.exs test/ancora/git_batch_port_test.exs test/ancora/base_view_test.exs test/ancora/derive/change_set_test.exs test/ancora/static/forbidden_spawner_test.exs (6 tests, git_test.exs); mix spec.validate --root /Users/mz/src/ancora-git-change-set from /Users/mz/src/specled_ex; full-system\n  proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\nAudit-expanded scope: none (yzu7-audit-3 2026-08-22T02:26:47Z instructed the decoy edit on test/ancora/git_test.exs, already an Allowed touch)\n\nSummary: Git.read_blob/2's %BatchPort{} clause is now falsifiable: the decoy root is outside the tmp repo so git -C cannot walk into a .git, Git.run(decoy, show) is asserted to fail, and read_blob still returns the blob via the open port. An idle port plus git show on ctx.root would fail; Path.join(root, \"not-a-repo\") is gone. Bounce-2 items (BaseView through Git.read_blob/2, compiled Port.open opts without stderr_to_stdout, concurrent cross-read) were left in place.",
+      "timestamp": "2026-08-22T09:27:13Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L6: Git layer and change set",
   "type": "task",
-  "updated_at": "2026-08-22T09:12:28Z"
+  "updated_at": "2026-08-22T09:27:13Z"
 }
