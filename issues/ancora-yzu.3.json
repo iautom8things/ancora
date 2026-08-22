@@ -14,9 +14,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu3-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.3/grok-yzu3-impl-1/log\n\nCommit: 207eb3759f2f7718d54d1b9670af326cb405d5fd\nFiles touched: NOTICE, lib/ancora/finding.ex, lib/ancora/severity.ex, lib/ancora/trailer.ex, lib/ancora/config.ex, lib/ancora/modal_class.ex, test/ancora/finding_test.exs, test/ancora/severity_test.exs, test/ancora/trailer_test.exs, test/ancora/config_test.exs, test/ancora/modal_class_test.exs, test/support/ancora_case.exs\nTests added: Ancora.FindingTest (registry closure of 30 codes, defaults table, messages name subject/file + remedy, unanchored names overrides:), Ancora.SeverityTest (precedence matrix, off absorbs trailer, override scoped to subject, non-tunable codes, trailer cannot raise, info hidden by default / visible with verbose), Ancora.Severity.InfoEnvTest (ANCORA_SHOW_INFO=1), Ancora.TrailerTest (info|warning grammar, reject error/off, unknown code, no presets, base..HEAD scan), Ancora.ConfigTest (five-key schema, unknown key, unknown severity code, malformed YAML degrades, missing/empty reason, unknown subject/code, override scoped, mix.lock co-versioning note), Ancora.ModalClassTest (classify + downgrade? total)\nVerification stubs flipped: none (tagged_tests only; no execute: flag)\nVerification tier: change-scoped — mix compile --warnings-as-errors; mix test test/ancora/{finding,severity,trailer,config,modal_class}_test.exs (51 tests); mix format --check-formatted; mix deps.unlock --check-unused; mix spec.validate --root /Users/mz/src/ancora-finding-registry from /Users/mz/src/specled_ex; full-system\n  proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Ancora.Finding owns the closed 30-code registry (family, default, remedy-bearing message); derived/unanchored_subject names the per-subject overrides: entry. Ancora.Severity resolves config-off \u003e Spec-Ack trailer downgrade \u003e config/override \u003e registry default, drops off, and hides info unless --verbose or ANCORA_SHOW_INFO=1. Ancora.Trailer parses Spec-Ack: \u003ccode\u003e=\u003cinfo|warning\u003e from git log base..HEAD, Ancora.Config loads the five-key schema with non-tunable config findings, and Ancora.ModalClass is ported for the must-downgraded guard.",
+      "timestamp": "2026-08-22T01:13:54Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "L2: Finding registry, severity, trailer, config",
   "type": "task",
-  "updated_at": "2026-08-22T00:58:17Z"
+  "updated_at": "2026-08-22T01:13:54Z"
 }
