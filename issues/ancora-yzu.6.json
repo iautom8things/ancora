@@ -57,11 +57,15 @@
     {
       "text": "MERGE_CONFLICT\nSession: n/a\nLog: n/a\n\nConflicting paths: NOTICE\nWhy not auto-resolvable: Real NOTICE content conflict (epic added Parser/Schema/Index/DecisionParser port entries; stage added TaskArgs/TempName/Output entries); not generated state",
       "timestamp": "2026-08-22T02:27:21Z"
+    },
+    {
+      "text": "MERGE_CONFLICT\nSession: 01a02748-bff0-7533-ae8d-3ad5211e4905\nLog: /Users/mz/.grok-personal/sessions/%2FUsers%2Fmz%2Fsrc%2Fancora-output-verdict/01a02748-bff0-7533-ae8d-3ad5211e4905/chat_history.jsonl\n\nConflicting paths: NOTICE\nWhy not auto-resolvable: Real NOTICE content conflict (epic added Parser/Schema/Index/DecisionParser port entries; stage added TaskArgs/TempName/Output entries); not generated state",
+      "timestamp": "2026-08-22T02:27:55Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L5: Output and verdict layer",
   "type": "task",
-  "updated_at": "2026-08-22T02:27:21Z"
+  "updated_at": "2026-08-22T02:27:55Z"
 }
