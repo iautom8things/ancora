@@ -26,3 +26,6 @@ Ported modules
 - Ancora.ModalClass — from specled_ex SpecLedEx.ModalClass
   (ported for the append/must_downgraded guard)
 - Ancora.Finding — new registry; SpecLedEx.FindingMessage folded in
+- Ancora.TaskArgs — from specled_ex SpecLedEx.TaskArgs
+- Ancora.TempName — from specled_ex SpecLedEx.TempName
+- Ancora.Output, Ancora.Output.Verdict — new (single-emitter stdout + verdict grammar)

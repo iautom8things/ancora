@@ -59,12 +59,14 @@ decisions:
 - id: ancora.tasks.gated_emission_paths
   statement: >-
     Every gate task shall run inside `Ancora.Output.gated/2`, which
-    classifies the outcome as `:ok`, `:usage`, `:env`, or `:internal`. The
-    first three shall emit the verdict; `:internal` shall re-raise with no
-    verdict line and a non-zero exit. Report tasks (`prime`, `next`,
-    `status`, `review`, `init`, `decision.new`) shall route their error paths
-    through `gated/2` too, printing the message and exiting 1 without a
-    verdict line.
+    classifies the outcome as `:ok`, `:usage`, `:env`, or `:internal`.
+    The wrapped function returns `{:ok, report}`, `{:usage, message}`,
+    `{:env, message}`, or `{:internal, exception}`; any raised exception
+    is classified `:internal`. The first three shall emit the verdict;
+    `:internal` shall re-raise with no verdict line and a non-zero exit.
+    Report tasks (`prime`, `next`, `status`, `review`, `init`,
+    `decision.new`) shall route their error paths through `gated/2` too,
+    printing the message and exiting 1 without a verdict line.
   priority: must
   stability: stable
 - id: ancora.tasks.no_result_leak
