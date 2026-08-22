@@ -21,11 +21,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: orch-yzu\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.1/grok-orch-yzu/log\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: n/a (no Elixir test files\nin diff). No auditor was spawned per policy.",
       "timestamp": "2026-08-22T00:53:03Z"
+    },
+    {
+      "text": "The SHA pin diffs are approved. Ancora fast-forward was a no-op (stage branch had no ancora commits); mix spec.validate on the epic worktree is pass.\n\nNot closing. Ticket merge gate is red:\n- Builder PR 138 Checks / Spec Check failed: branch_guard_missing_subject_update on mix.exs (builder.atlas_integration, builder.boundary_graph, builder.package, builder.telemetry_conventions).\n- Atlas PR 152 still had tests in progress at gate time.\n- Neither PR is merged.\n\nSet aside until those two PRs are green and merged. Independent library work continues.",
+      "timestamp": "2026-08-22T00:53:39Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M0: Pin Atlas and Builder to a specled_ex SHA",
   "type": "task",
-  "updated_at": "2026-08-22T00:53:03Z"
+  "updated_at": "2026-08-22T00:53:39Z"
 }
