@@ -24,11 +24,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: orch-yzu\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.2/grok-orch-yzu/log\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: n/a (no Elixir test files\nin diff). No auditor was spawned per policy.",
       "timestamp": "2026-08-22T00:56:01Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off.",
+      "timestamp": "2026-08-22T00:56:40Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L1: ancora repo bootstrap",
   "type": "task",
-  "updated_at": "2026-08-22T00:56:01Z"
+  "updated_at": "2026-08-22T00:56:40Z"
 }
