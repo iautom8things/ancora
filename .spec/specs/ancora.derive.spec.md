@@ -49,11 +49,12 @@ decisions:
     Every base-side blob read shall go through one `git cat-file --batch`
     port per run, owned by the run context and never registered under a name.
     Ancora.Git.BatchPort holds that port; Ancora.Git.read_blob/2 is the
-    single function head, falling back to per-file `git show` when no port
-    is present. All base blobs a run can need shall be prefetched serially
-    through that port before any parallel work begins. The port shall be
-    spawned without `stderr_to_stdout` so git stderr can never interleave
-    with blob payloads.
+    single function head for every base-side blob read, including
+    Ancora.BaseView, falling back to per-file `git show` when no port is
+    present. Callers shall not open an ephemeral batch port. All base blobs
+    a run can need shall be prefetched serially through that port before any
+    parallel work begins. The port shall be spawned without
+    `stderr_to_stdout` so git stderr can never interleave with blob payloads.
   priority: must
   stability: stable
 - id: ancora.derive.memo_is_run_scoped
@@ -266,7 +267,7 @@ decisions:
     - both complete
   then:
     - neither run observes the other's memo entries
-    - no named ETS table or registered port exists afterward
+    - each run's memo table is unnamed and its batch port is unregistered
   covers:
     - ancora.derive.memo_is_run_scoped
 - id: ancora.derive.scenario.dynamic_elixirc_paths_degrade
