@@ -53,11 +53,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: orch-yzu\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.6/grok-orch-yzu/log\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS. No auditor was spawned\nper policy.",
       "timestamp": "2026-08-22T02:24:23Z"
+    },
+    {
+      "text": "MERGE_CONFLICT\nSession: n/a\nLog: n/a\n\nConflicting paths: NOTICE\nWhy not auto-resolvable: Real NOTICE content conflict (epic added Parser/Schema/Index/DecisionParser port entries; stage added TaskArgs/TempName/Output entries); not generated state",
+      "timestamp": "2026-08-22T02:27:21Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L5: Output and verdict layer",
   "type": "task",
-  "updated_at": "2026-08-22T02:24:24Z"
+  "updated_at": "2026-08-22T02:27:21Z"
 }
