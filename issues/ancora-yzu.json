@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Manuel Zubieta",
   "blocked_by": [],
   "blocks": [],
   "created": "2026-08-21T18:54:33Z",
@@ -9,8 +9,8 @@
     "slug:spec-anchored-successor"
   ],
   "priority": 2,
-  "status": "open",
+  "status": "in_progress",
   "title": "ancora: spec-anchored successor to specled_ex",
   "type": "epic",
-  "updated_at": "2026-08-21T19:05:49Z"
+  "updated_at": "2026-08-22T00:05:54Z"
 }
