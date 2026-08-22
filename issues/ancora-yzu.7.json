@@ -73,11 +73,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: orch-yzu\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.7/grok-orch-yzu/log\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS. No auditor was spawned\nper policy.",
       "timestamp": "2026-08-22T09:40:30Z"
+    },
+    {
+      "text": "MERGE_CONFLICT\nSession: yzu7-rebase-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.7/grok-yzu7-rebase-1/log\n\nConflicting paths: NOTICE\nWhy not auto-resolvable: NOTICE is a real file (not generated state); rebase worker must not hand-merge it.",
+      "timestamp": "2026-08-22T09:41:33Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L6: Git layer and change set",
   "type": "task",
-  "updated_at": "2026-08-22T09:40:30Z"
+  "updated_at": "2026-08-22T09:41:33Z"
 }
