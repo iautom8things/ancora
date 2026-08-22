@@ -27,17 +27,32 @@ defmodule Ancora.GitTest do
   @tag spec: "ancora.derive.base_reads_batched"
   test "read_blob uses the run's batch port", %{root: root} do
     # Would fail if the `%BatchPort{}` clause left the port idle and served
-    # bytes via `git show`: show uses `ctx.root`, which we point at a
-    # directory that is not a git repo, while the already-open port still
-    # answers against the real root.
+    # bytes via `git show` on ctx.root. `git -C` of a directory inside the
+    # tmp repo still finds the parent `.git`; the decoy is a sibling under
+    # tmp, so show cannot walk into a repo. Git.run(decoy, show) failing
+    # pins that; the successful read_blob then cannot have used show.
     TmpGitRepo.write!(root, %{"lib/a.ex" => "defmodule A do\nend\n"})
     TmpGitRepo.commit!(root, "initial")
 
     assert {:ok, ctx} = RunContext.start(root, "HEAD")
     on_exit(fn -> RunContext.stop(ctx) end)
 
-    decoy = Path.join(root, "not-a-repo")
+    decoy =
+      Path.join(
+        Path.dirname(root),
+        "ancora-not-a-repo-#{System.pid()}_#{System.unique_integer([:positive])}"
+      )
+
     File.mkdir_p!(decoy)
+    on_exit(fn -> File.rm_rf(decoy) end)
+
+    refute String.starts_with?(Path.expand(decoy), Path.expand(root) <> "/")
+
+    assert {:error, {:git, ["show", "HEAD:lib/a.ex"], _output, status}} =
+             Git.run(decoy, ["show", "HEAD:lib/a.ex"])
+
+    assert status != 0
+
     isolated = %{ctx | root: decoy}
 
     assert {:ok, "defmodule A do\nend\n"} = Git.read_blob(isolated, "lib/a.ex")
