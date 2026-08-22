@@ -26,11 +26,15 @@
     {
       "text": "TEST_CRITIC: PASS\nSession: 01a02709-98d3-7241-a4ce-41f4d5ccf136\nLog: /Users/mz/.grok-personal/sessions/%2FUsers%2Fmz%2Fsrc%2Fancora-finding-registry/01a02709-98d3-7241-a4ce-41f4d5ccf136/chat_history.jsonl\n\nBlocking findings: 0\nFiles reviewed: test/ancora/finding_test.exs, test/ancora/severity_test.exs, test/ancora/trailer_test.exs, test/ancora/config_test.exs, test/ancora/modal_class_test.exs, test/support/ancora_case.exs\n\nAll nine tagged requirement ids have load-bearing tests. Config fixtures are unique tmp roots; no named ETS; tests async except InfoEnvTest (env mutation).",
       "timestamp": "2026-08-22T01:27:12Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (auto — selective audit)\nSession: orch-yzu\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.3/grok-orch-yzu/log\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS. No auditor was spawned\nper policy.",
+      "timestamp": "2026-08-22T01:27:45Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L2: Finding registry, severity, trailer, config",
   "type": "task",
-  "updated_at": "2026-08-22T01:27:12Z"
+  "updated_at": "2026-08-22T01:27:45Z"
 }
