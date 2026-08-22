@@ -53,7 +53,7 @@ decisions:
   stability: stable
 - id: ancora.parsing.structural_references
   statement: >-
-    The structural verifier shall emit `spec/unknown_reference` for a scenario
+    Ancora.Verifier shall emit `spec/unknown_reference` for a scenario
     `covers:` entry, a verification `covers:` entry, or a spec-meta
     `decisions:` entry that names an id not present in the corpus;
     `spec/duplicate_id` for any subject, requirement, scenario, or decision id

@@ -81,13 +81,13 @@ decisions:
   stability: stable
 - id: ancora.gate.two_append_guards
   statement: >-
-    The gate shall enforce exactly two append-only guards:
-    `append/requirement_deleted` when a requirement id present at base is
-    absent on HEAD, and `append/must_downgraded` when a requirement's
-    priority moves from `must` to `should`. Either is authorized, and the
-    finding suppressed, only by an ADR with `status: accepted` whose
-    `affects:` names the requirement id or its subject id. No other
-    spec-weakening shall be guarded.
+    The gate shall enforce exactly two append-only guards, implemented
+    by Ancora.AppendOnly: `append/requirement_deleted` when a requirement
+    id present at base is absent on HEAD, and `append/must_downgraded`
+    when a requirement's priority moves from `must` to `should`. Either
+    is authorized, and the finding suppressed, only by an ADR with
+    `status: accepted` whose `affects:` names the requirement id or its
+    subject id. No other spec-weakening shall be guarded.
   priority: must
   stability: stable
 - id: ancora.gate.unanchored_subject

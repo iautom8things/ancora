@@ -36,4 +36,24 @@ Ported modules
   (change_type/supersedes/replaces/reverses_what parsed-and-ignored)
 - Ancora.DecisionParser.Affects — from specled_ex SpecLedEx.DecisionParser.CrossField
   (affects_empty and affects_unresolved only)
+- Ancora.AppendOnly — from specled_ex SpecLedEx.AppendOnly
+  (two guards only: append/requirement_deleted, append/must_downgraded;
+  authorization is an accepted ADR whose affects: names the requirement
+  or its subject; no change_type, no weakening-class enum)
+- Ancora.Overlap — from specled_ex SpecLedEx.Overlap
+  (duplicate_covers is identical verification covers lists; must_stem
+  collision stays within-subject)
+- Ancora.PolicyFiles — from specled_ex SpecLedEx.PolicyFiles
+  (governance set: .spec/specs/**, .spec/config.yml, .spec/AGENTS.md,
+  .spec/README.md; change/missing_decision fires when a governance
+  file changes with no .spec/decisions/ ADR in the same diff)
+- Ancora.Verifier — from specled_ex SpecLedEx.Verifier
+  (structural keeper: spec/unknown_reference, spec/duplicate_id,
+  spec/invalid_id, spec/missing_field, spec/requirement_unverified;
+  command machinery dropped)
+- Ancora.TagScanner — from specled_ex SpecLedEx.TagScanner
+  (for-comprehension walk kept; fold_to_subjects lifts requirement
+  ids to subject ids)
+- Ancora.TagFindings — from specled_ex SpecLedEx.TagFindings
+  (codes renamed tags/*; tags always on, no enforcement toggle)
 

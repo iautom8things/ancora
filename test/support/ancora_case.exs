@@ -41,6 +41,13 @@ unless Code.ensure_loaded?(Ancora.TestCase) do
       Path.join(root, relative)
     end
 
+    def write_test_file(root, relative, content) do
+      path = Path.join(root, relative)
+      File.mkdir_p!(Path.dirname(path))
+      File.write!(path, content)
+      path
+    end
+
     def write_decision(root, name, content) do
       relative = ".spec/decisions/#{name}.md"
       write_files(root, %{relative => content})
