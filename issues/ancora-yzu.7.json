@@ -69,6 +69,10 @@
     {
       "text": "TEST_CRITIC: PASS\nSession: 01a028cf-e534-7ac1-a7bd-182e0f49ac07\nLog: /Users/mz/.grok-personal/sessions/%2FUsers%2Fmz%2Fsrc%2Fancora-git-change-set/01a028cf-e534-7ac1-a7bd-182e0f49ac07/chat_history.jsonl\n\nBlocking findings: none\n\nFiles reviewed:\n- test/ancora/git_test.exs",
       "timestamp": "2026-08-22T09:40:30Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (auto — selective audit)\nSession: orch-yzu\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.7/grok-orch-yzu/log\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS. No auditor was spawned\nper policy.",
+      "timestamp": "2026-08-22T09:40:30Z"
     }
   ],
   "priority": 2,
