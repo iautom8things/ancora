@@ -15,4 +15,9 @@ See LICENSE for the full license text.
 Ported modules
 --------------
 
-(none yet)
+Ancora.Git
+  from SpecLedEx.Evidence.Git (subprocess runner, ls-tree -z listing,
+  cat-file --batch framing).
+
+Ancora.BaseView
+  from SpecLedEx.BaseView (ls-tree + batched blob materialization).
