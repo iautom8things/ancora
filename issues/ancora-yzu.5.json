@@ -25,11 +25,15 @@
     {
       "text": "TEST_CRITIC: PASS\nSession: grok\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.5/grok/log\n\nBlocking findings: 0\n\nFiles reviewed:\n- test/ancora/append_only_test.exs\n- test/ancora/overlap_test.exs\n- test/ancora/policy_files_test.exs\n- test/ancora/verifier_test.exs\n- test/ancora/tag_scanner_test.exs\n- test/ancora/tag_findings_test.exs\n- test/support/ancora_case.exs\n\nTicket scenarios are present and call production heads on runtime tmp corpora (Ancora.TestCase unique dirs, async: true). Append-only matrix covers both guards with and without ADR, and subject vs requirement authorization. TagScanner walks real {:for, ...} source rather than an AST walk of argument text. No Process.sleep, Application.put_env, shared ETS, or :sys.get_state.\n\nNotes (non-blocking): PolicyFiles.classify totality only asserts the return is a member of the kind union, so misclassification would still pass. Overlap purity is two identical calls on a non-colliding corpus. TagFindings requirement_untagged re-matches the code already used to filter. Verifier empty-given fixture omits the requirement, so spec/missing_field rides next to spec/unknown_reference. describetag has no negative case for leakage outside the describe. ETC-CORE-009: support rolls unique tmp dirs instead of @tag :tmp_dir; isolation is equivalent.",
       "timestamp": "2026-08-22T02:28:15Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (auto — selective audit)\nSession: orch-yzu\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.5/grok-orch-yzu/log\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS. No auditor was spawned\nper policy.",
+      "timestamp": "2026-08-22T02:29:43Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L4: Governance, tags, structural verifier",
   "type": "task",
-  "updated_at": "2026-08-22T02:28:15Z"
+  "updated_at": "2026-08-22T02:29:43Z"
 }
