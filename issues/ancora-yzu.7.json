@@ -53,11 +53,15 @@
     {
       "text": "AUDIT: BOUNCE → implementer\nSession: yzu7-audit-3\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.7/grok-yzu7-audit-3/log\n\nReasoning: VERIFY: FAIL on 9f080a939ade52842f9ff5e1a6b47ae444119c6d is correct. ancora.derive.base_reads_batched's batch clause is not falsified: test/ancora/git_test.exs:28-44 poisons ctx.root with Path.join(root, \"not-a-repo\"), still inside the tmp repo. Git.run/3 at lib/ancora/git.ex:26 is `git -C \u003croot\u003e`; git walks parents for `.git`, so idle-port plus `git show` via ctx.root still returns the blob. TEST_CRITIC: PASS's \"idle port + git show cannot serve the bytes\" is false. Scope 13/0/0 matches the diff vs a2c03ae.\n\nBounce reason: Make git_test.exs:28-44 fail if Git.read_blob/2's `%BatchPort{}` clause (lib/ancora/git.ex:60-65) leaves the port idle and serves bytes via `git show` on ctx.root. Point the decoy at a directory `git -C` cannot walk into a `.git` (outside the tmp repo), not Path.join(root, \"not-a-repo\"). Bytes-only is not enough. Other bounce-2 items stand: BaseView.read_tree_blobs at lib/ancora/base_view.ex:67 calls Git.read_blob/2; only RunContext.start opens the port; git_batch_port_test.exs:41 compiled open_port opts; concurrent cross-read at git_test.exs:101.\n\nMechanical-remedy bounce count this ticket (if any): 0/2",
       "timestamp": "2026-08-22T02:26:47Z"
+    },
+    {
+      "text": "ESCALATED\nBounce cap exhausted. Remaining Gap: git_test.exs:28-44 decoy Path.join(root, \"not-a-repo\") is still inside the tmp repo, so git -C walks to parent .git and idle-port plus git show would still pass. Ticket left open. Independent library work continues.",
+      "timestamp": "2026-08-22T02:28:30Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L6: Git layer and change set",
   "type": "task",
-  "updated_at": "2026-08-22T02:26:47Z"
+  "updated_at": "2026-08-22T02:28:30Z"
 }
