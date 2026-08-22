@@ -212,6 +212,37 @@ defmodule Ancora.OutputTest do
     end
 
     @tag spec: "ancora.tasks.finding_line_format"
+    test "print path sorts warnings, then info, then errors last" do
+      report = %{
+        findings: [
+          finding(code: "derived/drift", severity: :error, message: "drift"),
+          finding(code: "derived/unresolved_calls", severity: :info, message: "unresolved"),
+          finding(code: "derived/growth", severity: :warning, message: "growth")
+        ],
+        checked: %{subjects: 1, requirements: 3, errors: 1, warnings: 1},
+        tier: :branch
+      }
+
+      stdout =
+        stdout_of(fn ->
+          assert_raise Mix.Error, fn ->
+            Output.gated("spec.check", fn -> {:ok, report} end)
+          end
+        end)
+
+      finding_lines =
+        stdout
+        |> String.split("\n", trim: true)
+        |> Enum.filter(&String.match?(&1, ~r/^\[(WARNING|INFO|ERROR)\] /))
+
+      assert finding_lines == [
+               "[WARNING] ancora.tasks derived/growth lib/ancora/output.ex :: growth",
+               "[INFO] ancora.tasks derived/unresolved_calls lib/ancora/output.ex :: unresolved",
+               "[ERROR] ancora.tasks derived/drift lib/ancora/output.ex :: drift"
+             ]
+    end
+
+    @tag spec: "ancora.tasks.finding_line_format"
     test "checked summary matches the designed line" do
       assert Output.checked_summary(%{subjects: 7, requirements: 16, errors: 1, warnings: 2}) ==
                "checked subjects=7 requirements=16 errors=1 warnings=2"
@@ -358,6 +389,7 @@ defmodule Ancora.Output.LoggerTest do
   @moduletag spec: "ancora.tasks.stderr_pinning"
 
   setup do
+    restore_logger_stdio()
     on_exit(&restore_logger_stdio/0)
     :ok
   end
@@ -384,8 +416,8 @@ defmodule Ancora.Output.LoggerTest do
   end
 
   test "Logger output after gated/2 is on stderr, not stdout" do
-    stdout =
-      capture_io(fn ->
+    {stdout, stderr} =
+      with_stdio(fn ->
         Ancora.Output.gated("spec.check", fn ->
           Logger.warning("diag-noise")
           Logger.flush()
@@ -393,9 +425,24 @@ defmodule Ancora.Output.LoggerTest do
         end)
       end)
 
-    {:ok, %{config: config}} = :logger.get_handler_config(:default)
-    assert config[:type] == :standard_error
     refute stdout =~ "diag-noise"
+    assert stderr =~ "diag-noise"
     assert String.split(stdout, "\n", trim: true) |> List.last() == "spec.check result=pass"
+  end
+
+  defp with_stdio(fun) do
+    parent = self()
+
+    stderr =
+      capture_io(:stderr, fn ->
+        stdout = capture_io(fn -> fun.() end)
+        send(parent, {:stdout, stdout})
+      end)
+
+    receive do
+      {:stdout, stdout} -> {stdout, stderr}
+    after
+      1000 -> flunk("did not capture stdout")
+    end
   end
 end
