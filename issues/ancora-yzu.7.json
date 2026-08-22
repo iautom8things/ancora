@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Manuel Zubieta",
   "blocked_by": [
     "ancora-yzu.2"
   ],
@@ -12,8 +12,8 @@
   "labels": [],
   "parent": "ancora-yzu",
   "priority": 2,
-  "status": "open",
+  "status": "in_progress",
   "title": "L6: Git layer and change set",
   "type": "task",
-  "updated_at": "2026-08-21T19:01:15Z"
+  "updated_at": "2026-08-22T00:58:18Z"
 }
