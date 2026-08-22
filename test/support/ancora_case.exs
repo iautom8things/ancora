@@ -35,6 +35,22 @@ unless Code.ensure_loaded?(Ancora.TestCase) do
       end)
     end
 
+    def write_spec(root, name, content) do
+      relative = ".spec/specs/#{name}.spec.md"
+      write_files(root, %{relative => content})
+      Path.join(root, relative)
+    end
+
+    def write_decision(root, name, content) do
+      relative = ".spec/decisions/#{name}.md"
+      write_files(root, %{relative => content})
+      Path.join(root, relative)
+    end
+
+    def findings_codes(findings) when is_list(findings) do
+      Enum.map(findings, & &1.code)
+    end
+
     def init_git_repo(root) do
       git!(root, ["init", "-b", "main"])
       git!(root, ["config", "user.name", "Ancora Test"])

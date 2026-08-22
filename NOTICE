@@ -26,3 +26,14 @@ Ported modules
 - Ancora.ModalClass — from specled_ex SpecLedEx.ModalClass
   (ported for the append/must_downgraded guard)
 - Ancora.Finding — new registry; SpecLedEx.FindingMessage folded in
+- Ancora.Parser — from specled_ex SpecLedEx.Parser
+  (block grammar unchanged)
+- Ancora.Schema.* — from specled_ex SpecLedEx.Schema.*
+  (realized_by schema dropped; Verification.kind accept-and-warn)
+- Ancora.Index — from specled_ex SpecLedEx.Index
+  (no realization inputs, no tag scan)
+- Ancora.DecisionParser — from specled_ex SpecLedEx.DecisionParser
+  (change_type/supersedes/replaces/reverses_what parsed-and-ignored)
+- Ancora.DecisionParser.Affects — from specled_ex SpecLedEx.DecisionParser.CrossField
+  (affects_empty and affects_unresolved only)
+

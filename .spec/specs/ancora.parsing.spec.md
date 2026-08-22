@@ -105,8 +105,9 @@ decisions:
   statement: >-
     `Ancora.Parser.parse_file/2` and `Ancora.DecisionParser.parse_file/2`
     shall be the only semver-stable public functions: both exported,
-    documented as stable in the README, and their return shapes unchanged
-    within a major version. Every other module is internal.
+    documented as stable in their moduledocs and in the README, and their
+    return shapes unchanged within a major version. Every other module is
+    internal.
   priority: must
   stability: stable
 - id: ancora.parsing.consumer_corpora_parse
