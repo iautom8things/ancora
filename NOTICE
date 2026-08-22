@@ -57,3 +57,6 @@ Ported modules
 - Ancora.TagFindings — from specled_ex SpecLedEx.TagFindings
   (codes renamed tags/*; tags always on, no enforcement toggle)
 
+- Ancora.TaskArgs — from specled_ex SpecLedEx.TaskArgs
+- Ancora.TempName — from specled_ex SpecLedEx.TempName
+- Ancora.Output, Ancora.Output.Verdict — new (single-emitter stdout + verdict grammar)
