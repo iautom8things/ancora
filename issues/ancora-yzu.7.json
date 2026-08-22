@@ -13,9 +13,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu7-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.7/grok-yzu7-impl-1/log\n\nCommit: dd5649789e2eaa4ff877821bdd09e5e7b66c1311\nFiles touched: lib/ancora/git.ex, lib/ancora/git/batch_port.ex, lib/ancora/base_view.ex, lib/ancora/derive/change_set.ex, lib/ancora/derive/run_context.ex, test/ancora/git_test.exs, test/ancora/git_batch_port_test.exs, test/ancora/base_view_test.exs, test/ancora/derive/change_set_test.exs, test/ancora/static/forbidden_spawner_test.exs, test/support/tmp_git_repo.exs, NOTICE, .spec/specs/ancora.derive.spec.md\nTests added: Ancora.GitTest (ls_tree_entries lists committed blobs, read_blob uses the run's batch port, read_blob falls back to git show when the run has no batch port, memo table is unnamed/public/gone after stop, memo prefers DefIndex and resolver results over a raw AST, two concurrent runs do not collide); Ancora.Git.BatchPortTest (parse_stream returns three payloads including a zero-size blob, parse_stream keeps a trailing incomplete frame in rest, batch port is spawned without stderr_to_stdout, fetch returns payloads in request order through one port, fetch of a missing object does not corrupt the next blob); Ancora.BaseViewTest (blobs reads the base tree through the run's batch port, materialize writes base blobs into an isolated workspace, blobs can be narrowed by pathspecs); Ancora.Derive.ChangeSetTest (a file inside a new untracked directory is listed individually, git mv plus edit is a delete plus an add with both paths prefetched, union includes a dirty tracked file and an untracked file, prefetch goes through git show when the run has no batch port); Ancora.Static.ForbiddenSpawnerTest (no subprocess spawn exists outside Ancora.Git)\nVerification stubs flipped: none (tagged_tests format; no execute: flag)\nVerification tier: change-scoped — mix compile --warnings-as-errors; mix format --check-formatted; mix test test/ancora/git_test.exs test/ancora/git_batch_port_test.exs test/ancora/base_view_test.exs test/ancora/derive/change_set_test.exs test/ancora/static/forbidden_spawner_test.exs; mix spec.validate --root /Users/mz/src/ancora-git-change-set from /Users/mz/src/specled_ex; full-system\n  proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Ancora.Git is the only subprocess spawner; Ancora.Git.BatchPort holds one unregistered cat-file --batch port per run (no stderr_to_stdout) with a byte-stream frame parser. ChangeSet is git diff --name-status --no-renames union git status --porcelain --untracked-files=all, with serial base-blob prefetch through Git.read_blob/2 (git show escape hatch when no port). RunContext carries an unnamed ETS memo that prefers DefIndex/resolver values; BaseView materializes base blobs; the static forbidden-spawner test walks lib/.",
+      "timestamp": "2026-08-22T01:16:14Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "L6: Git layer and change set",
   "type": "task",
-  "updated_at": "2026-08-22T00:58:18Z"
+  "updated_at": "2026-08-22T01:16:14Z"
 }
