@@ -22,12 +22,6 @@ defmodule Ancora.Git.BatchPort do
   @default_timeout 60_000
 
   @doc """
-  Options passed to `Port.open/2`. Does not include `:stderr_to_stdout`.
-  """
-  @spec port_opts() :: [atom()]
-  def port_opts, do: @port_opts
-
-  @doc """
   Opens an unregistered `git cat-file --batch` port against `root`.
   """
   @spec open(Path.t()) :: {:ok, t()} | {:error, term()}

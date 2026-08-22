@@ -26,13 +26,21 @@ defmodule Ancora.GitTest do
 
   @tag spec: "ancora.derive.base_reads_batched"
   test "read_blob uses the run's batch port", %{root: root} do
+    # Would fail if the `%BatchPort{}` clause left the port idle and served
+    # bytes via `git show`: show uses `ctx.root`, which we point at a
+    # directory that is not a git repo, while the already-open port still
+    # answers against the real root.
     TmpGitRepo.write!(root, %{"lib/a.ex" => "defmodule A do\nend\n"})
     TmpGitRepo.commit!(root, "initial")
 
     assert {:ok, ctx} = RunContext.start(root, "HEAD")
     on_exit(fn -> RunContext.stop(ctx) end)
 
-    assert {:ok, "defmodule A do\nend\n"} = Git.read_blob(ctx, "lib/a.ex")
+    decoy = Path.join(root, "not-a-repo")
+    File.mkdir_p!(decoy)
+    isolated = %{ctx | root: decoy}
+
+    assert {:ok, "defmodule A do\nend\n"} = Git.read_blob(isolated, "lib/a.ex")
   end
 
   @tag spec: "ancora.derive.base_reads_batched"
@@ -91,8 +99,8 @@ defmodule Ancora.GitTest do
 
   @tag spec: "ancora.derive.memo_is_run_scoped"
   test "two concurrent runs do not collide", %{root: root} do
-    # Would fail if the memo were a named ETS table or the batch port were
-    # registered: the second run would read the first run's entries.
+    # Would fail if both runs shared one ETS memo: after the barrier, A would
+    # observe B's :only_b and B would observe A's :only_a.
     TmpGitRepo.write!(root, %{"README.md" => "a\n"})
     TmpGitRepo.commit!(root, "a")
 
@@ -101,41 +109,60 @@ defmodule Ancora.GitTest do
     TmpGitRepo.write!(root_b, %{"README.md" => "b\n"})
     TmpGitRepo.commit!(root_b, "b")
 
-    named_before = named_ets_tables()
-    registered_before = Process.registered()
+    parent = self()
 
     task_a =
       Task.async(fn ->
         {:ok, ctx} = RunContext.start(root, "HEAD")
-        :ok = RunContext.memo_put(ctx, :secret, :from_a, :blob)
-        Process.sleep(30)
-        got = RunContext.memo_get(ctx, :secret)
-        named? = :ets.info(ctx.memo, :named_table)
-        registered = Port.info(ctx.batch_port.port, :registered_name)
-        :ok = RunContext.stop(ctx)
-        {got, named?, registered}
+        :ok = RunContext.memo_put(ctx, :only_a, :from_a, :blob)
+        send(parent, {:ready, :a})
+
+        receive do
+          :cross ->
+            own = RunContext.memo_get(ctx, :only_a)
+            other = RunContext.memo_get(ctx, :only_b)
+            named? = :ets.info(ctx.memo, :named_table)
+            registered = Port.info(ctx.batch_port.port, :registered_name)
+            tid = ctx.memo
+            port = ctx.batch_port.port
+            :ok = RunContext.stop(ctx)
+            {own, other, named?, registered, tid, port}
+        end
       end)
 
     task_b =
       Task.async(fn ->
         {:ok, ctx} = RunContext.start(root_b, "HEAD")
-        :ok = RunContext.memo_put(ctx, :secret, :from_b, :blob)
-        Process.sleep(30)
-        got = RunContext.memo_get(ctx, :secret)
-        named? = :ets.info(ctx.memo, :named_table)
-        registered = Port.info(ctx.batch_port.port, :registered_name)
-        :ok = RunContext.stop(ctx)
-        {got, named?, registered}
+        :ok = RunContext.memo_put(ctx, :only_b, :from_b, :blob)
+        send(parent, {:ready, :b})
+
+        receive do
+          :cross ->
+            own = RunContext.memo_get(ctx, :only_b)
+            other = RunContext.memo_get(ctx, :only_a)
+            named? = :ets.info(ctx.memo, :named_table)
+            registered = Port.info(ctx.batch_port.port, :registered_name)
+            tid = ctx.memo
+            port = ctx.batch_port.port
+            :ok = RunContext.stop(ctx)
+            {own, other, named?, registered, tid, port}
+        end
       end)
 
-    assert {{:ok, :from_a, :blob}, false, {:registered_name, []}} = Task.await(task_a)
-    assert {{:ok, :from_b, :blob}, false, {:registered_name, []}} = Task.await(task_b)
+    assert_receive {:ready, :a}, 5_000
+    assert_receive {:ready, :b}, 5_000
+    send(task_a.pid, :cross)
+    send(task_b.pid, :cross)
 
-    assert MapSet.subset?(MapSet.new(named_ets_tables()), MapSet.new(named_before))
-    assert MapSet.subset?(MapSet.new(Process.registered()), MapSet.new(registered_before))
-  end
+    assert {{:ok, :from_a, :blob}, :error, false, {:registered_name, []}, tid_a, port_a} =
+             Task.await(task_a)
 
-  defp named_ets_tables do
-    Enum.filter(:ets.all(), fn tid -> :ets.info(tid, :named_table) == true end)
+    assert {{:ok, :from_b, :blob}, :error, false, {:registered_name, []}, tid_b, port_b} =
+             Task.await(task_b)
+
+    assert :ets.info(tid_a) == :undefined
+    assert :ets.info(tid_b) == :undefined
+    assert Port.info(port_a) == nil
+    assert Port.info(port_b) == nil
   end
 end

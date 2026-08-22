@@ -39,28 +39,18 @@ defmodule Ancora.Git.BatchPortTest do
 
   @tag spec: "ancora.derive.base_reads_batched"
   test "batch port is spawned without stderr_to_stdout" do
-    # Would fail if Port.open merged git stderr into stdout, so git chatter
-    # could interleave with blob payloads and corrupt every subsequent frame.
-    assert :stderr_to_stdout not in BatchPort.port_opts()
+    # Would fail if `:stderr_to_stdout` were in the options list spliced into
+    # `:erlang.open_port/2` in `BatchPort.open/1` (after `@port_opts` expands).
+    # Source-AST prints of `| @port_opts` would still pass if the attribute
+    # included that flag; this walk reads the compiled call-site list.
+    opts_lists = open_port_option_lists()
+    assert opts_lists != []
 
-    source = File.read!(Path.expand("lib/ancora/git/batch_port.ex"))
-    {:ok, ast} = Code.string_to_quoted(source)
-
-    opens =
-      ast
-      |> Macro.prewalk([], fn
-        {{:., _, [{:__aliases__, _, [:Port]}, :open]}, _, args} = node, acc ->
-          {node, [Macro.to_string(args) | acc]}
-
-        other, acc ->
-          {other, acc}
-      end)
-      |> elem(1)
-
-    assert opens != []
-
-    Enum.each(opens, fn printed ->
-      refute printed =~ "stderr_to_stdout"
+    Enum.each(opts_lists, fn opts ->
+      assert :binary in opts
+      assert :exit_status in opts
+      assert :hide in opts
+      refute :stderr_to_stdout in opts
     end)
   end
 
@@ -115,4 +105,58 @@ defmodule Ancora.Git.BatchPortTest do
     assert {:error, {:missing_object, ^absent}} = BatchPort.fetch(port, absent)
     assert {:ok, %{payload: "keep\n"}} = BatchPort.fetch(port, "HEAD:lib/a.ex")
   end
+
+  defp open_port_option_lists do
+    path = :code.which(BatchPort)
+
+    {:ok, {_, [{:debug_info, {:debug_info_v1, :elixir_erl, {:elixir_v1, map, _}}}]}} =
+      :beam_lib.chunks(path, [:debug_info])
+
+    {{:open, 1}, :def, _meta, clauses} =
+      Enum.find(map.definitions, fn {{name, arity}, _, _, _} ->
+        {name, arity} == {:open, 1}
+      end)
+
+    Enum.flat_map(clauses, fn {_meta, _args, _guards, body} ->
+      collect_open_port_opts(body)
+    end)
+  end
+
+  defp collect_open_port_opts(ast) do
+    {_ast, acc} =
+      Macro.prewalk(ast, [], fn
+        {{:., _, [:erlang, :open_port]}, _, [_name, opts_ast]} = node, acc ->
+          {node, [expand_option_names(opts_ast) | acc]}
+
+        {{:., _, [{:__aliases__, _, [:Port]}, :open]}, _, [_name, opts_ast]} = node, acc ->
+          {node, [expand_option_names(opts_ast) | acc]}
+
+        other, acc ->
+          {other, acc}
+      end)
+
+    acc
+  end
+
+  defp expand_option_names(opts_ast) do
+    opts_ast
+    |> expand_cons()
+    |> Enum.map(&option_name/1)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp expand_cons({:|, _, [head, tail]}), do: [head | expand_cons(tail)]
+
+  defp expand_cons(list) when is_list(list) do
+    Enum.flat_map(list, fn
+      {:|, _, [head, tail]} -> [head | expand_cons(tail)]
+      item -> [item]
+    end)
+  end
+
+  defp expand_cons(other), do: [other]
+
+  defp option_name(atom) when is_atom(atom), do: atom
+  defp option_name({atom, _value}) when is_atom(atom), do: atom
+  defp option_name(_), do: nil
 end

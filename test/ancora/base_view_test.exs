@@ -14,7 +14,16 @@ defmodule Ancora.BaseViewTest do
   end
 
   @tag spec: "ancora.derive.base_reads_batched"
-  test "blobs reads the base tree through the run's batch port", %{root: root} do
+  test "blobs reads the base tree through Git.read_blob/2", %{root: root} do
+    # Would fail if BaseView called BatchPort.fetch or opened an ephemeral
+    # port instead of Git.read_blob/2.
+    source = File.read!(Path.expand("lib/ancora/base_view.ex"))
+    {:ok, ast} = Code.string_to_quoted(source)
+    {_, calls} = blob_read_calls(ast)
+    assert :read_blob in calls
+    assert :batch_false in calls
+    refute Enum.any?(calls, &match?({:batch_port, _}, &1))
+
     TmpGitRepo.write!(root, %{
       "lib/a.ex" => "A\n",
       ".spec/specs/s.spec.md" => "spec\n"
@@ -28,6 +37,21 @@ defmodule Ancora.BaseViewTest do
     assert {:ok, files} = BaseView.blobs(ctx)
     assert files["lib/a.ex"] == "A\n"
     assert files[".spec/specs/s.spec.md"] == "spec\n"
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "blobs falls back to git show when the run has no batch port", %{root: root} do
+    # Would fail if BaseView opened an ephemeral BatchPort when the ctx has
+    # no port, instead of Git.read_blob/2's git-show clause.
+    TmpGitRepo.write!(root, %{"lib/a.ex" => "show-me\n"})
+    TmpGitRepo.commit!(root, "initial")
+
+    assert {:ok, ctx} = RunContext.start(root, "HEAD", batch: false)
+    on_exit(fn -> RunContext.stop(ctx) end)
+    assert ctx.batch_port == nil
+
+    assert {:ok, files} = BaseView.blobs(ctx)
+    assert files["lib/a.ex"] == "show-me\n"
   end
 
   @tag spec: "ancora.derive.base_reads_batched"
@@ -52,5 +76,31 @@ defmodule Ancora.BaseViewTest do
 
     assert {:ok, files} = BaseView.blobs(root, "HEAD", pathspecs: ["lib"])
     assert Map.keys(files) == ["lib/a.ex"]
+  end
+
+  defp blob_read_calls(ast) do
+    Macro.prewalk(ast, [], fn
+      {{:., _, [{:__aliases__, _, [:Git]}, :read_blob]}, _, _} = node, acc ->
+        {node, [:read_blob | acc]}
+
+      {{:., _, [{:__aliases__, _, [:RunContext]}, :start]}, _, args} = node, acc ->
+        extra =
+          if args |> List.flatten() |> Enum.any?(&match?({:batch, false}, &1)) do
+            [:batch_false]
+          else
+            []
+          end
+
+        {node, extra ++ acc}
+
+      {{:., _, [{:__aliases__, _, [:BatchPort]}, name]}, _, _} = node, acc ->
+        {node, [{:batch_port, name} | acc]}
+
+      {{:., _, [{:__aliases__, _, [:Ancora, :Git, :BatchPort]}, name]}, _, _} = node, acc ->
+        {node, [{:batch_port, name} | acc]}
+
+      other, acc ->
+        {other, acc}
+    end)
   end
 end
