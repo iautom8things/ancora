@@ -60,3 +60,9 @@ Ported modules
 - Ancora.TaskArgs — from specled_ex SpecLedEx.TaskArgs
 - Ancora.TempName — from specled_ex SpecLedEx.TempName
 - Ancora.Output, Ancora.Output.Verdict — new (single-emitter stdout + verdict grammar)
+Ancora.Git
+  from SpecLedEx.Evidence.Git (subprocess runner, ls-tree -z listing,
+  cat-file --batch framing).
+
+Ancora.BaseView
+  from SpecLedEx.BaseView (ls-tree + batched blob materialization).

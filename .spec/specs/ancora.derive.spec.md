@@ -38,27 +38,31 @@ decisions:
 - id: ancora.derive.change_set_union
   statement: >-
     The change set shall be the union of `git diff --name-status --no-renames
-    <base>` and `git status --porcelain --untracked-files=all`. A file inside
-    a new untracked directory shall appear individually; a `git mv` followed
-    by an edit shall appear as a delete plus an add with both paths
-    prefetched.
+    <base>` and `git status --porcelain --untracked-files=all`, as computed
+    by Ancora.Derive.ChangeSet. A file inside a new untracked directory shall
+    appear individually; a `git mv` followed by an edit shall appear as a
+    delete plus an add with both paths prefetched.
   priority: must
   stability: stable
 - id: ancora.derive.base_reads_batched
   statement: >-
     Every base-side blob read shall go through one `git cat-file --batch`
     port per run, owned by the run context and never registered under a name.
-    All base blobs a run can need shall be prefetched serially through that
-    port before any parallel work begins. The port shall be spawned without
-    `stderr_to_stdout` so git stderr can never interleave with blob payloads.
+    Ancora.Git.BatchPort holds that port; Ancora.Git.read_blob/2 is the
+    single function head, falling back to per-file `git show` when no port
+    is present. All base blobs a run can need shall be prefetched serially
+    through that port before any parallel work begins. The port shall be
+    spawned without `stderr_to_stdout` so git stderr can never interleave
+    with blob payloads.
   priority: must
   stability: stable
 - id: ancora.derive.memo_is_run_scoped
   statement: >-
     Per-run memoization (parsed ASTs, DefIndex results, resolver results,
     the module-to-file map, the ambient table) shall live in an ETS table
-    created per run and passed by reference in the run context, never a named
-    table, and shall not persist to disk.
+    created per run and passed by reference in Ancora.Derive.RunContext, never
+    a named table, and shall not persist to disk. Stored values shall prefer
+    DefIndex and resolver results over raw ASTs.
   priority: must
   stability: stable
 - id: ancora.derive.project_info_from_root
@@ -252,6 +256,7 @@ decisions:
     - the frame parser consumes it
   then:
     - three payloads are returned with the correct sizes and oids
+    - framing is `<oid> <type> <size>\n<payload>\n`
   covers:
     - ancora.derive.base_reads_batched
 - id: ancora.derive.scenario.two_concurrent_runs_do_not_collide
