@@ -24,15 +24,15 @@ defmodule Ancora.Derive.Compare do
       when is_binary(subject_id) and is_map(base) and is_map(head) and is_list(opts) do
     locator = Keyword.fetch!(opts, :locator)
     change_set = Keyword.fetch!(opts, :change_set)
-    base_all = Derive.all_bindings(base)
-    head_all = Derive.all_bindings(head)
 
-    set_findings(subject_id, base_all, head_all) ++
+    set_findings(subject_id, base, head) ++
       transition_findings(subject_id, base, head, locator, change_set) ++
       drift_findings(subject_id, base, head, locator, change_set, opts)
   end
 
   defp set_findings(subject_id, base, head) do
+    base = comparable_bindings(base)
+    head = comparable_bindings(head)
     growth = MapSet.difference(head, base)
     shrink = MapSet.difference(base, head)
 
@@ -40,6 +40,13 @@ defmodule Ancora.Derive.Compare do
     |> maybe_set_finding("derived/growth", subject_id, growth)
     |> maybe_set_finding("derived/shrink", subject_id, shrink)
     |> Enum.reverse()
+  end
+
+  defp comparable_bindings(subject_set) do
+    MapSet.difference(
+      Derive.all_bindings(subject_set),
+      Map.get(subject_set, :dep_generated, MapSet.new())
+    )
   end
 
   defp maybe_set_finding(findings, code, subject_id, set) do

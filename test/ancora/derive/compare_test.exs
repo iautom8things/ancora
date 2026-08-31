@@ -146,6 +146,31 @@ defmodule Ancora.Derive.CompareTest do
              )
   end
 
+  test "dependency-generated bindings stay silent when present on only one side" do
+    binding = {MyApp.Repo, :insert, 1}
+
+    head_only =
+      Compare.compare(
+        "repo",
+        set(:base, []),
+        set(:head, [], [binding], [binding]),
+        locator: locator(),
+        change_set: %ChangeSet{}
+      )
+
+    base_only =
+      Compare.compare(
+        "repo",
+        set(:base, [], [binding], [binding]),
+        set(:head, []),
+        locator: locator(),
+        change_set: %ChangeSet{}
+      )
+
+    assert head_only == []
+    assert base_only == []
+  end
+
   test "def_moved_into_use_is_drift" do
     binding = {Billing, :changeset, 2}
 
@@ -161,6 +186,47 @@ defmodule Ancora.Derive.CompareTest do
     assert message =~ "definition moved into or out of macro-generated code"
   end
 
+  test "generated transition outside the change set stays quiet" do
+    binding = {Billing, :changeset, 2}
+
+    assert [] =
+             Compare.compare(
+               "billing",
+               set(:base, [binding]),
+               set(:head, [], [binding]),
+               locator: locator(),
+               change_set: %ChangeSet{},
+               source_reader: fn _side, _path -> raise "unchanged source was parsed" end
+             )
+  end
+
+  test "default-expanded generated transition reports once" do
+    bindings = [{Billing, :changeset, 1}, {Billing, :changeset, 2}]
+
+    assert [%{code: "derived/drift", message: message}] =
+             Compare.compare(
+               "billing",
+               set(:base, bindings),
+               set(:head, [], bindings),
+               locator: locator(),
+               change_set: %ChangeSet{entries: [%{path: "lib/billing.ex", status: :modified}]}
+             )
+
+    assert message =~ "definition moved into or out of macro-generated code"
+  end
+
+  test "unparseable base definition produces a finding naming its file" do
+    binding = {Billing, :next, 1}
+
+    assert [%{code: "derived/unparseable_source", file: "lib/billing.ex"}] =
+             compare(
+               [binding],
+               [binding],
+               "defmodule Billing do\n  def next(, do: :broken\nend\n",
+               "defmodule Billing do\n  def next(value), do: value\nend\n"
+             )
+  end
+
   defp compare(base_bindings, head_bindings, base_source, head_source) do
     Compare.compare("billing", set(:base, base_bindings), set(:head, head_bindings),
       locator: locator(),
@@ -172,13 +238,13 @@ defmodule Ancora.Derive.CompareTest do
     )
   end
 
-  defp set(side, bindings, generated \\ []) do
+  defp set(side, bindings, generated \\ [], dep_generated \\ []) do
     %{
       subject_id: "billing",
       side: side,
       bindings: MapSet.new(bindings),
       generated: MapSet.new(generated),
-      dep_generated: MapSet.new(),
+      dep_generated: MapSet.new(dep_generated),
       unresolved: [],
       findings: [],
       test_files: []

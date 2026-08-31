@@ -99,8 +99,77 @@ defmodule Ancora.Derive.PipelineTest do
     assert MapSet.member?(set.dep_generated, {MyApp.Repo, :insert, 1})
   end
 
+  test "multiple subjects fan in files by path and deduplicate shared work" do
+    indexes = %{
+      App.Shared => index!("defmodule App.Shared do\n  def run, do: :ok\nend\n"),
+      App.Alpha => index!("defmodule App.Alpha do\n  def run, do: :ok\nend\n"),
+      App.Beta => index!("defmodule App.Beta do\n  def run, do: :ok\nend\n")
+    }
+
+    membership = %Membership{
+      head: MapSet.new(["App.Shared", "App.Alpha", "App.Beta"]),
+      base: MapSet.new()
+    }
+
+    {:ok, ctx} = Derive.context({:ok, membership}, :head, indexes)
+    caller = self()
+
+    sources = %{
+      "test/shared_test.exs" => call_source(App.Shared),
+      "test/alpha_test.exs" => call_source(App.Alpha),
+      "test/beta_test.exs" => call_source(App.Beta)
+    }
+
+    source_reader = fn path ->
+      send(caller, {:source_read, path})
+      Map.fetch(sources, path)
+    end
+
+    subject_files = %{
+      "app.alpha" => ["test/shared_test.exs", "test/alpha_test.exs", "test/alpha_test.exs"],
+      "app.beta" => ["test/beta_test.exs", "test/shared_test.exs"]
+    }
+
+    assert {:ok, %{"app.alpha" => alpha, "app.beta" => beta}} =
+             Derive.run(subject_files, side: :head, context: ctx, sources: source_reader)
+
+    assert alpha.test_files == ["test/shared_test.exs", "test/alpha_test.exs"]
+    assert beta.test_files == ["test/beta_test.exs", "test/shared_test.exs"]
+    assert alpha.bindings == MapSet.new([{App.Shared, :run, 0}, {App.Alpha, :run, 0}])
+    assert beta.bindings == MapSet.new([{App.Beta, :run, 0}, {App.Shared, :run, 0}])
+
+    assert_receive {:source_read, "test/shared_test.exs"}
+    assert_receive {:source_read, "test/alpha_test.exs"}
+    assert_receive {:source_read, "test/beta_test.exs"}
+    refute_receive {:source_read, _path}
+  end
+
+  test "resolver errors halt the pipeline" do
+    membership = %Membership{head: MapSet.new(), base: MapSet.new()}
+    {:ok, ctx} = Derive.context({:ok, membership}, :head, %{})
+
+    assert {:error, {:source_read, "test/missing_test.exs", :enoent}} =
+             Derive.run(%{"app.subject" => ["test/missing_test.exs"]},
+               side: :head,
+               context: ctx,
+               sources: %{}
+             )
+  end
+
   defp index!(source) do
     {:ok, index} = DefIndex.build(source, "fixture.ex")
     index
+  end
+
+  defp call_source(module) do
+    """
+    defmodule PipelineTest do
+      use ExUnit.Case
+
+      test "call" do
+        #{inspect(module)}.run()
+      end
+    end
+    """
   end
 end
