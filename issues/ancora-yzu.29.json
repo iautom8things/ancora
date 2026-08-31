@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Manuel Zubieta",
   "blocked_by": [
     "ancora-yzu.13",
     "ancora-yzu.14"
@@ -11,8 +11,8 @@
   "labels": [],
   "parent": "ancora-yzu",
   "priority": 2,
-  "status": "open",
+  "status": "in_progress",
   "title": "Add exact eight-task static contract after L11 and L12",
   "type": "task",
-  "updated_at": "2026-08-31T17:51:59Z"
+  "updated_at": "2026-08-31T18:26:08Z"
 }
