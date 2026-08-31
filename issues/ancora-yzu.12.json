@@ -13,9 +13,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu12-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.12/codex-yzu12-impl-1/log\n\nCommit: f802d8c5383c7fca0855fe621c6065bcd373b394\nFiles touched: .spec/specs/ancora.tasks.spec.md; lib/ancora/{next,prime,status}.ex; lib/mix/tasks/spec.{next,prime,status}.ex; test/ancora/{next,prime,status}_test.exs; test/mix/tasks/spec_{next,prime,status}_test.exs; test/support/ancora_case.exs\nTests added: Ancora.StatusTest (fixed threshold and empty/thin rows; project/dep generated split); Ancora.NextTest (local/subject-update, ready, uncovered/no-change, cross-cutting/decision labels); Ancora.PrimeTest (composed footer); Mix.Tasks.Spec.StatusTest (zero-exit corpus, JSON rejection, env failure, callable surface); Mix.Tasks.Spec.NextTest (subprocess output, usage/env failures, callable surface); Mix.Tasks.Spec.PrimeTest (subprocess footer, usage/env failures, callable surface)\nVerification stubs flipped: none\nVerification tier: change-scoped — mix format --check-formatted; mix compile --warnings-as-errors; test/ancora/{status,next,prime}_test.exs; test/mix/tasks/spec_{status,next,prime}_test.exs; mix test --stale; /Users/mz/src/specled_ex mix spec.validate --root /Users/mz/src/ancora-report-tasks; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Added spec.prime, spec.next, and spec.status with source-derived status rows, verbatim specled_ex classification/reconciliation labels, one suggested check command, and the exact read-protocol footer. Subprocess tests cover stdout and stderr separately across normal, empty, usage, and environment paths; report tasks never emit verdicts. The exact eight-task static assertion is deferred to [exact eight-task follow-up](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-yzu.29.json) because L11/L12 have not added the other three tasks yet.\n\nSelf-gate diagnostic: mix spec.check --base HEAD no longer reports the three new Mix task files uncovered. It remains red on pre-L13 empty ancora.review/ancora.scaffold subjects and change/missing_decision for the authorized ancora.tasks spec acknowledgment; those files are outside this ticket's allowed touches.",
+      "timestamp": "2026-08-31T17:51:18Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "L10: Report tasks (spec.prime, spec.next, spec.status)",
   "type": "task",
-  "updated_at": "2026-08-31T17:25:40Z"
+  "updated_at": "2026-08-31T17:51:18Z"
 }
