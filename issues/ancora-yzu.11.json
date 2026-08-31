@@ -62,11 +62,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: Delta-scoped VERIFY reported PASS with all 10 audit items discharged\n(Preflight literal-elixirc-paths fix mutation-proven both directions, spec text\ncorrected, audit-expanded scope on config.ex recorded), and the mechanical-\nremedy residual (bare value-taking retired flags) is discharged by f415c6f with\nTEST_CRITIC: PASS and fresh mutation evidence (restored flag now lands tier=env\nand the test goes red). Zero unexplained scope; untouched first-pass coverage\nstands per delta scoping. No further auditor was spawned per policy.",
       "timestamp": "2026-08-31T17:17:56Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off. (Gate: compile -Werr, format, deps.unlock --check-unused, 280 tests + 3 properties; mix spec.check --base HEAD emits \"spec.check result=fail tier=branch errors=0 warnings=2\" — verdict line present, warnings are the two draft subjects, per the ticket's smoke expectation.)",
+      "timestamp": "2026-08-31T17:18:31Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L9: Gate assembly (spec.check, spec.validate, --json)",
   "type": "task",
-  "updated_at": "2026-08-31T17:18:03Z"
+  "updated_at": "2026-08-31T17:18:31Z"
 }
