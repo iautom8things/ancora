@@ -34,7 +34,28 @@ defmodule Mix.Tasks.Spec.Decision.NewTest do
       Mix.Tasks.Spec.Decision.New.run([id, "--root", root])
     end
 
-    capture_io(fn -> Mix.Tasks.Spec.Decision.New.run([id, "--root", root, "--force"]) end)
-    refute File.read!(path) == "edited\n"
+    assert File.read!(path) == "edited\n"
+
+    capture_io(fn ->
+      Mix.Tasks.Spec.Decision.New.run([
+        id,
+        "--root",
+        root,
+        "--title",
+        "Example",
+        "--force"
+      ])
+    end)
+
+    decision = Ancora.DecisionParser.parse_file(path, root)
+
+    assert decision["meta"] == %{
+             "affects" => [],
+             "date" => Date.to_iso8601(Date.utc_today()),
+             "id" => id,
+             "status" => "proposed"
+           }
+
+    assert decision["title"] == "Example"
   end
 end

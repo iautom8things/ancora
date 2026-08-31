@@ -39,9 +39,15 @@ defmodule Ancora.Scaffold.TemplatesTest do
 
   @tag spec: "ancora.scaffold.config_template"
   test "config template loads with the taught defaults", %{root: root, scaffold: scaffold} do
-    config = Ancora.Config.load(root, known_subjects: ["project.core"])
+    stderr =
+      capture_io(:stderr, fn ->
+        send(self(), {:config, Ancora.Config.load(root, known_subjects: ["project.core"])})
+      end)
+
+    assert_receive {:config, config}
     content = File.read!(Path.join(scaffold, "config.yml"))
 
+    refute stderr =~ "[CONFIG]"
     assert config.default_base == "origin/main"
     assert config.test_paths == ["test"]
     assert config.lib_paths == nil
@@ -54,6 +60,9 @@ defmodule Ancora.Scaffold.TemplatesTest do
   test "templates and prose contain no retired vocabulary", %{scaffold: scaffold} do
     migration_path = Path.expand("../../../docs/migration.md", __DIR__)
     repo_readme = Path.expand("../../../README.md", __DIR__)
+    needles = Ancora.RetiredVocabulary.needles(migration_path)
+
+    assert "branch_guard_dangling_binding" in needles
 
     documents =
       scaffold
@@ -71,7 +80,7 @@ defmodule Ancora.Scaffold.TemplatesTest do
         ]
 
     for {path, content} <- documents,
-        needle <- Ancora.RetiredVocabulary.needles(migration_path) do
+        needle <- needles do
       refute content =~ needle, "#{needle} appears in #{path}"
     end
   end
