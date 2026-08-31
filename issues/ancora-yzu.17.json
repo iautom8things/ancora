@@ -21,11 +21,15 @@
     {
       "text": "WORKER_ERROR\nSession: yzu17-impl-2\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.17/codex-yzu17-impl-2/log\n\nFinal-tier runs: 2\n\nRun 1 stopped at the mechanical scope guard because git collapsed the untracked scripts/replay directory to scripts; no verification command ran. Run 2 passed the corrected scope guard, diff check, formatting, and warnings-as-errors compilation, then mix test --stale ran 280 tests with 2 failures in Mix.Tasks.Spec.CheckTest. The findings-order test captured a build-directory lock line before derived/drift, and the environment-failure test expected the missing-base message but received the not-a-git-repository message. Known red baselines are none, so the second red exhausts the cap. No further final-tier command ran and no commit was created.",
       "timestamp": "2026-08-31T18:09:59Z"
+    },
+    {
+      "text": "ESCALATED\nTwo consecutive WORKER_ERROR attempts. Attempt 1 fixed the argv separator but hit the Atlas OTP toolchain-selection bug on its second capped run. Attempt 2 fixed the toolchain handling and scope-guard issue, then its second capped run failed on two Mix.Tasks.Spec.CheckTest cases (build-lock line ordering; missing-base vs not-a-git-repo message) — tests outside this ticket's diff that pass at every orchestrator merge gate, so the reds look load-induced (four concurrent mix suites at the time). Harness work in the stage worktree is uncommitted but substantially complete per the attempt logs. Parked; likely cheap to finish with a quiet-machine retry when the operator says go.",
+      "timestamp": "2026-08-31T18:21:54Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M1: Replay harness + bench harness",
   "type": "task",
-  "updated_at": "2026-08-31T18:09:59Z"
+  "updated_at": "2026-08-31T18:21:54Z"
 }
