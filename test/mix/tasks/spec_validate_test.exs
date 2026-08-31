@@ -4,14 +4,15 @@ defmodule Mix.Tasks.Spec.ValidateTest do
   use Ancora.TestCase
 
   @tag spec: "ancora.tasks.validate_flags"
-  test "rejects output and emits one usage verdict", %{root: root} do
+  test "rejects every retired flag with a usage verdict", %{root: root} do
     create_corpus(root)
-    result = System.cmd("mix", ["spec.validate", "--root", root, "--output", "x.json"])
 
-    assert {stdout, 1} = result
+    for args <- [["--output", "x.json"], ["--run-commands"]] do
+      assert {stdout, 1} = System.cmd("mix", ["spec.validate", "--root", root | args])
 
-    assert List.last(String.split(stdout, "\n", trim: true)) =~
-             "spec.validate result=fail tier=usage"
+      assert List.last(String.split(stdout, "\n", trim: true)) =~
+               "spec.validate result=fail tier=usage"
+    end
   end
 
   @tag spec: "ancora.tasks.finding_line_format"
@@ -38,6 +39,29 @@ defmodule Mix.Tasks.Spec.ValidateTest do
     {strict, 1} = System.cmd("mix", ["spec.validate", "--root", root, "--strict"])
 
     assert List.last(String.split(strict, "\n", trim: true)) =~
+             "spec.validate result=fail tier=validate"
+  end
+
+  @tag spec: "ancora.gate.strict_verdict"
+  @tag spec: "ancora.tasks.exit_codes"
+  test "errors fail validate without strict mode", %{root: root} do
+    create_corpus(root)
+
+    write_files(root, %{
+      ".spec/specs/broken.spec.md" => """
+      # Broken
+
+      ```spec-meta
+      id: [
+      ```
+      """
+    })
+
+    {stdout, 1} = System.cmd("mix", ["spec.validate", "--root", root])
+
+    assert stdout =~ "spec/parse_error"
+
+    assert List.last(String.split(stdout, "\n", trim: true)) =~
              "spec.validate result=fail tier=validate"
   end
 

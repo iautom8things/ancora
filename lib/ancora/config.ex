@@ -53,7 +53,7 @@ defmodule Ancora.Config do
 
   defstruct default_base: "origin/main",
             test_paths: ["test"],
-            lib_paths: ["lib"],
+            lib_paths: nil,
             severities: %{},
             overrides: [],
             findings: []
@@ -61,7 +61,7 @@ defmodule Ancora.Config do
   @type t :: %__MODULE__{
           default_base: String.t(),
           test_paths: [String.t()],
-          lib_paths: [String.t()],
+          lib_paths: [String.t()] | nil,
           severities: %{optional(String.t()) => Severity.severity()},
           overrides: [Override.t()],
           findings: [Finding.t()]
@@ -186,7 +186,7 @@ defmodule Ancora.Config do
 
     {default_base, findings} = parse_default_base(map, file, findings)
     {test_paths, findings} = parse_string_list(map, "test_paths", ["test"], file, findings)
-    {lib_paths, findings} = parse_string_list(map, "lib_paths", ["lib"], file, findings)
+    {lib_paths, findings} = parse_lib_paths(map, file, findings)
     {severities, findings} = parse_severities(map, file, findings)
     {overrides, findings} = parse_overrides(map, file, known_subjects, findings)
 
@@ -198,6 +198,14 @@ defmodule Ancora.Config do
       overrides: overrides,
       findings: Enum.reverse(findings)
     }
+  end
+
+  defp parse_lib_paths(map, file, findings) do
+    if Map.has_key?(map, "lib_paths") do
+      parse_string_list(map, "lib_paths", ["lib"], file, findings)
+    else
+      {nil, findings}
+    end
   end
 
   defp unknown_key_findings(map, file) do

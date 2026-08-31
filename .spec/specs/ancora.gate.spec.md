@@ -38,7 +38,9 @@ decisions:
     conditions shall never be emitted as findings and shall not be
     configurable off. No preflight check shall inspect `_build` or any
     `.app` file. Preflight shall load `.spec/config.yml` once and thread the
-    resulting config through project identity and gate assembly.
+    resulting config through project identity and gate assembly. The config
+    `lib_paths:` key shall override project identity only when present in
+    `.spec/config.yml`; literal `elixirc_paths:` shall be honored otherwise.
   priority: must
   stability: stable
 - id: ancora.gate.default_base_no_fallback

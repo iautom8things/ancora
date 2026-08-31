@@ -13,7 +13,7 @@ defmodule Ancora.ConfigTest do
       config = Config.load(root)
       assert config.default_base == "origin/main"
       assert config.test_paths == ["test"]
-      assert config.lib_paths == ["lib"]
+      assert config.lib_paths == nil
       assert config.severities == %{}
       assert config.overrides == []
       assert config.findings == []

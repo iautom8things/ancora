@@ -22,7 +22,7 @@ defmodule Ancora.Gate.Preflight do
     config = Config.load(root)
 
     with :ok <- git_repo(root),
-         {:ok, project} <- ProjectInfo.load(root, lib_paths: configured_lib_paths(root, config)),
+         {:ok, project} <- ProjectInfo.load(root, project_opts(config)),
          {:ok, base} <- resolve_base(root, Keyword.get(opts, :base), config.default_base) do
       {:ok, %{root: root, base: base, config: config, project: project}}
     end
@@ -61,7 +61,9 @@ defmodule Ancora.Gate.Preflight do
       "or set the default_base config key"
   end
 
-  # Config.load/1 is the sole YAML parse in preflight. ProjectInfo receives its
-  # already-resolved paths and therefore cannot re-read the config file.
-  defp configured_lib_paths(_root, %Config{lib_paths: paths}), do: paths
+  # Config.load/1 is the sole YAML parse in preflight. ProjectInfo receives an
+  # override only when the config key was present, so literal elixirc_paths
+  # remain authoritative otherwise.
+  defp project_opts(%Config{lib_paths: nil}), do: []
+  defp project_opts(%Config{lib_paths: paths}), do: [lib_paths: paths]
 end

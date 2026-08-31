@@ -66,15 +66,50 @@ defmodule Mix.Tasks.Spec.CheckTest do
   end
 
   @tag spec: "ancora.tasks.check_flags"
-  test "json mode prints a report before the last-line verdict", %{root: root} do
+  test "json mode includes a growth finding before the last-line verdict", %{root: root} do
     create_project(root)
+    write_anchored_subject(root)
+    commit_all(root, "anchored subject")
+
+    write_files(root, %{
+      "lib/sample.ex" => """
+      defmodule Sample do
+        def value, do: :current
+        def other, do: :new
+      end
+      """,
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works" do
+          assert Sample.value() == :current
+          assert Sample.other() == :new
+        end
+      end
+      """
+    })
+
     result = run_mix(["spec.check", "--root", root, "--base", "HEAD", "--json"])
 
-    assert result.status == 0
+    assert result.status == 1
     output_lines = lines(result.stdout)
-    assert List.last(output_lines) == "spec.check result=pass"
-    assert %{"checked" => %{"subjects" => 0}} = output_lines |> hd() |> Jason.decode!()
-    assert "{\"ok\":true}" == Ancora.Json.encode!(%{ok: true})
+    assert List.last(output_lines) =~ "spec.check result=fail tier=branch"
+
+    report = output_lines |> hd() |> Jason.decode!()
+    assert Enum.any?(report["findings"], &(&1["code"] == "derived/growth"))
+  end
+
+  @tag spec: "ancora.tasks.check_flags"
+  test "every retired check flag is a usage error", %{root: root} do
+    create_project(root)
+
+    for flag <-
+          ~w(--min-strength --command-timeout-ms --accept-drift --test-tags --no-run-commands) do
+      result = run_mix(["spec.check", "--root", root, flag])
+      assert result.status == 1
+      assert List.last(lines(result.stdout)) =~ "spec.check result=fail tier=usage"
+    end
   end
 
   @tag spec: "ancora.tasks.check_flags"
@@ -96,6 +131,22 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert result.stderr =~ "[CONFIG]"
     refute result.stdout =~ "[CONFIG]"
     assert List.last(lines(result.stdout)) =~ "spec.check result=fail tier=branch"
+  end
+
+  @tag spec: "ancora.gate.strict_verdict"
+  @tag spec: "ancora.tasks.exit_codes"
+  test "a warning-only corpus fails spec.check", %{root: root} do
+    create_project(root)
+    write_unanchored_subject(root)
+    commit_all(root, "unanchored subject")
+
+    result = run_mix(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    assert result.stdout =~ "derived/unanchored_subject"
+
+    assert List.last(lines(result.stdout)) =~
+             "spec.check result=fail tier=branch errors=0 warnings=1"
   end
 
   @tag spec: "ancora.tasks.check_flags"
@@ -121,6 +172,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
     result = run_mix(["spec.check", "--root", root, "--base", "HEAD"])
     assert result.status != 0
     refute result.stderr =~ "compiled target"
+    assert List.last(lines(result.stdout)) =~ "spec.check result=fail tier="
   end
 
   defp create_project(root) do
@@ -175,6 +227,43 @@ defmodule Mix.Tasks.Spec.CheckTest do
           assert Sample.value() in [:current, :changed]
           assert apply(Sample, :value, []) in [:current, :changed]
         end
+      end
+      """
+    })
+  end
+
+  defp write_unanchored_subject(root) do
+    write_files(root, %{
+      ".spec/specs/sample.spec.md" => """
+      # Sample
+
+      ```yaml spec-meta
+      id: sample.subject
+      kind: module
+      status: draft
+      ```
+
+      ```yaml spec-requirements
+      - id: sample.subject.works
+        statement: The sample shall work.
+        priority: must
+      ```
+
+      ```yaml spec-scenarios
+      []
+      ```
+
+      ```yaml spec-verification
+      - kind: tagged_tests
+        covers:
+          - sample.subject.works
+      ```
+      """,
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(true)
       end
       """
     })

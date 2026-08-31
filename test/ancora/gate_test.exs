@@ -34,6 +34,26 @@ defmodule Ancora.GateTest do
     assert dynamic_app =~ "app: as a literal atom"
   end
 
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  @tag spec: "ancora.derive.project_info_from_root"
+  test "preflight preserves literal elixirc paths unless config overrides them", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample, elixirc_paths: [\"lib\", \"extra\"]]"),
+      ".spec/specs/.keep" => ""
+    })
+
+    commit_all(root, "base")
+
+    assert {:ok, preflight} = Preflight.run(root, base: "HEAD")
+    assert preflight.project.lib_paths == ["lib", "extra"]
+
+    write_config(root, "lib_paths:\n  - src\n")
+    assert {:ok, overridden} = Preflight.run(root, base: "HEAD")
+    assert overridden.project.lib_paths == ["src"]
+  end
+
   @tag spec: "ancora.gate.default_base_no_fallback"
   test "missing default base names every remedy", %{root: root} do
     create_clean_repo(root)
@@ -64,6 +84,18 @@ defmodule Ancora.GateTest do
 
     assert {:ok, report} = Gate.check(root, base: "HEAD")
     assert Enum.any?(report.all_findings, &(&1.code == "change/uncovered_file"))
+  end
+
+  @tag spec: "ancora.gate.change_findings"
+  test "governance change without an ADR is reported through the gate", %{root: root} do
+    create_clean_repo(root)
+    write_config(root, "default_base: main\n")
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "change/missing_decision" and finding.file == ".spec/config.yml"
+           end)
   end
 
   @tag spec: "ancora.gate.change_findings"
@@ -148,7 +180,53 @@ defmodule Ancora.GateTest do
 
   @tag spec: "ancora.findings.info_visibility"
   @tag spec: "ancora.gate.unanchored_subject"
-  test "info-only unanchored finding is hidden and does not fail", %{root: root} do
+  test "an override changes only its unanchored subject", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/a.spec.md" => subject_spec("The first sample shall work.", "sample.a"),
+      ".spec/specs/b.spec.md" => subject_spec("The second sample shall work.", "sample.b"),
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.a.works"
+        test "a works", do: assert(true)
+
+        @tag spec: "sample.b.works"
+        test "b works", do: assert(true)
+      end
+      """,
+      ".spec/config.yml" => """
+      overrides:
+        - subject: sample.a
+          code: derived/unanchored_subject
+          severity: info
+          reason: integration-only contract
+      """
+    })
+
+    commit_all(root, "base")
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+    assert report.fail == true
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "derived/unanchored_subject" and finding.subject == "sample.a" and
+               finding.severity == :info
+           end)
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "derived/unanchored_subject" and finding.subject == "sample.b" and
+               finding.severity == :warning
+           end)
+
+    refute Enum.any?(report.findings, &(&1.subject == "sample.a"))
+  end
+
+  @tag spec: "ancora.gate.unanchored_subject"
+  test "an unanchored subject fires on every unchanged run with its override remedy", %{
+    root: root
+  } do
     init_git_repo(root)
 
     write_files(root, %{
@@ -160,25 +238,19 @@ defmodule Ancora.GateTest do
         @tag spec: "sample.subject.works"
         test "works", do: assert(true)
       end
-      """,
-      ".spec/config.yml" => """
-      overrides:
-        - subject: sample.subject
-          code: derived/unanchored_subject
-          severity: info
-          reason: integration-only contract
       """
     })
 
     commit_all(root, "base")
-    assert {:ok, report} = Gate.check(root, base: "HEAD")
-    assert report.fail == false
-    assert report.findings == []
-    assert report.branch.info >= 1
 
-    assert Enum.any?(report.all_findings, fn finding ->
-             finding.code == "derived/unanchored_subject" and finding.severity == :info
-           end)
+    for _run <- 1..2 do
+      assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+      assert Enum.any?(report.all_findings, fn finding ->
+               finding.code == "derived/unanchored_subject" and
+                 finding.message =~ "overrides:"
+             end)
+    end
   end
 
   defp create_clean_repo(root) do
@@ -218,18 +290,18 @@ defmodule Ancora.GateTest do
     """
   end
 
-  defp subject_spec(statement \\ "The sample shall work.") do
+  defp subject_spec(statement \\ "The sample shall work.", subject \\ "sample.subject") do
     """
     # Sample
 
     ```yaml spec-meta
-    id: sample.subject
+    id: #{subject}
     kind: module
     status: draft
     ```
 
     ```yaml spec-requirements
-    - id: sample.subject.works
+    - id: #{subject}.works
       statement: #{statement}
       priority: must
     ```
@@ -241,7 +313,7 @@ defmodule Ancora.GateTest do
     ```yaml spec-verification
     - kind: tagged_tests
       covers:
-        - sample.subject.works
+        - #{subject}.works
     ```
     """
   end
