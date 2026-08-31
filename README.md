@@ -1,8 +1,8 @@
 # Ancora
 
-Ancora is a spec-anchored library for Elixir. It provides traceability from
-tagged tests to the code they exercise, and drift detection between git
-revisions.
+Ancora is an Elixir library for traceability between specs, tagged tests, and
+the production functions those tests call. It detects drift across git
+revisions without running the target project's code or tests.
 
 Ancora is a successor inspired by
 [spec_led_ex](https://github.com/iautom8things/specled_ex) (Copyright (c)
@@ -11,6 +11,44 @@ Mike Hostetler, MIT licensed).
 ## Status
 
 The library is under construction. Releases will be published to Hex.
+
+## Public API
+
+Ancora's semver-stable public API has two functions:
+
+- `Ancora.Parser.parse_file/2`
+- `Ancora.DecisionParser.parse_file/2`
+
+Mix tasks are the supported command-line interface. Their `--root` option is
+an internal affordance for tooling and tests, outside the semver commitment.
+
+## How checks work
+
+Ancora reads source files and git objects. It loads bytecode from its own
+dependencies to look up exported functions. This is toolchain introspection,
+not project execution. Trusted dependencies may run their `@on_load` hooks
+when the tool loads them.
+
+Tagged tests define which production functions belong to a subject. When
+those functions or calls change, edit the subject's requirements or scenarios
+in the same diff. Mechanical rewrites such as `mix format --migrate` still
+need an explicit acknowledgment when they change the derived call set.
+
+## CI
+
+```yaml
+spec:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - uses: erlef/setup-beam@v1
+    - run: mix deps.get && mix spec.check --base origin/main
+```
+
+## Migration
+
+See [docs/migration.md](docs/migration.md) for the adoption checklist and the
+old-to-new finding code map.
 
 ## License
 

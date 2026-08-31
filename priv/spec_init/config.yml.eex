@@ -1,0 +1,15 @@
+# Ancora v1 configuration. Change this when your trunk is not origin/main.
+default_base: origin/main
+test_paths:
+  - test
+# Omit lib_paths to read literal elixirc_paths from mix.exs, with lib as fallback.
+# lib_paths:
+#   - lib
+severities: {}
+
+# A subject-specific override needs a concrete reason.
+# overrides:
+#   - subject: project.core
+#     code: derived/unanchored_subject
+#     severity: info
+#     reason: Covered by an external integration suite.
