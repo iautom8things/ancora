@@ -41,11 +41,15 @@
     {
       "text": "TEST_CRITIC: PASS\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nBlocking findings: none (prior three findings discharged by 435abd3 — DefIndex gate now independently killable: \"missing: 1\" row is admitted by only: and rejected solely by DefIndex.public?, with a second row killing the :unknown-\u003efalse branch alone, both verified by mutation runs failing only those tests; only: gate now independently killable: \"only: [helper: 1] / helper/2\" row is rejected solely by the only: filter while DefIndex would admit helper/2 via default-arg arity expansion, mutation of the only:-half fails exactly that test; property is now generator-driven — 6 base permutations of as:/grouped/__MODULE__ frames plus 0-3 extras with per-frame suffix choice (39/40 distinct shapes in a sample), expectation built by Module.concat during shape construction rather than by the resolver, and it uniquely kills a grouped-alias-prefix-through-alias mutation no example test catches)\n\nFiles reviewed:\n- test/ancora/derive/resolver_test.exs (delta)",
       "timestamp": "2026-08-31T15:17:05Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: Delta-scoped VERIFY reported PASS with all three bounce items\ndischarged by mutation-demonstrated reds (each ladder gate now pinned\nindependently; property genuinely generator-driven), zero scope violations\n(delta touches only resolver_test.exs), and untouched first-pass coverage\nstanding per delta scoping. TEST_CRITIC: PASS (prior FAIL discharged, kills\nverified per gate). No auditor was spawned per policy.",
+      "timestamp": "2026-08-31T15:17:36Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L7b: Detector I — DefIndex, Resolver, ambient ctx",
   "type": "task",
-  "updated_at": "2026-08-31T15:17:05Z"
+  "updated_at": "2026-08-31T15:17:36Z"
 }
