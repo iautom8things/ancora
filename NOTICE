@@ -70,3 +70,13 @@ Ancora.BaseView
 Ancora.Canonical
   from the metadata-strip portion of SpecLedEx.Realization.Canonical
   (hashing, attribute sorting, and alpha-renaming dropped).
+
+Ancora.Review, Ancora.Review.Html, Ancora.Review.FileDiff,
+Ancora.Review.SpecDiff, and Ancora.Review.FindingsDelta
+  from specled_ex SpecLedEx.Review and SpecLedEx.Review.* (coverage,
+  evidence-store, and realized_by views dropped; derived-set grouping added).
+
+PrismJS 1.29.0
+  Copyright (c) 2012 Lea Verou, MIT licensed. Vendored for syntax
+  highlighting with elixir, erlang, diff, yaml, markdown, json, html,
+  css, and javascript grammars only. https://prismjs.com/
