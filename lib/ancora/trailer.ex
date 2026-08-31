@@ -23,6 +23,7 @@ defmodule Ancora.Trailer do
   """
 
   alias Ancora.Finding
+  alias Ancora.Git
   alias Ancora.Severity
 
   @trailer_prefix "Spec-Ack:"
@@ -53,13 +54,9 @@ defmodule Ancora.Trailer do
   """
   @spec read(String.t(), String.t()) :: parse_result()
   def read(root, base) when is_binary(root) and is_binary(base) do
-    case System.cmd(
-           "git",
-           ["-C", root, "log", "#{base}..HEAD", "--format=%B"],
-           stderr_to_stdout: true
-         ) do
-      {output, 0} -> parse(output)
-      {_output, _exit_code} -> %{overrides: %{}, warnings: []}
+    case Git.run(root, ["log", "#{base}..HEAD", "--format=%B"], []) do
+      {:ok, output} -> parse(output)
+      {:error, _reason} -> %{overrides: %{}, warnings: []}
     end
   end
 
