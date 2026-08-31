@@ -91,11 +91,15 @@
     {
       "text": "SCOPE_EXPANSION\nNew ticket: ancora-yzu.28\nReason: rebased tree fails the spec-mandated forbidden-spawner guard because L2's Trailer.read calls System.cmd; adapter (route through Ancora.Git.run) is outside both tickets' ownership\nOrigin: ancora-yzu.7",
       "timestamp": "2026-08-31T13:45:33Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off. (Merged as part of the ancora-yzu.28 stack; batch gate green — 174 tests + 1 property.)",
+      "timestamp": "2026-08-31T13:55:38Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L6: Git layer and change set",
   "type": "task",
-  "updated_at": "2026-08-31T13:45:33Z"
+  "updated_at": "2026-08-31T13:55:38Z"
 }
