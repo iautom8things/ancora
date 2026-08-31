@@ -34,7 +34,7 @@ defmodule Mix.Tasks.Spec.NextTest do
   @tag spec: "ancora.tasks.report_task_flags"
   @tag spec: "ancora.tasks.next_labels_verbatim"
   test "next task callable surface is present" do
-    next = &Mix.Tasks.Spec.Next.run/1
-    assert is_function(next, 1)
+    Code.ensure_loaded!(Mix.Tasks.Spec.Next)
+    assert function_exported?(Mix.Tasks.Spec.Next, :run, 1)
   end
 end

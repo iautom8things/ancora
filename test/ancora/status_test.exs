@@ -12,9 +12,51 @@ defmodule Ancora.StatusTest do
     create_project(root)
     write_subject(root, "sample.empty", "sample.empty.works")
 
+    write_files(root, %{
+      "lib/thin.ex" => """
+      defmodule Thin do
+        def work, do: :ok
+      end
+      """,
+      "test/thin_test.exs" => """
+      defmodule ThinTest do
+        use ExUnit.Case
+        @tag spec: "sample.thin.works"
+        test "works" do
+          assert Thin.work() == :ok
+        end
+      end
+      """,
+      ".spec/specs/thin.spec.md" => """
+      # Thin
+
+      ```yaml spec-meta
+      id: sample.thin
+      kind: module
+      status: draft
+      ```
+
+      ```yaml spec-requirements
+      - id: sample.thin.works
+        statement: The thin sample shall work.
+        priority: must
+      ```
+
+      ```yaml spec-scenarios
+      []
+      ```
+
+      ```yaml spec-verification
+      - kind: tagged_tests
+        covers:
+          - sample.thin.works
+      ```
+      """
+    })
+
     assert {:ok, report} = Status.build(root)
     assert Status.thin_threshold() == 3
-    assert "derived subjects=1 empty=1 thin(<3)=1" in report.lines
+    assert "derived subjects=2 empty=1 thin(<3)=2" in report.lines
     assert "sample.empty derived=0 generated=0+0 tests=0 unresolved=0" in report.lines
   end
 
@@ -49,6 +91,7 @@ defmodule Ancora.StatusTest do
         test "works" do
           assert Sample.project_generated() == :project
           assert DepSample.dep_generated() == :dep
+          assert DepSample.other_dep_generated() == :dep
         end
       end
       """,
@@ -64,9 +107,9 @@ defmodule Ancora.StatusTest do
     assert {:ok, report} = Status.build(root)
     row = Enum.find(report.subjects, &(&1.id == "sample.generated"))
     assert row.project_generated == 1
-    assert row.dep_generated == 1
+    assert row.dep_generated == 2
     assert row.acknowledged?
-    assert Enum.any?(report.lines, &(&1 =~ "generated=1+1" and &1 =~ "acknowledged"))
+    assert Enum.any?(report.lines, &(&1 =~ "generated=1+2" and &1 =~ "acknowledged"))
   end
 
   defp create_project(root) do

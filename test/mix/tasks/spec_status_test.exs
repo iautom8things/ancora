@@ -49,8 +49,8 @@ defmodule Mix.Tasks.Spec.StatusTest do
 
   @tag spec: "ancora.tasks.report_task_flags"
   test "status task callable surface is present" do
-    status = &Mix.Tasks.Spec.Status.run/1
-    assert is_function(status, 1)
+    Code.ensure_loaded!(Mix.Tasks.Spec.Status)
+    assert function_exported?(Mix.Tasks.Spec.Status, :run, 1)
   end
 
   defp create_project(root) do

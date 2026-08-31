@@ -39,8 +39,8 @@ defmodule Mix.Tasks.Spec.PrimeTest do
   @tag spec: "ancora.tasks.prime_loop"
   @tag spec: "ancora.tasks.report_task_flags"
   test "prime task callable surface is present" do
-    prime = &Mix.Tasks.Spec.Prime.run/1
-    assert is_function(prime, 1)
+    Code.ensure_loaded!(Mix.Tasks.Spec.Prime)
+    assert function_exported?(Mix.Tasks.Spec.Prime, :run, 1)
   end
 
   defp create_project(root) do
