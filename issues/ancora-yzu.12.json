@@ -41,11 +41,15 @@
     {
       "text": "TEST_CRITIC: PASS\n\nRe-review of mechanical-remedy delta, commit 2683069 (diff f802d8c..HEAD).\n\n- Finding 1 (can't-fail capture tests): discharged. All three callable-surface tests now use Code.ensure_loaded! + function_exported?. Verified mechanically in a scratch copy: renaming Spec.Prime.run/1 fails the test (function_exported? returns false), and deleting a task module raises ArgumentError from ensure_loaded!. The spec tags stayed on tests that now genuinely pin the task modules.\n- Finding 2 (symmetric fixtures): discharged. The split fixture is now 1 project + 2 dep bindings with assertions on row.project_generated, row.dep_generated, and the rendered generated=1+2 line; swapping the two counts in Status.subject_rows is killed (left: 2 vs right: 1). The empty/thin fixture adds a thin subject (derived=1) so counts are subjects=2 empty=1 thin=2; swapping the empty/thin definitions in Status.report/1 is killed by the summary-line assertion.\n\nNothing new that is weak: no mirror expectations, and baseline suite is green twice in isolation (297 tests, 0 failures). Note: mid-review the shared worktree showed transient mutations from a concurrent verifier; all my mutation runs were done in an isolated scratch copy at 2683069 and deleted after.\n\nFiles reviewed: test/ancora/status_test.exs, test/mix/tasks/spec_prime_test.exs, test/mix/tasks/spec_next_test.exs, test/mix/tasks/spec_status_test.exs, lib/ancora/status.ex, lib/mix/tasks/spec.{prime,next,status}.ex\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-08-31T18:11:17Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: Delta-scoped VERIFY reported PASS with every bounce item discharged\nby mutation reds (asymmetric split killed both swap mutations; callable-surface\nchecks fail on rename and delete), and TEST_CRITIC: PASS with independent\nscratch-copy kills of the same mutations. Zero scope deviation (delta confined\nto four test files); untouched first-pass coverage stands per delta scoping;\nthe exactly_eight deferral is tracked on ancora-yzu.29. No auditor re-run\nrequired per policy.",
+      "timestamp": "2026-08-31T18:13:38Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L10: Report tasks (spec.prime, spec.next, spec.status)",
   "type": "task",
-  "updated_at": "2026-08-31T18:11:17Z"
+  "updated_at": "2026-08-31T18:13:38Z"
 }
