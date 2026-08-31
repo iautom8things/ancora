@@ -166,7 +166,8 @@ decisions:
     Every task shall require `deps.loadpaths` and shall never trigger
     compilation of the target project. The task moduledocs shall state that a
     cold checkout's first run may print dependency compilation lines before
-    ancora output.
+    ancora output. `spec.check` and `spec.validate` establish this posture for
+    the gate tasks without loading the target's Mix project.
   priority: must
   stability: stable
 - id: ancora.tasks.exit_codes

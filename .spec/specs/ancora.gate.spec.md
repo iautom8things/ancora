@@ -37,7 +37,8 @@ decisions:
     verdict `result=fail tier=env` and a message naming the remedy. These
     conditions shall never be emitted as findings and shall not be
     configurable off. No preflight check shall inspect `_build` or any
-    `.app` file.
+    `.app` file. Preflight shall load `.spec/config.yml` once and thread the
+    resulting config through project identity and gate assembly.
   priority: must
   stability: stable
 - id: ancora.gate.default_base_no_fallback

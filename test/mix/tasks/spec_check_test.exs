@@ -1,0 +1,207 @@
+Code.require_file("../../support/ancora_case.exs", __DIR__)
+
+defmodule Mix.Tasks.Spec.CheckTest do
+  use Ancora.TestCase
+
+  @moduletag :tmp_dir
+
+  @tag spec: "ancora.tasks.gated_emission_paths"
+  @tag spec: "ancora.tasks.verdict_grammar"
+  @tag spec: "ancora.tasks.exit_codes"
+  test "green subprocess keeps the verdict last on stdout", %{root: root} do
+    create_project(root)
+    result = run_mix(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 0
+    assert List.last(lines(result.stdout)) == "spec.check result=pass"
+    refute result.stderr =~ "result="
+  end
+
+  @tag spec: "ancora.tasks.gated_emission_paths"
+  @tag spec: "ancora.tasks.check_flags"
+  test "usage and environment failures emit their verdict last", %{root: root} do
+    create_project(root)
+
+    usage = run_mix(["spec.check", "--root", root, "--no-run-commands"])
+    assert usage.status == 1
+    assert List.last(lines(usage.stdout)) =~ "result=fail tier=usage"
+
+    env = run_mix(["spec.check", "--root", root])
+    assert env.status == 1
+    assert env.stdout =~ "git fetch origin main"
+    assert List.last(lines(env.stdout)) =~ "result=fail tier=env"
+  end
+
+  @tag spec: "ancora.tasks.gated_emission_paths"
+  @tag spec: "ancora.tasks.finding_line_format"
+  test "findings precede summaries, guidance, and the last-line verdict", %{root: root} do
+    create_project(root)
+    write_anchored_subject(root)
+    commit_all(root, "anchored subject")
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    result = run_mix(["spec.check", "--root", root, "--base", "HEAD"])
+    output_lines = lines(result.stdout)
+
+    assert result.status == 1
+    assert Enum.at(output_lines, 0) =~ "derived/drift"
+    assert Enum.any?(output_lines, &String.starts_with?(&1, "checked subjects="))
+    assert Enum.any?(output_lines, &String.starts_with?(&1, "branch base="))
+    assert Enum.any?(output_lines, &String.starts_with?(&1, "branch next="))
+    assert List.last(output_lines) =~ "spec.check result=fail tier=branch errors=1"
+  end
+
+  @tag spec: "ancora.tasks.gated_emission_paths"
+  test "internal exception has no verdict on stdout", %{root: root} do
+    create_project(root)
+    File.rm!(Path.join(root, ".spec/specs/.keep"))
+    File.rmdir!(Path.join(root, ".spec/specs"))
+
+    result = run_mix(["spec.check", "--root", root, "--base", "HEAD"])
+    assert result.status != 0
+    refute result.stdout =~ "result="
+  end
+
+  @tag spec: "ancora.tasks.check_flags"
+  test "json mode prints a report before the last-line verdict", %{root: root} do
+    create_project(root)
+    result = run_mix(["spec.check", "--root", root, "--base", "HEAD", "--json"])
+
+    assert result.status == 0
+    output_lines = lines(result.stdout)
+    assert List.last(output_lines) == "spec.check result=pass"
+    assert %{"checked" => %{"subjects" => 0}} = output_lines |> hd() |> Jason.decode!()
+    assert "{\"ok\":true}" == Ancora.Json.encode!(%{ok: true})
+  end
+
+  @tag spec: "ancora.tasks.check_flags"
+  @tag spec: "ancora.tasks.validate_flags"
+  test "gate task callable surfaces are present" do
+    check = &Mix.Tasks.Spec.Check.run/1
+    validate = &Mix.Tasks.Spec.Validate.run/1
+    assert is_function(check, 1)
+    assert is_function(validate, 1)
+  end
+
+  @tag spec: "ancora.tasks.stderr_pinning"
+  test "config diagnostics stay on stderr and verdict stays last", %{root: root} do
+    create_project(root)
+    write_config(root, "not: [valid")
+
+    result = run_mix(["spec.check", "--root", root, "--base", "HEAD"])
+    assert result.status == 1
+    assert result.stderr =~ "[CONFIG]"
+    refute result.stdout =~ "[CONFIG]"
+    assert List.last(lines(result.stdout)) =~ "spec.check result=fail tier=branch"
+  end
+
+  @tag spec: "ancora.tasks.check_flags"
+  @tag spec: "ancora.gate.no_derived_state"
+  test "output flag is rejected and writes no file", %{root: root} do
+    create_project(root)
+    output = Path.join(root, "x.json")
+    result = run_mix(["spec.check", "--root", root, "--output", output])
+
+    assert result.status == 1
+    assert List.last(lines(result.stdout)) =~ "result=fail tier=usage"
+    refute File.exists?(output)
+  end
+
+  @tag spec: "ancora.tasks.mix_bootstrap_posture"
+  test "target compile errors are never compiled", %{root: root} do
+    create_project(root)
+
+    write_files(root, %{
+      "lib/not_compilable.ex" => "defmodule Nope do\n  raise \"compiled target\"\nend\n"
+    })
+
+    result = run_mix(["spec.check", "--root", root, "--base", "HEAD"])
+    assert result.status != 0
+    refute result.stderr =~ "compiled target"
+  end
+
+  defp create_project(root) do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => """
+      defmodule Fixture.MixProject do
+        use Mix.Project
+        def project, do: [app: :fixture]
+      end
+      """,
+      ".spec/specs/.keep" => ""
+    })
+
+    commit_all(root, "base")
+  end
+
+  defp write_anchored_subject(root) do
+    write_files(root, %{
+      ".spec/specs/sample.spec.md" => """
+      # Sample
+
+      ```yaml spec-meta
+      id: sample.subject
+      kind: module
+      status: draft
+      ```
+
+      ```yaml spec-requirements
+      - id: sample.subject.works
+        statement: The sample shall return its value.
+        priority: must
+      ```
+
+      ```yaml spec-scenarios
+      []
+      ```
+
+      ```yaml spec-verification
+      - kind: tagged_tests
+        covers:
+          - sample.subject.works
+      ```
+      """,
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works" do
+          assert Sample.value() in [:current, :changed]
+          assert apply(Sample, :value, []) in [:current, :changed]
+        end
+      end
+      """
+    })
+  end
+
+  defp run_mix(args) do
+    real_mix = System.find_executable("mix")
+    wrapper_dir = Path.join(System.tmp_dir!(), "ancora-mix-#{System.unique_integer([:positive])}")
+    stderr_path = Path.join(wrapper_dir, "stderr")
+    wrapper = Path.join(wrapper_dir, "mix")
+    File.mkdir_p!(wrapper_dir)
+
+    File.write!(wrapper, "#!/bin/sh\nexec #{real_mix} \"$@\" 2>\"$ANCORA_STDERR_FILE\"\n")
+    File.chmod!(wrapper, 0o755)
+
+    {stdout, status} =
+      System.cmd(wrapper, args,
+        cd: File.cwd!(),
+        env: [
+          {"ANCORA_STDERR_FILE", stderr_path}
+        ]
+      )
+
+    stderr = File.read!(stderr_path)
+    File.rm_rf!(wrapper_dir)
+    %{stdout: stdout, stderr: stderr, status: status}
+  end
+
+  defp lines(output), do: String.split(output, "\n", trim: true)
+end
