@@ -78,11 +78,15 @@
     {
       "text": "MERGE_CONFLICT\nSession: yzu7-rebase-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.7/grok-yzu7-rebase-1/log\n\nConflicting paths: NOTICE\nWhy not auto-resolvable: NOTICE is a real file (not generated state); rebase worker must not hand-merge it.",
       "timestamp": "2026-08-22T09:41:33Z"
+    },
+    {
+      "text": "SCOPE_EXPANSION\nNew ticket: ancora-yzu.27\nReason: NOTICE append-append conflict needs a union merge driver outside this ticket's ownership; rebase reruns after it merges\nOrigin: ancora-yzu.7",
+      "timestamp": "2026-08-31T13:29:14Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L6: Git layer and change set",
   "type": "task",
-  "updated_at": "2026-08-31T13:29:04Z"
+  "updated_at": "2026-08-31T13:29:14Z"
 }
