@@ -13,9 +13,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu9-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.9/codex-yzu9-impl-1/log\n\nCommit: cda93551b533fe3b6724426a32fabe4b4bb14ff8\nFiles touched: lib/ancora/derive.ex, lib/ancora/derive/def_index.ex, lib/ancora/derive/resolver.ex, test/ancora/derive/ctx_test.exs, test/ancora/derive/def_index_test.exs, test/ancora/derive/resolver_test.exs, test/fixtures/resolver/real_shapes.exs\nTests added: Ancora.Derive.DefIndexTest (default arities/public-private index, nested modules, use targets); Ancora.Derive.CtxTest (ambient/external export construction, ModuleLocator parse degradation); Ancora.Derive.ResolverTest (qualified member/dependency calls, pipes, captures, apply, dynamic modules, field access, structs, use, macro DSL, unquote, local/import/ambient/unresolved ladder, only/except, nested imports, every alias form and lexical branch scope, pure-data resolver, unparseable base source, real-shape fixture, formatter corpus round trip)\nVerification stubs flipped: none\nVerification tier: change-scoped — test/ancora/derive/def_index_test.exs, test/ancora/derive/ctx_test.exs, test/ancora/derive/resolver_test.exs; mix test --stale; mix compile --warnings-as-errors; mix format --check-formatted; mix deps.unlock --check-unused; specled_ex mix spec.validate --root /Users/mz/src/ancora-detector-resolver; full-system\n  proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Added source-derived DefIndex construction, pure two-pass call resolution, and external VM introspection confined to Ancora.Derive context construction. Parse failures from both Resolver and ModuleLocator now become derived/unparseable_source findings, and the focused matrix covers the disposition ladder, lexical aliases, imports, real test shapes, and formatter stability. Checked every epic lesson against the diff; none of the named weak proof patterns applies, and no contract item was omitted.",
+      "timestamp": "2026-08-31T14:53:36Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "L7b: Detector I — DefIndex, Resolver, ambient ctx",
   "type": "task",
-  "updated_at": "2026-08-31T14:22:55Z"
+  "updated_at": "2026-08-31T14:53:36Z"
 }
