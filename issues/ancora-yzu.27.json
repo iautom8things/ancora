@@ -9,7 +9,6 @@
   "description": "No spec subject (repo merge hygiene; no ancora behavior)\n\nScope expansion carved from the MERGE_CONFLICT parks on ancora-yzu.6 and ancora-yzu.7.\n\nProblem: both approved stage branches (ancora-yzu.6/output-verdict, ancora-yzu.7/git-change-set) append attribution entries to NOTICE, and the epic branch appended its own (Parser/Schema/Index/DecisionParser port entries). Every rebase conflicts on NOTICE; rebase workers correctly refuse to hand-merge a real file. NOTICE is an append-only attribution list, so the correct resolution is always the union of both sides.\n\nDeliverable: a .gitattributes file at the repo root containing the line 'NOTICE merge=union' (git built-in union merge strategy), committed on this ticket's stage branch. With this on the epic branch, both pending rebases and every future stage rebase auto-resolve NOTICE by keeping both sides' entries.\n\nVerification:\n- Behaviors to demonstrate: 'git check-attr merge NOTICE' reports 'merge: union' in the stage worktree\n- Iteration tier: git check-attr merge NOTICE\n- Final tier: mix compile --warnings-as-errors \u0026\u0026 mix test green (no code paths touched)\n- Verifier tier: read the one-line diff\n- Standing bounce-class checks: n/a (no callable surface)\n\nAllowed touches (this stage may modify):\n- .gitattributes\n\nOut of Scope (files):\n- NOTICE (this ticket does not resolve the pending conflicts itself; the rebase workers re-run after it merges)\n- lib/**, test/**, .spec/**, mix.exs, mix.lock\n\nOut of Scope (intent):\n- no other attributes, no merge drivers requiring config, no changes to append-only policy files\n\nMerge gate:\n- [ ] Scope check: diff touches only .gitattributes\n- [ ] Epic worktree smoke green after ff-merge",
   "id": "ancora-yzu.27",
   "labels": [
-    "phase:merging",
     "simple"
   ],
   "parent": "ancora-yzu",
@@ -31,5 +30,5 @@
   "status": "in_progress",
   "title": "NOTICE union merge driver (.gitattributes)",
   "type": "task",
-  "updated_at": "2026-08-31T13:40:50Z"
+  "updated_at": "2026-08-31T13:40:55Z"
 }
