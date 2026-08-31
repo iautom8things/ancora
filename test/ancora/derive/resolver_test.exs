@@ -164,6 +164,24 @@ defmodule Ancora.Derive.ResolverTest do
   end
 
   @tag spec: "ancora.derive.unqualified_ladder"
+  test "member import stays unresolved when its DefIndex lacks the admitted definition", %{
+    ctx: ctx
+  } do
+    result = resolve!("import MyApp.Helpers, only: [missing: 1]\nmissing(:value)", ctx)
+
+    assert result.calls == MapSet.new()
+    assert [%{kind: :unqualified, name: :missing, arity: 1}] = result.unresolved
+  end
+
+  @tag spec: "ancora.derive.unqualified_ladder"
+  test "member import stays unresolved when its DefIndex is unknown", %{ctx: ctx} do
+    result = resolve!("import Foo.Bar, only: [run: 0]\nrun()", ctx)
+
+    assert result.calls == MapSet.new()
+    assert [%{kind: :unqualified, name: :run, arity: 0}] = result.unresolved
+  end
+
+  @tag spec: "ancora.derive.unqualified_ladder"
   test "external import export is dropped from precomputed context data", %{ctx: ctx} do
     result = resolve!("import Ecto.Query, only: [from: 2]\nfrom(item, in: items)", ctx)
     assert result.calls == MapSet.new()
@@ -180,6 +198,18 @@ defmodule Ancora.Derive.ResolverTest do
 
     result = resolve!(source, ctx)
     assert result.calls == MapSet.new([{MyApp.Helpers, :helper, 1}])
+    assert [%{kind: :unqualified, name: :helper, arity: 2}] = result.unresolved
+  end
+
+  @tag spec: "ancora.derive.unqualified_ladder"
+  test "import only filters an otherwise public member definition", %{ctx: ctx} do
+    source = """
+    import MyApp.Helpers, only: [helper: 1]
+    helper(:value, :option)
+    """
+
+    result = resolve!(source, ctx)
+    assert result.calls == MapSet.new()
     assert [%{kind: :unqualified, name: :helper, arity: 2}] = result.unresolved
   end
 
@@ -300,20 +330,10 @@ defmodule Ancora.Derive.ResolverTest do
 
   @tag spec: "ancora.derive.imports_and_aliases"
   property "alias stack resolution survives formatter round trips", %{ctx: ctx} do
-    check all(leaf <- member_of(["Leaf", "Branch"]), max_runs: 20) do
-      source = """
-      defmodule Generated do
-        alias Foo.Bar, as: B
-
-        test "generated" do
-          alias B.#{leaf}, as: Target
-          Target.run()
-        end
-      end
-      """
-
+    check all(shape <- alias_stack_generator(), max_runs: 40) do
+      {source, expected} = alias_stack_source(shape)
       formatted = source |> Code.format_string!() |> IO.iodata_to_binary()
-      expected = Module.concat([Foo.Bar, leaf])
+      ctx = %{ctx | membership: &(&1 == expected)}
 
       assert resolve!(source, ctx).calls == MapSet.new([{expected, :run, 0}])
       assert resolve!(formatted, ctx).calls == MapSet.new([{expected, :run, 0}])
@@ -404,5 +424,85 @@ defmodule Ancora.Derive.ResolverTest do
     source = "defmodule #{inspect(module)} do\n  #{body}\nend\n"
     assert {:ok, index} = DefIndex.build(source, "lib/generated.ex")
     index
+  end
+
+  defp alias_stack_generator do
+    required_orders = [
+      [:as, :grouped, :module],
+      [:as, :module, :grouped],
+      [:grouped, :as, :module],
+      [:grouped, :module, :as],
+      [:module, :as, :grouped],
+      [:module, :grouped, :as]
+    ]
+
+    StreamData.bind(StreamData.member_of(required_orders), fn required ->
+      StreamData.bind(
+        StreamData.list_of(StreamData.member_of([:as, :grouped, :module]), max_length: 3),
+        fn extras ->
+          forms = required ++ extras
+
+          forms
+          |> Enum.map(fn _form -> StreamData.member_of(["Leaf", "Branch"]) end)
+          |> StreamData.fixed_list()
+          |> StreamData.map(&Enum.zip(forms, &1))
+        end
+      )
+    end)
+  end
+
+  defp alias_stack_source(frames) do
+    initial = %{declarations: [], module: Foo.Bar, reference: "Foo.Bar"}
+
+    generated =
+      frames
+      |> Enum.with_index(1)
+      |> Enum.reduce(initial, &apply_alias_frame/2)
+
+    body =
+      Enum.reduce(
+        generated.declarations,
+        "#{generated.reference}.run()",
+        fn declaration, inner ->
+          "#{declaration}\ncase :ok do\n  :ok ->\n#{indent(inner, 4)}\nend"
+        end
+      )
+
+    {"defmodule Generated do\n#{indent(body, 2)}\nend\n", generated.module}
+  end
+
+  defp apply_alias_frame({{:as, _suffix}, index}, generated) do
+    name = "Target#{index}"
+    declaration = "alias #{generated.reference}, as: #{name}"
+
+    %{generated | declarations: [declaration | generated.declarations], reference: name}
+  end
+
+  defp apply_alias_frame({{:grouped, suffix}, _index}, generated) do
+    declaration = "alias #{generated.reference}.{Leaf, Branch}"
+
+    %{
+      generated
+      | declarations: [declaration | generated.declarations],
+        module: Module.concat([generated.module, suffix]),
+        reference: suffix
+    }
+  end
+
+  defp apply_alias_frame({{:module, suffix}, index}, generated) do
+    name = "Target#{index}"
+    declaration = "alias __MODULE__.#{suffix}, as: #{name}"
+
+    %{
+      generated
+      | declarations: [declaration | generated.declarations],
+        module: Module.concat([Generated, suffix]),
+        reference: name
+    }
+  end
+
+  defp indent(source, spaces) do
+    padding = String.duplicate(" ", spaces)
+    source |> String.split("\n") |> Enum.map_join("\n", &(padding <> &1))
   end
 end
