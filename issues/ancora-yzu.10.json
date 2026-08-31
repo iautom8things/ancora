@@ -46,11 +46,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: Delta-scoped VERIFY reported PASS with all six bounce items\ndischarged (dep-generated silence proven by two independent mutation reds;\nproperty genuinely generator-driven with the normalize recursion load-bearing;\ndead branches, pipeline fan-in, transition scoping, and unparseable-base drift\neach pinned), zero scope violations (delta confined to the bounce scope), and\nuntouched first-pass coverage standing per delta scoping. TEST_CRITIC: PASS\n(nine of nine named mutations killed in scratch-copy runs). No auditor was\nspawned per policy.",
       "timestamp": "2026-08-31T16:11:40Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off. (Gate: compile -Werr, format, deps.unlock --check-unused, 250 tests + 3 properties, spec.validate result=pass.)",
+      "timestamp": "2026-08-31T16:11:55Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L8: Detector II — extraction, canonical, compare, acknowledgment",
   "type": "task",
-  "updated_at": "2026-08-31T16:11:46Z"
+  "updated_at": "2026-08-31T16:11:55Z"
 }
