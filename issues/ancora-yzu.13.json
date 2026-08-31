@@ -42,11 +42,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: First-pass VERIFY: PASS stands for the untouched surface (self-\ncontained artifact rendered live, budget test mutation-probed, NOTICE byte-\nchecked); the audit's five bounce items are discharged by 8299c19 with\nTEST_CRITIC: PASS — production-path growth through Review.build with section-\nscoped assertions, positive pre_existing row killing the classify-all mutation,\nPrism inlining pinned, the :renderer seam disclosed at its definition, and the\nfail chip asserted. Every kill mutation-verified. The critic's one\nunreproducible cold-run failure (likely scratch-dir contamination) goes to the\nfresh merge-gate suite as arbiter. No auditor re-run required per policy.",
       "timestamp": "2026-08-31T18:15:08Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off. (Gate: compile -Werr, format, deps.unlock --check-unused, 320 tests + 3 properties green outright, spec.validate result=pass. Flake watch: spec_check_test.exs:69 JSON-golden Jason.DecodeError seen once by the delta critic and once by the rebase worker under full-suite concurrency, never at a gate; signature recorded, third sighting earns an investigation ticket.)",
+      "timestamp": "2026-08-31T18:20:41Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L11: spec.review artifact",
   "type": "task",
-  "updated_at": "2026-08-31T18:15:11Z"
+  "updated_at": "2026-08-31T18:20:41Z"
 }
