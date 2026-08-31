@@ -13,9 +13,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu8-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.8/codex-yzu8-impl-1/log\n\nCommit: 2c4b510fc13b5925e9ddcf0a23404fa213b5844a\nFiles touched: lib/ancora/project_info.ex, lib/ancora/derive/module_locator.ex, lib/ancora/derive/membership.ex, test/ancora/project_info_test.exs, test/ancora/derive/module_locator_test.exs, test/ancora/derive/membership_test.exs\nTests added: Ancora.ProjectInfoTest — reads literal app and elixirc paths from the target root; dynamic elixirc paths degrade to lib; config lib_paths override dynamic elixirc paths; apps_path marks an unsupported umbrella root; non-literal app fails with a useful env error. Ancora.Derive.ModuleLocatorTest — finds nested modules and protocols under configured lib paths; builds distinct base and HEAD maps from prefetched change blobs; does not guess modules with dynamic names. Ancora.Derive.MembershipTest — a deleted module remains a base member only; membership is exactly the locator's per-side source set.\nVerification stubs flipped: none\nVerification tier: change-scoped — mix format --check-formatted; mix compile --warnings-as-errors; mix deps.unlock --check-unused; project_info, module_locator, membership, forbidden_spawner, and forbidden_writer test files; mix test --stale; specled_ex mix spec.validate --root /Users/mz/src/ancora-detector-i. Full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Added root-only ProjectInfo parsing with literal validation, dynamic path fallback, config override, and env-tier umbrella and app errors. Added a nesting-aware, protocol-aware per-side locator and exact source-derived membership backed by prefetched base blobs. All epic lessons were checked against the diff; no contract work was omitted.",
+      "timestamp": "2026-08-31T14:15:22Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "L7a: Detector I — ProjectInfo, ModuleLocator, Membership",
   "type": "task",
-  "updated_at": "2026-08-31T13:58:05Z"
+  "updated_at": "2026-08-31T14:15:22Z"
 }
