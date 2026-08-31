@@ -45,11 +45,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: Delta-scoped VERIFY reported PASS with all three bounce items\ndischarged by mutation-demonstrated reds (each ladder gate now pinned\nindependently; property genuinely generator-driven), zero scope violations\n(delta touches only resolver_test.exs), and untouched first-pass coverage\nstanding per delta scoping. TEST_CRITIC: PASS (prior FAIL discharged, kills\nverified per gate). No auditor was spawned per policy.",
       "timestamp": "2026-08-31T15:17:36Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off. (Gate: compile -Werr, format, deps.unlock --check-unused, 220 tests + 2 properties, spec.validate result=pass.)",
+      "timestamp": "2026-08-31T15:17:54Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L7b: Detector I — DefIndex, Resolver, ambient ctx",
   "type": "task",
-  "updated_at": "2026-08-31T15:17:42Z"
+  "updated_at": "2026-08-31T15:17:54Z"
 }
