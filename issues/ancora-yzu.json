@@ -33,11 +33,15 @@
     {
       "text": "LESSONS\n- [untested-clause] Do not treat Process.sleep overlap or VM-global ETS/Process.registered snapshots as concurrent-isolation coverage; a Would-fail-if claim must fail if the production flag is actually omitted. (from ancora-yzu.7)\n- [unwired-call-path] A single-function-head claim (Git.read_blob/2) is false if BaseView.blobs talks to BatchPort.fetch and opens an ephemeral port instead of that head. (from ancora-yzu.7)\n- [seam-substitution] An AST walk of a call's argument text is not coverage of options spliced at the real call site. (from ancora-yzu.7)\n- [untested-clause] Logger-on-stderr is not proven by asserting :logger handler type == :standard_error; capture both streams. (from ancora-yzu.6)\n- [untested-clause] A decoy path inside a tmp git repo is not isolation from git show: git -C walks parents for .git. (from ancora-yzu.7)\n- [untested-clause] Stacked admission gates mask each other: give each gate a negative test where the other gate would admit, so mutating either gate alone to `true` goes red. (from ancora-yzu.9)\n- [untested-clause] A property whose generator draws from one fixed template is examples in a costume; generate the shapes the scenario names and compute the expectation from the generated structure. (from ancora-yzu.9)",
       "timestamp": "2026-08-31T15:03:22Z"
+    },
+    {
+      "text": "LESSONS\n- [untested-clause] Do not treat Process.sleep overlap or VM-global ETS/Process.registered snapshots as concurrent-isolation coverage; a Would-fail-if claim must fail if the production flag is actually omitted. (from ancora-yzu.7)\n- [unwired-call-path] A single-function-head claim (Git.read_blob/2) is false if BaseView.blobs talks to BatchPort.fetch and opens an ephemeral port instead of that head. (from ancora-yzu.7)\n- [seam-substitution] An AST walk of a call's argument text is not coverage of options spliced at the real call site. (from ancora-yzu.7)\n- [untested-clause] Logger-on-stderr is not proven by asserting :logger handler type == :standard_error; capture both streams. (from ancora-yzu.6)\n- [untested-clause] A decoy path inside a tmp git repo is not isolation from git show: git -C walks parents for .git. (from ancora-yzu.7)\n- [untested-clause] Stacked admission gates mask each other: give each gate a negative test where the other gate would admit, so mutating either gate alone to `true` goes red. (from ancora-yzu.9)\n- [untested-clause] A property whose generator draws from one fixed template is examples in a costume; generate the shapes the scenario names and compute the expectation from the generated structure. (from ancora-yzu.9)\n- [untested-clause] A both-sides case does not cover a one-side asymmetry: every silence rule needs HEAD-only and base-only negatives, not just the symmetric test. (from ancora-yzu.10)",
+      "timestamp": "2026-08-31T15:50:14Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "ancora: spec-anchored successor to specled_ex",
   "type": "epic",
-  "updated_at": "2026-08-31T15:03:22Z"
+  "updated_at": "2026-08-31T15:50:14Z"
 }
