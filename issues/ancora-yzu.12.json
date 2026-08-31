@@ -45,11 +45,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: Delta-scoped VERIFY reported PASS with every bounce item discharged\nby mutation reds (asymmetric split killed both swap mutations; callable-surface\nchecks fail on rename and delete), and TEST_CRITIC: PASS with independent\nscratch-copy kills of the same mutations. Zero scope deviation (delta confined\nto four test files); untouched first-pass coverage stands per delta scoping;\nthe exactly_eight deferral is tracked on ancora-yzu.29. No auditor re-run\nrequired per policy.",
       "timestamp": "2026-08-31T18:13:38Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off. (Gate: compile -Werr, format, deps.unlock --check-unused, 307 tests + 3 properties, spec.validate result=pass.)",
+      "timestamp": "2026-08-31T18:15:51Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L10: Report tasks (spec.prime, spec.next, spec.status)",
   "type": "task",
-  "updated_at": "2026-08-31T18:13:43Z"
+  "updated_at": "2026-08-31T18:15:51Z"
 }
