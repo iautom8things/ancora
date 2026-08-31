@@ -11,6 +11,7 @@ defmodule Ancora.Markdown do
   @spec render(String.t(), keyword()) :: String.t()
   def render(source, opts \\ []) when is_binary(source) do
     with {:ok, ast, _messages} <- EarmarkParser.as_ast(source, gfm: true) do
+      # :renderer is a test-only injection point for exercising the fallback path.
       renderer = Keyword.get(opts, :renderer, &render_nodes/1)
       renderer.(ast) |> IO.iodata_to_binary()
     else

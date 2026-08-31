@@ -16,6 +16,8 @@ defmodule Ancora.ReviewTest do
     html = view |> Html.render() |> IO.iodata_to_binary()
 
     assert html =~ "class=\"chip pass\""
+    assert html =~ "disableWorkerMessageHandler"
+    assert html =~ "code[class*=language-]"
     assert html =~ "Overview"
     assert html =~ "Decisions changed"
     assert html =~ "Outside the spec system"
@@ -40,6 +42,7 @@ defmodule Ancora.ReviewTest do
     view = view(:fail, finding)
     html = view |> Html.render() |> IO.iodata_to_binary()
 
+    assert html =~ "class=\"chip fail\""
     assert html =~ "Watched interface"
     assert html =~ "Billing.next/1"
     assert html =~ "drift"
@@ -59,12 +62,52 @@ defmodule Ancora.ReviewTest do
       finding("adr/affects_empty", "billing.adr", ".spec/decisions/billing.md", "empty")
 
     scoped = finding("derived/growth", "billing", nil, "Billing.void/2")
+    shared = finding("spec/title_missing", "billing", ".spec/specs/billing.spec.md", "title")
 
-    delta = FindingsDelta.classify([resolved], [introduced], [scoped])
+    delta = FindingsDelta.classify([resolved, shared], [introduced, shared], [scoped])
+    stable_delta = FindingsDelta.classify([shared], [shared], [])
 
     assert delta.resolved == [resolved]
-    assert delta.pre_existing == []
+    assert delta.pre_existing == [shared]
     assert Enum.map(delta.introduced, & &1.code) == ["adr/affects_empty", "derived/growth"]
+    refute shared in delta.introduced
+    assert stable_delta.pre_existing == [shared]
+    assert stable_delta.change_verdict.clean?
+  end
+
+  @tag spec: "ancora.review.code_pivot_grouping"
+  test "production builder lists a newly called binding under test changes", %{root: root} do
+    write_project(root)
+
+    write_files(root, %{
+      "lib/billing.ex" =>
+        "defmodule Billing do\n  def next(value), do: value\n  def void(value, reason), do: {value, reason}\nend\n"
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "test/billing_test.exs" => """
+      defmodule BillingTest do
+        use ExUnit.Case
+        @tag spec: "billing.next"
+        test "next and void" do
+          assert Billing.next(1) == 1
+          assert Billing.void(1, :duplicate) == {1, :duplicate}
+        end
+      end
+      """
+    })
+
+    assert {:ok, built} = Review.build(root, base: "HEAD")
+    assert [subject] = built.subjects
+    assert subject.code.added_bindings == ["Billing.void/2"]
+
+    html = built |> Html.render() |> IO.iodata_to_binary()
+    [_before, test_changes] = String.split(html, "<h3>Test changes</h3>", parts: 2)
+
+    assert test_changes =~ "Added bindings"
+    assert test_changes =~ "Billing.void/2"
   end
 
   @tag spec: "ancora.review.code_pivot_grouping"
