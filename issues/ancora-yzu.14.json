@@ -39,11 +39,15 @@
     {
       "text": "TEST_CRITIC: PASS\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nRe-review of the mechanical-remedy delta (7a91c92) only. All three prior blocking findings discharged; each verified mutation-style in a scratch copy.\n\n1. Config-template vacuity: the test now captures stderr around Config.load and refutes \"[CONFIG]\" (the absence form, not assert-empty). Corrupting priv/spec_init/config.yml.eex in a scratch copy fails the test at the refute with the degradation diagnostic. Caveat, non-blocking: concurrent :stderr captures share one buffer (verified empirically on Elixir 1.18.1), and trailer/severity/output/config tests emit [CONFIG] under their own async captures, so a window overlap can produce a spurious failure. Failure mode is a loud false red, never a masked regression. Hardening option if it ever flakes: compare Config.load output against a direct YAML parse of the rendered template instead of stderr.\n\n2. Needle positive control: asserts \"branch_guard_dangling_binding\" in needles(). That code exists only in docs/migration.md's code map (not in lib/), so it pins the derived-extraction path. Reshaping that table row in scratch (third column, backticks stripped) fails the assert.\n\n3. decision.new negatives: write-then-raise mutation (task clobbers file before Mix.raise) fails at the new preserved-content assert (line 37); force-writes-garbage mutation fails at the DecisionParser.parse_file meta assert after --force (line 52). Both real; the --force path also re-asserts the title.\n\nScope confirmed: 7a91c92 touches only the two test files. Full suite green in scratch: 290 tests + 3 properties, 0 failures.\n\nFiles reviewed:\n- test/ancora/scaffold/templates_test.exs\n- test/mix/tasks/spec_decision_new_test.exs\n- lib/ancora/init.ex, lib/ancora/config.ex, lib/mix/tasks/spec.decision.new.ex, test/support/retired_vocabulary.ex, test/support/ancora_case.exs, docs/migration.md (context)",
       "timestamp": "2026-08-31T18:10:22Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY reported PASS (whole-file corpus validation with three\nreverted mutation probes; zero scope violations; spec edits strengthen), and\nthe mechanical-remedy bounce items are discharged by 7a91c92 with\nTEST_CRITIC: PASS — each prior finding killed by a scratch-copy mutation\n(corrupted template, reshaped code-map row, write-then-raise, force-garbage).\nNo seam substitutes production wiring (subprocess wrapper execs real mix).\nNo auditor re-run required per policy.",
+      "timestamp": "2026-08-31T18:10:53Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L12: Scaffolds and docs (spec.init, decision.new, README, migration checklist)",
   "type": "task",
-  "updated_at": "2026-08-31T18:10:22Z"
+  "updated_at": "2026-08-31T18:10:53Z"
 }
