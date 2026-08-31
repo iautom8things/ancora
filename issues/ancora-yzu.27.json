@@ -21,11 +21,15 @@
     {
       "text": "AUDIT: APPROVE (auto — simple path)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: Post-diff rigor-check retained simple; change-scoped target green on\ntouched paths; mechanical scope check clean (0 outside Allowed, 0 matching\nOut-of-Scope). No verifier/auditor spawned per simple-path floor. Full-suite\nproof deferred to the next batched merge gate.",
       "timestamp": "2026-08-31T13:40:20Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off.",
+      "timestamp": "2026-08-31T13:40:50Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "NOTICE union merge driver (.gitattributes)",
   "type": "task",
-  "updated_at": "2026-08-31T13:40:40Z"
+  "updated_at": "2026-08-31T13:40:50Z"
 }
