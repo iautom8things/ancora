@@ -43,11 +43,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY reported PASS (whole-file corpus validation with three\nreverted mutation probes; zero scope violations; spec edits strengthen), and\nthe mechanical-remedy bounce items are discharged by 7a91c92 with\nTEST_CRITIC: PASS — each prior finding killed by a scratch-copy mutation\n(corrupted template, reshaped code-map row, write-then-raise, force-garbage).\nNo seam substitutes production wiring (subprocess wrapper execs real mix).\nNo auditor re-run required per policy.",
       "timestamp": "2026-08-31T18:10:53Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off. (Gate: compile -Werr, format, deps.unlock --check-unused, 290 tests + 3 properties, spec.validate result=pass.)",
+      "timestamp": "2026-08-31T18:11:54Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L12: Scaffolds and docs (spec.init, decision.new, README, migration checklist)",
   "type": "task",
-  "updated_at": "2026-08-31T18:10:59Z"
+  "updated_at": "2026-08-31T18:11:54Z"
 }
