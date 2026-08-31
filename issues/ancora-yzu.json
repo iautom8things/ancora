@@ -25,11 +25,15 @@
     {
       "text": "Scope expansion: carved ancora-yzu.27 (NOTICE merge=union via .gitattributes) blocking ancora-yzu.6 and ancora-yzu.7. Their approved stage branches rebase cleanly once it lands; rebase workers rerun after merge. No bounce consumed.",
       "timestamp": "2026-08-31T13:29:18Z"
+    },
+    {
+      "text": "Scope expansion: carved ancora-yzu.28 (route Trailer.read through Ancora.Git.run) blocking ancora-yzu.7. The L6 rebase was textually clean (NOTICE union-merged) but semantically red: L2's trailer.ex spawns git directly and L6's spec-mandated static guard forbids it. The fix stages on the rebased L6 tip (17fd520); closing it merges the stack. No bounce consumed.",
+      "timestamp": "2026-08-31T13:45:38Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "ancora: spec-anchored successor to specled_ex",
   "type": "epic",
-  "updated_at": "2026-08-31T13:29:18Z"
+  "updated_at": "2026-08-31T13:45:38Z"
 }
