@@ -151,14 +151,17 @@ decisions:
     derived=<N> generated=<P>+<D> tests=<F> unresolved=<U>` where `<P>` counts
     project-macro-generated and `<D>` dep-generated bindings, with an
     `acknowledged` label on subjects carrying an `overrides:` entry. `thin`
-    shall be the constant 3, documented as non-configurable.
+    shall be the constant 3, documented as non-configurable. Corpus findings
+    shall not make this report task fail; environment and usage errors shall
+    still exit 1 through `Ancora.Output.gated/2` without a verdict line.
   priority: must
   stability: evolving
 - id: ancora.tasks.prime_loop
   statement: >-
     `mix spec.prime --base HEAD` shall print a header, the status body, the
     next body, and loop bullets ending with the check command and the
-    read-protocol sentence, and shall be the documented session-start idiom.
+    exact `Ancora.Output.read_protocol/0` sentence, and shall be the documented
+    session-start idiom.
   priority: must
   stability: evolving
 - id: ancora.tasks.mix_bootstrap_posture
