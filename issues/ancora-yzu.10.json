@@ -14,9 +14,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu10-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.10/codex-yzu10-impl-1/log\n\nCommit: 5cad6254e1efb9520cb9749ca02ea24838a73d13\nFiles touched: NOTICE; lib/ancora/canonical.ex; lib/ancora/derive.ex; lib/ancora/derive/ack.ex; lib/ancora/derive/compare.ex; lib/ancora/derive/extract.ex; lib/ancora/subject_files.ex; test/ancora/canonical_test.exs; test/ancora/derive/ack_test.exs; test/ancora/derive/compare_test.exs; test/ancora/derive/extract_test.exs; test/ancora/derive/pipeline_test.exs; test/ancora/subject_files_test.exs\nTests added: Ancora.CanonicalTest canonical_table, own_corpus_round_trip; Ancora.Derive.ExtractTest supported-clause/default extraction and parse degradation; Ancora.Derive.CompareTest defdelegate_retarget_fires, doc_only_edit_is_quiet, clause reorder, default_arity_reports_once, unchanged_file_not_parsed, defimpl quiet, growth/shrink cap, new_dir_new_test_is_growth, deleted_module_visible_at_base, macro_injected_api_drifts_via_companion, repo_insert_stays_silent, def_moved_into_use_is_drift; Ancora.Derive.AckTest whitespace_never_acknowledges, meta_edit_does_not_acknowledge, substantive list changes; Ancora.Derive.PipelineTest context-to-resolver integration and generated-binding classification; Ancora.SubjectFilesTest footprint_union\nVerification stubs flipped: none\nVerification tier: change-scoped — mix compile --warnings-as-errors; test/ancora/canonical_test.exs, test/ancora/subject_files_test.exs, test/ancora/derive/{ack,compare,extract,pipeline}_test.exs; mix test --stale; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.validate --root /Users/mz/src/ancora-detector-ii from /Users/mz/src/specled_ex; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Added source-ordered clause extraction, metadata-only canonicalization, diff-scoped comparison with growth, shrink, generated-binding companion handling, substantive acknowledgment parsing, and subject footprints. Derive.run/2 now resolves tagged test files concurrently into per-subject sets, with an end-to-end context-to-resolver fixture test and non-vacuous own-corpus canonical coverage. All inherited lesson lines were checked against the diff; none applies to the touched call paths.",
+      "timestamp": "2026-08-31T15:42:21Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "L8: Detector II — extraction, canonical, compare, acknowledgment",
   "type": "task",
-  "updated_at": "2026-08-31T15:19:57Z"
+  "updated_at": "2026-08-31T15:42:21Z"
 }
