@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Manuel Zubieta",
   "blocked_by": [],
   "blocks": [
     "ancora-yzu.6",
@@ -13,8 +13,8 @@
   ],
   "parent": "ancora-yzu",
   "priority": 2,
-  "status": "open",
+  "status": "in_progress",
   "title": "NOTICE union merge driver (.gitattributes)",
   "type": "task",
-  "updated_at": "2026-08-31T13:29:04Z"
+  "updated_at": "2026-08-31T13:35:27Z"
 }
