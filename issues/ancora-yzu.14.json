@@ -14,9 +14,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu14-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.14/codex-yzu14-impl-1/log\n\nCommit: 813470f97ba1443cc1eff57df482ff10ec2ac452\nFiles touched: .spec/specs/ancora.scaffold.spec.md, README.md, docs/migration.md, lib/ancora/init.ex, lib/mix/tasks/spec.init.ex, lib/mix/tasks/spec.decision.new.ex, priv/spec_init/AGENTS.md.eex, priv/spec_init/agents/SKILL.md.eex, priv/spec_init/README.md.eex, priv/spec_init/config.yml.eex, priv/spec_init/decisions/README.md.eex, priv/spec_init/specs/project.core.spec.md.eex, test/mix/tasks/spec_init_test.exs, test/mix/tasks/spec_decision_new_test.exs, test/ancora/scaffold/templates_test.exs, test/ancora/scaffold/docs_test.exs, test/ancora/scaffold/fresh_adopter_test.exs, test/support/mix_subprocess.exs, test/support/retired_vocabulary.ex\nTests added: Mix.Tasks.Spec.InitTest/writes the complete scaffold and reports every file; Mix.Tasks.Spec.InitTest/keeps an edited file unless force is set; Mix.Tasks.Spec.Decision.NewTest/writes the decision shape and force replaces it; Ancora.Scaffold.TemplatesTest/agent guide carries the working protocol; Ancora.Scaffold.TemplatesTest/skill triage table contains every registry entry once; Ancora.Scaffold.TemplatesTest/config template loads with the taught defaults; Ancora.Scaffold.TemplatesTest/templates and prose contain no retired vocabulary; Ancora.Scaffold.DocsTest/README states the public API and operating commitments; Ancora.Scaffold.DocsTest/migration map names the complete 30-code registry; Ancora.Scaffold.FreshAdopterTest/fresh adopter goes from unanchored red to tagged green\nVerification stubs flipped: none\nVerification tier: change-scoped — mix compile --warnings-as-errors; mix format --check-formatted on all touched Elixir files; test/mix/tasks/spec_init_test.exs, test/mix/tasks/spec_decision_new_test.exs, test/ancora/scaffold/templates_test.exs, test/ancora/scaffold/docs_test.exs, test/ancora/scaffold/fresh_adopter_test.exs; mix test --stale; mix spec.validate --root /Users/mz/src/ancora-scaffolds-docs from /Users/mz/src/specled_ex; full-system\n  proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Added spec.init and spec.decision.new with packaged templates, force and keep behavior, routed output, a seed subject, and the real subprocess adopter round trip. Rewrote the README and added the M6-M9 migration checklist with the complete 30-code map and shared retired-vocabulary scan. Checked every epic lesson against the diff; none of the concurrency, port, logger, or git isolation failure modes apply, and the production task call paths are exercised directly.",
+      "timestamp": "2026-08-31T17:48:51Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "L12: Scaffolds and docs (spec.init, decision.new, README, migration checklist)",
   "type": "task",
-  "updated_at": "2026-08-31T17:25:40Z"
+  "updated_at": "2026-08-31T17:48:51Z"
 }
