@@ -104,9 +104,14 @@ defmodule Mix.Tasks.Spec.CheckTest do
   test "every retired check flag is a usage error", %{root: root} do
     create_project(root)
 
-    for flag <-
-          ~w(--min-strength --command-timeout-ms --accept-drift --test-tags --no-run-commands) do
-      result = run_mix(["spec.check", "--root", root, flag])
+    for flag_args <- [
+          ["--min-strength", "1"],
+          ["--command-timeout-ms", "1"],
+          ["--accept-drift"],
+          ["--test-tags", "1"],
+          ["--no-run-commands"]
+        ] do
+      result = run_mix(["spec.check", "--root", root] ++ flag_args)
       assert result.status == 1
       assert List.last(lines(result.stdout)) =~ "spec.check result=fail tier=usage"
     end
