@@ -20,11 +20,15 @@
     {
       "text": "VERIFY: PASS\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nMechanical checks:\n- Files touched: 1 (lib/ancora/trailer.ex)\n- Files outside Allowed globs: 0\n- Files matching Out-of-Scope globs: 0\n\nSemantic checks:\n- Spec stubs run: 0, passed: 0 (spec-verification is tagged_tests; no execute stubs exist, none flipped)\n- Requirements coverage:\n  - ancora.gate.only_git_is_spawned: covered by test/ancora/static/forbidden_spawner_test.exs:5. Would fail if any lib/ module outside lib/ancora/git.ex and lib/ancora/git/ contained a System.cmd, System.shell, Port.open, or :os.cmd call (direct or \u0026capture): the AST walk collects it as an offender and `assert offenders == []` fails. Not vacuous: at base 17fd520 the test already existed and lib/ancora/trailer.ex:56 had System.cmd, so the guard demonstrably failed before this commit. Seams: none (reads real lib/ sources from disk, Code.string_to_quoted!).\n- Behavior-preservation contract (ticket-local): both branches exercised through the NEW path (Ancora.Git.run/3), real git subprocess, no seams:\n  - success: test/ancora/trailer_test.exs:102 builds a real tmp repo and asserts Trailer.read(root, \"main~2\") returns the parsed override with severity_source :trailer\n  - git failure: test/ancora/trailer_test.exs:146 calls Trailer.read on a tmp dir with no git repo (git -C exits non-zero, Git.run returns {:error, {:git, ...}}) and asserts %{overrides: %{}, warnings: []}\n- Intent-level scope concerns: none. lib/ancora/git.ex untouched (run/3 signature and options as-is; Trailer passes literal [] opts, no new option). Trailer parse logic byte-identical; only read/2's spawn call changed.\n- Targeted verification: pass. Ran: mix test test/ancora/trailer_test.exs test/ancora/static/forbidden_spawner_test.exs (11 tests, 0 failures)\n- Whitelist adherence: change-scoped + contract-named tests only; bare mix spec.check: not run; compile/format/credo/deps re-establishment: not run\n- Corpus-scoped claims: n/a — code diff\n- Full-suite verification: not run by verifier (by design)\n- Audit-expanded scope: none\n\nVerdict: PASS\n\nNotes: one grep hit outside the git layer (lib/ancora/derive/run_context.ex:92, BatchPort.open) is a call into Ancora.Git.BatchPort, not Port.open; the AST walker correctly ignores it. Error branch discards Git.run's structured reason, matching the ticket's preserved-behavior contract exactly.",
       "timestamp": "2026-08-31T13:53:35Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: n/a (no Elixir test files\nin diff). No auditor was spawned per policy.",
+      "timestamp": "2026-08-31T13:54:11Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Route Trailer.read through Ancora.Git.run",
   "type": "task",
-  "updated_at": "2026-08-31T13:53:35Z"
+  "updated_at": "2026-08-31T13:54:11Z"
 }
