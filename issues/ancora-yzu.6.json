@@ -1,6 +1,7 @@
 {
   "assignee": "Manuel Zubieta",
   "blocked_by": [
+    "ancora-yzu.27",
     "ancora-yzu.3"
   ],
   "blocks": [
@@ -67,5 +68,5 @@
   "status": "in_progress",
   "title": "L5: Output and verdict layer",
   "type": "task",
-  "updated_at": "2026-08-22T02:27:55Z"
+  "updated_at": "2026-08-31T13:29:04Z"
 }
