@@ -16,11 +16,15 @@
     {
       "text": "IMPLEMENTED\nSession: yzu29-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.29/codex-yzu29-impl-1/log\n\nCommit: 8f370c5\nFiles touched: test/ancora/static/exactly_eight_test.exs\nTests added: Ancora.Static.ExactlyEightTest — test the package defines exactly eight spec tasks\nVerification stubs flipped: none\nVerification tier: change-scoped — mix compile --warnings-as-errors; mix test --stale; test/ancora/static/exactly_eight_test.exs; external mix spec.validate --root /Users/mz/src/ancora-eight-tasks; full-system\n  proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Added a tagged static contract that loads all Mix tasks, filters the spec.* names, and asserts the exact required eight-name set. The assertion catches both missing tasks and any extra spec.* task.",
       "timestamp": "2026-08-31T18:30:51Z"
+    },
+    {
+      "text": "TEST_CRITIC: PASS\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nBlocking findings: none.\n\nThe test calls Mix.Task.load_all() before enumerating, so a fresh VM sees the full task set; sorted exact-list equality fails on both a missing and an extra task; the starts_with?(\"spec.\") filter catches dotted names like spec.foo.bar; and the eight expected names match the ancora.tasks.exactly_eight requirement statement verbatim. Mutation check performed: adding a dummy lib/mix/tasks/spec.dummy.ex made the test fail with the extra name listed; removing it restored green. Exact equality also cannot pass vacuously (an empty enumeration fails the assert).\n\nFiles reviewed: test/ancora/static/exactly_eight_test.exs, .spec/specs/ancora.tasks.spec.md (requirement ancora.tasks.exactly_eight), lib/mix/tasks/ listing.",
+      "timestamp": "2026-08-31T18:35:01Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Add exact eight-task static contract after L11 and L12",
   "type": "task",
-  "updated_at": "2026-08-31T18:31:40Z"
+  "updated_at": "2026-08-31T18:35:01Z"
 }
