@@ -4,6 +4,7 @@
   "blocks": [
     "ancora-yzu.7"
   ],
+  "closed_at": "2026-08-31T13:55:43Z",
   "created": "2026-08-31T13:45:24Z",
   "description": "Advances: ancora.gate.only_git_is_spawned\n\nScope expansion carved from the semantic conflict found when rebasing ancora-yzu.7 (L6) onto the epic branch.\n\nProblem: lib/ancora/trailer.ex (landed in L2, before the Git layer existed) calls System.cmd directly at Trailer.read/2 to run 'git log \u003cbase\u003e..HEAD --format=%B'. L6 adds the standing static guard the spec mandates (ancora.gate.only_git_is_spawned: no spawn outside lib/ancora/git.ex and lib/ancora/git/), and the combined tree fails Ancora.Static.ForbiddenSpawnerTest. Neither branch is wrong alone; the adapter belongs to neither ticket's scope.\n\nDeliverable: Trailer.read/2 delegates its subprocess call to Ancora.Git.run/3 (same args: -C semantics preserved via Git.run's root parameter; format=%B). Behavior preserved: non-zero git exit still returns %{overrides: %{}, warnings: []}. No other call sites change.\n\nIMPORTANT — stage base: this ticket's stage branch is cut from the REBASED ancora-yzu.7 tip (17fd520), not the epic tip, because Ancora.Git only exists there. Closing this ticket merges the L6 stack (17fd520 + this fix) together under one gate.\n\nVerification:\n- Tests to pass: test/ancora/static/forbidden_spawner_test.exs (goes green on the combined tree — this is the point), test/ancora/trailer_test.exs unchanged and green (including the non-zero-exit path)\n- Iteration tier: mix test test/ancora/trailer_test.exs test/ancora/static/forbidden_spawner_test.exs\n- Final tier: change-scoped — those files plus mix test --stale; full suite at the merge gate\n- Verifier tier: confirm Trailer.read's spawn is gone (the static test is the mechanical proof), trailer behavior unchanged, no new seams\n- Standing bounce-class checks: Would-fail-if claims must name production failures (see epic LESSONS)\n\nAllowed touches (this stage may modify):\n- lib/ancora/trailer.ex\n- test/ancora/trailer_test.exs (only if an assertion must follow the call-path change; behavior assertions stay)\n- .spec/specs/ancora.gate.spec.md (only if the gate demands a subject co-change; none is expected)\n\nOut of Scope (files):\n- lib/ancora/git.ex, lib/ancora/git/** (use the existing Git.run/3 surface as-is)\n- NOTICE, .gitattributes, mix.exs, mix.lock\n- everything else\n\nOut of Scope (intent):\n- no Git.run signature changes, no new options, no refactor of trailer parsing\n\nMerge gate:\n- [ ] Scope check: diff touches only Allowed files\n- [ ] Epic worktree smoke green after ff-merge of the stack (144 tests)",
   "id": "ancora-yzu.28",
@@ -30,7 +31,7 @@
     }
   ],
   "priority": 2,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Route Trailer.read through Ancora.Git.run",
   "type": "task",
   "updated_at": "2026-08-31T13:55:43Z"
