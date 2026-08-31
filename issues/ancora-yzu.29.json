@@ -12,9 +12,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu29-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.29/codex-yzu29-impl-1/log\n\nCommit: 8f370c5\nFiles touched: test/ancora/static/exactly_eight_test.exs\nTests added: Ancora.Static.ExactlyEightTest — test the package defines exactly eight spec tasks\nVerification stubs flipped: none\nVerification tier: change-scoped — mix compile --warnings-as-errors; mix test --stale; test/ancora/static/exactly_eight_test.exs; external mix spec.validate --root /Users/mz/src/ancora-eight-tasks; full-system\n  proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Added a tagged static contract that loads all Mix tasks, filters the spec.* names, and asserts the exact required eight-name set. The assertion catches both missing tasks and any extra spec.* task.",
+      "timestamp": "2026-08-31T18:30:51Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Add exact eight-task static contract after L11 and L12",
   "type": "task",
-  "updated_at": "2026-08-31T18:26:08Z"
+  "updated_at": "2026-08-31T18:30:51Z"
 }
