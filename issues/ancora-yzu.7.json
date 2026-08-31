@@ -2,7 +2,8 @@
   "assignee": "Manuel Zubieta",
   "blocked_by": [
     "ancora-yzu.2",
-    "ancora-yzu.27"
+    "ancora-yzu.27",
+    "ancora-yzu.28"
   ],
   "blocks": [
     "ancora-yzu.8"
@@ -92,5 +93,5 @@
   "status": "in_progress",
   "title": "L6: Git layer and change set",
   "type": "task",
-  "updated_at": "2026-08-31T13:43:37Z"
+  "updated_at": "2026-08-31T13:45:27Z"
 }
