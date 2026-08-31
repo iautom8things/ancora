@@ -58,11 +58,15 @@
     {
       "text": "TEST_CRITIC: PASS\n\nDelta-only re-review of the mechanical remedy for the prior residual blocker. The retired-flag test previously invoked value-taking flags bare, so restoring min_strength/command_timeout_ms/test_tags to @switches survived (OptionParser rejected the bare flag as missing its value, passing the test for the wrong reason). Commit f415c6f fixes exactly that: --min-strength, --command-timeout-ms, and --test-tags now carry a value (\"1\"); --accept-drift and --no-run-commands stay bare as booleans should.\n\nMutation evidence: on a scratch copy I re-added min_strength: :string to the @switches in lib/mix/tasks/spec.check.ex and ran test/mix/tasks/spec_check_test.exs — the retired-flag test went red (last line was \"spec.check result=fail tier=env\" instead of the required tier=usage), so restoration is now detected. The committed file in the real checkout is green: 11 tests, 0 failures.\n\nScope confirmed: git diff --name-only 8339574..HEAD touches only test/mix/tasks/spec_check_test.exs.\n\nFiles reviewed:\n- test/mix/tasks/spec_check_test.exs\n- lib/mix/tasks/spec.check.ex (mutation target, unchanged in delta)\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-08-31T17:17:32Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: Delta-scoped VERIFY reported PASS with all 10 audit items discharged\n(Preflight literal-elixirc-paths fix mutation-proven both directions, spec text\ncorrected, audit-expanded scope on config.ex recorded), and the mechanical-\nremedy residual (bare value-taking retired flags) is discharged by f415c6f with\nTEST_CRITIC: PASS and fresh mutation evidence (restored flag now lands tier=env\nand the test goes red). Zero unexplained scope; untouched first-pass coverage\nstands per delta scoping. No further auditor was spawned per policy.",
+      "timestamp": "2026-08-31T17:17:56Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L9: Gate assembly (spec.check, spec.validate, --json)",
   "type": "task",
-  "updated_at": "2026-08-31T17:17:32Z"
+  "updated_at": "2026-08-31T17:17:56Z"
 }
