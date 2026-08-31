@@ -66,3 +66,7 @@ Ancora.Git
 
 Ancora.BaseView
   from SpecLedEx.BaseView (ls-tree + batched blob materialization).
+
+Ancora.Canonical
+  from the metadata-strip portion of SpecLedEx.Realization.Canonical
+  (hashing, attribute sorting, and alpha-renaming dropped).
