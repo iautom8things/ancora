@@ -18,9 +18,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu11-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.11/codex-yzu11-impl-1/log\n\nCommit: 9cfdb60cbb9e0acf43a6eb223d16701b98bb12c0\nFiles touched: .spec/specs/ancora.gate.spec.md, .spec/specs/ancora.tasks.spec.md, lib/ancora.ex, lib/ancora/change_analysis.ex, lib/ancora/gate.ex, lib/ancora/gate/preflight.ex, lib/ancora/json.ex, lib/mix/tasks/spec.check.ex, lib/mix/tasks/spec.validate.ex, test/ancora/gate_test.exs, test/mix/tasks/spec_check_test.exs, test/mix/tasks/spec_validate_test.exs\nTests added: Ancora.GateTest — preflight rejects a directory outside git; preflight turns umbrella and dynamic app signals into env failures; missing default base names every remedy; HEAD is a legal empty diff and an empty corpus passes; changed source outside every derived footprint is reported; change analysis is wired to the production change set; gate does not write derived state; a substantive spec edit clears production drift; a Spec-Ack trailer downgrades drift without hiding it; a new subject clears its own growth; an unparseable production file becomes a finding; info-only unanchored finding is hidden and does not fail. Mix.Tasks.Spec.CheckTest — green subprocess keeps the verdict last on stdout; usage and environment failures emit their verdict last; findings precede summaries, guidance, and the last-line verdict; internal exception has no verdict on stdout; json mode prints a report before the last-line verdict; gate task callable surfaces are present; config diagnostics stay on stderr and verdict stays last; output flag is rejected and writes no file; target compile errors are never compiled. Mix.Tasks.Spec.ValidateTest — rejects output and emits one usage verdict; prints checked summary without the retired validate status line; warnings pass validate unless strict is requested.\nVerification stubs flipped: none\nVerification tier: change-scoped — mix compile --warnings-as-errors; test/ancora/gate_test.exs; test/mix/tasks/spec_check_test.exs; test/mix/tasks/spec_validate_test.exs; mix test --stale; /Users/mz/src/specled_ex mix spec.validate --root /Users/mz/src/ancora-gate-assembly; full-system\n  proof deferred to the merge gate / PR CI\nFinal-tier runs: 2\n\nSummary: Built the seven-stage gate assembly, single-load preflight, diff findings, severity handling, JSON utility, public facade, and the spec.check/spec.validate Mix tasks. Subprocess tests pin stdout and stderr separately, keep the verdict last, and prove env, usage, findings, JSON, internal-error, strict-validation, and no-target-compilation paths. All in-scope contract items were implemented with no follow-ups; I checked every epic lesson against the final diff.",
+      "timestamp": "2026-08-31T16:41:39Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "L9: Gate assembly (spec.check, spec.validate, --json)",
   "type": "task",
-  "updated_at": "2026-08-31T16:13:48Z"
+  "updated_at": "2026-08-31T16:41:39Z"
 }
