@@ -87,11 +87,15 @@
     {
       "text": "MERGE_CONFLICT\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\nConflicting paths: lib/ancora/trailer.ex, test/ancora/static/forbidden_spawner_test.exs\nWhy not auto-resolvable: rebase merged cleanly with no textual conflicts, but the combination is semantically broken — trailer.ex (from spec-anchored-successor) calls System.cmd directly at line 56, which git-change-set's new forbidden_spawner_test.exs now flags as a subprocess spawn outside Ancora.Git; fixing it means choosing whether trailer.ex routes through Ancora.Git or the test gets an exemption, a real code decision.",
       "timestamp": "2026-08-31T13:43:37Z"
+    },
+    {
+      "text": "SCOPE_EXPANSION\nNew ticket: ancora-yzu.28\nReason: rebased tree fails the spec-mandated forbidden-spawner guard because L2's Trailer.read calls System.cmd; adapter (route through Ancora.Git.run) is outside both tickets' ownership\nOrigin: ancora-yzu.7",
+      "timestamp": "2026-08-31T13:45:33Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L6: Git layer and change set",
   "type": "task",
-  "updated_at": "2026-08-31T13:45:27Z"
+  "updated_at": "2026-08-31T13:45:33Z"
 }
