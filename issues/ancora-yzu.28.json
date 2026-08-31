@@ -9,7 +9,7 @@
   "id": "ancora-yzu.28",
   "labels": [
     "critical",
-    "phase:verifying"
+    "phase:merging"
   ],
   "parent": "ancora-yzu",
   "comments": [
@@ -30,5 +30,5 @@
   "status": "in_progress",
   "title": "Route Trailer.read through Ancora.Git.run",
   "type": "task",
-  "updated_at": "2026-08-31T13:54:11Z"
+  "updated_at": "2026-08-31T13:54:17Z"
 }
