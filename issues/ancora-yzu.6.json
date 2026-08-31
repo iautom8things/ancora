@@ -62,11 +62,15 @@
     {
       "text": "MERGE_CONFLICT\nSession: 01a02748-bff0-7533-ae8d-3ad5211e4905\nLog: /Users/mz/.grok-personal/sessions/%2FUsers%2Fmz%2Fsrc%2Fancora-output-verdict/01a02748-bff0-7533-ae8d-3ad5211e4905/chat_history.jsonl\n\nConflicting paths: NOTICE\nWhy not auto-resolvable: Real NOTICE content conflict (epic added Parser/Schema/Index/DecisionParser port entries; stage added TaskArgs/TempName/Output entries); not generated state",
       "timestamp": "2026-08-22T02:27:55Z"
+    },
+    {
+      "text": "SCOPE_EXPANSION\nNew ticket: ancora-yzu.27\nReason: NOTICE append-append conflict needs a union merge driver outside this ticket's ownership; rebase reruns after it merges\nOrigin: ancora-yzu.6",
+      "timestamp": "2026-08-31T13:29:09Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L5: Output and verdict layer",
   "type": "task",
-  "updated_at": "2026-08-31T13:29:04Z"
+  "updated_at": "2026-08-31T13:29:09Z"
 }
