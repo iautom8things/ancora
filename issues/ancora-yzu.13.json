@@ -13,9 +13,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu13-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.13/codex-yzu13-impl-1/log\n\nCommit: b7c759d073c8a50493c74f7e7e3cecf5d309564e\nFiles touched: NOTICE; lib/ancora/markdown.ex; lib/ancora/review.ex; lib/ancora/review/{file_diff,findings_delta,html,spec_diff}.ex; lib/mix/tasks/spec.review.ex; priv/spec_review_assets/{prism.min.js,prism.css,prism-css.min.js,prism-diff.min.js,prism-elixir.min.js,prism-erlang.min.js,prism-json.min.js,prism-markdown.min.js,prism-markup.min.js,prism-yaml.min.js}; test/ancora/{markdown,review,review_assets}_test.exs; test/ancora/static/review_budget_test.exs; test/mix/tasks/spec_review_test.exs\nTests added: Ancora.MarkdownTest renders GFM tables and wikilinks through the owned transform; Ancora.MarkdownTest raw HTML is escaped and inert; Ancora.MarkdownTest a renderer failure degrades to escaped source; Ancora.ReviewTest renders the master-detail views, green chip, and triage without retired chrome; Ancora.ReviewTest puts drift under watched interface and growth under test changes; Ancora.ReviewTest classifies repo-state findings on both sides and diff findings as introduced; Ancora.ReviewTest production builder groups an actual derived drift card; Ancora.ReviewTest production builder keeps an acknowledged body change in the watched interface; Ancora.ReviewAssetsTest Prism carries its MIT header and only the selected component files; Ancora.Static.ReviewBudgetTest review rendering stays inside its line budget; Mix.Tasks.Spec.ReviewTest writes the chosen output and prints the two-line golden meta shape; Mix.Tasks.Spec.ReviewTest usage errors raise without printing a verdict line\nVerification stubs flipped: none\nVerification tier: change-scoped — mix compile --warnings-as-errors; mix format --check-formatted; test/ancora/markdown_test.exs, test/ancora/review_assets_test.exs, test/ancora/review_test.exs, test/ancora/static/review_budget_test.exs, test/mix/tasks/spec_review_test.exs; mix test --stale; mix spec.validate --root /Users/mz/src/ancora-review-artifact from /Users/mz/src/specled_ex; full-system\n  proof deferred to the merge gate / PR CI\nFinal-tier runs: 2\n\nSummary: Added the self-contained spec.review artifact, derived-set Code grouping, inline findings and delta views, owned escaped markdown rendering, stable task output, output/open flags, and the vendored Prism grammar set with attribution. Tagged tests cover every ancora.review requirement, including production-path drift and acknowledgment cards, raw HTML escape and fallback, the golden meta line, assets, and the line budget. Checked every epic lesson against the diff; no contract item was omitted and no follow-up ticket was needed.",
+      "timestamp": "2026-08-31T17:50:14Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "L11: spec.review artifact",
   "type": "task",
-  "updated_at": "2026-08-31T17:25:40Z"
+  "updated_at": "2026-08-31T17:50:14Z"
 }
