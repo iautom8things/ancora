@@ -45,11 +45,15 @@
     {
       "text": "RULING (operator) — Atlas rebase, VERSION commit\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nManuel ruled (2026-09-01): drop the stale \"Bump VERSION (0.56.11 -\u003e 0.56.12)\" commit from PR 152's branch during the rebase — keep only the pin commit; Atlas's normal release process owns VERSION. The redo worker gets that authority explicitly. Builder half of M0 is complete: co-change merged into the PR branch, CI fully green, delta verify PASS.",
       "timestamp": "2026-09-01T11:55:00Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nRelayed by the orchestrator for cross-repo worker yzu1-atlasrebase-4 (worker log: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.1/codex-yzu1-atlasrebase-4/log).\n\nCommit: 14d23809306159dd8ea3845658cdbe4455e53719 (Atlas, branch chore/pin-specled-ex-immutable-ref)\nFiles touched: mix.exs, mix.lock\nVerification tier: branch-state verification (origin/main..HEAD = exactly the pin commit; only mix.exs/mix.lock; VERSION unchanged) + force-with-lease push confirmed up to date with origin. Per the ticket's own cadence the final tier is repo CI green on the PR — local in-container spec-check was abandoned after three distinct environment failures on this machine (image tag, port 5432, OOM 137 at 6g); PR CI is the authoritative gate and reruns on this push.\n\nSummary (worker's): the stale VERSION-bump history was dropped per the operator ruling; PR 152 is now origin/main 4f6c0760f + the rewritten pin commit 14d238093.",
+      "timestamp": "2026-09-01T12:27:36Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M0: Pin Atlas and Builder to a specled_ex SHA",
   "type": "task",
-  "updated_at": "2026-09-01T11:55:00Z"
+  "updated_at": "2026-09-01T12:27:36Z"
 }
