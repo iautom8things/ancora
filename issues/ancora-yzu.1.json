@@ -49,11 +49,15 @@
     {
       "text": "IMPLEMENTED\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nRelayed by the orchestrator for cross-repo worker yzu1-atlasrebase-4 (worker log: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.1/codex-yzu1-atlasrebase-4/log).\n\nCommit: 14d23809306159dd8ea3845658cdbe4455e53719 (Atlas, branch chore/pin-specled-ex-immutable-ref)\nFiles touched: mix.exs, mix.lock\nVerification tier: branch-state verification (origin/main..HEAD = exactly the pin commit; only mix.exs/mix.lock; VERSION unchanged) + force-with-lease push confirmed up to date with origin. Per the ticket's own cadence the final tier is repo CI green on the PR — local in-container spec-check was abandoned after three distinct environment failures on this machine (image tag, port 5432, OOM 137 at 6g); PR CI is the authoritative gate and reruns on this push.\n\nSummary (worker's): the stale VERSION-bump history was dropped per the operator ruling; PR 152 is now origin/main 4f6c0760f + the rewritten pin commit 14d238093.",
       "timestamp": "2026-09-01T12:27:36Z"
+    },
+    {
+      "text": "APPROVED. Both pin PRs merged. Closing per orchestrator sign-off.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nBuilder PR 138 merged 2026-09-01T14:53:48Z (rebased onto main + four operator-authorized subject acknowledgments; every check green including the Spec Check that blocked it since 2026-08-22; delta VERIFY: PASS on the co-change). Atlas PR 152 merged 2026-09-01T14:53:53Z (rebased to main + the single pin commit, stale VERSION bump dropped per operator ruling; full CI green on the rebased branch). Both repos pin spec_led_ex to c2d2134 (0.11.0). Manuel executed both merges.",
+      "timestamp": "2026-09-01T14:54:22Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M0: Pin Atlas and Builder to a specled_ex SHA",
   "type": "task",
-  "updated_at": "2026-09-01T12:27:36Z"
+  "updated_at": "2026-09-01T14:54:22Z"
 }
