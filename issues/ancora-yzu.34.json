@@ -26,11 +26,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY reported PASS with independent execution proof of the new\nfixture (own worktree, own config install, own JSON parse naming the exact\nMFA), zero scope violations on a two-file data diff, whole-row claim\nvalidation with no falsehoods, clean old-case removal, and green replay\nself-tests. TEST_CRITIC: n/a (no Elixir test files in diff). No auditor was\nspawned per policy.",
       "timestamp": "2026-09-01T22:02:53Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nff-merge f5cc66e -\u003e 303e447. Gate 23 green under env-pinned erlang 27.2 /\nelixir 1.18.1-otp-27: 331 tests + 3 properties 0 failures, format/deps clean,\nmix spec.check --base f5cc66e result=pass, external spec.validate\nresult=pass. Selection now: Atlas PRs 70/71/109/143 + Builder PR 59 + the\nd885921 format control. The .19 ritual rerun is unblocked and launches next\non a fresh stage at this tip.",
+      "timestamp": "2026-09-01T22:03:30Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Replace invalid Atlas PR 144 replay drift fixture",
   "type": "bug",
-  "updated_at": "2026-09-01T22:02:53Z"
+  "updated_at": "2026-09-01T22:03:30Z"
 }
