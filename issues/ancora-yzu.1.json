@@ -6,7 +6,7 @@
   "description": "No spec subject (cross-repo insulation; no ancora behavior)\n\nStage: M0 (05b-stages-migration.md). Plan run dir on epic ancora-yzu.\n\nDeliverable:\nTwo one-line PRs: Atlas (floats the specled_ex default branch today) and Builder (tracks main) pin an immutable specled_ex ref. Engage and Argos already pin SHAs. Commit (each): chore: pin specled_ex to immutable ref during ancora development.\n\nVerification:\n- Tests to pass: each repo CI green on the pin PR\n- Behaviors to demonstrate: mix.lock in each repo resolves specled_ex to the pinned SHA; mix deps.get is a no-op afterward\n- Verification cadence:\n  - Iteration tier: mix deps.get in each repo only\n  - Final tier: each repo CI green before merge\n  - Verifier tier: read the two diffs; no suite runs\n- Standing bounce-class checks: n/a (no callable surface)\n- Call-site Integration: n/a\n\nOut of Scope (files):\n- everything in Atlas and Builder except mix.exs and mix.lock\n- /Users/mz/src/ancora/**\nAllowed touches (this stage may modify):\n- Atlas mix.exs, mix.lock\n- Builder mix.exs, mix.lock\n\nOut of Scope (intent):\n- no dependency other than specled_ex changes\n- no config or spec edits in either repo\n\nMerge gate:\n- [ ] Atlas and Builder CI green\n- [ ] Both PRs merged\n- [ ] Scope check: diff touches only Allowed files (mechanical)\n- [ ] Auditor APPROVE comment on the ticket",
   "id": "ancora-yzu.1",
   "labels": [
-    "phase:merging"
+    "phase:implementing"
   ],
   "parent": "ancora-yzu",
   "comments": [
@@ -39,5 +39,5 @@
   "status": "in_progress",
   "title": "M0: Pin Atlas and Builder to a specled_ex SHA",
   "type": "task",
-  "updated_at": "2026-09-01T10:47:07Z"
+  "updated_at": "2026-09-01T10:49:23Z"
 }
