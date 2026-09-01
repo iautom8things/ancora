@@ -23,11 +23,15 @@
     {
       "text": "IMPLEMENTED\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\n(DOTFILES HALF — orchestrator relay of worker yzu20-impl-2's completion.md at\n/Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.20/codex-yzu20-impl-2/;\nthe worker cannot reach the board from the dotfiles worktree. Its exit 124\nwas the watchdog reaping an already-finished pane.)\n\nCommit: 522dd3ed on branch ancora-m4/rule-swap; PR:\nhttps://github.com/iautom8things/agentic-dotfiles/pull/17. Repo has NO\nGitHub workflows — \"dotfiles CI\" is the local suite: make agent-rules-test\n177 passed, plus host-elixir/mix-slot/docker-compose mk tests, python\nbytecompile, git diff --check, and a zero-hit retired-vocabulary grep over\ndiff-owned paths.\n\nDelivered: specled.md deleted; ancora.md written to the 04d H3 spec with the\nread-protocol sentence quoted verbatim; catalog-inject.py + both test files\nre-pinned (30-code registry by family, four severities, ack rule, Spec-Ack\ngrammar, override fields, default-base + three remedies, cadence pair);\nregistry.tsv specled_ex row removed; beadwork.md + worktree-mix-targets.md\nswept; worktree make modules cleared of --no-run-commands.\n\nSubscriber verification (04d M2): ALL FIVE non-consumer subscribers carry a\nspecled-era .spec/ — spire-client, voyd, voyd_config, drovr, exoterm-cli.\nFollow-up tickets to be filed by the orchestrator (never a silent sync;\nactual sync is M10).\n\nPending coordination before verification: the vault half's 15 skill-file\nedits live in the dotfiles MAIN checkout (llms/skills is the vault symlink\ntarget) and must be folded onto the PR branch, with .gitignore:50 dropped so\nthe de-symlinked spec-led-bootstrap directory is tracked.",
       "timestamp": "2026-09-01T23:47:01Z"
+    },
+    {
+      "text": "Subscriber follow-ups filed (orchestrator): adf-k3l (spire-client), adf-dld\n(voyd), adf-68f (voyd_config — also the M2 roster fifth caller), adf-e8d\n(drovr), adf-luz (exoterm-cli). All standalone, referenced for the M10 sweep;\nnone blocks this epic.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-01T23:48:03Z"
     }
   ],
   "priority": 2,
   "status": "open",
   "title": "M4: Dotfiles rule + profile skills (flag-day step 0)",
   "type": "task",
-  "updated_at": "2026-09-01T23:47:01Z"
+  "updated_at": "2026-09-01T23:48:03Z"
 }
