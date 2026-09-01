@@ -31,11 +31,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS. No auditor was spawned\nper policy.",
       "timestamp": "2026-09-01T12:30:29Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nGate 19 green at f960cfd: compile --warnings-as-errors, format --check-formatted, deps.unlock --check-unused, 328 tests + 3 properties 0 failures, in-repo mix spec.check result=pass, external spec.validate result=pass. ancora.tasks.no_result_leak now double-bound (plain test + property moduletag).",
+      "timestamp": "2026-09-01T12:31:05Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "TagScanner misses spec tags in files whose tests are property blocks",
   "type": "bug",
-  "updated_at": "2026-09-01T12:30:35Z"
+  "updated_at": "2026-09-01T12:31:05Z"
 }
