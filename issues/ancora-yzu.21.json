@@ -42,11 +42,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: original VERIFY validated every release claim and re-ran the\ngates; its single Gap (stale packaged README) was remedied via the recorded\nmechanical bounce and confirmed byte-exact in the delta re-verification.\nTEST_CRITIC: n/a (no Elixir test files in diff). No auditor was spawned per\npolicy.\n\nMerged: ff 303e447 -\u003e 26e3100. Gate 24 green under env-pinned erlang 27.2 /\nelixir 1.18.1-otp-27: 331 tests + 3 properties 0 failures, format/deps\nclean, self-gate result=pass, external spec.validate result=pass.\n\nPARKED at the operator step: the ticket's remaining merge-gate items are\n\"1.0.0 on hex.pm\" and the post-publish resolution demo. The publish requires\nManuel's 2FA and is his action alone. Ticket stays open until the package is\nlive; M6 admission waits on it (and on held M4).",
       "timestamp": "2026-09-01T22:41:31Z"
+    },
+    {
+      "text": "PUBLISHED. 1.0.0 live on hex.pm; resolution demo green. Closing per orchestrator sign-off.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nManuel published 1.0.0 personally (2FA; his first attempt hit an expired hex\nsession, re-authenticated, published; confirmed \"its there\"). Verified:\nmix hex.info ancora lists 1.0.0 (2026-09-01) with Config {:ancora, \"~\u003e 1.0\"};\na throwaway mix project depending on {:ancora, \"~\u003e 1.0\"} resolved and fetched\nancora 1.0.0 (demo project created and removed in the session scratchpad).\n\nMerge gate: M3 go recorded ✓; common gate + self-gate green (gate 24) ✓;\n1.0.0 on hex.pm ✓; audit APPROVE on the ticket ✓. All items closed.",
+      "timestamp": "2026-09-01T23:09:12Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M5: Publish 1.0.0 final",
   "type": "task",
-  "updated_at": "2026-09-01T22:41:31Z"
+  "updated_at": "2026-09-01T23:09:12Z"
 }
