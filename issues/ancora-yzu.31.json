@@ -4,6 +4,7 @@
   "blocks": [
     "ancora-yzu.16"
   ],
+  "closed_at": "2026-09-01T12:31:12Z",
   "created": "2026-09-01T11:57:51Z",
   "description": "Advances: ancora.parsing\n\nancora.parsing.tag_discovery (stable must) requires discovering moduletag spec values in every test file. A moduletag in a file whose only tests are ExUnitProperties property blocks never binds; TagScanner attaches tags to test statements only. Details in first comment.",
   "id": "ancora-yzu.31",
@@ -36,7 +37,7 @@
     }
   ],
   "priority": 1,
-  "status": "in_progress",
+  "status": "closed",
   "title": "TagScanner misses spec tags in files whose tests are property blocks",
   "type": "bug",
   "updated_at": "2026-09-01T12:31:12Z"
