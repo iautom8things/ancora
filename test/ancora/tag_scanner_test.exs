@@ -112,6 +112,89 @@ defmodule Ancora.TagScannerTest do
     end
   end
 
+  describe "scan_file/1 — property blocks" do
+    @tag spec: "ancora.parsing.tag_discovery"
+    test "moduletag attaches in a property-only file", %{root: root} do
+      path =
+        write_test_file(root, "test/example_test.exs", """
+        defmodule ExampleTest do
+          use ExUnit.Case
+          use ExUnitProperties
+
+          @moduletag spec: "domain.root"
+
+          property "accepts generated values" do
+            assert true
+          end
+        end
+        """)
+
+      assert {:ok, [%{id: "domain.root", test_name: "accepts generated values"}]} =
+               TagScanner.scan_file(path)
+    end
+
+    @tag spec: "ancora.parsing.tag_discovery"
+    test "inline tag attaches to a property", %{root: root} do
+      path =
+        write_test_file(root, "test/example_test.exs", """
+        defmodule ExampleTest do
+          use ExUnit.Case
+          use ExUnitProperties
+
+          @tag spec: "domain.generated"
+          property "accepts generated values" do
+            assert true
+          end
+        end
+        """)
+
+      assert {:ok, [%{id: "domain.generated", test_name: "accepts generated values"}]} =
+               TagScanner.scan_file(path)
+    end
+
+    @tag spec: "ancora.parsing.tag_discovery"
+    test "describetag attaches to a nested property", %{root: root} do
+      path =
+        write_test_file(root, "test/example_test.exs", """
+        defmodule ExampleTest do
+          use ExUnit.Case
+          use ExUnitProperties
+
+          describe "generated values" do
+            @describetag spec: "domain.group"
+
+            property "accepts generated values" do
+              assert true
+            end
+          end
+        end
+        """)
+
+      assert {:ok, [%{id: "domain.group", test_name: "accepts generated values"}]} =
+               TagScanner.scan_file(path)
+    end
+
+    @tag spec: "ancora.parsing.tag_discovery"
+    test "inline tag attaches to a property inside a for-comprehension", %{root: root} do
+      path =
+        write_test_file(root, "test/example_test.exs", """
+        defmodule ExampleTest do
+          use ExUnit.Case
+          use ExUnitProperties
+
+          for phase <- [:plan, :apply] do
+            @tag spec: "domain.generated"
+            property "accepts generated values in \#{phase}" do
+              assert true
+            end
+          end
+        end
+        """)
+
+      assert {:ok, [%{id: "domain.generated", test_name: nil}]} = TagScanner.scan_file(path)
+    end
+  end
+
   describe "scan_file/1 — for-comprehension bodies" do
     @tag spec: "ancora.parsing.tag_discovery"
     test "tag inside a for-comprehension is attributed to the subject", %{root: root} do

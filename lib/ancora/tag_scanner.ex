@@ -140,7 +140,7 @@ defmodule Ancora.TagScanner do
   # Walk the AST collecting (tags, dynamics). We traverse modules and their
   # `do` blocks, tracking pending @tag attributes plus module-wide
   # @moduletag and describe-wide @describetag attributes, emitting tag entries
-  # when we hit a `test/2` or `test/3` definition.
+  # when we hit a `test` or `property` definition.
   defp extract(ast, file) do
     modules = collect_modules(ast)
 
@@ -205,11 +205,12 @@ defmodule Ancora.TagScanner do
   end
 
   defp process_statement(
-         {:test, meta, args},
+         {kind, meta, args},
          file,
          moduletag_ids,
          {pending, pending_dyn, tags, dynamics}
-       ) do
+       )
+       when kind in [:test, :property] do
     line = Keyword.get(meta, :line, 0)
     test_name = test_name_from_args(args)
 
