@@ -14,9 +14,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nRelayed by the orchestrator for cross-repo worker yzu18-impl-1 (worker log: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.18/codex-yzu18-impl-1/log). PHASE 1 of this ticket (the shim in chapterspot/workflows); the Argos rehearsal is phase 2, post-merge.\n\nCommit: abffe7d0872c21251de01c8a214ed716fd69cdd1 (workflows, branch feat/spec-check-detect-ancora)\nFiles touched: .github/scripts/detect-spec-gate.sh, .github/scripts/test/detect-spec-gate.bats, .github/scripts/test/fixtures/{ancora,specled_ex}.mix.lock, .github/workflows/elixir_checks.yaml\nVerification: bats green on both fixtures; YAML parse; fetch-depth: 0 confirmed already present (not re-added); legacy invocation preserved verbatim. PR open (real, not draft): https://github.com/ChapterSpot/workflows/pull/48\n\nDEVIATION FOUND: the ticket says \"verify no fifth caller\" — the org-wide gh search found FIVE run-spec-check callers: Atlas, Builder, Argos, Engage, and voyd_config. voyd_config is safe under the shim (no ancora lock entry → legacy path unchanged), but the migration roster in later M-stages assumes four consumers. Flagged to the operator; likely extends the M6+ inventory rather than blocking M2.",
+      "timestamp": "2026-09-01T18:22:43Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "M2: Shared-workflow shim + Argos rehearsal",
   "type": "task",
-  "updated_at": "2026-09-01T18:08:59Z"
+  "updated_at": "2026-09-01T18:22:43Z"
 }
