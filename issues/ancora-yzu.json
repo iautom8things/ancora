@@ -49,11 +49,15 @@
     {
       "text": "FLAKE SIGNATURE — cap exhausted, investigation filed\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nSignature: Mix.Tasks.Spec.CheckTest / \"json mode includes a growth finding before the last-line verdict\" / Jason.DecodeError at position 0 (byte \"W\"). Count: 4 (2 accepted 2026-08-31; 2 more on 2026-09-01 in a fresh worktree at 8f370c5, consecutive full-suite runs, green in isolation). Per the same-seed flake protocol the acceptance cap (2) is spent: ancora-yzu.30 filed as the investigation ticket, blocking ancora-yzu.15 (its admission smoke is red on this signature). No merge-gate run has been red on it.",
       "timestamp": "2026-09-01T10:34:31Z"
+    },
+    {
+      "text": "LESSONS\n- [unwired-call-path] A single-function-head claim (Git.read_blob/2) is false if BaseView.blobs talks to BatchPort.fetch and opens an ephemeral port instead of that head. (from ancora-yzu.7)\n- [seam-substitution] An AST walk of a call's argument text is not coverage of options spliced at the real call site. (from ancora-yzu.7)\n- [untested-clause] Logger-on-stderr is not proven by asserting :logger handler type == :standard_error; capture both streams. (from ancora-yzu.6)\n- [untested-clause] A decoy path inside a tmp git repo is not isolation from git show: git -C walks parents for .git. (from ancora-yzu.7)\n- [untested-clause] Stacked admission gates mask each other: give each gate a negative test where the other gate would admit, so mutating either gate alone to `true` goes red. (from ancora-yzu.9)\n- [untested-clause] A property whose generator draws from one fixed template is examples in a costume; generate the shapes the scenario names and compute the expectation from the generated structure. (from ancora-yzu.9)\n- [untested-clause] A both-sides case does not cover a one-side asymmetry: every silence rule needs HEAD-only and base-only negatives, not just the symmetric test. (from ancora-yzu.10)\n- [untested-clause] A single-file/single-subject pipeline test trivially satisfies fan-in wiring; drive concurrency with multiple files and subjects so dedupe, ordering, and error-halt mutations die. (from ancora-yzu.10)\n- [stale-spec] A config default that fills in an absent key erases unset-vs-configured, and a spec co-change canonizing that behavior against another subject's unedited must is drift, not acknowledgment; represent absence as nil and check spec edits cross-subject. (from ancora-yzu.11)\n- [vacuous-tag] A spec tag is honest only if mutating that requirement's mechanism turns the test red; when the assertion path bypasses the mechanism entirely (derive_sets discards the change set the tag names), the tag records coverage that green-lights breaking the requirement. Probe the tag's requirement, not the test's own assertion. (from ancora-yzu.15)",
+      "timestamp": "2026-09-01T11:58:14Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "ancora: spec-anchored successor to specled_ex",
   "type": "epic",
-  "updated_at": "2026-09-01T10:34:31Z"
+  "updated_at": "2026-09-01T11:58:14Z"
 }
