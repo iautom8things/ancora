@@ -32,11 +32,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS. No auditor was spawned\nper policy.",
       "timestamp": "2026-09-01T21:44:22Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nff-merge c9d1efe -\u003e 1d5cd58. Gate 21 green under the epic's established\ntoolchain (env-pinned erlang 27.2 / elixir 1.18.1-otp-27): 329 tests + 3\nproperties 0 failures, mix spec.check --base c9d1efe result=pass, external\nspec.validate result=pass, format/deps checks clean after a full _build\nrebuild.\n\nToolchain note for the record: an untracked .tool-versions (erlang 29.0\n--home / elixir 1.20.4-otp-29) appeared in the epic worktree at 13:59 today —\noperator's hex-publish workaround, not epic scope. Under 1.20.4 the codebase\nemits deprecation + type-checker warnings that red --warnings-as-errors; the\ngate therefore runs env-pinned to the toolchain every prior gate used. The\nfile was left untouched; flagged to the operator (possible follow-up: adopt\nOTP 29/Elixir 1.20 deliberately and fix the warnings).",
+      "timestamp": "2026-09-01T21:47:03Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Handle nil AST children in replayed consumer tests",
   "type": "bug",
-  "updated_at": "2026-09-01T21:44:22Z"
+  "updated_at": "2026-09-01T21:47:03Z"
 }
