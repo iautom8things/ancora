@@ -36,11 +36,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations (the ADR edit proven gate-demanded by direct PolicyFiles\nprobing; the two instrument files covered by the recorded SCOPE RULING),\npassing targeted verification including the no-suppression config diff,\ncomplete seam disclosure, and no seam substituting production wiring.\nTEST_CRITIC: PASS. No auditor was spawned per policy.",
       "timestamp": "2026-09-01T21:48:47Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nMechanical rebase onto 1d5cd58 (zero conflicts, disjoint files), ff-merge to\nf5cc66e. Gate 22 green under env-pinned erlang 27.2 / elixir 1.18.1-otp-27:\n331 tests + 3 properties 0 failures, format/deps clean, mix spec.check\n--base c9d1efe result=pass (0 errors 0 warnings, 7 info), external\nspec.validate result=pass. Banked for M3 evidence: old-Atlas corpus carries\n47 overlap/duplicate_covers errors on the plain format commit (outside the\ncontrol's acceptance filter; M9 will meet it).",
+      "timestamp": "2026-09-01T21:49:53Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Produce JSON for the Atlas format control",
   "type": "bug",
-  "updated_at": "2026-09-01T21:48:47Z"
+  "updated_at": "2026-09-01T21:49:53Z"
 }
