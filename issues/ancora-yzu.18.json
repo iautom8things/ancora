@@ -38,11 +38,15 @@
     {
       "text": "IMPLEMENTED\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nRelayed for cross-repo worker yzu18-impl-4 (worker log: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.18/codex-yzu18-impl-4/log). Phase 2 complete — both shim branches observed in real CI:\n\nNEW PATH: https://github.com/ChapterSpot/argos/actions/runs/33551548476/job/100003495165 — Compile Project green after dropping only the SpecLedEx.Compiler.Tracer entry (commit d31d3e78 on the throwaway branch; both Argos tracers kept); the shim selected bare mix spec.check; verdict on the real unmigrated corpus: spec.check result=fail tier=branch errors=24 warnings=31. Finding profile from the captured output: 25x format/retired_construct, 2x tags/unknown_requirement, 1x change/uncovered_file (the throwaway diff itself). Zero tool defects.\n\nLEGACY PATH: https://github.com/ChapterSpot/builder/actions/runs/33502243395 — mix spec.check --no-run-commands, result=pass, job success.\n\nMigration-roster notes accumulated on this ticket: consumers wire SpecLedEx.Compiler.Tracer in elixirc_options (must drop at migration); local make targets pass --no-run-commands (invalid for ancora); fifth caller voyd_config exists.",
       "timestamp": "2026-09-01T20:11:50Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (operator ruling)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nManuel ruled (2026-09-01): accept and close. The gate's \"observe the new path green\" clause assumed retired-construct tolerance would pass an unmigrated corpus; the observed red verdict (24 errors, dominated by format/retired_construct, zero tool defects) is correct gate behavior and becomes M3's evaluation material. Routing was proven on both branches; the shim is inert for every repo without an ancora lock entry. Phase-1 shim verified cold (mutation-proven fixtures, byte-identical legacy invocation); phase-2 evidence links above. Shim stays; no revert.",
+      "timestamp": "2026-09-01T20:11:57Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M2: Shared-workflow shim + Argos rehearsal",
   "type": "task",
-  "updated_at": "2026-09-01T20:11:50Z"
+  "updated_at": "2026-09-01T20:11:57Z"
 }
