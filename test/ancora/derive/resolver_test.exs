@@ -142,6 +142,23 @@ defmodule Ancora.Derive.ResolverTest do
     assert [%{kind: :dynamic_module, name: :run, arity: 1}] = result.unresolved
   end
 
+  @tag spec: "ancora.derive.qualified_call_disposition"
+  test "variables named quote do not crash or hide calls", %{ctx: ctx} do
+    source = """
+    defmodule Sample do
+      def run(quote) do
+        quote = nil
+        Foo.Bar.run(quote)
+      end
+    end
+    """
+
+    result = resolve!(source, ctx)
+
+    assert result.calls == MapSet.new([{Foo.Bar, :run, 1}])
+    assert result.unresolved == []
+  end
+
   @tag spec: "ancora.derive.unqualified_ladder"
   test "unqualified local helper is suppressed", %{ctx: ctx} do
     source = """

@@ -160,7 +160,7 @@ defmodule Ancora.Derive.Resolver do
   defp walk({:import, _, _args}, state), do: state
   defp walk({:use, _, _args}, state), do: state
 
-  defp walk({:quote, _, args}, state), do: walk_call_arguments(args, state)
+  defp walk({:quote, _, args}, state) when is_list(args), do: walk_call_arguments(args, state)
 
   defp walk({:%, _, [_module, map]}, state), do: walk(map, state)
 
