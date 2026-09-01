@@ -24,11 +24,15 @@
     {
       "text": "VERIFY: PASS\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nMechanical: diff ea1b0fb..HEAD touches exactly test/ancora/static/exactly_eight_test.exs (+25). git status clean before and after. No violations.\n\nSemantic: test covers ancora.tasks.exactly_eight — @tag spec set, Mix.Task.load_all() before enumeration, sorted exact-list equality against the eight names verbatim from the requirement, starts_with?(\"spec.\") filter catches dotted names (spec.decision.new is in the set). Would-fail proven by execution in both directions: adding lib/mix/tasks/spec.dummy.ex went red with spec.dummy listed as extra; moving spec.prime.ex aside went red with spec.prime missing. Both reverted; tree byte-identical. Seams: none.\n\nTargeted verification: mix test test/ancora/static/exactly_eight_test.exs green (1 test, 0 failures); mix test --stale green (3 tests, 0 failures); external mix spec.validate --root /Users/mz/src/ancora-eight-tasks from specled_ex: spec.validate result=pass.\n\nVerdict: PASS.\n\nNotes: fresh verifier replacing a stalled one; full pass redone from scratch, results match the prior TEST_CRITIC findings.",
       "timestamp": "2026-09-01T10:25:53Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS. No auditor was spawned\nper policy.",
+      "timestamp": "2026-09-01T10:27:13Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Add exact eight-task static contract after L11 and L12",
   "type": "task",
-  "updated_at": "2026-09-01T10:25:53Z"
+  "updated_at": "2026-09-01T10:27:13Z"
 }
