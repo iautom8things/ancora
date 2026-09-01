@@ -7,6 +7,7 @@
   "blocks": [
     "ancora-yzu.19"
   ],
+  "closed_at": "2026-09-01T22:03:34Z",
   "created": "2026-09-01T21:21:51Z",
   "description": "Advances: M3 replay validation ritual (ancora-yzu.19)\n\nAtlas PR 144 commit 341c270c047652ead308fdf4092e02fa80880464 cannot produce the selected derived/drift for Atlas.Slack.KnowledgeCapture.handle_message_action/2 under Ancora direct-only derivation. The public handle_message_action/2 clause canonicalizes identically at the parent and commit; the PR changes private do_handle_message_action/2 and adds tagged public calls. scripts/replay/SELECTION.md also says private-helper fan-out is excluded. Replace PR 144 with a valid public-body drift fixture or revise the ritual expectation without broadening detector semantics.",
   "id": "ancora-yzu.34",
@@ -33,8 +34,8 @@
     }
   ],
   "priority": 2,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Replace invalid Atlas PR 144 replay drift fixture",
   "type": "bug",
-  "updated_at": "2026-09-01T22:03:30Z"
+  "updated_at": "2026-09-01T22:03:34Z"
 }
