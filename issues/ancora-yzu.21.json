@@ -38,11 +38,15 @@
     {
       "text": "VERIFY: PASS (delta-scoped bounce re-verification, orchestrator-deterministic)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nThe bounce prescribed two byte-exact remedies; conformance is mechanically\ncheckable, so no cold agent was spawned for the delta. Checked at the amended\ncommit 26e3100:\n- README.md:16 is exactly `{:ancora, \"~\u003e 1.0\", only: [:dev, :test], runtime: false}`\n- \"release candidate\" no longer appears; the stability sentence reads\n  `...stable within the 1.x series.` with the Elixir requirement intact\n- Commit message and Spec-Ack trailer unchanged; diff vs base is exactly\n  mix.exs + CHANGELOG.md + README.md\n- Worker's delta self-gate: spec.check result=pass; stage tree clean\nEverything outside the delta stands on the original VERIFY (all release\nclaims validated) and TEST_CRITIC: n/a. Proceeding to merge and gate 24.",
       "timestamp": "2026-09-01T22:40:33Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: original VERIFY validated every release claim and re-ran the\ngates; its single Gap (stale packaged README) was remedied via the recorded\nmechanical bounce and confirmed byte-exact in the delta re-verification.\nTEST_CRITIC: n/a (no Elixir test files in diff). No auditor was spawned per\npolicy.\n\nMerged: ff 303e447 -\u003e 26e3100. Gate 24 green under env-pinned erlang 27.2 /\nelixir 1.18.1-otp-27: 331 tests + 3 properties 0 failures, format/deps\nclean, self-gate result=pass, external spec.validate result=pass.\n\nPARKED at the operator step: the ticket's remaining merge-gate items are\n\"1.0.0 on hex.pm\" and the post-publish resolution demo. The publish requires\nManuel's 2FA and is his action alone. Ticket stays open until the package is\nlive; M6 admission waits on it (and on held M4).",
+      "timestamp": "2026-09-01T22:41:31Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M5: Publish 1.0.0 final",
   "type": "task",
-  "updated_at": "2026-09-01T22:40:33Z"
+  "updated_at": "2026-09-01T22:41:31Z"
 }
