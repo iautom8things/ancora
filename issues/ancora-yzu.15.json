@@ -48,11 +48,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: FIXED. No auditor was spawned\nper policy.",
       "timestamp": "2026-09-01T12:13:50Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nGate 17 green at dccaf89: compile --warnings-as-errors, format --check-formatted, deps.unlock --check-unused, 324 tests + 3 properties 0 failures, in-repo mix spec.check result=pass (all seven subjects active, requirement_untagged=0), external spec.validate result=pass.",
+      "timestamp": "2026-09-01T12:14:31Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L13: Dogfood corpus anchoring (7 subjects) + self-gate",
   "type": "task",
-  "updated_at": "2026-09-01T12:13:55Z"
+  "updated_at": "2026-09-01T12:14:31Z"
 }
