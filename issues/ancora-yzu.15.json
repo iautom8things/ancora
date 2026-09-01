@@ -3,7 +3,8 @@
   "blocked_by": [
     "ancora-yzu.12",
     "ancora-yzu.13",
-    "ancora-yzu.14"
+    "ancora-yzu.14",
+    "ancora-yzu.30"
   ],
   "blocks": [
     "ancora-yzu.16"
@@ -17,5 +18,5 @@
   "status": "open",
   "title": "L13: Dogfood corpus anchoring (7 subjects) + self-gate",
   "type": "task",
-  "updated_at": "2026-08-21T19:01:16Z"
+  "updated_at": "2026-09-01T10:34:10Z"
 }
