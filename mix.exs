@@ -1,7 +1,7 @@
 defmodule Ancora.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "1.0.0-rc.1"
   @source_url "https://github.com/iautom8things/ancora"
 
   def project do
@@ -14,7 +14,11 @@ defmodule Ancora.MixProject do
       description: description(),
       package: package(),
       source_url: @source_url,
-      homepage_url: @source_url
+      homepage_url: @source_url,
+      docs: [
+        main: "readme",
+        extras: ["README.md", "CHANGELOG.md", "LICENSE", "NOTICE", "docs/migration.md"]
+      ]
     ]
   end
 
@@ -30,7 +34,8 @@ defmodule Ancora.MixProject do
       {:zoi, "~> 0.17"},
       {:jason, "~> 1.4"},
       {:earmark_parser, "~> 1.4"},
-      {:stream_data, "~> 1.0", only: [:dev, :test]}
+      {:stream_data, "~> 1.0", only: [:dev, :test]},
+      {:ex_doc, "~> 0.38", only: :dev, runtime: false}
     ]
   end
 
@@ -38,11 +43,15 @@ defmodule Ancora.MixProject do
     "Spec-anchored traceability and drift detection for Elixir."
   end
 
-  # Stub: Hex files/extra links land at publish (L14).
   defp package do
     [
+      files:
+        ~w(lib priv/spec_init priv/spec_review_assets .formatter.exs mix.exs README.md CHANGELOG.md LICENSE NOTICE docs/migration.md),
       licenses: ["MIT"],
-      links: %{"GitHub" => @source_url}
+      links: %{
+        "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md",
+        "GitHub" => @source_url
+      }
     ]
   end
 end

@@ -1,16 +1,31 @@
 # Ancora
 
-Ancora is an Elixir library for traceability between specs, tagged tests, and
-the production functions those tests call. It detects drift across git
-revisions without running the target project's code or tests.
+Ancora links specs to tagged ExUnit tests and the production functions those
+tests call. It detects drift across git revisions without running the target
+project's code or tests.
 
 Ancora is a successor inspired by
 [spec_led_ex](https://github.com/iautom8things/specled_ex) (Copyright (c)
 Mike Hostetler, MIT licensed).
 
-## Status
+## Installation
 
-The library is under construction. Releases will be published to Hex.
+Add Ancora to the development and test dependencies in `mix.exs`:
+
+```elixir
+{:ancora, "~> 1.0.0-rc.1", only: [:dev, :test], runtime: false}
+```
+
+Then scaffold the spec workspace and inspect the next action:
+
+```bash
+mix deps.get
+mix spec.init
+mix spec.prime --base HEAD
+```
+
+Ancora requires Elixir 1.18 or later. The release candidate may change before
+1.0.0, but the public parse API below will remain stable within the 1.x series.
 
 ## Public API
 
@@ -20,7 +35,8 @@ Ancora's semver-stable public API has two functions:
 - `Ancora.DecisionParser.parse_file/2`
 
 Mix tasks are the supported command-line interface. Their `--root` option is
-an internal affordance for tooling and tests, outside the semver commitment.
+an internal affordance for tooling and tests and is outside the semver
+commitment.
 
 ## How checks work
 
@@ -35,6 +51,8 @@ in the same diff. Mechanical rewrites such as `mix format --migrate` still
 need an explicit acknowledgment when they change the derived call set.
 
 ## CI
+
+Run the gate against the target branch after fetching its remote ref:
 
 ```yaml
 spec:
