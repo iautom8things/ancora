@@ -65,11 +65,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS. No auditor was spawned\nper policy.",
       "timestamp": "2026-09-01T12:12:57Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nGate 18 green at 19664b5: compile --warnings-as-errors, format --check-formatted, deps.unlock --check-unused, 324 tests + 3 properties 0 failures, in-repo mix spec.check result=pass, external spec.validate result=pass. Merged after a clean two-step rebase (the epic tip moved mid-rebase; the worker re-rebased onto dccaf89 conflict-free, smoke green both times).",
+      "timestamp": "2026-09-01T12:16:55Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M1: Replay harness + bench harness",
   "type": "task",
-  "updated_at": "2026-09-01T12:13:00Z"
+  "updated_at": "2026-09-01T12:16:55Z"
 }
