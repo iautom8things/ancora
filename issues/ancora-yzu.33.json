@@ -7,7 +7,9 @@
   "created": "2026-09-01T20:48:55Z",
   "description": "Advances: M3 replay validation ritual (ancora-yzu.19)\n\nThe authorized M3 replay on Ancora 1.0.0-rc.1 could not evaluate Atlas format control d885921177f629f2e931020c392f8f9f9543e66a. spec.check printed \"target mix.exs project/0 must return a keyword list\", emitted no JSON report, and forced harness exit 2. Full evidence: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.19/codex-yzu19-impl-1/m3-replay-results.md.\n\nAcceptance: the control run emits valid JSON and has exactly zero warning-or-error derived/* or change/* findings after the two SELECTION.md exclusions. Preserve the pinned control commit and exclusions; do not weaken or tune the detector.",
   "id": "ancora-yzu.33",
-  "labels": [],
+  "labels": [
+    "phase:implementing"
+  ],
   "parent": "ancora-yzu",
   "priority": 2,
   "status": "in_progress",
