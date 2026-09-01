@@ -11,9 +11,15 @@
   "id": "ancora-yzu.20",
   "labels": [],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "WORKER_ERROR (orchestrator record) — dotfiles half attempt 1 reaped mid-finish, work preserved\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.20/codex-yzu20-impl-1/log\n\nyzu20-impl-1 (codex) completed the substance — specled.md deleted, ancora.md\nwritten, catalog-inject.py + both test files re-pinned (tests green in the\nlog), registry.tsv unsubscribed, beadwork.md swept, worktree make modules\ncleared of the --no-run-commands flag ancora rejects, VERSION/CHANGELOG\nbumped — then its shell script died on a zsh quirk (`status` is a read-only\nzsh variable) during the final retired-vocabulary grep, stalled, and the\nwatchdog killed the pane (exit 124) before commit/push/PR/completion.\n\nAll work sits uncommitted in /Users/mz/src/adf-ancora-m4. Attempt 2\n(yzu20-impl-2) inherits it: critical review of the diff, finish the sweep\n(avoiding the reserved variable), commit, push, real PR, CI, completion\nrecord. Retry-or-escalate: first retry, orchestrator's own authority. The\nvault-half worker is unaffected and still running.",
+      "timestamp": "2026-09-01T23:29:36Z"
+    }
+  ],
   "priority": 2,
   "status": "open",
   "title": "M4: Dotfiles rule + profile skills (flag-day step 0)",
   "type": "task",
-  "updated_at": "2026-08-21T19:01:17Z"
+  "updated_at": "2026-09-01T23:29:36Z"
 }
