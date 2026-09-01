@@ -33,11 +33,15 @@
     {
       "text": "SCOPE EXPANSION AUTHORIZED (operator)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nManuel ruled (2026-09-01): authorize the Builder spec-subject co-change that PR 138's own spec gate demands (branch_guard_missing_subject_update on the one-line mix.exs pin). The ticket's Allowed touches expand to the smallest acknowledging edit in Builder's .spec/** that makes the Spec Check green — never weakening a requirement. Atlas PR 152 is fully green and untouched. A delegated worker handles the Builder edit; no bounce consumed (operator-authorized expansion).",
       "timestamp": "2026-09-01T10:47:07Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nRelayed by the orchestrator for cross-repo worker yzu1-cochange-1 (worker log: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.1/codex-yzu1-cochange-1/log; the Builder worktree cannot reach this board).\n\nCommit: 403ce5aee02bee2aba53ed2dd94cbba1453dc07c (Builder, branch chore/pin-specled-ex-immutable-ref)\nFiles touched: mix.exs, mix.lock, .spec/specs/builder.atlas_integration.spec.md, .spec/specs/builder.boundary_graph.spec.md, .spec/specs/builder.telemetry_conventions.spec.md, .spec/specs/package.spec.md\nTests added: none\nVerification stubs flipped: none\nVerification tier: change-scoped — make worktree-container-deps-prewarm (in-container mix deps.get no-op plus deps.compile) and make spec-check green; full-system proof deferred to PR CI\nFinal-tier runs: 1\n\nSummary (worker's): Rebased the pin commit from 76b28b59 onto origin/main at c1ee549a, preserving the immutable specled_ex ref while retaining main's adjacent splode lock entry. Added the four subject acknowledgments the branch guard requires — each a one-line reviewed-comment following the repo's existing voyd_config precedent — and pushed with force-with-lease to origin at 403ce5ae. PR 138 CI is rerunning.",
+      "timestamp": "2026-09-01T11:16:55Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M0: Pin Atlas and Builder to a specled_ex SHA",
   "type": "task",
-  "updated_at": "2026-09-01T10:49:23Z"
+  "updated_at": "2026-09-01T11:16:55Z"
 }
