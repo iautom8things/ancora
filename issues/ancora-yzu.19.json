@@ -4,7 +4,8 @@
     "ancora-yzu.17",
     "ancora-yzu.18",
     "ancora-yzu.32",
-    "ancora-yzu.33"
+    "ancora-yzu.33",
+    "ancora-yzu.34"
   ],
   "blocks": [
     "ancora-yzu.21"
@@ -34,5 +35,5 @@
   "status": "in_progress",
   "title": "M3: Replay validation ritual (go/no-go)",
   "type": "task",
-  "updated_at": "2026-09-01T20:52:04Z"
+  "updated_at": "2026-09-01T21:23:58Z"
 }
