@@ -26,11 +26,15 @@
     {
       "text": "AUDIT: BOUNCE → implementer (mechanical remedy)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nTwo fixture-content fixes from the VERIFY: FAIL above; no auditor needed, everything else (script, bats discrimination, yaml wiring, PR) verified clean.\n\nRemedy, exactly: (1) rewrite .github/scripts/test/fixtures/ancora.mix.lock as a realistic :hex lock entry — \"ancora\": {:hex, :ancora, \"1.0.0-rc.1\", ...} shape matching what hex.pm serves today; (2) in .github/scripts/test/fixtures/specled_ex.mix.lock, key the dep \"spec_led_ex\" (the real app name per specled_ex's mix.exs), not \"specled_ex\". Rerun bats (both green), amend or add a commit on the PR branch, push. Nothing else in scope. Mechanical-remedy bounce 1 of 2; consumes no main bounce.",
       "timestamp": "2026-09-01T18:32:20Z"
+    },
+    {
+      "text": "VERIFY: PASS\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nDelta re-verification (mechanical remedy c029425), executed directly by the orchestrator (not the implementer; the delta is two fixture files read in full and the bats suite run first-hand): the ancora fixture is now a genuine :hex lock entry for 1.0.0-rc.1 whose outer checksum d55c4041f37114e4f8a8f7378bfb0de1a149009997645d39b8e36d7db8647639 matches the hash hex.pm emitted at publish; the specled fixture keys \"spec_led_ex\" with no ancora entry. bats: 2/2 green. Diff vs abffe7d touches exactly the two fixture files; script and yaml untouched. Phase-1 verifier's prior findings both remediated; its clean results on the script, mutations, yaml wiring, and PR state stand. PR 48 pushed and open — the merge is the operator checkpoint.",
+      "timestamp": "2026-09-01T18:36:20Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M2: Shared-workflow shim + Argos rehearsal",
   "type": "task",
-  "updated_at": "2026-09-01T18:32:20Z"
+  "updated_at": "2026-09-01T18:36:20Z"
 }
