@@ -14,9 +14,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "RUN AUTHORIZED (operator)\nSession: https://claude.ai/code/session_01QVkG986pcjKvdzf7SBGujX\nLog: orchestrator turn, 2026-09-01\n\nManuel's standing ruling, verbatim: \"Yes I want you to continue. Don't ask\nagain, assume i want this completed.\" Recorded before acting, per protocol.\n\nInterpretation for this supervised ritual: the orchestrator runs the ritual\nnow via a delegated worker. Green evidence (self-test pass, harness exit 0 on\nthe full SELECTION.md set, control clean, bench median recorded) is consumed\nunder this ruling as the operator's GO. Any exit 1 / exit 2 / ambiguous result\nstops the line and goes back to Manuel with the evidence — no detector or\ninstrument change happens under this authorization.\n\nPath corrections resolved this turn (recorded, no ticket edit):\n- Plan run dir actual location: /Users/mz/Documents/my-vault/LLMs/plans/iautom8things-specled_ex/2026-08-20-spec-anchored-successor/runs/20260821-082855-claude (epic description's ~/vaults/rmbrs-vault path is stale)\n- Atlas checkout: /Users/mz/dev/mz/atlas — all 5 Atlas commits incl. control d885921 verified present\n- Builder checkout: /Users/mz/dev/cs/builder — 95faa605 verified present",
+      "timestamp": "2026-09-01T20:38:46Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "M3: Replay validation ritual (go/no-go)",
   "type": "task",
-  "updated_at": "2026-09-01T20:38:35Z"
+  "updated_at": "2026-09-01T20:38:46Z"
 }
