@@ -37,11 +37,15 @@
     {
       "text": "ESCALATED\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nAttempt 3 (operator-authorized) hit WORKER_ERROR on the same class as attempt 1: the real Atlas replay booted Elixir 1.19.5 on OTP 27. Root cause now CONFIRMED by orchestrator reproduction, not hypothesis: the harness's run_gate uses `asdf exec elixir` with ASDF_ERLANG_VERSION/ASDF_ELIXIR_VERSION from the target's .tool-versions — which works in a clean shell — but inside a mix process running under ancora's OTP-27 toolchain, erlang 27.2's real bin directory precedes the asdf shims on PATH, so the child elixir 1.19.5-otp-28 finds `erl` (OTP 27) by PATH and bypasses the shim. Reproduced verbatim: `env PATH=\"$HOME/.asdf/installs/erlang/27.2/bin:$PATH\" ASDF_ERLANG_VERSION=28.3.1 asdf exec elixir -e ...` crashes with the exact boot error; without the PATH prefix it prints otp=28.\n\nMechanical remedy for a next attempt: in scripts/replay/runner.exs run_gate env, also set PATH with the target erlang's bin dir prepended (computable as ~/.asdf/installs/erlang/#{version}/bin from the parsed .tool-versions) or strip parent-injected asdf install bin dirs. Everything else in attempt 3's run was green: scope guard, format, compile -Werr, exit-state tests, spec.validate, and the synthetic self-test (drift=0, format-as-drift=1, unparseable=2 — all three exit states correct). The harness is one env line from done. Parked pending operator go for attempt 4.",
       "timestamp": "2026-09-01T11:02:37Z"
+    },
+    {
+      "text": "RETRY AUTHORIZED (operator) — attempt 4\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nManuel authorized attempt 4 (2026-09-01) with the confirmed PATH remedy in the brief: run_gate prepends the target erlang's asdf install bin dir to the subprocess PATH so the child's erl lookup cannot be shadowed by the parent toolchain. Attempt 3's uncommitted work is preserved in the stage.",
+      "timestamp": "2026-09-01T11:10:09Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M1: Replay harness + bench harness",
   "type": "task",
-  "updated_at": "2026-09-01T11:02:37Z"
+  "updated_at": "2026-09-01T11:10:09Z"
 }
