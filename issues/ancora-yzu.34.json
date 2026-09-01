@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "ancora-yzu.32"
+  ],
   "blocks": [
     "ancora-yzu.19"
   ],
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Replace invalid Atlas PR 144 replay drift fixture",
   "type": "bug",
-  "updated_at": "2026-09-01T21:23:58Z"
+  "updated_at": "2026-09-01T21:24:49Z"
 }
