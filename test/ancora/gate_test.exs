@@ -166,7 +166,6 @@ defmodule Ancora.GateTest do
     refute Enum.any?(report.all_findings, &(&1.code == "derived/growth"))
   end
 
-  @tag spec: "ancora.derive.change_set_union"
   @tag spec: "ancora.derive.growth_and_shrink"
   test "a tagged test in a new untracked directory produces growth", %{root: root} do
     init_git_repo(root)
