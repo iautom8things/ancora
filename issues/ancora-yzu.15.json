@@ -16,9 +16,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu15-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.15/codex-yzu15-impl-1/log\n\nCommit: ab8324ed7783578a8f02c0c8ad98f09f0753f70d\nFiles touched: .github/workflows/ci.yml, .spec/AGENTS.md, .spec/README.md, .spec/config.yml, .spec/decisions/ancora.decision.slimmed_governance.md, .spec/specs/ancora.derive.spec.md, .spec/specs/ancora.findings.spec.md, .spec/specs/ancora.gate.spec.md, .spec/specs/ancora.parsing.spec.md, .spec/specs/ancora.review.spec.md, .spec/specs/ancora.scaffold.spec.md, .spec/specs/ancora.tasks.spec.md, test/ancora/gate_test.exs\nTests added: Ancora.GateTest — a tagged test in a new untracked directory produces growth\nVerification stubs flipped: none\nVerification tier: change-scoped — mix compile --warnings-as-errors; mix test test/ancora/gate_test.exs; mix test --stale; mix spec.check --base HEAD; mix spec.status; mix spec.check --base 5ddfbd8d33565ebf696524a21f4d7bcd5a08af95; external mix spec.validate --root /Users/mz/src/ancora-dogfood-anchoring; full-system\n  proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Activated all seven anchored subjects, re-authored the dogfood guide and config from the L12 templates, and added a dynamic-base CI smoke gate. The new production-path gate test proves that a tagged test inside a new untracked directory reaches derived/growth, while the existing tests pin the disposition table, AR6 rules, and moved-module D+A behavior. ADR 001 still carries the verbatim unguarded list and matches Ancora.Finding's 30-code registry; every epic lesson was checked against this diff.",
+      "timestamp": "2026-09-01T11:19:34Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "L13: Dogfood corpus anchoring (7 subjects) + self-gate",
   "type": "task",
-  "updated_at": "2026-09-01T11:13:15Z"
+  "updated_at": "2026-09-01T11:19:34Z"
 }
