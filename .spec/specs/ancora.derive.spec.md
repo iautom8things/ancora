@@ -70,11 +70,13 @@ decisions:
   statement: >-
     Ancora.ProjectInfo shall be resolved once in preflight from the target
     root alone: `app:` and `elixirc_paths:` read as literals from the root
-    `mix.exs` via `Code.string_to_quoted`. A dynamic `elixirc_paths` shall
-    degrade to `["lib"]`, overridable by the `lib_paths:` config key; an
-    `apps_path:` key shall hard-fail as an umbrella root; a non-literal `app:`
-    shall hard-fail with a message. No module downstream of preflight shall
-    read `Mix.Project` state.
+    `mix.exs` via `Code.string_to_quoted`. When `project/0` has leading
+    expressions, its last expression shall be read as the return value and
+    must be a literal keyword list. A dynamic `elixirc_paths` shall degrade
+    to `["lib"]`, overridable by the `lib_paths:` config key; an `apps_path:`
+    key shall hard-fail as an umbrella root; a non-literal `app:` shall
+    hard-fail with a message. No module downstream of preflight shall read
+    `Mix.Project` state.
   priority: must
   stability: stable
 - id: ancora.derive.membership_source_derived
@@ -278,6 +280,16 @@ decisions:
     - ProjectInfo is resolved
   then:
     - `lib_paths` is `["lib"]`
+  covers:
+    - ancora.derive.project_info_from_root
+- id: ancora.derive.scenario.leading_project_expression
+  given:
+    - "a target `project/0` that calls a setup function before returning a literal keyword list"
+  when:
+    - ProjectInfo is resolved
+  then:
+    - the literal `app:` is read from the final list expression
+    - the setup function is never evaluated
   covers:
     - ancora.derive.project_info_from_root
 - id: ancora.derive.scenario.umbrella_root_hard_fails

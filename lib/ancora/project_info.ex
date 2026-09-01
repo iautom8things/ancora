@@ -2,8 +2,9 @@ defmodule Ancora.ProjectInfo do
   @moduledoc """
   Target-project identity read from source, without loading the target project.
 
-  `mix.exs` is parsed as data. Only literal `app:` and `elixirc_paths:` values
-  are accepted. Dynamic compile paths fall back to `lib`, unless the target's
+  `mix.exs` is parsed as data. The last expression in `project/0` must be a
+  keyword list, and only literal `app:` and `elixirc_paths:` values are
+  accepted. Dynamic compile paths fall back to `lib`, unless the target's
   `.spec/config.yml` supplies `lib_paths:`.
   """
 
@@ -74,12 +75,21 @@ defmodule Ancora.ProjectInfo do
 
   defp literal_project_body(body) when is_list(body) do
     case Keyword.fetch(body, :do) do
-      {:ok, options} when is_list(options) -> options
+      {:ok, return_value} -> literal_return_value(return_value)
       _ -> nil
     end
   end
 
   defp literal_project_body(_body), do: nil
+
+  defp literal_return_value({:__block__, _meta, expressions}) when is_list(expressions) do
+    expressions
+    |> List.last()
+    |> literal_return_value()
+  end
+
+  defp literal_return_value(options) when is_list(options), do: options
+  defp literal_return_value(_return_value), do: nil
 
   defp reject_umbrella(project) do
     if Keyword.has_key?(project, :apps_path) do

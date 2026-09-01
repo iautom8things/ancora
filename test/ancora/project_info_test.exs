@@ -37,6 +37,25 @@ defmodule Ancora.ProjectInfoTest do
   end
 
   @tag spec: "ancora.derive.project_info_from_root"
+  test "reads a literal project list after a leading setup call", %{root: root} do
+    # Would fail if ProjectInfo required the project list to be the only
+    # expression in project/0, as the pinned Atlas control demonstrates.
+    write_mix(root, """
+    disable_specled_tracer_for_speed_migration()
+
+    [
+      app: :sample,
+      version: get_version(),
+      elixirc_paths: elixirc_paths(Mix.env())
+    ]
+    """)
+
+    assert {:ok, info} = ProjectInfo.load(root)
+    assert info.app == :sample
+    assert info.lib_paths == ["lib"]
+  end
+
+  @tag spec: "ancora.derive.project_info_from_root"
   test "config lib_paths override dynamic elixirc paths", %{root: root} do
     write_mix(root, """
     [

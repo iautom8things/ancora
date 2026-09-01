@@ -100,6 +100,31 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert Enum.any?(report["findings"], &(&1["code"] == "derived/growth"))
   end
 
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "json mode reports a target-read error without plain stdout leakage", %{root: root} do
+    # Would fail if a preflight target error took the text-only fail path and
+    # left JSON consumers without a report.
+    create_project(root)
+
+    write_files(root, %{
+      "mix.exs" => """
+      defmodule Fixture.MixProject do
+        use Mix.Project
+        def project, do: [app: app_name()]
+      end
+      """
+    })
+
+    result = run_mix(["spec.check", "--root", root, "--base", "HEAD", "--json"])
+
+    assert result.status == 1
+    assert [json, verdict] = lines(result.stdout)
+    report = Jason.decode!(json)
+    assert report["all_findings"] == []
+    assert report["message"] =~ "app: as a literal atom"
+    assert verdict == "spec.check result=fail tier=env errors=0 warnings=0"
+  end
+
   test "subprocess capture silences Mix diagnostics without silencing direct stdout" do
     result =
       run_mix([

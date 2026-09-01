@@ -16,6 +16,8 @@ defmodule AncoraReplay.Runner do
     - lib
   severities:
     change/missing_decision: off
+    change/uncovered_file: off
+    derived/unanchored_subject: off
   """
 
   @spec run(Path.t(), Path.t(), Case.t()) :: Result.evaluation()

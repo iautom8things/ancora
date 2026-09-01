@@ -27,13 +27,38 @@ defmodule Ancora.Gate do
 
   @spec check(Path.t(), keyword()) :: {:ok, map()} | {:env, String.t()}
   def check(root, opts \\ []) when is_binary(root) and is_list(opts) do
-    with {:ok, preflight} <- Preflight.run(root, opts),
-         {:ok, ctx} <- RunContext.start(preflight.root, preflight.base) do
+    case Preflight.run(root, opts) do
+      {:ok, preflight} -> run_after_preflight(preflight, opts)
+      {:env, message} = error -> json_preflight_error(error, message, opts)
+    end
+  end
+
+  defp run_after_preflight(preflight, opts) do
+    with {:ok, ctx} <- RunContext.start(preflight.root, preflight.base) do
       try do
         run(ctx, preflight, opts)
       after
         RunContext.stop(ctx)
       end
+    end
+  end
+
+  defp json_preflight_error(error, message, opts) do
+    if Keyword.get(opts, :json, false) do
+      {:ok,
+       %{
+         findings: [],
+         all_findings: [],
+         checked: %{subjects: 0, requirements: 0, errors: 0, warnings: 0},
+         errors: 0,
+         warnings: 0,
+         tier: :env,
+         fail: true,
+         message: message,
+         json: true
+       }}
+    else
+      error
     end
   end
 
