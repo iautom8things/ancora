@@ -30,11 +30,15 @@
     {
       "text": "VERIFY: PASS\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nDelta re-verification (mechanical remedy c029425), executed directly by the orchestrator (not the implementer; the delta is two fixture files read in full and the bats suite run first-hand): the ancora fixture is now a genuine :hex lock entry for 1.0.0-rc.1 whose outer checksum d55c4041f37114e4f8a8f7378bfb0de1a149009997645d39b8e36d7db8647639 matches the hash hex.pm emitted at publish; the specled fixture keys \"spec_led_ex\" with no ancora entry. bats: 2/2 green. Diff vs abffe7d touches exactly the two fixture files; script and yaml untouched. Phase-1 verifier's prior findings both remediated; its clean results on the script, mutations, yaml wiring, and PR state stand. PR 48 pushed and open — the merge is the operator checkpoint.",
       "timestamp": "2026-09-01T18:36:20Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nRelayed by the orchestrator for cross-repo worker yzu18-impl-3 (worker log: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.18/codex-yzu18-impl-3/log). PHASE 2 first pass — one side observed, one side blocked by a real coupling.\n\nLEGACY PATH OBSERVED GREEN: Builder rerun https://github.com/ChapterSpot/builder/actions/runs/33502243395 (spec job .../job/99996648361) — logged command mix spec.check --no-run-commands, spec.check result=pass, job success.\n\nNEW PATH BLOCKED (defect observation, not a shim fault): throwaway Argos draft PR https://github.com/ChapterSpot/argos/pull/41 (run .../runs/33549413277) — the ancora lock entry selects the new route, but Compile Project fails first: Argos wires SpecLedEx.Compiler.Tracer into elixirc_options tracers (mix.exs:25), so the app cannot compile without specled_ex; Spec Check was skipped. ancora has no compile tracer (static TagScanner), so the fix on the throwaway branch is removing that tracer entry.\n\nAlso observed: ancora's spec.check rejects --no-run-commands (Invalid arguments) — consumer-local make targets are a migration item for the M6+ roster alongside the tracer wiring and the fifth caller.\n\nORCHESTRATOR SCOPE RULING: \"no migration of any consumer\" protects main branches; the throwaway branch is the rehearsal vehicle and may carry the minimal edits the rehearsal needs. Iteration 4 removes the SpecLedEx tracer line on the throwaway branch only and re-observes the new path.",
+      "timestamp": "2026-09-01T19:44:00Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M2: Shared-workflow shim + Argos rehearsal",
   "type": "task",
-  "updated_at": "2026-09-01T19:19:26Z"
+  "updated_at": "2026-09-01T19:44:00Z"
 }
