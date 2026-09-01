@@ -61,11 +61,15 @@
     {
       "text": "TEST_CRITIC: PASS\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nBlocking findings: none\n\nVacuity, proven by mutation (all restored byte-identical after):\n- Swapped met/failed exit codes in Result.exit_code: \"bar met exits zero\" and \"bar failure exits one\" both went red (3 tests, 2 failures).\n- Made the error branch return 0: \"unparseable JSON exits two\" went red (3 tests, 1 failure).\n- Broke the drift filter (derived/drift -\u003e derived/driftX): self_test raised \"self-test failed: drift={:failed...\" and exited 1. Refusal is a hard raise, not print-and-continue, so a no-drift fixture blocks the real set.\n\nNon-blocking finding: self_test.exs:37's invalid-JSON leg is vacuous. It wraps inspect(parse) in a hand-built {:error, ...} tuple, so exit_code returns 2 regardless of what Json.parse returned. Proven: with decode_report mutated to return {:ok, %{\"all_findings\" =\u003e []}} for garbage input, self_test still printed \"unparseable=2\" and exited 0. Not blocking because exit_state_test.exs:21 asserts {:error, reason} = Json.parse(...) directly and went red under that same mutation, and SELECTION.md's runbook mandates running both scripts before the real set. Worth fixing: assert parse itself matches {:error, _} before feeding it to exit_code.\n\nSeam honesty: clean. replay.exs main -\u003e Runner.run -\u003e Result.evaluate -\u003e Result.exit_code, with Json.parse at runner.exs:30; the tests call the same Result.exit_code and Json.parse, and self_test drives the full Runner path against the real mix spec.check subprocess on a synthetic git repo. No parallel reimplementation.\n\nFixture hygiene: good. Unique tmp dirs via System.pid + monotonic unique_integer, exclusive-create writes with read-back postconditions, rm_rf in after/try-after, git -C throughout (no cwd changes), no sleeps. Ran self_test 5+ times with no collisions or leftover dirs.\n\nEnvironmental note, not a diff defect: my first two self_test runs failed with drift missing because another verifier agent had a whitespace mutation of fixture.exs in flight in this shared worktree (I caught their diff on disk mid-probe). On a quiet tree the suite is deterministic. Concurrent probe agents on one worktree will trip over each other; sequence them or give each a worktree.",
       "timestamp": "2026-09-01T12:12:19Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS. No auditor was spawned\nper policy.",
+      "timestamp": "2026-09-01T12:12:57Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M1: Replay harness + bench harness",
   "type": "task",
-  "updated_at": "2026-09-01T12:12:19Z"
+  "updated_at": "2026-09-01T12:12:57Z"
 }
