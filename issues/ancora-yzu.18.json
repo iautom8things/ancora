@@ -34,11 +34,15 @@
     {
       "text": "IMPLEMENTED\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nRelayed by the orchestrator for cross-repo worker yzu18-impl-3 (worker log: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.18/codex-yzu18-impl-3/log). PHASE 2 first pass — one side observed, one side blocked by a real coupling.\n\nLEGACY PATH OBSERVED GREEN: Builder rerun https://github.com/ChapterSpot/builder/actions/runs/33502243395 (spec job .../job/99996648361) — logged command mix spec.check --no-run-commands, spec.check result=pass, job success.\n\nNEW PATH BLOCKED (defect observation, not a shim fault): throwaway Argos draft PR https://github.com/ChapterSpot/argos/pull/41 (run .../runs/33549413277) — the ancora lock entry selects the new route, but Compile Project fails first: Argos wires SpecLedEx.Compiler.Tracer into elixirc_options tracers (mix.exs:25), so the app cannot compile without specled_ex; Spec Check was skipped. ancora has no compile tracer (static TagScanner), so the fix on the throwaway branch is removing that tracer entry.\n\nAlso observed: ancora's spec.check rejects --no-run-commands (Invalid arguments) — consumer-local make targets are a migration item for the M6+ roster alongside the tracer wiring and the fifth caller.\n\nORCHESTRATOR SCOPE RULING: \"no migration of any consumer\" protects main branches; the throwaway branch is the rehearsal vehicle and may carry the minimal edits the rehearsal needs. Iteration 4 removes the SpecLedEx tracer line on the throwaway branch only and re-observes the new path.",
       "timestamp": "2026-09-01T19:44:00Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nRelayed for cross-repo worker yzu18-impl-4 (worker log: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.18/codex-yzu18-impl-4/log). Phase 2 complete — both shim branches observed in real CI:\n\nNEW PATH: https://github.com/ChapterSpot/argos/actions/runs/33551548476/job/100003495165 — Compile Project green after dropping only the SpecLedEx.Compiler.Tracer entry (commit d31d3e78 on the throwaway branch; both Argos tracers kept); the shim selected bare mix spec.check; verdict on the real unmigrated corpus: spec.check result=fail tier=branch errors=24 warnings=31. Finding profile from the captured output: 25x format/retired_construct, 2x tags/unknown_requirement, 1x change/uncovered_file (the throwaway diff itself). Zero tool defects.\n\nLEGACY PATH: https://github.com/ChapterSpot/builder/actions/runs/33502243395 — mix spec.check --no-run-commands, result=pass, job success.\n\nMigration-roster notes accumulated on this ticket: consumers wire SpecLedEx.Compiler.Tracer in elixirc_options (must drop at migration); local make targets pass --no-run-commands (invalid for ancora); fifth caller voyd_config exists.",
+      "timestamp": "2026-09-01T20:11:50Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M2: Shared-workflow shim + Argos rehearsal",
   "type": "task",
-  "updated_at": "2026-09-01T19:44:00Z"
+  "updated_at": "2026-09-01T20:11:50Z"
 }
