@@ -100,6 +100,18 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert Enum.any?(report["findings"], &(&1["code"] == "derived/growth"))
   end
 
+  test "subprocess capture silences Mix diagnostics without silencing direct stdout" do
+    result =
+      run_mix([
+        "run",
+        "-e",
+        ~s|Mix.shell().info("Waiting for lock on the build directory"); IO.puts(~s({"ok":true}))|
+      ])
+
+    assert result.status == 0
+    assert lines(result.stdout) == [~s|{"ok":true}|]
+  end
+
   @tag spec: "ancora.tasks.check_flags"
   test "every retired check flag is a usage error", %{root: root} do
     create_project(root)
@@ -288,7 +300,8 @@ defmodule Mix.Tasks.Spec.CheckTest do
       System.cmd(wrapper, args,
         cd: File.cwd!(),
         env: [
-          {"ANCORA_STDERR_FILE", stderr_path}
+          {"ANCORA_STDERR_FILE", stderr_path},
+          {"MIX_QUIET", "1"}
         ]
       )
 
