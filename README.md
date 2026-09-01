@@ -13,7 +13,7 @@ Mike Hostetler, MIT licensed).
 Add Ancora to the development and test dependencies in `mix.exs`:
 
 ```elixir
-{:ancora, "~> 1.0.0-rc.1", only: [:dev, :test], runtime: false}
+{:ancora, "~> 1.0", only: [:dev, :test], runtime: false}
 ```
 
 Then scaffold the spec workspace and inspect the next action:
@@ -24,8 +24,8 @@ mix spec.init
 mix spec.prime --base HEAD
 ```
 
-Ancora requires Elixir 1.18 or later. The release candidate may change before
-1.0.0, but the public parse API below will remain stable within the 1.x series.
+Ancora requires Elixir 1.18 or later. The public parse API below will remain
+stable within the 1.x series.
 
 ## Public API
 
