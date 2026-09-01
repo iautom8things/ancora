@@ -31,11 +31,15 @@
     {
       "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nff-merge f5cc66e -\u003e 303e447. Gate 23 green under env-pinned erlang 27.2 /\nelixir 1.18.1-otp-27: 331 tests + 3 properties 0 failures, format/deps clean,\nmix spec.check --base f5cc66e result=pass, external spec.validate\nresult=pass. Selection now: Atlas PRs 70/71/109/143 + Builder PR 59 + the\nd885921 format control. The .19 ritual rerun is unblocked and launches next\non a fresh stage at this tip.",
       "timestamp": "2026-09-01T22:03:30Z"
+    },
+    {
+      "text": "Record correction (orchestrator): the IMPLEMENTED comment's Commit field\n(303e4470686d4136c57e1d3a7ec4b8172e10bcf0) does not exist as a git object —\nthe worker transcribed the tail incorrectly. The actual commit is\n303e44748545a541960c9240793b5c9ebeb2e6b1 (same 303e447 prefix), which is what\nthe cold verifier checked out, what the stage HEAD held, and what merged.\nContent verification is unaffected.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-01T22:04:27Z"
     }
   ],
   "priority": 2,
   "status": "closed",
   "title": "Replace invalid Atlas PR 144 replay drift fixture",
   "type": "bug",
-  "updated_at": "2026-09-01T22:03:34Z"
+  "updated_at": "2026-09-01T22:04:27Z"
 }
