@@ -42,11 +42,15 @@
     {
       "text": "MERGED — awaiting operator publish\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nrc.1 prep merged into ancora-yzu/spec-anchored-successor at c9d1efe. Gate 20 green: compile --warnings-as-errors, format --check-formatted, deps.unlock --check-unused, 328 tests + 3 properties 0 failures, in-repo mix spec.check result=pass, external spec.validate result=pass.\n\nTicket stays OPEN: the remaining merge-gate items are operator actions — mix hex.publish for real (from /Users/mz/src/ancora, needs hex auth), 1.0.0-rc.1 visible on hex.pm, then the post-publish verifier installs the rc from hex.pm into a throwaway project and runs mix spec.init. The stage worktree ancora-rc1-publish is retained until then.",
       "timestamp": "2026-09-01T12:53:40Z"
+    },
+    {
+      "text": "APPROVED. Published and verified. Closing per orchestrator sign-off.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nManuel published 1.0.0-rc.1 to hex.pm (2026-09-01, after setting up 2FA; the earlier failure was a key without write permission, and the OTP-27 TLS validation bug against Let's Encrypt's new chain forced the publish to run under erlang 28.3.1). Live at https://hex.pm/packages/ancora/1.0.0-rc.1 with docs at https://ancora.hexdocs.pm/1.0.0-rc.1. Post-publish verification executed by the orchestrator: a fresh throwaway project resolved {:ancora, \"1.0.0-rc.1\"} from hex.pm via mix deps.get and mix spec.init scaffolded the complete .spec workspace (config.yml, AGENTS.md, agents/, decisions/, specs/project.core.spec.md). All merge-gate items met: gate 20 green at c9d1efe, dry-run clean, package visible on hex.pm, install verified.",
+      "timestamp": "2026-09-01T18:06:45Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L14: Publish 1.0.0-rc.1",
   "type": "task",
-  "updated_at": "2026-09-01T12:53:46Z"
+  "updated_at": "2026-09-01T18:06:45Z"
 }
