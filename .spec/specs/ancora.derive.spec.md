@@ -24,7 +24,7 @@ Modules: `Ancora.Derive`, `Ancora.Derive.ChangeSet`, `Ancora.ProjectInfo`,
 ```yaml spec-meta
 id: ancora.derive
 kind: module
-status: draft
+status: active
 summary: Source-derived, diff-symmetric detection of what tagged tests call and whether those definitions changed.
 decisions:
   - ancora.decision.source_derived_membership

@@ -19,7 +19,7 @@ Modules: `Ancora.Gate`, `Ancora.Gate.Preflight`, `Ancora.AppendOnly`,
 ```yaml spec-meta
 id: ancora.gate
 kind: workflow
-status: draft
+status: active
 summary: spec.check orchestration, hard-fail preflight, diff scoping, acknowledgment clearing, and the two append-only guards.
 decisions:
   - ancora.decision.no_execution_no_state

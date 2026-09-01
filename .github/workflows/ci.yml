@@ -57,3 +57,13 @@ jobs:
 
       - name: Check unused dependencies
         run: mix deps.unlock --check-unused
+
+      - name: smoke
+        shell: bash
+        env:
+          PR_BASE_REF: ${{ github.base_ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          base_ref="${PR_BASE_REF:-$DEFAULT_BRANCH}"
+          git fetch --no-tags --depth=1 origin "$base_ref"
+          mix spec.check --base "origin/$base_ref"

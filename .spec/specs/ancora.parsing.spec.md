@@ -22,7 +22,7 @@ spec_led_ex modules of the same role.
 ```yaml spec-meta
 id: ancora.parsing
 kind: module
-status: draft
+status: active
 summary: "Spec and ADR block grammar, retired-construct tolerance, structural reference checks, and @tag spec: discovery."
 decisions:
   - ancora.decision.no_execution_no_state

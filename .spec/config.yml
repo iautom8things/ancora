@@ -1,12 +1,15 @@
-# .spec/config.yml — ancora v1. All keys optional; defaults shown.
+# Ancora v1 configuration. Change this when your trunk is not origin/main.
 default_base: origin/main
 test_paths:
   - test
-# lib_paths:            # defaults to ["lib"] or the literal elixirc_paths in mix.exs
+# Omit lib_paths to read literal elixirc_paths from mix.exs, with lib as fallback.
+# lib_paths:
 #   - lib
-severities: {}          # one map, keys validated against Ancora.Finding
+severities: {}
+
+# A subject-specific override needs a concrete reason.
 # overrides:
-#   - subject: ancora.scaffold
+#   - subject: project.core
 #     code: derived/unanchored_subject
 #     severity: info
-#     reason: "integration-only until L12 lands"
+#     reason: Covered by an external integration suite.

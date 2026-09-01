@@ -18,7 +18,7 @@ Modules: `Ancora.Review`, `Ancora.Review.Html`, `Ancora.Review.FileDiff`,
 ```yaml spec-meta
 id: ancora.review
 kind: module
-status: draft
+status: active
 summary: The spec.review HTML artifact, derived-set Code grouping, owned markdown transform, and byte-stable meta line.
 ```
 

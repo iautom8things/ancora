@@ -19,7 +19,7 @@ Modules: `Ancora.Output`, `Ancora.Output.Verdict`, `Ancora.Prime`,
 ```yaml spec-meta
 id: ancora.tasks
 kind: module
-status: draft
+status: active
 summary: The eight spec.* tasks, single-writer stdout, verdict grammar, and per-emission-path output contract.
 decisions:
   - ancora.decision.no_execution_no_state

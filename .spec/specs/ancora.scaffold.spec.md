@@ -16,7 +16,7 @@ expected and how to clear it.
 ```yaml spec-meta
 id: ancora.scaffold
 kind: module
-status: draft
+status: active
 summary: spec.init and spec.decision.new scaffolds, template content, ancora README commitments, and the migration checklist.
 decisions:
   - ancora.decision.no_execution_no_state

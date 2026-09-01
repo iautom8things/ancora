@@ -166,6 +166,51 @@ defmodule Ancora.GateTest do
     refute Enum.any?(report.all_findings, &(&1.code == "derived/growth"))
   end
 
+  @tag spec: "ancora.derive.change_set_union"
+  @tag spec: "ancora.derive.growth_and_shrink"
+  test "a tagged test in a new untracked directory produces growth", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/billing.spec.md" =>
+        subject_spec("Billing shall expose its operations.", "billing.operations"),
+      "lib/billing.ex" => """
+      defmodule Billing do
+        def next(value), do: value
+        def void(left, right), do: {left, right}
+      end
+      """,
+      "test/billing_test.exs" => """
+      defmodule BillingTest do
+        use ExUnit.Case
+        @tag spec: "billing.operations.works"
+        test "next", do: assert(Billing.next(:invoice) == :invoice)
+      end
+      """
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "test/billing/void_test.exs" => """
+      defmodule Billing.VoidTest do
+        use ExUnit.Case
+        @tag spec: "billing.operations.works"
+        test "void", do: assert(Billing.void(:left, :right) == {:left, :right})
+      end
+      """
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "derived/growth" and
+               finding.subject == "billing.operations" and
+               finding.message =~ "Billing.void/2"
+           end)
+  end
+
   @tag spec: "ancora.derive.parse_degrades_to_finding"
   test "an unparseable production file becomes a finding", %{root: root} do
     create_clean_repo(root)
