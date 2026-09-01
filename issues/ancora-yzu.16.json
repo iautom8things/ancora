@@ -11,7 +11,7 @@
   "description": "No spec subject (release mechanics; no behavior)\n\nStage: L14 (05a-stages-library.md). Plan run dir on epic ancora-yzu.\n\nDeliverable:\nHex package metadata complete (licenses, links, files list), NOTICE complete with every ported-module origin, CHANGELOG entry, minimal hexdocs (README-grade), mix hex.publish --dry-run clean, then publish 1.0.0-rc.1. Commit: chore: release 1.0.0-rc.1.\n\nVerification:\n- Tests to pass: common merge gate plus self-gate\n- Behaviors to demonstrate: mix hex.publish --dry-run exits 0; the published package installs into a throwaway project with mix deps.get and mix spec.init runs\n- Verification cadence:\n  - Iteration tier: mix hex.build only\n  - Final tier: the four common merge-gate commands plus mix spec.check --base origin/main, then the dry run, run-until-green\n  - Verifier tier: the dry run and the throwaway install\n- Standing bounce-class checks: n/a\n- Call-site Integration: n/a (consumers: M2 rehearsal and M3 replay install this rc)\n\nOut of Scope (files):\n- lib/**, test/**, .spec/**\nAllowed touches (this stage may modify):\n- mix.exs (version, package), CHANGELOG.md, NOTICE, README.md (hexdocs wording)\n\nOut of Scope (intent):\n- no code changes; a defect found here bounces to the owning stage\n- no 1.0.0 final (M5)\n\nMerge gate:\n- [ ] Common gate plus self-gate green\n- [ ] mix hex.publish --dry-run clean\n- [ ] 1.0.0-rc.1 visible on hex.pm\n- [ ] Auditor APPROVE comment on the ticket",
   "id": "ancora-yzu.16",
   "labels": [
-    "phase:implementing"
+    "phase:verifying"
   ],
   "parent": "ancora-yzu",
   "comments": [
@@ -24,5 +24,5 @@
   "status": "in_progress",
   "title": "L14: Publish 1.0.0-rc.1",
   "type": "task",
-  "updated_at": "2026-09-01T12:42:37Z"
+  "updated_at": "2026-09-01T12:43:06Z"
 }
