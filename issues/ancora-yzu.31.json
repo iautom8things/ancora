@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Manuel Zubieta",
   "blocked_by": [],
   "blocks": [
     "ancora-yzu.16"
@@ -16,8 +16,8 @@
     }
   ],
   "priority": 1,
-  "status": "open",
+  "status": "in_progress",
   "title": "TagScanner misses spec tags in files whose tests are property blocks",
   "type": "bug",
-  "updated_at": "2026-09-01T11:58:03Z"
+  "updated_at": "2026-09-01T12:18:45Z"
 }
