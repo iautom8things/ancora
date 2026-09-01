@@ -38,11 +38,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: n/a (no Elixir test files\nin diff). No auditor was spawned per policy.",
       "timestamp": "2026-09-01T12:52:34Z"
+    },
+    {
+      "text": "MERGED — awaiting operator publish\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nrc.1 prep merged into ancora-yzu/spec-anchored-successor at c9d1efe. Gate 20 green: compile --warnings-as-errors, format --check-formatted, deps.unlock --check-unused, 328 tests + 3 properties 0 failures, in-repo mix spec.check result=pass, external spec.validate result=pass.\n\nTicket stays OPEN: the remaining merge-gate items are operator actions — mix hex.publish for real (from /Users/mz/src/ancora, needs hex auth), 1.0.0-rc.1 visible on hex.pm, then the post-publish verifier installs the rc from hex.pm into a throwaway project and runs mix spec.init. The stage worktree ancora-rc1-publish is retained until then.",
+      "timestamp": "2026-09-01T12:53:40Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L14: Publish 1.0.0-rc.1",
   "type": "task",
-  "updated_at": "2026-09-01T12:52:41Z"
+  "updated_at": "2026-09-01T12:53:40Z"
 }
