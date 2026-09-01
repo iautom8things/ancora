@@ -34,11 +34,15 @@
     {
       "text": "IMPLEMENTED\nSession: yzu21-impl-2\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.21/codex-yzu21-impl-2/log\n\nCommit: 26e310021f63f386cc7a55d3bd91a2fe1fd22910\nFiles touched: README.md (amended into the release commit)\nTests added: none\nVerification stubs flipped: none\nVerification tier: delta-scoped — format check + self-gate on the amended commit\nFinal-tier runs: 1\n\nRemedies applied: 1. `{:ancora, \"~\u003e 1.0.0-rc.1\", only: [:dev, :test], runtime: false}` became `{:ancora, \"~\u003e 1.0\", only: [:dev, :test], runtime: false}`. 2. `The release candidate may change before 1.0.0, but the public parse API below will remain stable within the 1.x series.` became `The public parse API below will remain stable within the 1.x series.`; the preceding Elixir requirement and paragraph shape remain intact.\nSelf-gate on amended commit: spec.check result=pass\n\nSummary: Updated the packaged README for the final 1.0 dependency and API-stability wording. Amended the fixes into the release commit with its Spec-Ack trailer intact; both delta-scoped checks passed and the tree is clean.",
       "timestamp": "2026-09-01T22:39:36Z"
+    },
+    {
+      "text": "VERIFY: PASS (delta-scoped bounce re-verification, orchestrator-deterministic)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nThe bounce prescribed two byte-exact remedies; conformance is mechanically\ncheckable, so no cold agent was spawned for the delta. Checked at the amended\ncommit 26e3100:\n- README.md:16 is exactly `{:ancora, \"~\u003e 1.0\", only: [:dev, :test], runtime: false}`\n- \"release candidate\" no longer appears; the stability sentence reads\n  `...stable within the 1.x series.` with the Elixir requirement intact\n- Commit message and Spec-Ack trailer unchanged; diff vs base is exactly\n  mix.exs + CHANGELOG.md + README.md\n- Worker's delta self-gate: spec.check result=pass; stage tree clean\nEverything outside the delta stands on the original VERIFY (all release\nclaims validated) and TEST_CRITIC: n/a. Proceeding to merge and gate 24.",
+      "timestamp": "2026-09-01T22:40:33Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M5: Publish 1.0.0 final",
   "type": "task",
-  "updated_at": "2026-09-01T22:39:36Z"
+  "updated_at": "2026-09-01T22:40:33Z"
 }
