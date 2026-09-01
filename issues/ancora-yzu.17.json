@@ -25,11 +25,15 @@
     {
       "text": "ESCALATED\nTwo consecutive WORKER_ERROR attempts. Attempt 1 fixed the argv separator but hit the Atlas OTP toolchain-selection bug on its second capped run. Attempt 2 fixed the toolchain handling and scope-guard issue, then its second capped run failed on two Mix.Tasks.Spec.CheckTest cases (build-lock line ordering; missing-base vs not-a-git-repo message) — tests outside this ticket's diff that pass at every orchestrator merge gate, so the reds look load-induced (four concurrent mix suites at the time). Harness work in the stage worktree is uncommitted but substantially complete per the attempt logs. Parked; likely cheap to finish with a quiet-machine retry when the operator says go.",
       "timestamp": "2026-08-31T18:21:54Z"
+    },
+    {
+      "text": "RETRY AUTHORIZED (operator)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nManuel authorized a third implementation attempt (2026-09-01) after the two-WORKER_ERROR escalation. The machine is quiet now (one other codex worker). Stage fast-forwarded from f415c6f to the current epic tip 8f370c5 before the spawn; attempt 2's uncommitted scripts/ and bench/ work is preserved in the worktree. Note: attempt 2's second red included a Mix.Tasks.Spec.CheckTest output-interleaving failure — that class is now under investigation as ancora-yzu.30 and is citable as known-flaky for the cadence's one free retry if it reappears by exact signature.",
+      "timestamp": "2026-09-01T10:45:42Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M1: Replay harness + bench harness",
   "type": "task",
-  "updated_at": "2026-08-31T18:21:54Z"
+  "updated_at": "2026-09-01T10:45:42Z"
 }
