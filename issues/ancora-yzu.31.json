@@ -7,9 +7,15 @@
   "id": "ancora-yzu.31",
   "labels": [],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "Found by the L13 cold verifier (2026-09-01): `test/ancora/output_property_test.exs:8` carries `@moduletag spec: \"ancora.tasks.no_result_leak\"`, but the file's only test is an ExUnitProperties `property` block. `Ancora.TagScanner` (lib/ancora/tag_scanner.ex) attaches tags to `test` statements only — no `property` clause — so the moduletag never binds and `tags/requirement_untagged` reports the id untagged (info severity, hidden inside result=pass).\n\nancora.parsing.tag_discovery (stable must) says the scanner shall discover `@tag spec:`, `@moduletag spec:`, and `@describetag spec:` values in every `**/*_test.exs` under test_paths. A property-only file is such a file; this is a requirement violation, not an enhancement.\n\nDeliverable: scanner support for `property` statements (including describe-nested and for-comprehension bodies, matching the existing `test` handling), with tests covering (a) `@moduletag spec:` on a property-only file, (b) inline `@tag spec:` directly on a property, (c) a describe-nested property. Would-fail: each new test red against the current scanner.\n\nBlocks the rc.1 publish (ancora-yzu.16): shipping with a violated stable must in ancora.parsing is not acceptable. Does NOT block L13 (ancora-yzu.15) — its bounce has a test-side remedy available; if this fix lands first, the existing moduletag simply starts counting.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-01T11:58:02Z"
+    }
+  ],
   "priority": 1,
   "status": "open",
   "title": "TagScanner misses spec tags in files whose tests are property blocks",
   "type": "bug",
-  "updated_at": "2026-09-01T11:57:51Z"
+  "updated_at": "2026-09-01T11:58:02Z"
 }
