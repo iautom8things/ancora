@@ -14,9 +14,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu16-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.16/codex-yzu16-impl-1/log\n\nCommit: cede2ccb913901ca216c41bf58040604a5d39935\nFiles touched: CHANGELOG.md, NOTICE, README.md, mix.exs, mix.lock\nTests added: none\nVerification stubs flipped: none\nVerification tier: change-scoped — mix compile --warnings-as-errors; mix test --stale (328 tests); mix spec.validate --root /Users/mz/src/ancora-rc1-publish from /Users/mz/src/specled_ex; mix hex.build; unpacked-package path dependency mix deps.get + mix spec.init --force; mix hex.publish --dry-run --yes; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 2\n\nSummary: Hypothesis a was proved: release metadata was incomplete, not package assembly. The pre-edit build reported 0.1.0 and omitted NOTICE and docs; the final 1.0.0-rc.1 tar includes NOTICE, docs, priv/spec_init, and priv/spec_review_assets while excluding .spec, and its path install ran mix spec.init. The dry run exited 0; the from-hex.pm install and actual publish remain for the post-publish operator/verifier.",
+      "timestamp": "2026-09-01T12:42:37Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "L14: Publish 1.0.0-rc.1",
   "type": "task",
-  "updated_at": "2026-09-01T12:32:37Z"
+  "updated_at": "2026-09-01T12:42:37Z"
 }
