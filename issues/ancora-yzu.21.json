@@ -30,11 +30,15 @@
     {
       "text": "AUDIT: BOUNCE → implementer (mechanical remedy)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nVERIFY: FAIL is a ticket-scoping defect, not an implementer defect: README.md\nships in the package (hex.pm renders it as the package page) and still\ncarries rc.1-era text; the ticket's Allowed touches omitted it even though\nthe rc.1 release commit (the ticket's own model) touched README.md. Scope\nruling: Allowed touches for this ticket now include README.md, for exactly\nthe two remedies below (mechanical cap 1/2). Lesson [release-scope] appended\nto the epic.\n\nExact remedies in README.md:\n1. Line 16: `{:ancora, \"~\u003e 1.0.0-rc.1\", only: [:dev, :test], runtime: false}`\n   → `{:ancora, \"~\u003e 1.0\", only: [:dev, :test], runtime: false}`\n2. Lines 27-28: replace the sentence `The release candidate may change before\n   1.0.0, but the public parse API below will remain stable within the 1.x\n   series.` with `The public parse API below will remain stable within the\n   1.x series.` (keep the preceding `Ancora requires Elixir 1.18 or later.`\n   sentence and the paragraph shape).\n\nThen amend the release commit (the README fix belongs in `chore: release\n1.0.0 (ancora-yzu.21)` with its existing Spec-Ack trailer), and re-run the\ndelta-scoped checks: self-gate `mix spec.check --base 303e44748545a541960c9240793b5c9ebeb2e6b1`\n(README.md is another uncovered file; the existing trailer should cover it —\nreport if not) and `mix format --check-formatted`. No other file changes.",
       "timestamp": "2026-09-01T22:36:35Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: yzu21-impl-2\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.21/codex-yzu21-impl-2/log\n\nCommit: 26e310021f63f386cc7a55d3bd91a2fe1fd22910\nFiles touched: README.md (amended into the release commit)\nTests added: none\nVerification stubs flipped: none\nVerification tier: delta-scoped — format check + self-gate on the amended commit\nFinal-tier runs: 1\n\nRemedies applied: 1. `{:ancora, \"~\u003e 1.0.0-rc.1\", only: [:dev, :test], runtime: false}` became `{:ancora, \"~\u003e 1.0\", only: [:dev, :test], runtime: false}`. 2. `The release candidate may change before 1.0.0, but the public parse API below will remain stable within the 1.x series.` became `The public parse API below will remain stable within the 1.x series.`; the preceding Elixir requirement and paragraph shape remain intact.\nSelf-gate on amended commit: spec.check result=pass\n\nSummary: Updated the packaged README for the final 1.0 dependency and API-stability wording. Amended the fixes into the release commit with its Spec-Ack trailer intact; both delta-scoped checks passed and the tree is clean.",
+      "timestamp": "2026-09-01T22:39:36Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M5: Publish 1.0.0 final",
   "type": "task",
-  "updated_at": "2026-09-01T22:36:35Z"
+  "updated_at": "2026-09-01T22:39:36Z"
 }
