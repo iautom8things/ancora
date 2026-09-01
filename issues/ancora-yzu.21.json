@@ -14,9 +14,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "WORKER_ERROR\nSession: yzu21-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.21/codex-yzu21-impl-1/log\n\nCommit: 562d9e7556dd006eb300038e19668e454747686b\nFinal-tier runs: 1\n\nCompile, 331 tests, the self-gate, and external spec.validate passed. `mix hex.publish --dry-run` built and validated ancora 1.0.0 with the expected package files, then required Hex authentication and exited nonzero after authentication was declined. No HEX_* credential is configured; I did not authenticate, publish, rerun the dry-run, or record IMPLEMENTED because the final tier was not fully green.",
+      "timestamp": "2026-09-01T22:20:56Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "M5: Publish 1.0.0 final",
   "type": "task",
-  "updated_at": "2026-09-01T22:15:05Z"
+  "updated_at": "2026-09-01T22:20:56Z"
 }
