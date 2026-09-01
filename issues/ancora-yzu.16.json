@@ -30,11 +30,15 @@
     {
       "text": "IMPLEMENTED\nSession: yzu16-impl-2\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.16/codex-yzu16-impl-2/log\n\nCommit: c9d1efe6fd05f519fe237a6843169fea3fafa1e1\nFiles touched: CHANGELOG.md, NOTICE, README.md, mix.exs, mix.lock\nTests added: none\nVerification stubs flipped: none\nVerification tier: change-scoped — mix spec.check --base f960cfd2a1785648233955941bdd60007c8c9f64; mix hex.publish --dry-run --yes; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 2\n\nSummary: Hypothesis a remains proved by the prior package evidence: release metadata was incomplete, not package assembly. The release commit was amended in place with `Spec-Ack: change/uncovered_file=info`; its tree hash stayed unchanged, spec.check passed with zero warnings, and the Hex dry run exited 0 without uploading. All epic lessons were checked against this metadata-only diff, and no contract item was omitted, so no follow-up ticket was needed.",
       "timestamp": "2026-09-01T12:51:04Z"
+    },
+    {
+      "text": "VERIFY: PASS\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nDelta re-verification (mechanical remedy c9d1efe):\n1. `git diff cede2cc c9d1efe` is empty; `git rev-parse cede2cc^{tree} c9d1efe^{tree}` prints c6485aa6bc92a1fc428cf46fb0efadd74b6d9f05 twice — content untouched.\n2. Commit message carries the trailer: `Spec-Ack: change/uncovered_file=info`\n3. `mix spec.check --base f960cfd2a1785648233955941bdd60007c8c9f64` → last line `spec.check result=pass`, findings line shows `errors=0 warnings=0` (8 info findings, hidden).\n4. `mix hex.publish --dry-run --yes` (HEX_API_KEY=dummy) → exit 0. Only pre-existing ExDoc doc-warnings (hidden-function references), no publish failure.\n5. `git status --short` clean, `HEAD` = c9d1efe6fd05f519fe237a6843169fea3fafa1e1.",
+      "timestamp": "2026-09-01T12:52:14Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L14: Publish 1.0.0-rc.1",
   "type": "task",
-  "updated_at": "2026-09-01T12:51:32Z"
+  "updated_at": "2026-09-01T12:52:14Z"
 }
