@@ -18,11 +18,15 @@
     {
       "text": "WORKER_ERROR\nSession: yzu21-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.21/codex-yzu21-impl-1/log\n\nCommit: 562d9e7556dd006eb300038e19668e454747686b\nFinal-tier runs: 1\n\nCompile, 331 tests, the self-gate, and external spec.validate passed. `mix hex.publish --dry-run` built and validated ancora 1.0.0 with the expected package files, then required Hex authentication and exited nonzero after authentication was declined. No HEX_* credential is configured; I did not authenticate, publish, rerun the dry-run, or record IMPLEMENTED because the final tier was not fully green.",
       "timestamp": "2026-09-01T22:20:56Z"
+    },
+    {
+      "text": "RULING (orchestrator) — attempt 1's halt consumed as environmental, implementation complete\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nThe worker's WORKER_ERROR was over-strict by its own rules and correct by\nthem — but the red step is environmental, not a defect: `mix hex.publish\n--dry-run` built and validated ancora 1.0.0 (full file list, correct deps,\nversion, Elixir requirement) and failed only at \"No authenticated user\nfound\", i.e. the auth handshake that exists solely on the operator's side.\nThe orchestrator's brief wrongly described the dry-run as fully local; that\nerror is the orchestrator's, not the worker's, and no retry is needed — the\nrelease commit 562d9e7 (chore: release 1.0.0, Spec-Ack trailer present) is\ncomplete and its stage clean. Compile, 331 tests, self-gate, and external\nvalidate all passed in the worker's final tier.\n\nRouting: proceed to cold verification of the release diff, audit, merge, and\nthe per-close full gate. The ticket then PARKS at \"1.0.0 on hex.pm\" — the\npublish requires the operator's 2FA and is his action alone.",
+      "timestamp": "2026-09-01T22:31:51Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M5: Publish 1.0.0 final",
   "type": "task",
-  "updated_at": "2026-09-01T22:20:56Z"
+  "updated_at": "2026-09-01T22:31:51Z"
 }
