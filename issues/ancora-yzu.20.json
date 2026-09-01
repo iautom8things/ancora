@@ -27,11 +27,15 @@
     {
       "text": "Subscriber follow-ups filed (orchestrator): adf-k3l (spire-client), adf-dld\n(voyd), adf-68f (voyd_config — also the M2 roster fifth caller), adf-e8d\n(drovr), adf-luz (exoterm-cli). All standalone, referenced for the M10 sweep;\nnone blocks this epic.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-09-01T23:48:03Z"
+    },
+    {
+      "text": "FOLDED (coordination) — vault skill edits committed onto PR 17\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nCommit: 19b63408 on ancora-m4/rule-swap (pushed)\nFiles in the fold: 22 — distill (SKILL.md + pi-integration.test.ts), implement (SKILL.md, selective-audit-gate.md, signals-mode.md, 7 templates), mega-plan SKILL.md, mini-plan SKILL.md, spec-led-development SKILL.md, spec-led-bootstrap (SKILL.md + 5 reference files, all new), .gitignore\n.gitignore: dropped line 50 (llms/skills/spec-led-bootstrap) plus its comment line, which covered only that entry\nspec-led-bootstrap: worktree had no symlink checked out (untracked/absent at base), so no git rm needed; real directory copied in and now tracked (6 files)\nTests after fold: make agent-rules-test in worktree — 177 passed; distill pi-integration test — runner needs llms/extensions/node_modules which the worktree lacks, so ran from the main checkout against byte-identical content — 2 passed\nByte-parity spot-check vs main checkout: 6 files compared with cmp (distill SKILL.md + test, verifier.md, spec-led-development SKILL.md, bootstrap SKILL.md + subject-extraction.md) — all identical\n\nSummary: Copied the 15 modified skill files plus the new spec-led-bootstrap directory from the main checkout onto the PR branch, un-ignored the bootstrap path, committed and pushed as 19b63408. Main checkout untouched; llms/plugins/known_marketplaces.json left alone.",
+      "timestamp": "2026-09-01T23:49:13Z"
     }
   ],
   "priority": 2,
   "status": "open",
   "title": "M4: Dotfiles rule + profile skills (flag-day step 0)",
   "type": "task",
-  "updated_at": "2026-09-01T23:48:03Z"
+  "updated_at": "2026-09-01T23:49:13Z"
 }
