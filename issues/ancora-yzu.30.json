@@ -8,7 +8,7 @@
   "description": "Advances: ancora.gate\n\nInvestigation ticket per the same-seed flake protocol: signature crossed the 2-acceptance cap (4 sightings). Full details in first comment.",
   "id": "ancora-yzu.30",
   "labels": [
-    "phase:implementing"
+    "phase:verifying"
   ],
   "parent": "ancora-yzu",
   "comments": [
@@ -25,5 +25,5 @@
   "status": "in_progress",
   "title": "Flaky JSON-mode golden test: warning byte reaches stdout first under full-suite concurrency",
   "type": "bug",
-  "updated_at": "2026-09-01T10:51:44Z"
+  "updated_at": "2026-09-01T10:52:44Z"
 }
