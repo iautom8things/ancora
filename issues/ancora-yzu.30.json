@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Manuel Zubieta",
   "blocked_by": [],
   "blocks": [
     "ancora-yzu.15"
@@ -16,8 +16,8 @@
     }
   ],
   "priority": 1,
-  "status": "open",
+  "status": "in_progress",
   "title": "Flaky JSON-mode golden test: warning byte reaches stdout first under full-suite concurrency",
   "type": "bug",
-  "updated_at": "2026-09-01T10:34:10Z"
+  "updated_at": "2026-09-01T10:36:33Z"
 }
