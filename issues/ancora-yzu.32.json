@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "ancora-yzu.19"
+  ],
   "created": "2026-09-01T20:48:55Z",
   "description": "Advances: M3 replay validation ritual (ancora-yzu.19)\n\nThe authorized M3 replay on Ancora 1.0.0-rc.1 crashed in Ancora.Derive.Resolver.walk/2 because Enum received nil. This prevented Atlas PR 144 from producing JSON and made all three gate benchmark samples measure crash-to-exit time. Reproduce with the selection and benchmark commands in scripts/replay/SELECTION.md and bench/gate_bench.exs. Full evidence: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.19/codex-yzu19-impl-1/m3-replay-results.md.\n\nAcceptance: spec.check completes on Atlas PR 144 and the pinned benchmark commit, the replay case emits a derived/drift finding naming Atlas.Slack.KnowledgeCapture.handle_message_action/2, and the benchmark measures completed gates. Do not weaken or tune the detector to satisfy the replay bar.",
   "id": "ancora-yzu.32",
@@ -11,5 +13,5 @@
   "status": "open",
   "title": "Handle nil AST children in replayed consumer tests",
   "type": "bug",
-  "updated_at": "2026-09-01T20:48:55Z"
+  "updated_at": "2026-09-01T20:51:53Z"
 }
