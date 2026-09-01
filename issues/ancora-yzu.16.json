@@ -26,11 +26,15 @@
     {
       "text": "AUDIT: BOUNCE → implementer (mechanical remedy)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nSingle mechanical finding from VERIFY: FAIL above; no auditor needed. mix spec.check --base f960cfd is result=fail (warnings=1): change/uncovered_file on mix.exs, and the release commit carries no Spec-Ack trailer. The final tier required spec.check green and the implementer deferred it.\n\nRemedy, exactly: amend the release commit (content unchanged) to add the Spec-Ack trailer acknowledging change/uncovered_file for mix.exs, using ancora's documented trailer format. Then rerun mix spec.check --base f960cfd2a1785648233955941bdd60007c8c9f64 (must be result=pass) and mix hex.publish --dry-run --yes (must remain exit 0; the amend changes no content). Nothing else in scope. Mechanical-remedy bounce 1 of 2; consumes no main bounce.",
       "timestamp": "2026-09-01T12:49:15Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: yzu16-impl-2\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.16/codex-yzu16-impl-2/log\n\nCommit: c9d1efe6fd05f519fe237a6843169fea3fafa1e1\nFiles touched: CHANGELOG.md, NOTICE, README.md, mix.exs, mix.lock\nTests added: none\nVerification stubs flipped: none\nVerification tier: change-scoped — mix spec.check --base f960cfd2a1785648233955941bdd60007c8c9f64; mix hex.publish --dry-run --yes; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 2\n\nSummary: Hypothesis a remains proved by the prior package evidence: release metadata was incomplete, not package assembly. The release commit was amended in place with `Spec-Ack: change/uncovered_file=info`; its tree hash stayed unchanged, spec.check passed with zero warnings, and the Hex dry run exited 0 without uploading. All epic lessons were checked against this metadata-only diff, and no contract item was omitted, so no follow-up ticket was needed.",
+      "timestamp": "2026-09-01T12:51:04Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "L14: Publish 1.0.0-rc.1",
   "type": "task",
-  "updated_at": "2026-09-01T12:49:27Z"
+  "updated_at": "2026-09-01T12:51:04Z"
 }
