@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-01T10:33:52Z",
+  "description": "Advances: ancora.gate\n\nInvestigation ticket per the same-seed flake protocol: signature crossed the 2-acceptance cap (4 sightings). Full details in first comment.",
+  "id": "ancora-yzu.30",
+  "labels": [],
+  "parent": "ancora-yzu",
+  "priority": 1,
+  "status": "open",
+  "title": "Flaky JSON-mode golden test: warning byte reaches stdout first under full-suite concurrency",
+  "type": "bug",
+  "updated_at": "2026-09-01T10:33:52Z"
+}
