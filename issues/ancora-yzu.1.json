@@ -41,11 +41,15 @@
     {
       "text": "VERIFY: PASS\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nDelta verification (Builder co-change 403ce5ae): git diff c1ee549a..403ce5ae touches exactly six files (mix.exs, mix.lock, and the four named spec files), 7 insertions / 2 deletions, nothing else. mix.exs swaps the floating `branch: \"main\"` ref for `ref: \"c2d2134914d1e26166ff5e4259a8a515362d0fc8\"` on spec_led_ex; mix.lock's spec_led_ex entry carries the same SHA and now records `ref:` instead of `branch:`. This matches the SHA the original verification approved (specled_ex 0.11.0). Each of the four spec files (builder.atlas_integration, builder.boundary_graph, builder.telemetry_conventions, package) gets exactly one added line, an HTML comment following the existing voyd_config-bump acknowledgment precedent immediately above it, e.g. \"\u003c!-- mix.exs reviewed for the specled_ex immutable-ref pin; ... unchanged. --\u003e\" — no requirement text, scenario, or spec-meta touched. `git log --oneline c1ee549a..403ce5ae` shows exactly two commits: 88a53c2f (the pin) and 403ce5ae (the acknowledgments), no stray commits. PR 138 CI is reported green post-push including Spec Check (context only, not independently verified here).",
       "timestamp": "2026-09-01T11:19:32Z"
+    },
+    {
+      "text": "RULING (operator) — Atlas rebase, VERSION commit\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nManuel ruled (2026-09-01): drop the stale \"Bump VERSION (0.56.11 -\u003e 0.56.12)\" commit from PR 152's branch during the rebase — keep only the pin commit; Atlas's normal release process owns VERSION. The redo worker gets that authority explicitly. Builder half of M0 is complete: co-change merged into the PR branch, CI fully green, delta verify PASS.",
+      "timestamp": "2026-09-01T11:55:00Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M0: Pin Atlas and Builder to a specled_ex SHA",
   "type": "task",
-  "updated_at": "2026-09-01T11:19:32Z"
+  "updated_at": "2026-09-01T11:55:00Z"
 }
