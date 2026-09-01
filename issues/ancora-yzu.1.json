@@ -29,11 +29,15 @@
     {
       "text": "ESCALATED\nBuilder PR 138 Checks / Spec Check is red (branch_guard_missing_subject_update on mix.exs; subjects builder.atlas_integration, builder.boundary_graph, builder.package, builder.telemetry_conventions). Atlas PR 152 and Builder PR 138 are not merged. SHA pin diffs were already auto-approved; ancora fast-forward was a no-op and epic spec.validate is pass. Ticket left open. Independent library work continues.",
       "timestamp": "2026-08-22T00:53:59Z"
+    },
+    {
+      "text": "SCOPE EXPANSION AUTHORIZED (operator)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nManuel ruled (2026-09-01): authorize the Builder spec-subject co-change that PR 138's own spec gate demands (branch_guard_missing_subject_update on the one-line mix.exs pin). The ticket's Allowed touches expand to the smallest acknowledging edit in Builder's .spec/** that makes the Spec Check green — never weakening a requirement. Atlas PR 152 is fully green and untouched. A delegated worker handles the Builder edit; no bounce consumed (operator-authorized expansion).",
+      "timestamp": "2026-09-01T10:47:07Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M0: Pin Atlas and Builder to a specled_ex SHA",
   "type": "task",
-  "updated_at": "2026-08-22T00:53:59Z"
+  "updated_at": "2026-09-01T10:47:07Z"
 }
