@@ -14,9 +14,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: yzu34-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.34/codex-yzu34-impl-1/log\n\nCommit: 303e4470686d4136c57e1d3a7ec4b8172e10bcf0\nFiles touched: scripts/replay/selection.tsv, scripts/replay/SELECTION.md\nTests added: none (selection data)\nVerification stubs flipped: none\nVerification tier: selection — replay self-tests green; new-case spec.check\n  proof executed\nFinal-tier runs: 1\n\nNew case: Atlas, https://github.com/ChapterSpot/atlas/pull/143, 0735362a100b7aed7aa115a6d199cef16a8bd905, Atlas.Slack.Attachments.files_for_event/3\nProof: spec.check exited 1 with result=fail as expected for proven drift; derived/drift: slack.image_attachments: Atlas.Slack.Attachments.files_for_event/3 at line 126 changed (lib/atlas/slack/attachments.ex) but the spec did not; the commit changes no .spec/specs/ path, and test/atlas/slack/attachments_test.exs calls the function directly under @tag spec: \"slack.image_attachments.app_mention_files_fallback\". The parent body performs the reply lookup inline; the commit body delegates to files_for_triggering_message/5, and the replay evaluator returned drift named Atlas.Slack.Attachments.files_for_event/3.\nCandidates rejected: Atlas PR 144, public body byte-identical and only private-helper drift; d55d2658, changed private Workforce telemetry metric construction and config without a tagged direct call to a changed public body; 5f7672e0, Resolver/private-helper and LiveView-driven coverage without a tagged test directly calling a changed public function body.\n\nSummary: Replaced the invalid Atlas PR 144 row with the execution-proven Atlas PR 143 files_for_event/3 drift case. The selection remains five drift cases plus one control, both replay self-tests pass, and external spec.validate passes.",
+      "timestamp": "2026-09-01T21:57:21Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Replace invalid Atlas PR 144 replay drift fixture",
   "type": "bug",
-  "updated_at": "2026-09-01T21:50:17Z"
+  "updated_at": "2026-09-01T21:57:21Z"
 }
