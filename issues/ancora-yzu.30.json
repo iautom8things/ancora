@@ -19,11 +19,15 @@
     {
       "text": "IMPLEMENTED\nSession: yzu30-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.30/codex-yzu30-impl-1/log\n\nCommit: 5ddfbd8d33565ebf696524a21f4d7bcd5a08af95\nFiles touched: test/mix/tasks/spec_check_test.exs\nTests added: Mix.Tasks.Spec.CheckTest, \"subprocess capture silences Mix diagnostics without silencing direct stdout\"\nVerification stubs flipped: none\nVerification tier: change-scoped — test/mix/tasks/spec_check_test.exs; mix test --stale; mix compile --warnings-as-errors; mix spec.validate --root /Users/mz/src/ancora-flaky-json-golden from /Users/mz/src/specled_ex; full-system\n  proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Proved hypothesis (b): the captured child Mix process emitted its own \"Waiting for lock on the build directory\" bootstrap diagnostic under shared-build contention before Ancora's JSON writer started; no sibling output leaked and the product output layer was not involved. The helper now sets MIX_QUIET=1, which silences Mix diagnostics while preserving direct Ancora stdout, and a regression test fails if that flag is omitted. The unchanged-tree contention repro produced the exact Jason 0x57 failure; after the fix the concurrent 322-test suite and repeated target runs had no JSON failure, with one artificial cross-VM worker later stopping on a separate temp-directory collision.",
       "timestamp": "2026-09-01T10:51:44Z"
+    },
+    {
+      "text": "TEST_CRITIC: PASS\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nBlocking findings: none\n\nExecuted evidence. (1) Would-fail direction: removed MIX_QUIET from run_mix and reran the new test; it failed with left: [\"Waiting for lock on the build directory\", \"{\\\"ok\\\":true}\"] vs right: [\"{\\\"ok\\\":true}\"]. The equality assertion also kills the all-silenced mutation, since empty stdout != [json]. (2) Same output path as the real flake: in Elixir 1.18.1 (the toolchain here), the lock message is emitted at mix/project.ex:920 via Mix.shell().info/1, and mix/cli.ex:22 swaps in Mix.Shell.Quiet under MIX_QUIET, whose info/1 is a no-op while error/1 still prints. The test calls the identical API with the identical string, so it exercises the path the flake used without needing induced lock contention. (3) Blanket MIX_QUIET is safe for the rest of the file: every ancora output line the other tests assert on goes through IO.puts (Ancora.Output, verdict.ex:37; [CONFIG] via IO.puts(:stderr,...)), never Mix.shell(); full file is 12/12 green with the env var in place. It also hardens the other 11 subprocess tests, e.g. the one asserting the finding at stdout line 0 would have flaked on the same lock line. No sleeps, synchronous System.cmd, deterministic. Worktree restored byte-identical (git diff empty, status clean).",
+      "timestamp": "2026-09-01T10:57:00Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Flaky JSON-mode golden test: warning byte reaches stdout first under full-suite concurrency",
   "type": "bug",
-  "updated_at": "2026-09-01T10:52:44Z"
+  "updated_at": "2026-09-01T10:57:00Z"
 }
