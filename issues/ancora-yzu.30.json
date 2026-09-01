@@ -31,11 +31,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY reported PASS with full stub and requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS. No auditor was spawned\nper policy.",
       "timestamp": "2026-09-01T11:10:30Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-yzu/spec-anchored-successor. Closing per orchestrator sign-off.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nGate 16 green at 5ddfbd8: compile --warnings-as-errors, format --check-formatted, deps.unlock --check-unused, 322 tests + 3 properties 0 failures, external spec.validate result=pass. Verifier reproduced the flake deterministically pre-fix (cold _build/dev race; loser's stdout led with the lock wait line, winner leaked deps-compile chatter — both via Mix.shell().info) and showed the same race clean under the fix.",
+      "timestamp": "2026-09-01T11:11:10Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Flaky JSON-mode golden test: warning byte reaches stdout first under full-suite concurrency",
   "type": "bug",
-  "updated_at": "2026-09-01T11:10:35Z"
+  "updated_at": "2026-09-01T11:11:10Z"
 }
