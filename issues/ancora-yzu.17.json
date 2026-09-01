@@ -41,11 +41,15 @@
     {
       "text": "RETRY AUTHORIZED (operator) — attempt 4\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nManuel authorized attempt 4 (2026-09-01) with the confirmed PATH remedy in the brief: run_gate prepends the target erlang's asdf install bin dir to the subprocess PATH so the child's erl lookup cannot be shadowed by the parent toolchain. Attempt 3's uncommitted work is preserved in the stage.",
       "timestamp": "2026-09-01T11:10:09Z"
+    },
+    {
+      "text": "WORKER_ERROR\nSession: yzu17-impl-4\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.17/codex-yzu17-impl-4/log\n\nFinal-tier runs: 2\n\nRun 1 passed the scope guard, diff check, formatting, warnings-as-errors compilation, exit-state tests, stale tests, spec validation, and the synthetic self-test. The real Atlas replay booted Elixir 1.19.5 on OTP 28 after the requested PATH fix, then inherited the parent Mix process's OTP-27 `MIX_HOME` and failed while starting Hex before JSON emission.\n\nRun 2 isolated `MIX_HOME` and `MIX_ARCHIVES` to the target Elixir install. A child smoke check reported `otp=28` and `hex_state_loaded: true`, and every preceding final-tier check passed again. The real replay then loaded Ancora's existing parent-toolchain `Jason` beam from the shared build directory; OTP 28 rejected it with `corrupt atom table`, leaving `Jason.decode/1` unavailable and causing harness exit 2. The second red exhausts the cap. No further run was attempted, no commit was created, and no IMPLEMENTED record was posted.",
+      "timestamp": "2026-09-01T11:16:26Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M1: Replay harness + bench harness",
   "type": "task",
-  "updated_at": "2026-09-01T11:10:09Z"
+  "updated_at": "2026-09-01T11:16:26Z"
 }
