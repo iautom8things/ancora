@@ -43,11 +43,15 @@
     {
       "text": "IMPLEMENTED\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\n(MECHANICAL REMEDY — orchestrate-epic assets, per the bounce)\nCommit: a3cf90f7 on ancora-m4/rule-swap (pushed)\nFiles touched: llms/skills/orchestrate-epic/assets/merge-gates.md, llms/skills/orchestrate-epic/assets/ticket-admission.md\nRemedies applied: all three, verbatim. 1) merge-gates.md: the --no-run-commands sentence replaced with \"Any orchestrator-run `spec.check` outside this gate is the no-execution branch check (`mix spec.check --base \u003csha\u003e`); it never executes spec commands.\" 2) ticket-admission.md item 5: \"and tool-managed baselines (e.g. `.spec/realization_hashes.json`)\" replaced with \"(ancora's acknowledgment model: the spec co-change in the same diff is what clears drift/growth/shrink findings)\", rest of item 5 intact. 3) ticket-admission.md: the generated-state sentence replaced with \"Tool-generated state files (ancora itself keeps none) are not review scope.\", rest of the paragraph intact. Paragraphs rewrapped; no other edits.\nSweep: zero hits for --no-run-commands, realization_hashes, and state.json in both files, in BOTH trees (stage and main checkout).\nTemplate test: orchestrate-epic pi-integration (INTEGRATION=1 vitest, main checkout) — 1 file passed, 6 tests passed.\nByte parity stage vs live: cmp clean on both files (stage worktree vs /Users/mz/dev/mz/agentic-dotfiles; those files were clean in the main checkout before the mirror, so only the intended bytes moved).\n\nSummary: Applied exactly the bounce's three vocabulary remedies to the two orchestrate-epic asset files, committed as a3cf90f7 on ancora-m4/rule-swap (PR 17 updated), and mirrored identical bytes onto the live tree. Sweep zero, template test green.",
       "timestamp": "2026-09-02T00:01:48Z"
+    },
+    {
+      "text": "VERIFY: PASS (delta-scoped bounce re-verification, orchestrator-deterministic)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nThe bounce prescribed three byte-exact sentence swaps; conformance checked\ndeterministically at stage HEAD a3cf90f7: zero hits for the three retired\nneedles in both files, all three replacement sentences present at their\nexpected lines, commit touches exactly the two files, tree clean, stage and\nlive copies cmp-identical per the remedy record, orchestrate-epic template\ntest 6/6. Everything outside the delta stands on the original VERIFY (44-\nneedle corpus sweep now zero everywhere outside specled_ex; byte-identical\nread-protocol; 30-code set equality; mutation-proven pins; anchor integrity).",
+      "timestamp": "2026-09-02T00:02:34Z"
     }
   ],
   "priority": 2,
   "status": "open",
   "title": "M4: Dotfiles rule + profile skills (flag-day step 0)",
   "type": "task",
-  "updated_at": "2026-09-02T00:01:48Z"
+  "updated_at": "2026-09-02T00:02:34Z"
 }
