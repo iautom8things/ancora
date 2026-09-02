@@ -34,11 +34,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: original VERIFY independently re-derived the entire migration substance (six pruned subjects recounted exactly, tombstones metadata-only, 7 overrides scoped with reasons, trailers a strict subset of pre-authorized, five board retargets 2-line edits, ancora.md registry table exact, spec gate pass with 254 findings all info); its two Gaps (retired --no-run-commands flag breaking make spec-check; missing only: [:dev, :test]) were remedied via the recorded mechanical bounce, and the delta was orchestrator-verified byte-exact (commit 0ec06e54 is exactly the two prescribed lines) plus proven by execution (make spec-check exit 0 result=pass from the stage worktree). TEST_CRITIC: n/a — the three test-file edits are @tag spec: lines only, hunks read by the orchestrator. No disclosed seam substitutes production wiring. Remedy-head CI run 33685406294 green; PR 149 has zero non-passing checks at head 0ec06e54. No auditor spawned per mechanical-remedy policy. Next: the authorized ship flow (stage/soak per Builder convention, /merge-pr, /monitor-app).",
       "timestamp": "2026-09-02T22:56:33Z"
+    },
+    {
+      "text": "MERGED. Squash dfed26a5 on Builder main at 2026-09-02T22:57:25Z (subject: feat: migrate spec governance to ancora 1.0); remote branch auto-deleted by the repo on merge. Builder convention confirmed: NO staging stage exists in CI (ci.yaml has none; deploy.yaml is manual dispatch) — pr_closed.yaml deploys straight to prod on merge, so the authorized flow here is merge → prod deploy → /monitor-app, no soak step. Prod deploy run 33692832680 is in_progress with a watch armed; VERSION 1.57.3 tag check follows the run. Primary checkout ff'd to the squash and its container deps volume prewarmed (mix.lock changed in this merge). Stage worktree cleanup deliberately deferred until the prod deploy is green. NOT DONE YET: Builder is not shipped until that run is green, the 1.57.3 tag exists, and /monitor-app grades prod healthy.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-02T22:58:34Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M8: Builder migration PR",
   "type": "task",
-  "updated_at": "2026-09-02T22:56:33Z"
+  "updated_at": "2026-09-02T22:58:34Z"
 }
