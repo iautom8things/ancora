@@ -33,11 +33,15 @@
     {
       "text": "DISPOSITION 4 (orchestrator) — no-verdict crash was an instrument invocation error (orchestrator's brief), not a gate verdict; corrected-environment run authorized and executed by the orchestrator\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nAttempt 4 finished the substance: guard tests re-pinned and green (5/5),\nboundary compile gate clean, migration committed as 5ab07d2d with the two\nauthorized Spec-Ack trailers. Its final-tier spec.check crashed with no\nverdict because it ran on the HOST, where the ancora dep (which provides the\ntask) is not compiled — my brief wrongly said spec.check needs no container\nin a consumer repo. Per the read protocol a no-verdict crash is a failure,\nbut this one is an invocation-environment failure chargeable to the\norchestrator's brief, not a gate result on the work. The capped tier is\nexhausted; gate ownership reverts to the orchestrator: I run the\ncommitted-head gate in the bootstrapped compose service myself. A pass\nauthorizes push + PR by a finisher; any warning/error verdict re-enters\ndisposition.",
       "timestamp": "2026-09-02T01:48:47Z"
+    },
+    {
+      "text": "GATE (orchestrator) — committed-head spec.check green in the corrected environment\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nRan via the repo's own new target (make spec-check → in-container bare\nmix spec.check behind the git-access guard; default_base origin/main =\n5c07ee2e, the admission base) against committed head 5ab07d2d:\n\n  checked subjects=30 requirements=434 errors=0 warnings=0\n  branch base=5c07ee2e changed_files=54 findings=532 (error=0 warning=0 info=532)\n  spec.check result=pass\n\nThe Spec-Ack trailers price the acknowledged classes to info as\ndispositioned; nothing at warning+. Push + real PR + CI observation through\nthe shim new path now proceed via a finisher worker.",
+      "timestamp": "2026-09-02T01:49:29Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M6: Argos migration PR (canary)",
   "type": "task",
-  "updated_at": "2026-09-02T01:48:47Z"
+  "updated_at": "2026-09-02T01:49:29Z"
 }
