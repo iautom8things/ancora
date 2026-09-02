@@ -53,11 +53,15 @@
     {
       "text": "WORKER_ERROR\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\n(MECHANICAL REMEDY — mix.lock prune) NOT APPLIED\nCommit: none pushed; working tree restored to 5ab07d2d, clean\nLock diff: no — `mix deps.unlock --unused` removed 58 entries, not the expected 5 (spec_led_ex, mdex, mdex_native, nimble_parsec, rustler_precompiled)\nCI after push: n/a (nothing pushed)\n\nSummary: deps/ is empty in /Users/mz/src/argos-ancora-migration (deps never fetched in this checkout), so mix had no dependency tree and marked every transitive dep of every top-level dep as unused — the prune would have gutted the lockfile. Reverted mix.lock, nothing committed or pushed. Likely fix: run `mix deps.get` first so the tree resolves, then `mix deps.unlock --unused` should remove exactly the five retired entries; awaiting re-dispatch with that step authorized.",
       "timestamp": "2026-09-02T10:10:56Z"
+    },
+    {
+      "text": "STALL RESOLVED (orchestrator) — CI was green all along; the SemVer bot hid it\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nWhat the 4.5-hour stall was: the lock-prune head 7d4dfb81 ran CI FULLY GREEN\non every substantive check — Code Quality green (prune proven), Run tests\n1681/1681 (no flake recurrence), Spec Check green again. The one \"failure\"\nwas SemVer/Bump Version, the automation job that then PUSHED d4dc5433 (\"Bump\nVERSION 0.15.0 -\u003e 0.15.1\") onto the PR branch with a bot token — which\ncannot trigger workflows, so the new head sat at action_required with zero\nchecks, and the prune worker's watch (aimed at the old head) never woke.\nSame automation family as Atlas's M0 VERSION commit.\n\nActions: approved the action_required run (33619528533, now in_progress) —\nit re-runs the full suite on the bump head, whose only delta vs the proven\nhead is the VERSION file. Orchestrator watches this one directly. The\nlock-prune remedy is confirmed complete (exact five-entry diff, in-container\ncorrection; the worker's earlier host-side STOP and the unexplained 06:10\nmix.lock rewrite are on record). Cold verification launches when this run\nlands.",
+      "timestamp": "2026-09-02T14:51:43Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M6: Argos migration PR (canary)",
   "type": "task",
-  "updated_at": "2026-09-02T10:10:56Z"
+  "updated_at": "2026-09-02T14:51:43Z"
 }
