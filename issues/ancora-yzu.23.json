@@ -14,9 +14,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "BLOCKED (worker yzu23-impl-1, relayed) → DISPOSITION 1 → attempt 2. Attempt 1 did the substance: 72 paths staged uncommitted (dep swap to ancora 1.0.0, 127 execute keys + 37 realized_by + 34 api_boundary stripped, v1 config/guides, ADR 032 with requirement_unverified=368@info, 3 integration overrides, spec.system pruned, rules synced, make target collapsed), then hard-stopped correctly on one unpriced class: adr/affects_unresolved at error — the pruning ADR must name spec.system to authorize its five requirement deletions (append_only.ex:82) but the affects resolver only accepts ids in the CURRENT index (decision_parser/affects.ex), so the prune cannot satisfy both rules. Verified in ancora source as a 1.0 design gap mandated by ancora.parsing's own requirement; filed as ancora-n24 (fast-follow, not an epic child). PRICE: config demotion severities adr/affects_unresolved: info + ADR lines — a Spec-Ack trailer was rejected because the finding is persistent and trailers are commit-scoped. Also authorized: Engage git-common read-only mount mirroring the Argos guard pattern (env-tier fail was environmental), Allowed touches expanded to the compose/worktree-make wiring only; and the 368-requirement tagging backfill gets filed on the Engage board. Full text: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.23/disposition.md. Canary price list still pre-priced; ANY other new class still stops. yzu23-impl-2 launching in the preserved worktree (ENGAGE_DB_PORT=5500).\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-02T18:41:55Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "M7: Engage migration PR",
   "type": "task",
-  "updated_at": "2026-09-02T18:12:01Z"
+  "updated_at": "2026-09-02T18:41:55Z"
 }
