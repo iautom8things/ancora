@@ -45,11 +45,15 @@
     {
       "text": "PR OPEN (orchestrator, operator-authorized) — https://github.com/ChapterSpot/argos/pull/42\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nManuel unlocked the permission and asked the orchestrator to handle it. PR 42\nopened with the prepared body (checklist 1-12 evidenced, clause accounting\nexplicitly empty, verbatim gate line). CI watch running; the decisive check\nis the spec-gate job through the ancora shim new path. Cold verification of\nthe full canary follows CI.",
       "timestamp": "2026-09-02T09:56:28Z"
+    },
+    {
+      "text": "AUDIT: BOUNCE → implementer (mechanical remedy)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nPR 42 CI: Spec Check PASS in both runs (the shim new path works on the real\nmigration — the canary headline is green). Compile, SAST, SCA, migrations\nall green. Two reds:\n1. Code Quality (both runs): `mix deps.unlock --check-unused` — the dep swap\n   left stale mix.lock entries: :spec_led_ex, :mdex, :mdex_native,\n   :nimble_parsec, :rustler_precompiled. Mechanical remedy (1/2 on this\n   ticket): run `mix deps.unlock --unused` in the worktree, commit exactly\n   the mix.lock change as `chore: prune retired specled_ex deps from\n   mix.lock (ancora-yzu.22)`, push (no force), confirm the new CI runs.\n2. Run tests: 1 failure of 1681 in ONE of two runs\n   (PoolLifecycleTest \"maximum lifetime recycles a pool even without an\n   invalidation broadcast\", pool_lifecycle_test.exs:223, refute pid equality\n   — recycle timing); the duplicate run on the same head passed 1681/1681.\n   Pre-existing Argos flake, unrelated to the migration; signature recorded\n   here, sighting 1 for this epic; not chased. If it recurs on the pruned\n   head's CI, it stays an Argos-owned flake unless it crosses its own repo's\n   cap.",
+      "timestamp": "2026-09-02T10:09:46Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M6: Argos migration PR (canary)",
   "type": "task",
-  "updated_at": "2026-09-02T09:56:28Z"
+  "updated_at": "2026-09-02T10:09:46Z"
 }
