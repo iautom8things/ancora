@@ -46,11 +46,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: original VERIFY validated the entire migration substance (severity_source audit over all 737 findings proving no unauthorized demotion, ADR census reproduced number-for-number, corpus-honesty language verbatim, compose mount write-probed read-only); its single Gap (guides' opening commands error in a linked worktree) was remedied via the recorded mechanical bounce — Git-aware spec-prime/spec-next make targets plus guide rewrites in commit 717f4549 — and the delta was orchestrator-verified BY EXECUTION: make spec-prime BASE=HEAD and make spec-next both succeed cold from the stage worktree, diff scoped to exactly the three remedy files. Worker's capped final tier: spec.validate pass + spec.check --base 60f1d53 result=pass on the PR head. TEST_CRITIC: n/a (no test files in diff). No disclosed seam substitutes production wiring. PR 39 at head 717f4549 is MERGEABLE/CLEAN with zero non-passing checks, and the head deployed to staging in its own CI run. No auditor spawned per mechanical-remedy policy. Note for the record: the impl-4 launcher pane was externally TERM'd at 23:03Z after the worker had already recorded IMPLEMENTED — no work lost. Next: staging soak, then /merge-pr + /monitor-app per the authorized flow.",
       "timestamp": "2026-09-02T23:04:17Z"
+    },
+    {
+      "text": "SHIPPED + CLOSING. Prod deploy run 33693458599 green; tag 0.17.3 at merge commit ece0832c (prerelease tag also present per convention). Post-deploy health GREEN: image_tag 0.17.3 serving and ramping (69 lines/30m; 0.17.2 draining at 367), zero error-level logs in the window AND across the 48h baseline with emission proven by the image-tag volume query. Sentry: Engage has no project in the chapterspot org (checked all 65) — Datadog-only verdict, recorded honestly. Staging soak before merge was likewise clean (~16 logs/min, zero errors, 48h-zero baseline). Worktree cleanup verified: worktree unregistered, directory gone, local branch deleted, remote branch deleted (after one retry — first attempt's failure was masked by the primary's local pre-push hook still calling retired specled tooling; banked for M10 subscriber sync), compose volumes removed. Per-close full gate @26e3100 env-pinned: compile/format/deps clean fresh, tests + spec.check green via ticket-scoped gate-memo citation of the identical tree state, external spec.validate result=pass fresh. engage-bwi carries the 368-requirement tagging backfill; the config demotion re-tightens on ancora-n24. Engage runs ancora 1.0 in production.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-02T23:11:42Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M7: Engage migration PR",
   "type": "task",
-  "updated_at": "2026-09-02T23:04:17Z"
+  "updated_at": "2026-09-02T23:11:42Z"
 }
