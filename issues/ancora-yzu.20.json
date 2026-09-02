@@ -54,11 +54,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: VERIFY's single Gap (three retired-vocabulary lines outside both\nworkers' allowed files — a gate-vs-scope authoring defect, not an\nimplementation defect) was remedied via the recorded mechanical bounce and\nconfirmed deterministically in the delta re-verification. All other checks\npassed at full strength: 04d H3 content item-by-item with byte-compared\nread-protocol and set-equal registry codes, mutation-proven content pins,\nanchor integrity vs the pre-M4 backup, corpus sweep zero, registry and\nsubscriber reconciliation, 177+2+6 tests green. TEST_CRITIC: n/a (no Elixir\ntest files in diff; the python/ts test edits were content-pin re-targets\nvalidated by the verifier's mutation proof). No auditor was spawned per\npolicy.\n\nMerge-gate items: dotfiles CI green = the repo's local suite (no GitHub\nworkflows exist; 177 passed, re-run by the verifier) ✓; distill\npi-integration green (2/2, verifier re-run) ✓; retired-vocabulary grep zero\noutside specled_ex (post-remedy) ✓; auditor APPROVE = this comment ✓.\n\nDelivery state: the change is LIVE for this profile (the vault symlink means\nthe skills tree already serves the rewritten files) and fully committed on\nhttps://github.com/iautom8things/agentic-dotfiles/pull/17 (522dd3ed +\n19b63408 + a3cf90f7). PR 17's merge is the operator's action; M6 admission\nwaits on it because sync-agent-rules inside migration PRs reads from dotfiles\nmain. Closing the ticket; the PR-merge dependency is recorded on the epic\nfrontier.",
       "timestamp": "2026-09-02T00:02:46Z"
+    },
+    {
+      "text": "MERGED — PR 17 squash-merged to agentic-dotfiles main as 692ffe2c (release 0.87.0) on 2026-09-01. Remote branch ancora-m4/rule-swap deleted; worktree /Users/mz/src/adf-ancora-m4 cleaned up. No CI workflow in that repo; local smoke (13 tests, 222 scripts) green pre-merge. M6 (ancora-yzu.22) is unblocked.",
+      "timestamp": "2026-09-02T00:42:00Z"
     }
   ],
   "priority": 2,
   "status": "closed",
   "title": "M4: Dotfiles rule + profile skills (flag-day step 0)",
   "type": "task",
-  "updated_at": "2026-09-02T00:09:14Z"
+  "updated_at": "2026-09-02T00:42:00Z"
 }
