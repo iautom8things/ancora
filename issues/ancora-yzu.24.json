@@ -30,11 +30,15 @@
     {
       "text": "IMPLEMENTED (bounce remedy, yzu24-impl-2, relayed) + ORCHESTRATOR DELTA-VERIFY PASS. Commit 0ec06e54 on PR 149 is byte-exact to the remedy and nothing else: worktree.mk drops --no-run-commands from the spec-check invocation; mix.exs adds only: [:dev, :test] keeping runtime: false; mix.lock unchanged. Worker proof: in-container compile, make format, make spec-check EXECUTED green, spec.validate pass (49 subjects/558 requirements), capped spec.check --base 79a221b1 pass (run 1 red was environmental — GIT_WORK_TREE=/app instead of Builder's /builder override; run 2 via the make-expanded git path). Orchestrator delta proof: read the full commit diff (exactly the two prescribed lines) and independently ran make spec-check from the stage worktree — exit 0, spec.check result=pass, 254 findings all info. Both verifier gaps closed; the re-documented claims (worktree-mix-targets.md, CLAUDE.md:17) are now true by execution. Remedy-head CI run 33685406294 pending — watch armed; SemVer bot push, if any, gets orchestrator approval. Next after CI green: Selective Audit Gate, then the authorized ship flow.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-09-02T22:55:40Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: original VERIFY independently re-derived the entire migration substance (six pruned subjects recounted exactly, tombstones metadata-only, 7 overrides scoped with reasons, trailers a strict subset of pre-authorized, five board retargets 2-line edits, ancora.md registry table exact, spec gate pass with 254 findings all info); its two Gaps (retired --no-run-commands flag breaking make spec-check; missing only: [:dev, :test]) were remedied via the recorded mechanical bounce, and the delta was orchestrator-verified byte-exact (commit 0ec06e54 is exactly the two prescribed lines) plus proven by execution (make spec-check exit 0 result=pass from the stage worktree). TEST_CRITIC: n/a — the three test-file edits are @tag spec: lines only, hunks read by the orchestrator. No disclosed seam substitutes production wiring. Remedy-head CI run 33685406294 green; PR 149 has zero non-passing checks at head 0ec06e54. No auditor spawned per mechanical-remedy policy. Next: the authorized ship flow (stage/soak per Builder convention, /merge-pr, /monitor-app).",
+      "timestamp": "2026-09-02T22:56:33Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M8: Builder migration PR",
   "type": "task",
-  "updated_at": "2026-09-02T22:55:40Z"
+  "updated_at": "2026-09-02T22:56:33Z"
 }
