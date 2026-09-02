@@ -89,11 +89,15 @@
     {
       "text": "MERGED. Squash bd9c5654 on Argos main; prod tag+deploy run being watched.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nStaging soak evidence before the merge: new image 0.15.1-prerelease1 serving,\nerror stream character-identical to the 48h baseline (chronic\nsigning_key_conflict hum, pre-existing since at least 0.14.0-prerelease4),\nzero new Sentry issues. Operator's conditions (deploy-staging + healthy soak)\nmet; merge executed per his standing /merge-pr instruction. Remote branch\ndeleted; primary main ff'd. Ticket closes after the prod deploy lands and the\nworktree is cleaned.",
       "timestamp": "2026-09-02T18:05:08Z"
+    },
+    {
+      "text": "SHIPPED. Argos 0.15.1 deployed to production. Closing per orchestrator sign-off.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nPost-merge \"Deploy merged main\" run green (build + deploy); tag 0.15.1 at\nmerge commit bd9c5654. Light prod glance: zero error-level argos prod logs in\nthe last 15m (a fuller /monitor-app read remains the operator's call).\nWorktree cleanup completed and verified (compose containers + volumes\nremoved, worktree unregistered, branch deleted; the make target missed the\nnon-conventional path, teardown mirrored manually). Merge gate: CI green\nincl. shim new path ✓; checklist 1-12 in the PR ✓; migration ADR merged ✓;\nauditor APPROVE ✓. The first specled_ex consumer is fully migrated to\nancora 1.0 in production.",
+      "timestamp": "2026-09-02T18:11:43Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M6: Argos migration PR (canary)",
   "type": "task",
-  "updated_at": "2026-09-02T18:05:08Z"
+  "updated_at": "2026-09-02T18:11:43Z"
 }
