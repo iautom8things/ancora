@@ -15,9 +15,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "ADMITTED + SPAWNED. Stage worktree /Users/mz/dev/mz/atlas-ancora-migration (repo tooling bootstrap: compose healthy, container deps in sync, git-access ok), fast-forwarded from the 0.59.0 primary to origin/main 438ad5b53 = base ref. Worker yzu25-impl-1 launched at high effort, hard-cap 5400s, prompt validated against the canonical template (cadence fence byte-match). Brief carries the fleet price list (canary items + both recorded catch-22 shapes riding ancora-n24 + lessons 12-14: execute the docs, execute re-documented targets, dep options token-for-token — with the Atlas inversion called out: ALL-ENVS runtime dep, no only:/runtime: false). Perf clause encoded as the ticket binds it: bench median-of-3 warm build, \u003c10s spec.check / \u003c5s report tasks, a miss RECORDED not tuned, blocking the PR into the on-disk-cache re-entry decision. Known honest risk going in: the M3 replay bench measured ~31.7s median for a full Atlas-corpus run on this machine, so the budget may genuinely miss — the contract's answer is the recorded decision path, and the brief forbids tuning to the budget.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-02T23:18:37Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "M9: Atlas migration PR + perf acceptance",
   "type": "task",
-  "updated_at": "2026-09-02T23:12:26Z"
+  "updated_at": "2026-09-02T23:18:37Z"
 }
