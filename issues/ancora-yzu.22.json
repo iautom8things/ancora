@@ -29,11 +29,15 @@
     {
       "text": "DISPOSITION 3 (orchestrator) — companion guard tests re-pin the new contract; final assembly authorized\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nAttempt 3 (launcher externally SIGTERMed after writing its BLOCKED record; no\nwork lost) completed the ADR acknowledgments, the .claude grep (zero), and\nthe lesson audit; compile green; the authorized tag files pass their 9 tests.\nIt stopped rather than hand off a known-red build: two Argos guard tests\nstill assert the retired world —\n- test/argos/mix_project_test.exs pins the SpecLedEx SHA dependency\n- test/argos/catalog/worktree_spec_check_test.exs pins spec-check-full\nBoth exist precisely to pin content this migration changes by design.\nUpdating them to pin the NEW contract (ancora ~\u003e 1.0 with runtime: false;\none bare spec-check target with the Git-access guard) is contract\nre-pinning, not finding-dodging. Scope ruling: Allowed touches now include\nexactly those two test files for exactly those contract re-pins — the\nguard-test mechanism itself (that these files pin mix.exs / make targets)\nmust not weaken.\n\nAttempt 4 (yzu22-impl-4): apply the two re-pins, re-run the failed\nchange-scoped tests to green, commit with the two Spec-Ack trailer lines,\none capped final-tier mix spec.check --base 5c07ee2e ending result=pass,\npush, open the real PR (checklist 1-12 + explicitly-empty clause\naccounting), observe CI through the shim new path.",
       "timestamp": "2026-09-02T01:32:58Z"
+    },
+    {
+      "text": "DISPOSITION 4 (orchestrator) — no-verdict crash was an instrument invocation error (orchestrator's brief), not a gate verdict; corrected-environment run authorized and executed by the orchestrator\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nAttempt 4 finished the substance: guard tests re-pinned and green (5/5),\nboundary compile gate clean, migration committed as 5ab07d2d with the two\nauthorized Spec-Ack trailers. Its final-tier spec.check crashed with no\nverdict because it ran on the HOST, where the ancora dep (which provides the\ntask) is not compiled — my brief wrongly said spec.check needs no container\nin a consumer repo. Per the read protocol a no-verdict crash is a failure,\nbut this one is an invocation-environment failure chargeable to the\norchestrator's brief, not a gate result on the work. The capped tier is\nexhausted; gate ownership reverts to the orchestrator: I run the\ncommitted-head gate in the bootstrapped compose service myself. A pass\nauthorizes push + PR by a finisher; any warning/error verdict re-enters\ndisposition.",
+      "timestamp": "2026-09-02T01:48:47Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M6: Argos migration PR (canary)",
   "type": "task",
-  "updated_at": "2026-09-02T01:32:58Z"
+  "updated_at": "2026-09-02T01:48:47Z"
 }
