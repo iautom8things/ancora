@@ -37,11 +37,15 @@
     {
       "text": "GATE (orchestrator) — committed-head spec.check green in the corrected environment\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nRan via the repo's own new target (make spec-check → in-container bare\nmix spec.check behind the git-access guard; default_base origin/main =\n5c07ee2e, the admission base) against committed head 5ab07d2d:\n\n  checked subjects=30 requirements=434 errors=0 warnings=0\n  branch base=5c07ee2e changed_files=54 findings=532 (error=0 warning=0 info=532)\n  spec.check result=pass\n\nThe Spec-Ack trailers price the acknowledged classes to info as\ndispositioned; nothing at warning+. Push + real PR + CI observation through\nthe shim new path now proceed via a finisher worker.",
       "timestamp": "2026-09-02T01:49:29Z"
+    },
+    {
+      "text": "WORKER_ERROR\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\n(FINISHER — push + PR + CI on the committed migration)\nCommit: 5ab07d2d\nPR: none — CI: not observed\nShim new path: not observed (no PR, no CI run watched)\nChecklist 1-12: PR body drafted with all 12 ticked plus explicitly-empty clause accounting and the verbatim gate line, at /private/tmp/claude-501/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d/scratchpad/pr-body-yzu22.md — not posted\n\nSummary: Push succeeded (ancora-migration -\u003e origin, new branch, head 5ab07d2d on 5c07ee2e, worktree clean). gh pr create failed twice: first attempt died with \"[ERROR] authorization timeout\", the retry was denied by the Claude Code auto mode permission classifier (\"Blocked by classifier\"). agent-session lines was also classifier-blocked; session lines above are taken from this session's own disposition comments. Per the one-retry rule I stopped rather than work around the denial. The branch is pushed and the finished PR body is ready; opening the PR needs a human or a permission rule allowing gh pr create.",
+      "timestamp": "2026-09-02T01:53:51Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M6: Argos migration PR (canary)",
   "type": "task",
-  "updated_at": "2026-09-02T01:49:29Z"
+  "updated_at": "2026-09-02T01:53:51Z"
 }
