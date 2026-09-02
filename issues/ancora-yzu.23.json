@@ -30,11 +30,15 @@
     {
       "text": "Engage bot-head CI run 33671198162 finished GREEN after orchestrator approval — every PR 39 check now passes (SemVer, Spec Check 35s, tests, SCA, SAST, codecov project+patch), and the run's Build and Deploy Staging chain completed: the PR image is already built, pushed, and DEPLOYED TO STAGING. Checklist item 12's condition is met. Note: my attempt to tick item 12 in the PR body was blocked three times by the local gh write-guard (authorization timeout / promptError on gh pr edit) — not working around it; the checkbox is cosmetic and this comment is the record. Verify (cold, running) then audit remain before the authorized ship flow: staging soak, /merge-pr, /monitor-app.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-09-02T21:20:59Z"
+    },
+    {
+      "text": "VERIFY: FAIL (cold verifier verify-yzu23, relayed) → MECHANICAL-REMEDY BOUNCE 1 (of cap 2). The migration substance survived cold inspection on every axis: both gates pass, all 76 files inside Allowed globs, per-finding severity_source audit over all 737 findings proves NO unauthorized demotion (only the authorized config demotion, the 3 checklist overrides, and the 1 pre-authorized trailer; 732 findings at source=default), ADR census reproduced number-for-number against the base tree, corpus-honesty language verbatim, engage-bwi links resolve, compose mount proven read-only BY WRITE PROBE. ONE GAP, docs-only: .spec/README.md:7 and .spec/AGENTS.md:27 (generalized at :11) open with bare 'docker compose exec web mix spec.prime --base HEAD', which errors in a linked worktree ('/engage is not a git repository') — git-dependent tasks need the GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE triple that WORKTREE_CONTAINER_GIT_EXEC supplies, exactly why make spec-check works and the bare exec does not. Verifier proved the commands correct under that env, so guidance is wrong, not the tool. REMEDY (exact): add spec-prime/spec-next make targets using the existing wrapper and point both guides at them (or state the env requirement inline); every documented opening command must then succeed verbatim BY EXECUTION in the linked-worktree in-container workflow. Scope: make graph + the two guides only. RULING on the verifier's judgment call: the two overlap/* severities entries are the pre-migration ADR 020/027 posture carried forward — the checklist's config-rewrite item explicitly sanctions carrying existing ADR-backed postures (Argos precedent: overlap/duplicate_covers) — AUTHORIZED, no action. Lesson [doc-executability] appended to epic LESSONS. yzu23-impl-3 launching.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-02T21:22:53Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M7: Engage migration PR",
   "type": "task",
-  "updated_at": "2026-09-02T21:20:59Z"
+  "updated_at": "2026-09-02T21:22:53Z"
 }
