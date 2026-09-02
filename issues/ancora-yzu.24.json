@@ -14,9 +14,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-yzu",
+  "comments": [
+    {
+      "text": "IMPLEMENTED (worker yzu24-impl-1, relayed; exit 124 was the watchdog reaping a finished pane — terminal record complete). Builder PR: https://github.com/ChapterSpot/builder/pull/149 — CI GREEN, run 33671739513. Commits eef30b7, 4a7ee2e, 70b8a79; 107 paths (71 .spec, 26 .claude, 7 root/release, 3 existing tests — invalid scenario aliases removed, assertions unchanged). 464 execute keys stripped; spec-accept-drift Makefile target deleted; final tier 2 runs (run 1 red was environmental — container exposed the common Git dir, not the linked-worktree dir; run 2 pass): compile -warnings-as-errors, 2560 stale tests, 143 changed-file tests, spec.validate 49 subjects/558 requirements, spec.check result=pass, retired_construct=0, unknown_key=0. NOTE the alternate catch-22 shape: instead of Engage's config demotion, Builder kept six metadata-only identifier tombstone files so the retirement ADR affects: resolves, with scoped unanchored overrides — no unpriced class fired; follow-up (delete tombstones) rides on ancora-n24. Six subjects pruned incl. spec.system (37 requirements, 20 scenarios) under the migration ADR; requirement_unverified=100@info; 7 overrides; protection-narrowing ADR states the decision; board sweep retargeted five Atlas items to builder.csm_agent (retarget only, nothing closed). Bot bumped VERSION 1.57.3; worker self-served the bot-run approval via a human-authored changelog commit. Unpriced classes: none. Next: rigor-check then cold verify; test-critic if the 3 test edits grade assertional.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-02T21:10:15Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "M8: Builder migration PR",
   "type": "task",
-  "updated_at": "2026-09-02T18:12:01Z"
+  "updated_at": "2026-09-02T21:10:15Z"
 }
