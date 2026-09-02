@@ -85,11 +85,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: original VERIFY validated checklist 1-12 diff-true with a single\nsubstantive Gap (the un-reworded platform.dev_env guard requirement); the\nrecorded main bounce fixed it and VERIFY: PASS (delta) confirmed the\nrewording faithful, the clause accounting real in ADR + PR, and the README\nclaims validated against ancora source. TEST_CRITIC: PASS — the two tag-only\nfiles changed no logic and both guard-test re-pins are STRONGER than their\npredecessors (exact tuple/invocation-line pinning; red on all four probes).\nCI on the final head 5248c83d: all thirteen substantive checks green\nincluding Spec Check and SemVer; sole red is the deliberate-release staging\ngate (human lever). No auditor was spawned per policy.\n\nPARKED at the operator step: the ticket's remaining merge-gate item is the\nPR merge itself (\"Migration ADR merged with the PR\"). PR 42's merge — and\noptionally the deploy-staging label — is Manuel's. M6 closes on his merge;\nM7 (Engage) + M8 (Builder) admit in parallel immediately after.",
       "timestamp": "2026-09-02T15:45:14Z"
+    },
+    {
+      "text": "MERGED. Squash bd9c5654 on Argos main; prod tag+deploy run being watched.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nStaging soak evidence before the merge: new image 0.15.1-prerelease1 serving,\nerror stream character-identical to the 48h baseline (chronic\nsigning_key_conflict hum, pre-existing since at least 0.14.0-prerelease4),\nzero new Sentry issues. Operator's conditions (deploy-staging + healthy soak)\nmet; merge executed per his standing /merge-pr instruction. Remote branch\ndeleted; primary main ff'd. Ticket closes after the prod deploy lands and the\nworktree is cleaned.",
+      "timestamp": "2026-09-02T18:05:08Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M6: Argos migration PR (canary)",
   "type": "task",
-  "updated_at": "2026-09-02T15:45:14Z"
+  "updated_at": "2026-09-02T18:05:08Z"
 }
