@@ -57,11 +57,15 @@
     {
       "text": "STALL RESOLVED (orchestrator) — CI was green all along; the SemVer bot hid it\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nWhat the 4.5-hour stall was: the lock-prune head 7d4dfb81 ran CI FULLY GREEN\non every substantive check — Code Quality green (prune proven), Run tests\n1681/1681 (no flake recurrence), Spec Check green again. The one \"failure\"\nwas SemVer/Bump Version, the automation job that then PUSHED d4dc5433 (\"Bump\nVERSION 0.15.0 -\u003e 0.15.1\") onto the PR branch with a bot token — which\ncannot trigger workflows, so the new head sat at action_required with zero\nchecks, and the prune worker's watch (aimed at the old head) never woke.\nSame automation family as Atlas's M0 VERSION commit.\n\nActions: approved the action_required run (33619528533, now in_progress) —\nit re-runs the full suite on the bump head, whose only delta vs the proven\nhead is the VERSION file. Orchestrator watches this one directly. The\nlock-prune remedy is confirmed complete (exact five-entry diff, in-container\ncorrection; the worker's earlier host-side STOP and the unexplained 06:10\nmix.lock rewrite are on record). Cold verification launches when this run\nlands.",
       "timestamp": "2026-09-02T14:51:43Z"
+    },
+    {
+      "text": "AUDIT: BOUNCE → implementer (mechanical remedy)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nThe bump-head CI run is green on every substantive check; the sole red is\nthe SemVer job's own convention: it bumped VERSION to 0.15.1 (patch — the\nbranch name carries no feature/ prefix, and a no-behavior-change dependency\nmigration reads as a patch) and requires a `## 0.15.1` CHANGELOG heading,\nwhich the PR lacks. Same finding class as the epic's [release-scope] lesson:\nthe repo's release convention files were outside the ticket's Allowed\ntouches. Scope ruling: CHANGELOG.md added for exactly one new 0.15.1 section.\n\nMechanical remedy (2/2 on this ticket — cap reached after this):\n1. Pull origin/ancora-migration (the bot's d4dc5433 bump is the tip; do not\n   drop it — Argos automation owns VERSION here, unlike Atlas M0 where the\n   operator dropped the bump on a pin-only PR).\n2. Add a `## 0.15.1` section at the top of CHANGELOG.md in the repo's\n   existing entry style: the specled_ex→ancora migration (dep swap, spec\n   workspace v1, rules swap, make targets), no behavior change.\n3. Commit as `docs(changelog): record 0.15.1 ancora migration (ancora-yzu.22)`,\n   push (no force). The push triggers a normal CI run; SemVer sees VERSION\n   already current + matching heading and passes.\n4. Watch that run: expect all green.",
+      "timestamp": "2026-09-02T14:57:17Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M6: Argos migration PR (canary)",
   "type": "task",
-  "updated_at": "2026-09-02T14:51:43Z"
+  "updated_at": "2026-09-02T14:57:17Z"
 }
