@@ -42,11 +42,15 @@
     {
       "text": "WORKER_ERROR (yzu23-impl-3, relayed) → RETRY, same mechanical bounce (cap not consumed; this is exception-routing retry, not a new bounce). The remedy IS complete and proven in the worktree, uncommitted: spec-prime/spec-next make targets added through WORKTREE_CONTAINER_GIT_EXEC with BASE support on spec-check, guides updated, and BOTH documented opening commands succeeded by execution. The two red final-tier runs were environmental, not code: the worker ran mix test --stale OUTSIDE the container — run 1 died on TEST_DATABASE_URL naming the nonexistent host engage-ancora-migration_db, run 2 on the host db rejecting the generated password — in the same worktree where attempt 2 ran 1609 in-container tests green. The cap then forced the honest halt. Correction for attempt 4: this delta touches no code or test files, so the required final tier is compile (already passed twice) + spec.validate + ONE capped spec.check --base 60f1d53; no test run is required, and any incidental mix invocation goes through the in-container make targets exactly as attempt 2 did. yzu23-impl-4: verify the uncommitted edits match the remedy, commit, gate, push to PR 39.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-09-02T21:27:39Z"
+    },
+    {
+      "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: original VERIFY validated the entire migration substance (severity_source audit over all 737 findings proving no unauthorized demotion, ADR census reproduced number-for-number, corpus-honesty language verbatim, compose mount write-probed read-only); its single Gap (guides' opening commands error in a linked worktree) was remedied via the recorded mechanical bounce — Git-aware spec-prime/spec-next make targets plus guide rewrites in commit 717f4549 — and the delta was orchestrator-verified BY EXECUTION: make spec-prime BASE=HEAD and make spec-next both succeed cold from the stage worktree, diff scoped to exactly the three remedy files. Worker's capped final tier: spec.validate pass + spec.check --base 60f1d53 result=pass on the PR head. TEST_CRITIC: n/a (no test files in diff). No disclosed seam substitutes production wiring. PR 39 at head 717f4549 is MERGEABLE/CLEAN with zero non-passing checks, and the head deployed to staging in its own CI run. No auditor spawned per mechanical-remedy policy. Note for the record: the impl-4 launcher pane was externally TERM'd at 23:03Z after the worker had already recorded IMPLEMENTED — no work lost. Next: staging soak, then /merge-pr + /monitor-app per the authorized flow.",
+      "timestamp": "2026-09-02T23:04:17Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M7: Engage migration PR",
   "type": "task",
-  "updated_at": "2026-09-02T21:27:39Z"
+  "updated_at": "2026-09-02T23:04:17Z"
 }
