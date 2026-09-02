@@ -38,11 +38,15 @@
     {
       "text": "MERGED. Squash dfed26a5 on Builder main at 2026-09-02T22:57:25Z (subject: feat: migrate spec governance to ancora 1.0); remote branch auto-deleted by the repo on merge. Builder convention confirmed: NO staging stage exists in CI (ci.yaml has none; deploy.yaml is manual dispatch) — pr_closed.yaml deploys straight to prod on merge, so the authorized flow here is merge → prod deploy → /monitor-app, no soak step. Prod deploy run 33692832680 is in_progress with a watch armed; VERSION 1.57.3 tag check follows the run. Primary checkout ff'd to the squash and its container deps volume prewarmed (mix.lock changed in this merge). Stage worktree cleanup deliberately deferred until the prod deploy is green. NOT DONE YET: Builder is not shipped until that run is green, the 1.57.3 tag exists, and /monitor-app grades prod healthy.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-09-02T22:58:34Z"
+    },
+    {
+      "text": "SHIPPED + CLOSING. Prod deploy run 33692832680 green; tag 1.57.3 at merge commit dfed26a5; post-deploy health GREEN — image_tag 1.57.3 serving (1,425 lines/30m, 1.57.2 draining), zero error-level logs in the window AND across the 48h baseline (volume query proves emission — the zero is evidenced), zero new Sentry issues (project builder, prod) since deploy. Runtime delta is nil by design: spec governance + dev/test deps only, and the remedy's only: [:dev, :test] REMOVES ancora from prod builds. Worktree cleanup verified all four halves: worktree unregistered, directory gone, local branch deleted, remote branch gone; compose volumes removed. Per-close full gate on ancora @26e3100 env-pinned 27.2/1.18.1: compile --warnings-as-errors clean, format clean, deps.unlock clean, 331 tests + 3 properties 0 failures, spec.check --base 26e3100 result=pass, external spec.validate from specled_ex result=pass. Follow-up already banked: tombstone deletion rides ancora-n24. Builder runs ancora 1.0 in production.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-02T23:08:55Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M8: Builder migration PR",
   "type": "task",
-  "updated_at": "2026-09-02T22:58:34Z"
+  "updated_at": "2026-09-02T23:08:55Z"
 }
