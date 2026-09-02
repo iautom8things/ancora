@@ -94,11 +94,15 @@
     {
       "text": "SHIPPED. Argos 0.15.1 deployed to production. Closing per orchestrator sign-off.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nPost-merge \"Deploy merged main\" run green (build + deploy); tag 0.15.1 at\nmerge commit bd9c5654. Light prod glance: zero error-level argos prod logs in\nthe last 15m (a fuller /monitor-app read remains the operator's call).\nWorktree cleanup completed and verified (compose containers + volumes\nremoved, worktree unregistered, branch deleted; the make target missed the\nnon-conventional path, teardown mirrored manually). Merge gate: CI green\nincl. shim new path ✓; checklist 1-12 in the PR ✓; migration ADR merged ✓;\nauditor APPROVE ✓. The first specled_ex consumer is fully migrated to\nancora 1.0 in production.",
       "timestamp": "2026-09-02T18:11:43Z"
+    },
+    {
+      "text": "Post-deploy health: GREEN — /monitor-app on Argos prod. Deploy: pr_closed run 33665019383 green 18:10:35Z, tag 0.15.1 at bd9c5654. Window: post-deploy [18:10:35Z, 18:22:43Z] vs baseline [17:58:35Z, 18:10:35Z]. Sentry prod: 0 new issues since deploy, 0 unresolved with activity in window (ARGOS-2/3 pair silent — the argos-ogf fix holds through the 18:10:01 hourly slot). Datadog: error-level logs 0 vs 0 baseline (volume query with identical filters returned 894 logs, so the zero is evidenced, not an empty facet); total volume 894 vs 866 (~74/min, normal); image_tag split 0.15.1=867 / 0.15.0=27 (draining pods) — new image is serving. No APM metrics queried (argos emits none under conventional names, per datadog.md). Green rule: zero new issues + error rate flat + volume within 30%.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-02T18:23:31Z"
     }
   ],
   "priority": 2,
   "status": "closed",
   "title": "M6: Argos migration PR (canary)",
   "type": "task",
-  "updated_at": "2026-09-02T18:11:46Z"
+  "updated_at": "2026-09-02T18:23:31Z"
 }
