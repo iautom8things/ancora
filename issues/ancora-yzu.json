@@ -77,11 +77,15 @@
     {
       "text": "ORCHESTRATED\nChildren closed: 34\nBOUNCEs encountered: 23\nUser escalations: 5",
       "timestamp": "2026-09-03T09:05:41Z"
+    },
+    {
+      "text": "SHIP BLOCKED at /ship-it Phase 3 (local CI preflight). Epic stays in_progress; branch NOT pushed, PR NOT opened.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nManuel invoked /ship-it. The arc ran: critical-review gate (no report existed for ancora, so a fresh 9-persona review ran), rebase (no-op, main is a direct ancestor), then local CI preflight against BOTH matrix legs. Preflight found two blockers, so the pipeline stopped before /open-pr per Stop condition 7.\n\nBLOCKER 1 - deterministic. mix spec.check --base ecc5e24 (main) exits non-zero: spec.check result=fail tier=branch errors=0 warnings=1, on ancora.review derived/growth. CI smoke runs that exact command for a PR into main, so the PR would be red 100% of runs. Cause: .spec/specs/ancora.review.spec.md changed by exactly one line on this branch (status draft -\u003e active) while ~1000 lines of review code landed. The tool is correct; the contract was never substantively updated. Filed as ancora-ayj.\n  Root gap: every per-ticket gate in this epic ran --base against a recent incremental base, never against the actual PR base. 34 children closed green and the branch still fails its own gate against main.\n\nBLOCKER 2 - probabilistic. Full suite fails ~1 run in 5 on a quiet machine; two CI legs per push means ~36% chance of a red test job. Two independent root causes reproduced: capture_io(:stderr) cross-talk between async:true modules (deterministic at --seed 4), and cross-VM temp-path collisions (Ancora.TempName.cross_vm_suffix/0 exists for exactly this and is unused). Filed as ancora-rdx.\n\nGREEN in preflight: both matrix legs compile with --warnings-as-errors, mix format --check-formatted, mix deps.unlock --check-unused. Elixir 1.19.5/OTP 28 and 1.18.4/OTP 26 both build clean.\n\nCritical review: 9 personas (data excluded - no database surface anywhere; every \"ecto\" hit is the substring inside \"detector\"). 100 raw findings -\u003e 81 unique -\u003e 66 calibrated, 42 severity adjustments, 25 consensus. ZERO critical, 7 high. Disposition 58 fix-now / 8 tracked / 15 dropped. Report:\n/Users/mz/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-03/ancora-yzu-spec-anchored-successor/20260903-052243-consolidated.md (review_commit: 5220686, so it satisfies /open-pr's coverage gate on resume)\n\nOf the 58 fix-now items only the two above make the branch red. The other 56 are real quality work that does not block the merge; they belong in a fast-follow epic rather than gating this PR.\n\nLESSON 16 for the corpus: [gate-base-drift] A per-ticket gate run against an incremental base never proves the branch passes against the PR base. Run the gate against the merge target at least once before declaring an epic shippable.",
+      "timestamp": "2026-09-03T10:03:58Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "ancora: spec-anchored successor to specled_ex",
   "type": "epic",
-  "updated_at": "2026-09-03T09:05:41Z"
+  "updated_at": "2026-09-03T10:03:58Z"
 }
