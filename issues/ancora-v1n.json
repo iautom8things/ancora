@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "ancora-s1o"
+  ],
   "blocks": [
     "ancora-n24"
   ],
@@ -21,5 +23,5 @@
   "status": "open",
   "title": "Subject-scoped ADR affects grants blanket append-only authorization",
   "type": "task",
-  "updated_at": "2026-09-03T16:35:04Z"
+  "updated_at": "2026-09-03T17:45:51Z"
 }
