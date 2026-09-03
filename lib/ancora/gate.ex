@@ -69,10 +69,16 @@ defmodule Ancora.Gate do
   defp run(ctx, preflight, opts) do
     with {:ok, change_set} <- ChangeSet.compute(ctx),
          {:ok, base_root} <- BaseView.materialize(ctx) do
-      try do
-        assemble(ctx, preflight, change_set, base_root, opts)
-      after
-        File.rm_rf(base_root)
+      result =
+        try do
+          assemble(ctx, preflight, change_set, base_root, opts)
+        after
+          File.rm_rf(base_root)
+        end
+
+      case result do
+        {:ok, report} -> {:ok, report}
+        {:error, reason} -> gate_error(reason)
       end
     else
       {:error, reason} -> gate_error(reason)

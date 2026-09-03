@@ -212,6 +212,17 @@ decisions:
     - no response from the timed out request is returned
   covers:
     - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.unreadable_working_tree_input
+  given:
+    - a tagged test file or library source in the working tree cannot be read
+  when:
+    - `mix spec.check --base HEAD` runs
+  then:
+    - stdout names the unreadable file
+    - the last stdout line is `spec.check result=fail tier=env errors=0 warnings=0`
+    - no runtime exception escapes on stderr
+  covers:
+    - ancora.gate.preflight_hard_fails
 - id: ancora.gate.scenario.json_target_read_failure
   given:
     - a target whose `mix.exs` has a non-literal `app:` value

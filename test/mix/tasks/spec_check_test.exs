@@ -60,6 +60,34 @@ defmodule Mix.Tasks.Spec.CheckTest do
     refute result.stderr =~ "RuntimeError"
   end
 
+  if match?({"0\n", 0}, System.cmd("id", ["-u"])) do
+    @tag skip: "chmod 000 does not deny reads when running as root"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "unreadable working-tree inputs emit an environment verdict", %{root: root} do
+    create_project(root)
+    write_anchored_subject(root)
+    commit_all(root, "anchored subject")
+
+    for relative <- ["test/sample_test.exs", "lib/sample.ex"] do
+      path = Path.join(root, relative)
+      on_exit(fn -> File.chmod(path, 0o644) end)
+      File.chmod!(path, 0o000)
+
+      result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+      assert result.status == 1
+      assert result.stdout =~ relative
+
+      assert List.last(lines(result.stdout)) ==
+               "spec.check result=fail tier=env errors=0 warnings=0"
+
+      refute result.stderr =~ "RuntimeError"
+      File.chmod!(path, 0o644)
+    end
+  end
+
   @tag spec: "ancora.tasks.gated_emission_paths"
   @tag spec: "ancora.tasks.finding_line_format"
   test "findings precede summaries, guidance, and the last-line verdict", %{root: root} do

@@ -57,7 +57,6 @@ decisions:
     `stderr_to_stdout` so git stderr can never interleave with blob payloads.
     A fetch timeout, malformed frame, or port exit shall close and poison the
     port; every later fetch through it shall return `{:error, :port_poisoned}`.
-    Closing a port shall wait for its exit status with a bounded timeout.
     Ancora.BaseView shall return `{:error, :base_required}` when called with a
     repository path and no base. Ancora.Git.run/3 shall return
     `{:error, :git_executable_not_found}` when git is absent instead of raising.
