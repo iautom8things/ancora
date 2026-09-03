@@ -65,9 +65,9 @@ defmodule Ancora.Derive.MembershipTest do
 
   @tag spec: "ancora.derive.project_info_from_root"
   @tag spec: "ancora.derive.membership_source_derived"
-  test "trailing slash config preserves base and HEAD membership", %{root: root} do
-    # Would fail if ProjectInfo passed a trailing slash to ModuleLocator, which
-    # would omit unchanged source from both side maps.
+  test "trailing slash config keeps a deleted module in base membership", %{root: root} do
+    # Would fail if ModuleLocator rejected the deleted source while rebuilding
+    # base membership from the change set.
     TmpGitRepo.write!(root, %{
       "mix.exs" => """
       defmodule Sample.MixProject do
@@ -76,10 +76,12 @@ defmodule Ancora.Derive.MembershipTest do
       end
       """,
       ".spec/config.yml" => "lib_paths:\n  - src/\n",
+      "src/legacy.ex" => "defmodule Legacy do\nend\n",
       "src/thing.ex" => "defmodule Thing do\nend\n"
     })
 
     TmpGitRepo.commit!(root, "initial")
+    File.rm!(Path.join(root, "src/legacy.ex"))
 
     assert {:ok, ctx} = RunContext.start(root, "HEAD")
     on_exit(fn -> RunContext.stop(ctx) end)
@@ -87,8 +89,7 @@ defmodule Ancora.Derive.MembershipTest do
     assert {:ok, project} = ProjectInfo.load(root)
     assert {:ok, membership} = Membership.load(project, change_set)
 
-    expected = MapSet.new(["Thing"])
-    assert Membership.modules(membership, :base) == expected
-    assert Membership.modules(membership, :head) == expected
+    assert Membership.modules(membership, :base) == MapSet.new(["Legacy", "Thing"])
+    assert Membership.modules(membership, :head) == MapSet.new(["Thing"])
   end
 end

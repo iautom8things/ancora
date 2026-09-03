@@ -112,8 +112,8 @@ defmodule Ancora.GateTest do
   @tag spec: "ancora.derive.membership_source_derived"
   @tag spec: "ancora.derive.subject_footprint"
   test "tagged source under a trailing-slash lib path stays covered", %{root: root} do
-    # Would fail if preflight left trailing-slash paths for module membership
-    # and uncovered-file analysis to interpret differently.
+    # The drift assertion would fail if the source silently dropped out of its
+    # subject footprint; the refute pins the corresponding coverage result.
     init_git_repo(root)
 
     write_files(root, %{
@@ -134,6 +134,10 @@ defmodule Ancora.GateTest do
     write_files(root, %{"src/thing.ex" => "defmodule Thing do\n  def value, do: :changed\nend\n"})
 
     assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "derived/drift" and finding.subject == "thing.value"
+           end)
 
     refute Enum.any?(report.all_findings, fn finding ->
              finding.code == "change/uncovered_file" and finding.file == "src/thing.ex"

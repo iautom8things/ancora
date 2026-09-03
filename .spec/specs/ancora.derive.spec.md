@@ -308,12 +308,12 @@ decisions:
     - ancora.derive.project_info_from_root
 - id: ancora.derive.scenario.trailing_slash_lib_path
   given:
-    - '`lib_paths: ["src/"]` and a changed, tagged source at `src/thing.ex`'
+    - '`lib_paths: ["src/"]` with `src/legacy.ex` defining `Legacy` at base and deleted on HEAD'
   when:
-    - the gate runs
+    - membership is computed per side
   then:
-    - the file enters its subject's footprint
-    - no `change/uncovered_file` fires
+    - `Legacy` is a member at base and not at HEAD
+    - the change-set file is not dropped from base membership
   covers:
     - ancora.derive.project_info_from_root
     - ancora.derive.membership_source_derived
