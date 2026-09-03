@@ -11,9 +11,15 @@
     "critical"
   ],
   "parent": "ancora-xla",
+  "comments": [
+    {
+      "text": "RULING (Manuel, 2026-09-03): deferred out of ancora-xla. Ancora was split from specled_ex to carry less state and less PR churn, and an on-disk cache is exactly the kind of second source of truth the no_execution_no_state charter exists to keep out. ancora-xla.3 (narrowed base tree, hoisted path set, parse once per side) is expected to remove most of the measured Atlas time; nobody has benched Atlas after those fixes. This ticket reopens only if a post-xla.3 median-of-3 warm bench on the Atlas corpus still puts spec.check over 10,000ms, and the founding ADR's re-entry clause is the only door. If the numbers come back merely over budget rather than far over, the first argument is a budget change, not a cache. Still blocked by ancora-xla.3 so the dependency is visible. Revisit date set to 2026-10-01 as a reminder, not a commitment.",
+      "timestamp": "2026-09-03T17:15:04Z"
+    }
+  ],
   "priority": 2,
   "status": "open",
   "title": "On-disk OID cache for gate performance (Atlas re-entry)",
   "type": "task",
-  "updated_at": "2026-09-03T16:27:12Z"
+  "updated_at": "2026-09-03T17:15:04Z"
 }
