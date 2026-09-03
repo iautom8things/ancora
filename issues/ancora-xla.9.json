@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T16:13:29Z",
+  "description": "Advances: ancora.derive\\n\\nSeverity: Medium (calibrated). Consolidated findings F9, F13, F17 — the three tracked items that are genuine decisions rather than fixes. Each needs a call before any code moves, which is why none of them could land on the ship branch.\\n\\nF9 — THE ETS MEMO IS DEAD CODE AND THE SPEC SAYS OTHERWISE. Six of nine reviewers found this independently, chasing four different symptoms; it was the single most-agreed finding in the review. RunContext creates a public ETS table on every gate run and deletes it without a single write. memo_put/4, memo_get/2 and the kind-rank arbitration table have ZERO callers in lib/ — the only callers are six assertions in test/ancora/git_test.exs. Gate.def_indexes/2 and Derive.resolve_file/4 never receive the RunContext, so they could not consult it even if they wanted to. Meanwhile requirement ancora.derive.memo_is_run_scoped states that parsed ASTs, DefIndex results and resolver results are memoized there. Roughly 60 lines make every reader believe caching exists.\\nThe decision: DELETE or IMPLEMENT. Deleting requires narrowing a must in memo_is_run_scoped, which trips append/must_downgraded and needs its own ADR. Implementing requires a bench run first — and note the performance work measured 122 of 247 Code.string_to_quoted calls in a real run as re-parses of a file an earlier stage already parsed, so a working memo has real value. Sequence this with the per-binding rework child, which shares the call path. The batch-port half of the same struct is live and spec-earned; only the memo half is dead.\\n\\nF13 — spec-exceptions is a fifth spec block type that is parsed, schema-validated, counted, and returned on the semver-stable parse_file/2 map, while NO requirement mentions it and nothing ever reads it. Removing the key from a published return map is a compatibility break; naming it in the grammar means giving Ancora.Verifier something to do with its covers field. Either direction is a release-scoped decision.\\n\\nF17 — Ancora.Review extracts bindings with a REGEX while the AST resolver sits one module away. Swapping the extractor changes which bindings appear on watched-interface cards, so the correct contract has to be written into ancora.review first (see the artifact-size sibling ticket), and only then does this become a testable change against it.",
+  "id": "ancora-xla.9",
+  "labels": [],
+  "parent": "ancora-xla",
+  "priority": 2,
+  "status": "open",
+  "title": "Decide the ETS memo, spec-exceptions, and the review binding extractor",
+  "type": "task",
+  "updated_at": "2026-09-03T16:13:29Z"
+}
