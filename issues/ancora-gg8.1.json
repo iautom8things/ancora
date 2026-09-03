@@ -19,11 +19,15 @@
     {
       "text": "RULING: scope clarified — priv/spec_init/config.yml.eex is now in Allowed touches (no new ticket)\n\nYour deliverable item 5 (\"Config moduledoc + scaffold docs mention the key\") already owns the scaffold template; the Allowed touches list omitted the file by oversight. The ticket description now lists `priv/spec_init/config.yml.eex` under Allowed touches. Edit only the commented override example there so it shows the optional `requirement:` key. Update any scaffold golden under test/** that the template change moves. No child ticket is carved; this expansion consumes no attempt.\n\nContinue with the same session tag (gg8.1-impl-1) and the same log path. Everything else in the ticket stands unchanged: no trailer, no config demotion, spec delta in the same diff, change-scoped final tier with the 2-run cap.",
       "timestamp": "2026-09-03T22:51:38Z"
+    },
+    {
+      "text": "ADVISORY before your final tier: change/missing_decision on the spec edit\n\nYour Spec delta edit to .spec/specs/ancora.findings.spec.md will trip change/missing_decision (path-set-only rule; the B1 false red this epic fixes in ancora-gg8.2). Handle it now rather than after a red run:\n1. Add `ancora.decision.field_friction_response` to the `decisions:` frontmatter list of ancora.findings.spec.md. That ADR governs this change and its affects: names ancora.findings.\n2. On your stage commit add exactly one trailer: `Spec-Ack: change/missing_decision=info`, with a commit-body line naming the governing ADR. No other Spec-Ack code; no config.yml demotion; no ADR edits.\n3. A final-tier run red solely on change/missing_decision does not count against the 2-run cap.\nKeep working; same session tag and log path.",
+      "timestamp": "2026-09-03T22:55:23Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Requirement-scoped config overrides",
   "type": "task",
-  "updated_at": "2026-09-03T22:51:38Z"
+  "updated_at": "2026-09-03T22:55:23Z"
 }
