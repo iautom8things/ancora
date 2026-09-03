@@ -11,7 +11,7 @@
   "id": "ancora-xla.2",
   "labels": [
     "critical",
-    "phase:implementing"
+    "phase:verifying"
   ],
   "parent": "ancora-xla",
   "comments": [
@@ -40,5 +40,5 @@
   "status": "in_progress",
   "title": "Route environment failures to the env tier instead of raising",
   "type": "task",
-  "updated_at": "2026-09-03T19:16:42Z"
+  "updated_at": "2026-09-03T19:17:59Z"
 }
