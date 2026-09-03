@@ -19,7 +19,7 @@ Modules: `Ancora.Output`, `Ancora.Output.Verdict`, `Ancora.Prime`,
 ```yaml spec-meta
 id: ancora.tasks
 kind: module
-status: draft
+status: active
 summary: The eight spec.* tasks, single-writer stdout, verdict grammar, and per-emission-path output contract.
 decisions:
   - ancora.decision.no_execution_no_state
@@ -59,12 +59,14 @@ decisions:
 - id: ancora.tasks.gated_emission_paths
   statement: >-
     Every gate task shall run inside `Ancora.Output.gated/2`, which
-    classifies the outcome as `:ok`, `:usage`, `:env`, or `:internal`. The
-    first three shall emit the verdict; `:internal` shall re-raise with no
-    verdict line and a non-zero exit. Report tasks (`prime`, `next`,
-    `status`, `review`, `init`, `decision.new`) shall route their error paths
-    through `gated/2` too, printing the message and exiting 1 without a
-    verdict line.
+    classifies the outcome as `:ok`, `:usage`, `:env`, or `:internal`.
+    The wrapped function returns `{:ok, report}`, `{:usage, message}`,
+    `{:env, message}`, or `{:internal, exception}`; any raised exception
+    is classified `:internal`. The first three shall emit the verdict;
+    `:internal` shall re-raise with no verdict line and a non-zero exit.
+    Report tasks (`prime`, `next`, `status`, `review`, `init`,
+    `decision.new`) shall route their error paths through `gated/2` too,
+    printing the message and exiting 1 without a verdict line.
   priority: must
   stability: stable
 - id: ancora.tasks.no_result_leak
@@ -149,14 +151,17 @@ decisions:
     derived=<N> generated=<P>+<D> tests=<F> unresolved=<U>` where `<P>` counts
     project-macro-generated and `<D>` dep-generated bindings, with an
     `acknowledged` label on subjects carrying an `overrides:` entry. `thin`
-    shall be the constant 3, documented as non-configurable.
+    shall be the constant 3, documented as non-configurable. Corpus findings
+    shall not make this report task fail; environment and usage errors shall
+    still exit 1 through `Ancora.Output.gated/2` without a verdict line.
   priority: must
   stability: evolving
 - id: ancora.tasks.prime_loop
   statement: >-
     `mix spec.prime --base HEAD` shall print a header, the status body, the
     next body, and loop bullets ending with the check command and the
-    read-protocol sentence, and shall be the documented session-start idiom.
+    exact `Ancora.Output.read_protocol/0` sentence, and shall be the documented
+    session-start idiom.
   priority: must
   stability: evolving
 - id: ancora.tasks.mix_bootstrap_posture
@@ -164,7 +169,8 @@ decisions:
     Every task shall require `deps.loadpaths` and shall never trigger
     compilation of the target project. The task moduledocs shall state that a
     cold checkout's first run may print dependency compilation lines before
-    ancora output.
+    ancora output. `spec.check` and `spec.validate` establish this posture for
+    the gate tasks without loading the target's Mix project.
   priority: must
   stability: stable
 - id: ancora.tasks.exit_codes

@@ -19,7 +19,7 @@ Modules: `Ancora.Gate`, `Ancora.Gate.Preflight`, `Ancora.AppendOnly`,
 ```yaml spec-meta
 id: ancora.gate
 kind: workflow
-status: draft
+status: active
 summary: spec.check orchestration, hard-fail preflight, diff scoping, acknowledgment clearing, and the two append-only guards.
 decisions:
   - ancora.decision.no_execution_no_state
@@ -37,7 +37,13 @@ decisions:
     verdict `result=fail tier=env` and a message naming the remedy. These
     conditions shall never be emitted as findings and shall not be
     configurable off. No preflight check shall inspect `_build` or any
-    `.app` file.
+    `.app` file. Preflight shall load `.spec/config.yml` once and thread the
+    resulting config through project identity and gate assembly. The config
+    `lib_paths:` key shall override project identity only when present in
+    `.spec/config.yml`; literal `elixirc_paths:` shall be honored otherwise.
+    In `--json` mode, a preflight environment failure shall be returned as a
+    JSON report with an empty `all_findings` list and the error message before
+    the failing environment-tier verdict.
   priority: must
   stability: stable
 - id: ancora.gate.default_base_no_fallback
@@ -81,13 +87,13 @@ decisions:
   stability: stable
 - id: ancora.gate.two_append_guards
   statement: >-
-    The gate shall enforce exactly two append-only guards:
-    `append/requirement_deleted` when a requirement id present at base is
-    absent on HEAD, and `append/must_downgraded` when a requirement's
-    priority moves from `must` to `should`. Either is authorized, and the
-    finding suppressed, only by an ADR with `status: accepted` whose
-    `affects:` names the requirement id or its subject id. No other
-    spec-weakening shall be guarded.
+    The gate shall enforce exactly two append-only guards, implemented
+    by Ancora.AppendOnly: `append/requirement_deleted` when a requirement
+    id present at base is absent on HEAD, and `append/must_downgraded`
+    when a requirement's priority moves from `must` to `should`. Either
+    is authorized, and the finding suppressed, only by an ADR with
+    `status: accepted` whose `affects:` names the requirement id or its
+    subject id. No other spec-weakening shall be guarded.
   priority: must
   stability: stable
 - id: ancora.gate.unanchored_subject
@@ -169,6 +175,17 @@ decisions:
   then:
     - the verdict is `result=fail tier=env`
     - no finding line is printed
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.json_target_read_failure
+  given:
+    - a target whose `mix.exs` has a non-literal `app:` value
+  when:
+    - `mix spec.check --json` runs
+  then:
+    - stdout contains one JSON report followed by the environment-tier verdict
+    - the report has an empty `all_findings` list and names the target-read error
+    - no plain error message appears on stdout
   covers:
     - ancora.gate.preflight_hard_fails
 - id: ancora.gate.scenario.drift_cleared_by_spec_edit

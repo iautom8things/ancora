@@ -29,7 +29,5 @@ every file is authored.
 
 ## Status
 
-Every subject is `status: draft` until its tagged tests land (stage L13 of
-the build epic). Until `mix spec.check` exists in this repo, structural
-validation runs from the specled_ex checkout:
-`mix spec.validate --root /Users/mz/src/ancora`.
+All seven subjects are active and anchored by tagged tests. CI runs the
+dogfood corpus through `mix spec.check` as a smoke check.

@@ -1,0 +1,96 @@
+NOTICE
+======
+
+This file records the origin of modules ported into ancora.
+
+Ported-module origins are appended at each port stage.
+
+Upstream
+--------
+
+Portions of this project are derived from spec_led_ex,
+Copyright (c) Mike Hostetler, MIT licensed.
+See LICENSE for the full license text.
+
+Ported modules
+--------------
+
+- Ancora.Severity — from specled_ex SpecLedEx.BranchCheck.Severity
+  (one severities map; accept_drift source atom dropped; severity_source
+  is :config | :trailer | :default)
+- Ancora.Trailer — from specled_ex SpecLedEx.BranchCheck.Trailer
+  (Spec-Ack: grammar; presets removed; downgrade-only info|warning)
+- Ancora.Config — from specled_ex SpecLedEx.Config
+  (schema rewritten: default_base, test_paths, lib_paths, severities,
+  overrides; no prose/test_tags/realization/guardrails)
+- Ancora.ModalClass — from specled_ex SpecLedEx.ModalClass
+  (ported for the append/must_downgraded guard)
+- Ancora.Finding — new registry; SpecLedEx.FindingMessage folded in
+- Ancora.Parser — from specled_ex SpecLedEx.Parser
+  (block grammar unchanged)
+- Ancora.Schema.* — from specled_ex SpecLedEx.Schema.*
+  (realized_by schema dropped; Verification.kind accept-and-warn)
+- Ancora.Index — from specled_ex SpecLedEx.Index
+  (no realization inputs, no tag scan)
+- Ancora.DecisionParser — from specled_ex SpecLedEx.DecisionParser
+  (change_type/supersedes/replaces/reverses_what parsed-and-ignored)
+- Ancora.DecisionParser.Affects — from specled_ex SpecLedEx.DecisionParser.CrossField
+  (affects_empty and affects_unresolved only)
+- Ancora.AppendOnly — from specled_ex SpecLedEx.AppendOnly
+  (two guards only: append/requirement_deleted, append/must_downgraded;
+  authorization is an accepted ADR whose affects: names the requirement
+  or its subject; no change_type, no weakening-class enum)
+- Ancora.Overlap — from specled_ex SpecLedEx.Overlap
+  (duplicate_covers is identical verification covers lists; must_stem
+  collision stays within-subject)
+- Ancora.PolicyFiles — from specled_ex SpecLedEx.PolicyFiles
+  (governance set: .spec/specs/**, .spec/config.yml, .spec/AGENTS.md,
+  .spec/README.md; change/missing_decision fires when a governance
+  file changes with no .spec/decisions/ ADR in the same diff)
+- Ancora.Verifier — from specled_ex SpecLedEx.Verifier
+  (structural keeper: spec/unknown_reference, spec/duplicate_id,
+  spec/invalid_id, spec/missing_field, spec/requirement_unverified;
+  command machinery dropped)
+- Ancora.TagScanner — from specled_ex SpecLedEx.TagScanner
+  (for-comprehension walk kept; fold_to_subjects lifts requirement
+  ids to subject ids)
+- Ancora.TagFindings — from specled_ex SpecLedEx.TagFindings
+  (codes renamed tags/*; tags always on, no enforcement toggle)
+- Ancora.ChangeAnalysis — from specled_ex SpecLedEx.ChangeAnalysis
+  (reduced to diff-scoped uncovered-file, missing-decision, and new-tag
+  findings)
+- Ancora.Gate, Ancora.Gate.Preflight — from specled_ex
+  SpecLedEx.BranchCheck (rewritten around hard-fail preflight, source-derived
+  bindings, and a closed finding registry)
+- Ancora.Json — from specled_ex SpecLedEx.Json
+  (reduced to report encoding; repository state reads and writes dropped)
+
+- Ancora.TaskArgs — from specled_ex SpecLedEx.TaskArgs
+- Ancora.TempName — from specled_ex SpecLedEx.TempName
+- Ancora.Output, Ancora.Output.Verdict — new (single-emitter stdout + verdict grammar)
+- Ancora.Git — from specled_ex SpecLedEx.Evidence.Git
+  (subprocess runner, ls-tree -z listing,
+  cat-file --batch framing).
+- Ancora.BaseView — from specled_ex SpecLedEx.BaseView
+  (ls-tree + batched blob materialization).
+- Ancora.Canonical — from the metadata-strip portion of specled_ex
+  SpecLedEx.Realization.Canonical
+  (hashing, attribute sorting, and alpha-renaming dropped).
+- Ancora.Init — from specled_ex Mix.Tasks.Spec.Init
+  (template rendering extracted from the Mix task; interactive prompting
+  dropped)
+- Ancora.Next, Ancora.Prime, Ancora.Status — from specled_ex SpecLedEx.Next,
+  SpecLedEx.Prime, and SpecLedEx.Status (rewritten for source-derived reports)
+- Ancora.Review, Ancora.Review.Html, Ancora.Review.FileDiff,
+  Ancora.Review.SpecDiff, and Ancora.Review.FindingsDelta — from specled_ex
+  SpecLedEx.Review and SpecLedEx.Review.* (coverage,
+  evidence-store, and realized_by views dropped; derived-set grouping added).
+- Mix.Tasks.Spec.Check, Mix.Tasks.Spec.Decision.New, Mix.Tasks.Spec.Init,
+  Mix.Tasks.Spec.Next, Mix.Tasks.Spec.Prime, Mix.Tasks.Spec.Review,
+  Mix.Tasks.Spec.Status, and Mix.Tasks.Spec.Validate — from the corresponding
+  specled_ex Mix tasks (adapted to Ancora's arguments and output protocol)
+
+PrismJS 1.29.0
+  Copyright (c) 2012 Lea Verou, MIT licensed. Vendored for syntax
+  highlighting with elixir, erlang, diff, yaml, markdown, json, html,
+  css, and javascript grammars only. https://prismjs.com/

@@ -22,7 +22,7 @@ spec_led_ex modules of the same role.
 ```yaml spec-meta
 id: ancora.parsing
 kind: module
-status: draft
+status: active
 summary: "Spec and ADR block grammar, retired-construct tolerance, structural reference checks, and @tag spec: discovery."
 decisions:
   - ancora.decision.no_execution_no_state
@@ -53,7 +53,7 @@ decisions:
   stability: stable
 - id: ancora.parsing.structural_references
   statement: >-
-    The structural verifier shall emit `spec/unknown_reference` for a scenario
+    Ancora.Verifier shall emit `spec/unknown_reference` for a scenario
     `covers:` entry, a verification `covers:` entry, or a spec-meta
     `decisions:` entry that names an id not present in the corpus;
     `spec/duplicate_id` for any subject, requirement, scenario, or decision id
@@ -105,8 +105,9 @@ decisions:
   statement: >-
     `Ancora.Parser.parse_file/2` and `Ancora.DecisionParser.parse_file/2`
     shall be the only semver-stable public functions: both exported,
-    documented as stable in the README, and their return shapes unchanged
-    within a major version. Every other module is internal.
+    documented as stable in their moduledocs and in the README, and their
+    return shapes unchanged within a major version. Every other module is
+    internal.
   priority: must
   stability: stable
 - id: ancora.parsing.consumer_corpora_parse

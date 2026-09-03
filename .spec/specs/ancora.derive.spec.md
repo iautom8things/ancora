@@ -24,7 +24,7 @@ Modules: `Ancora.Derive`, `Ancora.Derive.ChangeSet`, `Ancora.ProjectInfo`,
 ```yaml spec-meta
 id: ancora.derive
 kind: module
-status: draft
+status: active
 summary: Source-derived, diff-symmetric detection of what tagged tests call and whether those definitions changed.
 decisions:
   - ancora.decision.source_derived_membership
@@ -38,18 +38,22 @@ decisions:
 - id: ancora.derive.change_set_union
   statement: >-
     The change set shall be the union of `git diff --name-status --no-renames
-    <base>` and `git status --porcelain --untracked-files=all`. A file inside
-    a new untracked directory shall appear individually; a `git mv` followed
-    by an edit shall appear as a delete plus an add with both paths
-    prefetched.
+    <base>` and `git status --porcelain --untracked-files=all`, as computed
+    by Ancora.Derive.ChangeSet. A file inside a new untracked directory shall
+    appear individually; a `git mv` followed by an edit shall appear as a
+    delete plus an add with both paths prefetched.
   priority: must
   stability: stable
 - id: ancora.derive.base_reads_batched
   statement: >-
     Every base-side blob read shall go through one `git cat-file --batch`
     port per run, owned by the run context and never registered under a name.
-    All base blobs a run can need shall be prefetched serially through that
-    port before any parallel work begins. The port shall be spawned without
+    Ancora.Git.BatchPort holds that port; Ancora.Git.read_blob/2 is the
+    single function head for every base-side blob read, including
+    Ancora.BaseView, falling back to per-file `git show` when no port is
+    present. Callers shall not open an ephemeral batch port. All base blobs
+    a run can need shall be prefetched serially through that port before any
+    parallel work begins. The port shall be spawned without
     `stderr_to_stdout` so git stderr can never interleave with blob payloads.
   priority: must
   stability: stable
@@ -57,19 +61,22 @@ decisions:
   statement: >-
     Per-run memoization (parsed ASTs, DefIndex results, resolver results,
     the module-to-file map, the ambient table) shall live in an ETS table
-    created per run and passed by reference in the run context, never a named
-    table, and shall not persist to disk.
+    created per run and passed by reference in Ancora.Derive.RunContext, never
+    a named table, and shall not persist to disk. Stored values shall prefer
+    DefIndex and resolver results over raw ASTs.
   priority: must
   stability: stable
 - id: ancora.derive.project_info_from_root
   statement: >-
     Ancora.ProjectInfo shall be resolved once in preflight from the target
     root alone: `app:` and `elixirc_paths:` read as literals from the root
-    `mix.exs` via `Code.string_to_quoted`. A dynamic `elixirc_paths` shall
-    degrade to `["lib"]`, overridable by the `lib_paths:` config key; an
-    `apps_path:` key shall hard-fail as an umbrella root; a non-literal `app:`
-    shall hard-fail with a message. No module downstream of preflight shall
-    read `Mix.Project` state.
+    `mix.exs` via `Code.string_to_quoted`. When `project/0` has leading
+    expressions, its last expression shall be read as the return value and
+    must be a literal keyword list. A dynamic `elixirc_paths` shall degrade
+    to `["lib"]`, overridable by the `lib_paths:` config key; an `apps_path:`
+    key shall hard-fail as an umbrella root; a non-literal `app:` shall
+    hard-fail with a message. No module downstream of preflight shall read
+    `Mix.Project` state.
   priority: must
   stability: stable
 - id: ancora.derive.membership_source_derived
@@ -252,6 +259,7 @@ decisions:
     - the frame parser consumes it
   then:
     - three payloads are returned with the correct sizes and oids
+    - framing is `<oid> <type> <size>\n<payload>\n`
   covers:
     - ancora.derive.base_reads_batched
 - id: ancora.derive.scenario.two_concurrent_runs_do_not_collide
@@ -261,7 +269,7 @@ decisions:
     - both complete
   then:
     - neither run observes the other's memo entries
-    - no named ETS table or registered port exists afterward
+    - each run's memo table is unnamed and its batch port is unregistered
   covers:
     - ancora.derive.memo_is_run_scoped
 - id: ancora.derive.scenario.dynamic_elixirc_paths_degrade
@@ -272,6 +280,16 @@ decisions:
     - ProjectInfo is resolved
   then:
     - `lib_paths` is `["lib"]`
+  covers:
+    - ancora.derive.project_info_from_root
+- id: ancora.derive.scenario.leading_project_expression
+  given:
+    - "a target `project/0` that calls a setup function before returning a literal keyword list"
+  when:
+    - ProjectInfo is resolved
+  then:
+    - the literal `app:` is read from the final list expression
+    - the setup function is never evaluated
   covers:
     - ancora.derive.project_info_from_root
 - id: ancora.derive.scenario.umbrella_root_hard_fails

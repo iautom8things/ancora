@@ -38,6 +38,9 @@ names all three as charter constraints.
 - Warnings fail `spec.check`. A warning that cannot block is a report line,
   not a finding; repos that want softness set codes to `info` in the repo
   where review can see it.
+- In `--json` mode, a preflight environment failure is a report with an empty
+  `all_findings` list and the error message. The environment-tier verdict
+  remains last, and no plain error line is written to stdout.
 - `Ancora.Output` is the only stdout writer and `Output.Verdict.emit/2` the
   only `result=` producer; every gate path funnels through `gated/2`. The
   one verdict-less exit is an internal exception, and that absence is

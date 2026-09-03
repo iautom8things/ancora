@@ -47,6 +47,10 @@ The registry has 30 codes. The planning documents said 26; the enumerated
 table after cutting `spec/prose_too_short` is 30. Adding a code is a change
 to `ancora.findings` in this corpus.
 
+The L13 dogfood activation rechecked this decision against
+`Ancora.Finding`: the registry still has 30 codes, and the list above remains
+the verbatim record of what the gate no longer guards.
+
 ## Consequences
 
 Positive: the guard set fits in one moduledoc, consumer corpora migrate

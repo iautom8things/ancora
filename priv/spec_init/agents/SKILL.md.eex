@@ -1,0 +1,70 @@
+---
+name: spec-led-development
+description: Maintain this repository's ancora specs, decisions, and test anchors.
+---
+
+# Spec-led development
+
+Read only the subjects named by `mix spec.next` or the task's `Advances:` field.
+Treat `must` requirements as contracts and scenarios as behavior to cover with
+tagged tests.
+
+## Finding triage
+
+| Family | Code | Default |
+|---|---|---|
+| derived | `derived/drift` | error |
+| derived | `derived/growth` | warning |
+| derived | `derived/shrink` | warning |
+| derived | `derived/unresolved_calls` | info |
+| derived | `derived/unparseable_source` | error |
+| derived | `derived/unanchored_subject` | warning |
+| change | `change/uncovered_file` | warning |
+| change | `change/missing_decision` | warning |
+| tags | `tags/new_requirement_untagged` | warning |
+| tags | `tags/parse_error` | error |
+| tags | `tags/dynamic_value` | info |
+| tags | `tags/requirement_untagged` | info |
+| tags | `tags/unknown_requirement` | warning |
+| append | `append/requirement_deleted` | error |
+| append | `append/must_downgraded` | error |
+| format | `format/retired_construct` | warning |
+| spec | `spec/parse_error` | error |
+| spec | `spec/duplicate_id` | error |
+| spec | `spec/invalid_id` | error |
+| spec | `spec/missing_field` | error |
+| spec | `spec/unknown_reference` | error |
+| spec | `spec/requirement_unverified` | info |
+| adr | `adr/parse_error` | error |
+| adr | `adr/missing_section` | error |
+| adr | `adr/affects_empty` | warning |
+| adr | `adr/affects_unresolved` | error |
+| overlap | `overlap/duplicate_covers` | error |
+| overlap | `overlap/must_stem_collision` | error |
+| config | `config/unknown_key` | warning |
+| config | `config/invalid_value` | warning |
+
+Edit the affected subject's requirement or scenario when drift, growth, or
+shrink reflects an intentional contract change. Restore the code or test when
+it does not.
+
+For a mass mechanical edit that does not change the contract, add a commit
+trailer in this form:
+
+```text
+Spec-Ack: <code>=<info|warning>
+```
+
+The trailer only lowers severity. Reviewers should be able to tell why the
+edit is mechanical from the diff and commit message.
+
+Use a subject-specific override only when a standing repository constraint
+cannot be expressed through a tagged test. Every override requires a reason.
+
+```yaml
+overrides:
+  - subject: project.core
+    code: derived/unanchored_subject
+    severity: info
+    reason: Covered by an external integration suite.
+```

@@ -21,7 +21,7 @@ Modules: `Ancora.Finding`, `Ancora.Severity`, `Ancora.Trailer`,
 ```yaml spec-meta
 id: ancora.findings
 kind: module
-status: draft
+status: active
 summary: Closed 30-code finding registry, severity precedence, Spec-Ack trailer grammar, and config.yml schema with per-subject overrides.
 decisions:
   - ancora.decision.slimmed_governance
@@ -88,7 +88,9 @@ decisions:
   statement: >-
     Findings at `info` shall be printed only when `--verbose` is passed or
     `ANCORA_SHOW_INFO=1` is set, and shall never affect exit status. The
-    branch summary shall report the hidden count.
+    branch summary shall report the hidden count. A preflight environment
+    failure represented as JSON shall keep `all_findings` empty rather than
+    fabricate a finding for the target-read error.
   priority: must
   stability: stable
 - id: ancora.findings.trailer_grammar

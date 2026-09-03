@@ -1,40 +1,27 @@
-# `.spec` Agent Guide
-
-This is the ancora repository. The product is not built yet; the epic that
-builds it lives in this repo's beadwork (`bw prime`). The subjects under
-`specs/` are the contract each stage implements.
+# Ancora agent guide
 
 ## First read
 
-1. Read only the subjects named in your ticket's `Advances:` field. Do not
-   read the whole corpus.
-2. Read the ADRs under `decisions/` that those subjects list in
-   `spec-meta.decisions`.
-3. Read the stage spec your ticket links (05a/05b in the plan run dir) for
-   touch sets and tests notes.
+Read only the subjects named by `mix spec.next` or the task's `Advances:`
+field. Never read the whole corpus. Read any decisions listed by those
+subjects, then work from their `must` requirements and scenarios.
 
-## Working rules
+## Read the result
 
-- Requirements are behavioral and falsifiable. Do not weaken a requirement
-  to make code pass; if a requirement is wrong, change it and say why in the
-  PR, clause by clause.
-- Every subject's verification is `tagged_tests` only. Tag tests with
-  `@tag spec: "<requirement id>"`. There is no `execute:` flag and no
-  `realized_by:` block in this format.
-- There is no generated state. Do not add `state.json`, hash baselines, or
-  any `--output` flag to a gate task.
-- Drift, growth, and shrink clear with a substantive edit to the subject's
-  requirement or scenario blocks in the same diff. A `Spec-Ack:` trailer can
-  downgrade a code to info or warning for mass mechanical edits; it cannot
-  silence one.
-- Until stage L9 lands there is no `mix spec.check` in this repo. Validate
-  structure from the specled_ex checkout:
-  `mix spec.validate --root /Users/mz/src/ancora`. From L13 on, run
-  `mix spec.prime --base HEAD` at session start and `mix spec.next` after
-  changes; the CI self-gate is `mix spec.check --base origin/main`.
+The verdict is the last stdout line: `spec.check result=…`. A non-zero exit with no verdict line means the run crashed before the gate finished — treat it as failure.
 
-## Read protocol
+## There is no generated state
 
-The verdict is the last stdout line: `spec.check result=…`. A non-zero exit
-with no verdict line means the run crashed before the gate finished — treat
-it as failure.
+The `.spec/` directory contains authored specs, decisions, configuration, and
+agent guidance. Ancora derives test-to-code bindings on each run and writes no
+generated gate input.
+
+## Working loop
+
+Start a session with `mix spec.prime --base HEAD`. Use `--base HEAD` on day one
+and in repositories that do not have a remote. Once the repository has a
+remote, set `default_base` in `.spec/config.yml` and use that branch in CI.
+
+A fresh scaffold's first `mix spec.check --base HEAD` is expected to fail with
+`derived/unanchored_subject`. Add `@tag spec: "<requirement-id>"` to tests that
+call the subject's production code, then run the check again.

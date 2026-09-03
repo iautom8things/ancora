@@ -16,7 +16,7 @@ expected and how to clear it.
 ```yaml spec-meta
 id: ancora.scaffold
 kind: module
-status: draft
+status: active
 summary: spec.init and spec.decision.new scaffolds, template content, ancora README commitments, and the migration checklist.
 decisions:
   - ancora.decision.no_execution_no_state
@@ -74,9 +74,10 @@ decisions:
 - id: ancora.scaffold.fresh_adopter_round_trip
   statement: >-
     Running `mix spec.init` in a tmp git repo and then `mix spec.check --base
-    HEAD` in-process shall yield `derived/unanchored_subject` for the seed
-    subject and verdict `result=fail tier=branch`; tagging one test for the
-    seed subject and re-running shall yield `result=pass`.
+    HEAD` through the real Mix task subprocess shall yield
+    `derived/unanchored_subject` for the seed subject and verdict `result=fail
+    tier=branch`; tagging one test for the seed subject, committing the
+    scaffold and anchor, and re-running shall yield `result=pass`.
   priority: must
   stability: stable
 - id: ancora.scaffold.decision_new
@@ -175,7 +176,9 @@ decisions:
   given:
     - a tmp git repo scaffolded by `mix spec.init`
   when:
-    - `mix spec.check --base HEAD` runs, then one test is tagged for the seed subject and the check runs again
+    - the real `mix spec.check --base HEAD` task runs as a subprocess
+    - one test is tagged for the seed subject and the scaffold and anchor are committed
+    - the real check runs again as a subprocess
   then:
     - the first run reports `derived/unanchored_subject` and `result=fail tier=branch`
     - the second run reports `result=pass`
