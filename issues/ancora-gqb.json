@@ -11,9 +11,15 @@
     "critical"
   ],
   "parent": "ancora-xla",
+  "comments": [
+    {
+      "text": "RULING (Manuel, 2026-09-03): F17 from ancora-xla.9 moves into this ticket. Write the new artifact-size must and the watched-card contract line first, then swap Ancora.Review's regex binding extractor for the AST resolver in the same diff, so the swap is tested against the contract you just wrote. Guard: before the swap lands, diff the watched-card output for the existing fixtures against the regex version and account for every difference in the IMPLEMENTED comment; the AST version must not silently drop bindings the regex found. Allowed touches now include lib/ancora/review.ex for the extractor and read access to lib/ancora/derive/resolver.ex (call it, do not edit it). The 'no regex-to-AST extractor swap here' line in Out of Scope (intent) is withdrawn. This ticket no longer blocks ancora-xla.9.",
+      "timestamp": "2026-09-03T17:07:48Z"
+    }
+  ],
   "priority": 2,
   "status": "open",
   "title": "Re-base the review artifact size finding on a contract line that still exists",
   "type": "task",
-  "updated_at": "2026-09-03T16:27:12Z"
+  "updated_at": "2026-09-03T17:07:48Z"
 }
