@@ -9,7 +9,7 @@
   "id": "ancora-xla.4",
   "labels": [
     "critical",
-    "phase:verifying"
+    "phase:merging"
   ],
   "parent": "ancora-xla",
   "comments": [
@@ -42,5 +42,5 @@
   "status": "in_progress",
   "title": "Fix the review artifact rendering defects",
   "type": "task",
-  "updated_at": "2026-09-03T19:13:50Z"
+  "updated_at": "2026-09-03T19:13:57Z"
 }
