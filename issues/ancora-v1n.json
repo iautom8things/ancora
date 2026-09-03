@@ -18,11 +18,15 @@
     {
       "text": "RULING (Manuel, 2026-09-03): Option A. Append-only authorization requires the requirement id in the ADR's affects: list. Subject scope still resolves affects and still satisfies adr/affects checks, but deleting or downgrading requirement X needs X named. Existing ADRs in this repo that rely on subject scope get their requirement ids enumerated in the same diff. Ship with a migration note for Engage and Builder and consider a one-release soft landing on the severity. Record the rule in a new ADR. Coordinate with ancora-n24: a subject id inside retires: covers every requirement under it.",
       "timestamp": "2026-09-03T16:35:04Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: v1n-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-v1n/codex-v1n-i1-adec463e/log\n\nCommit: 7b81b2ab69a4fadbcd56d409ca0c047e58b9e6c6\nFiles touched: lib/ancora/append_only.ex; test/ancora/append_only_test.exs; test/ancora/scaffold/templates_test.exs; .spec/specs/ancora.parsing.spec.md; .spec/decisions/README.md; .spec/decisions/ancora.decision.requirement_scoped_append_authorization.md; five existing ADR files; priv/spec_init/decisions/README.md.eex; docs/migration.md\nTests added: Ancora.AppendOnlyTest \"accepted ADR whose affects names only the subject does not authorize deletion\"; Ancora.AppendOnlyTest \"accepted ADR whose affects names only the subject does not authorize must downgrade\"; Ancora.Scaffold.TemplatesTest \"decision guidance requires exact requirement ids for append authorization\"\nSpec acknowledgment: .spec/specs/ancora.parsing.spec.md edited in-diff with a new must and two scenarios; no Spec-Ack trailer used\nVerification tier: change-scoped — mix compile --warnings-as-errors; mix test test/ancora/append_only_test.exs test/ancora/decision_parser_test.exs test/ancora/scaffold/templates_test.exs; mix test --stale; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base 7511407; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: AppendOnly now accepts authorization only from an accepted ADR that names the exact requirement id, with deletion and downgrade coverage for subject-only and requirement-specific affects. The parsing must, scenarios, new ADR, existing ADR affects lists, scaffold guidance, and Engage/Builder migration note record the contract change in the same diff. I checked every epic lesson against the final diff; no repeated per-call machinery or before-and-after claim was introduced, and I re-read the latest ticket state before acting and before committing.",
+      "timestamp": "2026-09-03T18:33:36Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Subject-scoped ADR affects grants blanket append-only authorization",
   "type": "task",
-  "updated_at": "2026-09-03T18:24:33Z"
+  "updated_at": "2026-09-03T18:33:36Z"
 }
