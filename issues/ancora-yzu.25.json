@@ -23,11 +23,15 @@
     {
       "text": "BLOCKED (worker yzu25-impl-1, relayed) → DISPOSITION 1 → attempt 2. Attempt 1 did most of the substance: 258 paths staged uncommitted — all-envs runtime dep swap, SpecDoc retargeted to Ancora.Parser.parse_file/2 + Ancora.DecisionParser.parse_file/2 (README stable-API match confirmed, 26-test suite green), 1142 execute + 127 realized_by stripped, v1 config draft (catch-22 shape (a) staged), guides/rules/make/compose done, four subjects pruned pending ADR (cli, multi.kb, slack.interaction_intents, spec.system), requirement_unverified=1428@info, 1 override (csharp.parser.ast_walker). Hard stop on ONE unpriced class: tags/unknown_requirement — 53 warnings from specled-era test tags naming scenario/verification ids where ancora requires requirement ids; spec.check fails on warnings; files outside the SpecDoc test scope. DISPOSITION (canary per-instance precedents scaled to a class ruling, full text /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.25/disposition.md): scope expanded to TAG-LINE-ONLY edits across test/**; each id resolved in the BASE corpus — surviving owner → retag to the requirement (one per tag line), no surviving owner → drop with per-drop ADR history, anything needing judgment → stop and list; growth/shrink consequences ride the existing trailer authorizations. NO severity demotion — this class is the tag-integrity check working as designed on a legacy corpus; Atlas keeps it at default and fixes the corpus. Bench + ADR + sweeps + final tier remain for attempt 2 (launching in the preserved worktree). Also noted: this session's background tasks are being reaped at exactly 30-minute marks; the worker pane survives each kill and the launcher reattaches — no work has been lost.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-09-02T23:46:08Z"
+    },
+    {
+      "text": "SHIP AUTHORITY (Manuel, via question prompt): full ship flow authorized for the Atlas migration PR — stage/soak per Atlas convention, /merge-pr after healthy, /monitor-app after prod — same as Engage/Builder. Standing carve-outs: any red stops; an unknown deploy convention stops; and a bench budget miss ALWAYS routes back to Manuel (it triggers the recorded on-disk-cache re-entry decision, a scope call, not a merge decision).\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-03T00:24:49Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M9: Atlas migration PR + perf acceptance",
   "type": "task",
-  "updated_at": "2026-09-02T23:46:08Z"
+  "updated_at": "2026-09-03T00:24:49Z"
 }
