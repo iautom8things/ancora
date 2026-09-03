@@ -11,9 +11,15 @@
     "critical"
   ],
   "parent": "ancora-xla",
+  "comments": [
+    {
+      "text": "RULING (Manuel, 2026-09-03): Option A. The durable acknowledgment record is the tree: .spec/config.yml severities and per-subject overrides. The Spec-Ack trailer stays a development convenience only. spec.check must warn loudly (a named finding or a stderr diagnostic, worker's call, but it must be impossible to miss) when a resolved acknowledgment exists only in a non-tip commit trailer, so a squash cannot drop it silently. Do not read the merge commit body. Document the promotion step in docs/migration.md and README. Edit ancora.gate's acknowledgment requirements substantively to state the rule. Pairs with the ancora-11w ruling (hard env failure on a shallow range).",
+      "timestamp": "2026-09-03T16:41:00Z"
+    }
+  ],
   "priority": 2,
   "status": "open",
   "title": "Spec-Ack acknowledgments do not survive a squash merge",
   "type": "task",
-  "updated_at": "2026-09-03T16:27:13Z"
+  "updated_at": "2026-09-03T16:41:00Z"
 }
