@@ -8,7 +8,8 @@ defmodule Mix.Tasks.Spec.ValidateTest do
     create_corpus(root)
 
     for args <- [["--output", "x.json"], ["--run-commands"]] do
-      assert {stdout, 1} = System.cmd("mix", ["spec.validate", "--root", root | args])
+      assert %{stdout: stdout, status: 1} =
+               run_mix_subprocess(["spec.validate", "--root", root | args])
 
       assert List.last(String.split(stdout, "\n", trim: true)) =~
                "spec.validate result=fail tier=usage"
@@ -18,7 +19,9 @@ defmodule Mix.Tasks.Spec.ValidateTest do
   @tag spec: "ancora.tasks.finding_line_format"
   test "prints checked summary without the retired validate status line", %{root: root} do
     create_corpus(root)
-    {stdout, 0} = System.cmd("mix", ["spec.validate", "--root", root])
+
+    assert %{stdout: stdout, status: 0} =
+             run_mix_subprocess(["spec.validate", "--root", root])
 
     assert stdout =~ "checked subjects=0 requirements=0 errors=0 warnings=0"
     refute stdout =~ "validate status="
@@ -33,10 +36,13 @@ defmodule Mix.Tasks.Spec.ValidateTest do
     create_corpus(root)
     write_config(root, "test_tags: []\n")
 
-    {normal, 0} = System.cmd("mix", ["spec.validate", "--root", root])
+    assert %{stdout: normal, status: 0} =
+             run_mix_subprocess(["spec.validate", "--root", root])
+
     assert List.last(String.split(normal, "\n", trim: true)) == "spec.validate result=pass"
 
-    {strict, 1} = System.cmd("mix", ["spec.validate", "--root", root, "--strict"])
+    assert %{stdout: strict, status: 1} =
+             run_mix_subprocess(["spec.validate", "--root", root, "--strict"])
 
     assert List.last(String.split(strict, "\n", trim: true)) =~
              "spec.validate result=fail tier=validate"
@@ -57,7 +63,8 @@ defmodule Mix.Tasks.Spec.ValidateTest do
       """
     })
 
-    {stdout, 1} = System.cmd("mix", ["spec.validate", "--root", root])
+    assert %{stdout: stdout, status: 1} =
+             run_mix_subprocess(["spec.validate", "--root", root])
 
     assert stdout =~ "spec/parse_error"
 

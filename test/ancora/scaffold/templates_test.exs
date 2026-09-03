@@ -2,7 +2,7 @@ Code.require_file("../../support/ancora_case.exs", __DIR__)
 Code.require_file("../../support/retired_vocabulary.ex", __DIR__)
 
 defmodule Ancora.Scaffold.TemplatesTest do
-  use Ancora.TestCase
+  use Ancora.TestCase, async: false
 
   setup %{root: root} do
     result = Ancora.Init.scaffold(root)

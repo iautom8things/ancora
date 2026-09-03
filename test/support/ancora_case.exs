@@ -3,18 +3,18 @@ unless Code.ensure_loaded?(Ancora.TestCase) do
     @moduledoc false
     use ExUnit.CaseTemplate
 
-    using do
+    using options do
       quote do
-        use ExUnit.Case, async: true
+        use ExUnit.Case, async: Keyword.get(unquote(options), :async, true)
         import Ancora.TestCase
         import ExUnit.CaptureIO
       end
     end
 
     setup do
-      root =
-        Path.join(System.tmp_dir!(), "ancora-#{System.unique_integer([:positive])}")
+      root = Path.join(System.tmp_dir!(), "ancora-#{Ancora.TempName.cross_vm_suffix()}")
 
+      File.rm_rf!(root)
       File.mkdir_p!(root)
       on_exit(fn -> File.rm_rf(root) end)
       {:ok, root: root}
@@ -98,25 +98,40 @@ unless Code.ensure_loaded?(Ancora.TestCase) do
 
     def run_mix_subprocess(args, opts \\ []) do
       real_mix = System.find_executable("mix")
+      suffix = Ancora.TempName.cross_vm_suffix()
+      project_root = File.cwd!()
 
-      wrapper_dir =
-        Path.join(System.tmp_dir!(), "ancora-mix-#{System.unique_integer([:positive])}")
+      wrapper_dir = Path.join(System.tmp_dir!(), "ancora-mix-#{suffix}")
 
       stderr_path = Path.join(wrapper_dir, "stderr")
+      build_path = Path.join([project_root, "_build", "ancora-mix-#{suffix}"])
       wrapper = Path.join(wrapper_dir, "mix")
+      File.rm_rf!(wrapper_dir)
+      File.rm_rf!(build_path)
       File.mkdir_p!(wrapper_dir)
+      seed_build_path!(build_path)
       File.write!(wrapper, "#!/bin/sh\nexec #{real_mix} \"$@\" 2>\"$ANCORA_STDERR_FILE\"\n")
       File.chmod!(wrapper, 0o755)
 
       {stdout, status} =
         System.cmd(wrapper, args,
           cd: Keyword.get(opts, :cd, File.cwd!()),
-          env: [{"ANCORA_STDERR_FILE", stderr_path}]
+          env: [
+            {"ANCORA_STDERR_FILE", stderr_path},
+            {"MIX_BUILD_PATH", build_path},
+            {"MIX_ENV", Atom.to_string(Mix.env())},
+            {"MIX_QUIET", "1"}
+          ]
         )
 
       stderr = File.read!(stderr_path)
       File.rm_rf!(wrapper_dir)
+      File.rm_rf!(build_path)
       %{stdout: stdout, stderr: stderr, status: status}
+    end
+
+    defp seed_build_path!(build_path) do
+      File.cp_r!(Mix.Project.build_path(), build_path)
     end
 
     def output_lines(output), do: String.split(output, "\n", trim: true)

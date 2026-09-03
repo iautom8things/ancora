@@ -1,7 +1,7 @@
 Code.require_file("../support/ancora_case.exs", __DIR__)
 
 defmodule Ancora.ConfigTest do
-  use Ancora.TestCase
+  use Ancora.TestCase, async: false
 
   alias Ancora.Config
   alias Ancora.Finding

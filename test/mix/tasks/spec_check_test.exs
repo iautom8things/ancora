@@ -10,7 +10,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
   @tag spec: "ancora.tasks.exit_codes"
   test "green subprocess keeps the verdict last on stdout", %{root: root} do
     create_project(root)
-    result = run_mix(["spec.check", "--root", root, "--base", "HEAD"])
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
 
     assert result.status == 0
     assert List.last(lines(result.stdout)) == "spec.check result=pass"
@@ -22,11 +22,11 @@ defmodule Mix.Tasks.Spec.CheckTest do
   test "usage and environment failures emit their verdict last", %{root: root} do
     create_project(root)
 
-    usage = run_mix(["spec.check", "--root", root, "--no-run-commands"])
+    usage = run_mix_subprocess(["spec.check", "--root", root, "--no-run-commands"])
     assert usage.status == 1
     assert List.last(lines(usage.stdout)) =~ "result=fail tier=usage"
 
-    env = run_mix(["spec.check", "--root", root])
+    env = run_mix_subprocess(["spec.check", "--root", root])
     assert env.status == 1
     assert env.stdout =~ "git fetch origin main"
     assert List.last(lines(env.stdout)) =~ "result=fail tier=env"
@@ -43,7 +43,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
       "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
     })
 
-    result = run_mix(["spec.check", "--root", root, "--base", "HEAD"])
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
     output_lines = lines(result.stdout)
 
     assert result.status == 1
@@ -60,7 +60,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
     File.rm!(Path.join(root, ".spec/specs/.keep"))
     File.rmdir!(Path.join(root, ".spec/specs"))
 
-    result = run_mix(["spec.check", "--root", root, "--base", "HEAD"])
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
     assert result.status != 0
     refute result.stdout =~ "result="
   end
@@ -90,7 +90,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
       """
     })
 
-    result = run_mix(["spec.check", "--root", root, "--base", "HEAD", "--json"])
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--json"])
 
     assert result.status == 1
     output_lines = lines(result.stdout)
@@ -115,7 +115,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
       """
     })
 
-    result = run_mix(["spec.check", "--root", root, "--base", "HEAD", "--json"])
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--json"])
 
     assert result.status == 1
     assert [json, verdict] = lines(result.stdout)
@@ -127,7 +127,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
 
   test "subprocess capture silences Mix diagnostics without silencing direct stdout" do
     result =
-      run_mix([
+      run_mix_subprocess([
         "run",
         "-e",
         ~s|Mix.shell().info("Waiting for lock on the build directory"); IO.puts(~s({"ok":true}))|
@@ -148,7 +148,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
           ["--test-tags", "1"],
           ["--no-run-commands"]
         ] do
-      result = run_mix(["spec.check", "--root", root] ++ flag_args)
+      result = run_mix_subprocess(["spec.check", "--root", root] ++ flag_args)
       assert result.status == 1
       assert List.last(lines(result.stdout)) =~ "spec.check result=fail tier=usage"
     end
@@ -168,7 +168,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
     create_project(root)
     write_config(root, "not: [valid")
 
-    result = run_mix(["spec.check", "--root", root, "--base", "HEAD"])
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
     assert result.status == 1
     assert result.stderr =~ "[CONFIG]"
     refute result.stdout =~ "[CONFIG]"
@@ -182,7 +182,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
     write_unanchored_subject(root)
     commit_all(root, "unanchored subject")
 
-    result = run_mix(["spec.check", "--root", root, "--base", "HEAD"])
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
 
     assert result.status == 1
     assert result.stdout =~ "derived/unanchored_subject"
@@ -196,7 +196,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
   test "output flag is rejected and writes no file", %{root: root} do
     create_project(root)
     output = Path.join(root, "x.json")
-    result = run_mix(["spec.check", "--root", root, "--output", output])
+    result = run_mix_subprocess(["spec.check", "--root", root, "--output", output])
 
     assert result.status == 1
     assert List.last(lines(result.stdout)) =~ "result=fail tier=usage"
@@ -211,7 +211,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
       "lib/not_compilable.ex" => "defmodule Nope do\n  raise \"compiled target\"\nend\n"
     })
 
-    result = run_mix(["spec.check", "--root", root, "--base", "HEAD"])
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
     assert result.status != 0
     refute result.stderr =~ "compiled target"
     assert List.last(lines(result.stdout)) =~ "spec.check result=fail tier="
@@ -309,30 +309,6 @@ defmodule Mix.Tasks.Spec.CheckTest do
       end
       """
     })
-  end
-
-  defp run_mix(args) do
-    real_mix = System.find_executable("mix")
-    wrapper_dir = Path.join(System.tmp_dir!(), "ancora-mix-#{System.unique_integer([:positive])}")
-    stderr_path = Path.join(wrapper_dir, "stderr")
-    wrapper = Path.join(wrapper_dir, "mix")
-    File.mkdir_p!(wrapper_dir)
-
-    File.write!(wrapper, "#!/bin/sh\nexec #{real_mix} \"$@\" 2>\"$ANCORA_STDERR_FILE\"\n")
-    File.chmod!(wrapper, 0o755)
-
-    {stdout, status} =
-      System.cmd(wrapper, args,
-        cd: File.cwd!(),
-        env: [
-          {"ANCORA_STDERR_FILE", stderr_path},
-          {"MIX_QUIET", "1"}
-        ]
-      )
-
-    stderr = File.read!(stderr_path)
-    File.rm_rf!(wrapper_dir)
-    %{stdout: stdout, stderr: stderr, status: status}
   end
 
   defp lines(output), do: String.split(output, "\n", trim: true)

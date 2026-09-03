@@ -1,5 +1,4 @@
 Code.require_file("../../support/ancora_case.exs", __DIR__)
-Code.require_file("../../support/mix_subprocess.exs", __DIR__)
 
 defmodule Ancora.Scaffold.FreshAdopterTest do
   use Ancora.TestCase
@@ -19,11 +18,11 @@ defmodule Ancora.Scaffold.FreshAdopterTest do
 
     commit_all(root, "empty project")
 
-    init = Ancora.MixSubprocess.run(["spec.init", "--root", root])
+    init = run_mix_subprocess(["spec.init", "--root", root])
     assert init.status == 0
     assert init.stdout =~ "spec.init scaffolded"
 
-    red = Ancora.MixSubprocess.run(["spec.check", "--root", root, "--base", "HEAD"])
+    red = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
     assert red.status == 1
     assert red.stdout =~ "derived/unanchored_subject"
     assert List.last(lines(red.stdout)) =~ "spec.check result=fail tier=branch"
@@ -48,7 +47,7 @@ defmodule Ancora.Scaffold.FreshAdopterTest do
 
     commit_all(root, "anchor project core")
 
-    green = Ancora.MixSubprocess.run(["spec.check", "--root", root, "--base", "HEAD"])
+    green = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
     assert green.status == 0, green.stdout <> green.stderr
     assert List.last(lines(green.stdout)) == "spec.check result=pass"
   end

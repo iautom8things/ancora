@@ -2,11 +2,7 @@ defmodule Ancora.TmpGitRepo do
   @moduledoc false
 
   def create! do
-    root =
-      Path.join(
-        System.tmp_dir!(),
-        "ancora-git-#{System.pid()}_#{System.unique_integer([:positive])}"
-      )
+    root = Path.join(System.tmp_dir!(), "ancora-git-#{Ancora.TempName.cross_vm_suffix()}")
 
     File.rm_rf!(root)
     File.mkdir_p!(root)
