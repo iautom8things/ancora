@@ -17,11 +17,15 @@
     {
       "text": "RULING: no new ticket; clear change/missing_decision with the governance link plus one authorized trailer\n\n.spec/decisions/** stays out of scope; do not edit any ADR. Instead:\n1. In .spec/specs/ancora.derive.spec.md, add `ancora.decision.field_friction_response` to the `decisions:` frontmatter list. That ADR governs this change and its affects: already names ancora.derive.\n2. On your stage commit add exactly one trailer: `Spec-Ack: change/missing_decision=info`, with a commit-body line: \"Governed by ancora.decision.field_friction_response (affects: ancora.derive); the path-only missing_decision rule is the B1 false red fixed by ancora-gg8.2.\" No other Spec-Ack code. No config.yml change.\n3. Your red final-tier run 1 does not count against the cap: it was red solely on change/missing_decision. You have 2 capped runs remaining. Re-run the change-scoped final tier including `mix spec.check --base 9373ff49ea0ce4bbe0069f4961094eee28fc0e81`, then record IMPLEMENTED with the same session tag (ufm-impl-1) and log path.\n\nThis expansion consumes no attempt. Everything else in the ticket stands.",
       "timestamp": "2026-09-03T22:55:19Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: ufm-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-ufm/codex-ufm-impl-1/log\n\nCommit: b8d27a33b05931ae08d47a04be5c374ad1c8948d\nFiles touched: .spec/specs/ancora.derive.spec.md, lib/ancora/change_analysis.ex, lib/ancora/project_info.ex, test/ancora/derive/membership_test.exs, test/ancora/gate_test.exs, test/ancora/project_info_test.exs\nTests added: Ancora.ProjectInfoTest \"normalizes trailing slashes from every lib_paths source\"; Ancora.GateTest \"tagged source under a trailing-slash lib path stays covered\"; Ancora.Derive.MembershipTest \"trailing slash config preserves base and HEAD membership\"\nSpec acknowledgment: .spec/specs/ancora.derive.spec.md edited in-diff; authorized Spec-Ack trailer used (change/missing_decision=info) for the path-only false red governed by ancora.decision.field_friction_response\nVerification tier: change-scoped — test/ancora/project_info_test.exs, test/ancora/gate_test.exs, and test/ancora/derive/membership_test.exs passed 29 tests; mix test --stale passed 336 tests and 3 properties on the initial exempt run and reported no stale tests after commit; mix spec.check --base 9373ff49ea0ce4bbe0069f4961094eee28fc0e81 passed; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 3 total (run 1 exempted by ruling; 2 capped runs after ruling)\n\nSummary: ProjectInfo now trims trailing slashes from every resolved lib_paths source, and ChangeAnalysis consumes that canonical form without its own normalization. Tagged gate coverage proves src/thing.ex enters its subject footprint, while membership coverage pins identical base and HEAD source sets.",
+      "timestamp": "2026-09-03T23:01:31Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Trailing slash in lib_paths makes an uncovered-file finding unclearable",
   "type": "task",
-  "updated_at": "2026-09-03T22:55:19Z"
+  "updated_at": "2026-09-03T23:01:31Z"
 }
