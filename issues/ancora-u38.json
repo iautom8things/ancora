@@ -15,11 +15,15 @@
     {
       "text": "RULING (Manuel, 2026-09-03): deferred out of ancora-xla. Ancora was split from specled_ex to carry less state and less PR churn, and an on-disk cache is exactly the kind of second source of truth the no_execution_no_state charter exists to keep out. ancora-xla.3 (narrowed base tree, hoisted path set, parse once per side) is expected to remove most of the measured Atlas time; nobody has benched Atlas after those fixes. This ticket reopens only if a post-xla.3 median-of-3 warm bench on the Atlas corpus still puts spec.check over 10,000ms, and the founding ADR's re-entry clause is the only door. If the numbers come back merely over budget rather than far over, the first argument is a budget change, not a cache. Still blocked by ancora-xla.3 so the dependency is visible. Revisit date set to 2026-10-01 as a reminder, not a commitment.",
       "timestamp": "2026-09-03T17:15:04Z"
+    },
+    {
+      "text": "Bench-condition update from the ancora-gg8 investigation (2026-09-03, findings-DE on that epic): the phase decomposition shows xla.3's fixes live entirely in the gate path — after xla.3 alone, spec.validate is untouched, status/next/prime barely move, and check likely lands mid-20s, so four of five budgets would still be missed and the deferral bench would be measuring the wrong residual. The 2026-10-01 revisit bench should run after ancora-xla.3 AND the gg8 perf tickets (ancora-gg8.4 waste fixes, ancora-gg8.7 parallel parsing). The deferral ruling itself stands: merely-over-budget argues a budget change, not a cache. Also recorded there: the blocked-by edge to xla.3 is measurement sequencing, not a technical dependency.",
+      "timestamp": "2026-09-03T22:03:54Z"
     }
   ],
   "priority": 2,
   "status": "deferred",
   "title": "On-disk OID cache for gate performance (Atlas re-entry)",
   "type": "task",
-  "updated_at": "2026-09-03T17:15:06Z"
+  "updated_at": "2026-09-03T22:03:54Z"
 }
