@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T10:02:52Z",
+  "description": "Advances: ancora.review\\n\\nSeverity: High (calibrated). BLOCKS THE EPIC PR.\\n\\nConcrete failure: mix spec.check --base ecc5e24 exits non-zero with spec.check result=fail tier=branch errors=0 warnings=1. CI smoke runs mix spec.check --base origin/BASE_REF with no continue-on-error, which for a PR into main is that identical command, so the PR is red on 100 percent of runs.\\n\\nCause, not a tool bug: .spec/specs/ancora.review.spec.md changed by exactly one line across all 37 branch commits, status draft to status active. That is spec-meta, which ancora.derive.acknowledgment_is_substantive correctly refuses to count as acknowledgment, while about 1000 lines of review code landed under that untouched contract.\\n\\nFix lands ON this branch before the PR. Tracked as a work order because the orchestrator does not author spec contracts; this needs an implementer plus a cold verifier per the epic discipline.\\n\\nFound by /ship-it preflight, critical review 2026-09-03, finding F1. Verified by execution twice.",
+  "id": "ancora-ayj",
+  "labels": [],
+  "priority": 2,
+  "status": "open",
+  "title": "Acknowledge the shipped ancora.review surface so the gate passes against main",
+  "type": "task",
+  "updated_at": "2026-09-03T10:02:52Z"
+}
