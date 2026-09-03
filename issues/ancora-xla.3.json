@@ -19,11 +19,15 @@
     {
       "text": "RULING CONTEXT (Manuel, 2026-09-03): the ancora-xla.9 memo decision is DELETE, so this ticket is unblocked and ready now. Shape for F15: parse each source file at most once per side per run and thread the parsed AST (or a per-run map keyed by path and side) through Compare as a plain function argument. No ETS, no RunContext memo, no cache of any kind. lib/ancora/derive/run_context.ex is out of scope here. Everything else in the ticket stands: pathspec-narrowed materialize, oid-based read_blob, hoisted path set, before/after numbers in the IMPLEMENTED comment. ancora-u38 has been deferred out of the epic; the post-merge Atlas bench is Manuel's to run.",
       "timestamp": "2026-09-03T17:15:00Z"
+    },
+    {
+      "text": "SCOPE_EXPANSION\nSession: xla3-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-xla.3/codex-xla3-i1-adec463e/log\n\nNeeded touch: lib/ancora/git.ex\nReason: BaseView must pass each ls-tree entry OID to Git.read_blob/2, but Git.read_blob/2 currently treats every binary as a path and rewrites it to \u003cbase\u003e:\u003cpath\u003e. Passing entry.oid from an allowed file would therefore request \u003cbase\u003e:\u003coid\u003e and fail. The smallest correct change teaches Git.read_blob/2 to accept an OID without rewriting it; no currently allowed file can provide that behavior while preserving the base_reads_batched contract.\nEvidence: git show \u003cblob-oid\u003e succeeds in this worktree, while git show \u003cblob-oid\u003e: exits 128. No implementation files have been changed.",
+      "timestamp": "2026-09-03T22:14:44Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Narrow the base-tree materialization and stop the per-binding rework",
   "type": "task",
-  "updated_at": "2026-09-03T22:11:21Z"
+  "updated_at": "2026-09-03T22:14:44Z"
 }
