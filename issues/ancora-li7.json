@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T23:04:32Z",
+  "description": "",
+  "id": "ancora-li7",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Property test for no_result_leak proves the weak half of the rule",
+  "type": "bug",
+  "updated_at": "2026-09-03T23:04:32Z"
+}
