@@ -37,11 +37,15 @@
     {
       "text": "RULING (epic-wide, wave 1): change/missing_decision on governed spec edits\n\nEvery wave-1 stage that lands its ticket's Spec delta trips change/missing_decision, because the rule is path-set only (the B1 false red this epic fixes in ancora-gg8.2) and none of the subject specs yet list ancora.decision.field_friction_response in their decisions: frontmatter, even though that ADR's affects: names all five subjects. First hit: ancora-ufm final-tier run 1, 22:52Z.\n\nRuling, applied to ancora-ufm, ancora-gg8.1, ancora-gg8.2, ancora-gg8.3 (ancora-gg8.4 has no spec delta):\n1. In the Advances: subject spec you edit, add `ancora.decision.field_friction_response` to the `decisions:` frontmatter list. This is the durable, tree-resident governance link, not noise: the ADR governs the change and already names the subject back.\n2. Until gg8.2 merges, the rule cannot read that link, so the stage commit may carry exactly one trailer: `Spec-Ack: change/missing_decision=info`, with a commit-body line naming the governing ADR. No other Spec-Ack code is authorized; drift/growth/shrink still clear only by substantive spec edits.\n3. gg8.2 is the exception: no trailer. Its own implementation plus the frontmatter reference must clear the finding on its own diff. That is the live proof of scenario governed_spec_change_clears.\n4. A final-tier run that was red solely on change/missing_decision does not count against the 2-run cap.\n\nVerifiers on these tickets: this trailer is explained and authorized; it is not a drift/growth/shrink acknowledgment. Any other trailer remains a Gap. Once gg8.2 merges, later stages need no trailer.",
       "timestamp": "2026-09-03T22:55:12Z"
+    },
+    {
+      "text": "LESSONS\n- [untested-clause] Before writing a \"Would fail if\" line, run the test against the pre-fix production code (restore the base lib files in a scratch copy); a test that stays green with the bug present is not load-bearing. (from ancora-ufm, ancora-gg8.3)\n- [untested-clause] For scanner, filter, or path-matching code, plant one fixture item reachable only through the branch under test (a glob-only file, a trailing-boundary line, a deleted module) so every clause has its own discriminator; a shared fixture proves only the widest branch. (from ancora-gg8.3, ancora-ufm)\n- [stale-spec] When a ticket scenario turns out to be true before the fix, rewrite the scenario to the real symptom in the same diff instead of tagging a test to the non-discriminating wording. (from ancora-ufm)",
+      "timestamp": "2026-09-03T23:17:06Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-03T22:55:12Z"
+  "updated_at": "2026-09-03T23:17:06Z"
 }
