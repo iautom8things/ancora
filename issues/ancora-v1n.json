@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T11:28:29Z",
+  "description": "Advances: ancora.parsing\\n\\nSeverity: Medium (calibrated). Found by the cold auditor on ancora-ayj, not by the critical review.\\n\\nProblem: lib/ancora/append_only.ex:73-83 authorizes an append-only exception when the ADR affects list names EITHER the requirement id OR the subject id, without checking that the ADR is about the specific change being made. So any accepted ADR whose affects names a subject stands as blanket, indefinite authorization for every future append/requirement_deleted and append/must_downgraded on EVERY requirement in that subject.\\n\\nConcrete instance created this session: .spec/decisions/ancora.decision.review_artifact_contract.md (added by ancora-ayj, correctly, to record the shipped review boundaries) has affects: [ancora.review]. It now authorizes deleting or downgrading any of the ten musts in ancora.review, forever, even though its actual subject matter is the diff granularity of watched cards.\\n\\nThis is the designed mechanism rather than a worker mistake — ancora.decision.no_execution_no_state affects five subjects the same way — but the blast radius is wider than any single ADR needs, and it weakens exactly the guard that exists to make contract erosion visible.\\n\\nPossible directions (decision needed, none chosen): narrow authorization to requirement ids only, requiring an ADR to name what it authorizes; or keep subject scope but require the ADR to enumerate the requirement ids it covers; or add an expiry/one-shot notion so an ADR authorizes a change once rather than standing open. Each has a cost, and the append-only guard is load-bearing for the whole governance story, so this wants deliberate design rather than a quick patch.\\n\\nCannot land on the epic branch: it changes the semantics of the append-only guard, which needs its own ADR and a contract decision about how authorization is scoped.",
+  "id": "ancora-v1n",
+  "labels": [],
+  "priority": 2,
+  "status": "open",
+  "title": "Subject-scoped ADR affects grants blanket append-only authorization",
+  "type": "task",
+  "updated_at": "2026-09-03T11:28:29Z"
+}
