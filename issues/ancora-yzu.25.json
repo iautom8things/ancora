@@ -51,11 +51,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nReasoning: original VERIFY confirmed the migration substance beyond its brief — full base-corpus re-derivation of the 53-tag remedy (37/37 retargets, 16/16 drops, identical to the ADR), 1,870-finding severity_source audit, token-exact all-envs runtime dep line, clean scope. Its three Gaps were remedied via the recorded mechanical bounce (commit 12f5675cd, scoped to config + ADR + two board descriptions) and each was ORCHESTRATOR-DELTA-VERIFIED: (1) config hunk is exactly the four prescribed lines — three specled-era entries deleted back to registry defaults, duplicate_covers off→info, which reveals ZERO findings (the off was hiding nothing, and the blind spot is structurally gone); (2) ADR now carries the five medians, the missed binding acceptance, Manuel's merge-now ruling, and ancora-u38; (3) independent literal sweep over the full Atlas board JSON: zero retired Advances: pointers remain, atlas-pw3.1 reads package+api, pw3.4 retargeted to kb.lifecycle, nothing closed. TEST_CRITIC: PASS on record (assertions byte-identical, canary pins the production call, independent hex-1.0.0 run green). Worker's final tier: compile -warnings-as-errors, 27 SpecDoc tests, spec.validate 0/0 over 216 subjects, spec.check --base 438ad5b53 result=pass; every documented make target executed. No disclosed seam substitutes production wiring. No auditor spawned per mechanical-remedy policy. PR 164 green except the in-progress staging image build — watch arming; ship flow (soak → /merge-pr → /monitor-app) proceeds on green per Manuel's Atlas authorization, with the perf miss already ruled (merge now, ancora-u38 fast-follow).",
       "timestamp": "2026-09-03T02:06:47Z"
+    },
+    {
+      "text": "MERGED. Staging soak was healthy first: 0.60.1-prerelease0 sole serving image; the elevated raw error count decomposed to ONE chronic condition — Atlas.Slack.Client.post/3 failures fanned into ~8 Req/Finch stack-frame lines per event, present on EVERY image for 48h (29 events on 0.58.0 → 13 on ours), zero new kinds; Sentry staging active issues: only pre-existing ATLAS-78T (Voyage embedding timeout, firstSeen Aug 3, warning). Squash cec83a14 on Atlas main at 2026-09-03T02:09:24Z; remote branch deleted (verified); primary ff'd; container deps prewarmed (mix.lock pruned spec_led_ex + transitive deps). Prod deploy run 33706542463 in_progress with watch armed; tag 0.60.1 check follows. NOT DONE YET: Atlas ships when that run is green, the tag exists, and /monitor-app grades prod healthy — with special attention to SpecDoc runtime paths since Atlas consumes the parser in production.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-03T02:10:16Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M9: Atlas migration PR + perf acceptance",
   "type": "task",
-  "updated_at": "2026-09-03T02:06:47Z"
+  "updated_at": "2026-09-03T02:10:16Z"
 }
