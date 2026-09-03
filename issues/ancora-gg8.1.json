@@ -11,9 +11,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-gg8",
+  "comments": [
+    {
+      "text": "SCOPE_EXPANSION\nSession: gg8.1-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.1/codex-gg8.1-impl-1/log\nNew ticket: pending orchestrator ruling\nReason: The required scaffold documentation change lives in priv/spec_init/config.yml.eex, but that path is not in Allowed touches. Add that file to this ticket's scope or carve a blocking child that owns the template update.\nOrigin: ancora-gg8.1\nRequired path: priv/spec_init/config.yml.eex",
+      "timestamp": "2026-09-03T22:50:01Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Requirement-scoped config overrides",
   "type": "task",
-  "updated_at": "2026-09-03T22:47:23Z"
+  "updated_at": "2026-09-03T22:50:01Z"
 }
