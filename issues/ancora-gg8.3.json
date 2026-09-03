@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T22:02:57Z",
+  "description": "Advances: ancora.scaffold",
+  "id": "ancora-gg8.3",
+  "labels": [],
+  "parent": "ancora-gg8",
+  "priority": 2,
+  "status": "open",
+  "title": "Bless the source-scan pattern: Ancora.SourceScan and migration docs",
+  "type": "task",
+  "updated_at": "2026-09-03T22:02:57Z"
+}
