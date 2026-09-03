@@ -36,11 +36,15 @@
     {
       "text": "IMPLEMENTED\nSession: xla8-i2-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-xla.8/codex-xla8-i2-adec463e/log\n\nCommit: 8f1f9958908c81ff9f511d23d6ea2bc9ba1389ee\nFiles touched: lib/ancora/base_view.ex, comment only\nTests added: none\nSpec acknowledgment: none needed; this bounce changes comments only\nVerification tier: change-scoped; mix compile --warnings-as-errors; test/ancora/review_assets_test.exs, test/ancora/scaffold/templates_test.exs, test/ancora/scaffold/fresh_adopter_test.exs, test/ancora/scaffold/docs_test.exs, and test/ancora/git_test.exs; mix test --stale; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base 7511407; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Replaced the two false comment lines. They now read exactly: `# Entry paths come from Git verbatim and are not validated here.` and `# A tree entry named \\`..\\` can escape the materialization root; tracked as ancora-kzw.` Changed nothing else in lib/ancora/base_view.ex. The gate ended with `spec.check result=pass`.",
       "timestamp": "2026-09-03T22:09:40Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: xla8-i2-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-xla.8/codex-xla8-i2-adec463e/log\n\nCommit: 8f1f9957fac7f43abf3ecdc78070ad05400f0f4d\nFiles touched: lib/ancora/base_view.ex, comment only\nTests added: none\nSpec acknowledgment: none needed; this bounce changes comments only\nVerification tier: change-scoped; mix compile --warnings-as-errors; test/ancora/review_assets_test.exs, test/ancora/scaffold/templates_test.exs, test/ancora/scaffold/fresh_adopter_test.exs, test/ancora/scaffold/docs_test.exs, and test/ancora/git_test.exs; mix test --stale; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base 7511407; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: This record supersedes the preceding completion record, which had a mistyped full commit SHA. Replaced the two false comment lines. They now read exactly: `# Entry paths come from Git verbatim and are not validated here.` and `# A tree entry named \\`..\\` can escape the materialization root; tracked as ancora-kzw.` Changed nothing else in lib/ancora/base_view.ex. The gate ended with `spec.check result=pass`.",
+      "timestamp": "2026-09-03T22:10:00Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Reconcile the vendored assets, NOTICE, and the docs that describe them",
   "type": "task",
-  "updated_at": "2026-09-03T22:09:40Z"
+  "updated_at": "2026-09-03T22:10:00Z"
 }
