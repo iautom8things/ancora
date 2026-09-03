@@ -22,7 +22,6 @@
   "id": "ancora-s1o",
   "labels": [
     "critical",
-    "phase:implementing",
     "slug:per-subprocess-build-copy"
   ],
   "parent": "ancora-xla",
@@ -52,5 +51,5 @@
   "status": "closed",
   "title": "Per-subprocess _build copy makes the suite time out about one run in three",
   "type": "task",
-  "updated_at": "2026-09-03T18:21:34Z"
+  "updated_at": "2026-09-03T18:21:45Z"
 }
