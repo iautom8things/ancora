@@ -18,11 +18,15 @@
     {
       "text": "ADMITTED + THREE WORKERS SPAWNED (M10 is cross-repo, so the piece decomposition is recorded here). W1 yzu26-wf-1 (chapterspot/workflows worktree @43c5999): collapse the elixir_checks.yaml shim to bare mix spec.check with --base origin/base_ref on PR events, fetch-depth 0 untouched, run-spec-check description rewritten ancora-only, detect-spec-gate.sh + its bats test deleted, PR opened; commit message per ticket. W2 yzu26-replay-1 (ancora stage worktree @26e3100, env-pinned): delete scripts/replay/** only, bench/gate_bench.exs explicitly kept, reference grep first, no push — orchestrator ff-merges into the epic branch. W3 yzu26-sweep (Agent, sonnet): sync ancora.md to the five verified non-consumer subscribers from the agent-rules registry (spire-client, voyd, voyd_config, drovr, exoterm-cli; the legacy-corpus repos ride their adf-* tickets), commits local no-push; plus the fleet retired-vocabulary sweep over vault + dotfiles + all four consumers excluding frozen specled_ex, historical records kept, live-guidance fixes in vault/dotfiles only, consumer hits reported. RULING recorded: the ticket's 'close the migration epic' line yields to orchestration protocol — the epic stays open through Manuel's Phase 2 PR checkpoint; /deliver closes it after. De-shim rehearsal (one consumer PR through the new bare path) runs after W1's PR merges. Spawn note: the prompt validator caught two paraphrased header-slot anchors in my compact briefs before launch (completion-record, task-id, then epic-lessons) — fixed to verbatim anchors, both briefs dry-run VALID, fences byte-exact.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-09-03T02:26:55Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: yzu26-wf-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.26/codex-yzu26-wf-1/log\n\nCommit: 21dde22648c56f144cc7711d88c8848496d65aae\nPR: https://github.com/ChapterSpot/workflows/pull/51 — CI: pending (Greptile Review)\nFiles touched: .github/workflows/elixir_checks.yaml, .github/scripts/detect-spec-gate.sh (deleted), .github/scripts/test/detect-spec-gate.bats (deleted)\nShim collapse: bare `mix spec.check`; pull requests run `mix spec.check --base \"origin/${{ github.base_ref }}\"`; non-PR events run bare `mix spec.check`\nfetch-depth: untouched; `fetch-depth: 0`\nInput description: Run ancora's `mix spec.check` gate for repos with a `.spec/` workspace.\ndetect-spec-gate references remaining: 0\nRetired-vocabulary greps: fixed in-scope hits for `SpecLedEx` and `--no-run-commands`; reported out-of-scope hit at .github/scripts/test/fixtures/specled_ex.mix.lock:3 for `spec_led_ex`\nFinal-tier runs: 2\n\nSummary: The reusable workflow now runs ancora's spec gate directly and supplies the base branch only for pull requests. The obsolete detector checkout, script, and test are gone; the consumer-side de-shim rehearsal remains an orchestrator step after merge.",
+      "timestamp": "2026-09-03T02:32:07Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M10: De-shim, subscriber sync, harness deletion, final sweep",
   "type": "task",
-  "updated_at": "2026-09-03T02:26:55Z"
+  "updated_at": "2026-09-03T02:32:07Z"
 }
