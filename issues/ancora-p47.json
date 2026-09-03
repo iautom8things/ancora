@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T13:14:23Z",
+  "description": "Advances: ancora.gate\\n\\nSeverity: High (calibrated). Trunk is RED on this right now.\\n\\nThe requirement ancora.gate.change_findings says: \"A changed file under lib_paths that lies in no subject footprint shall produce change/uncovered_file.\" The code does not do that. ChangeAnalysis.uncovered_findings/2 (lib/ancora/change_analysis.ex:24) filters on PolicyFiles.classify(path) == :lib, and classify hardcodes priv/, lib/, skills/, and mix.exs (lib/ancora/policy_files.ex:44-56). It never consults lib_paths. This is a code defect against a must, not a spec defect — the requirement text is already correct and must not be edited to match the code.\\n\\nTwo consequences, both live:\\n1. A project configured with lib_paths: [\"src\"] silently gets ZERO uncovered-file findings, so the check is inert for any repo that does not use the hardcoded layout.\\n2. Ancora own trunk is red because of it. main reports 31 change/uncovered_file warnings on vendored priv/spec_review_assets/*.js, priv/spec_init/*.eex, and mix.exs — files no subject tagged test should ever reach. These were previously papered over by Spec-Ack trailers that the squash merge destroyed (see ancora-sfu).\\n\\nFix: thread the already-resolved lib_paths into the check. preflight.project is a %Ancora.ProjectInfo{} carrying lib_paths, and preflight is already in scope at the ChangeAnalysis.findings call site (lib/ancora/gate.ex:172). Pass lib_paths through and filter on \"path is under one of lib_paths\" instead of classify == :lib. For this repo lib_paths resolves to [\"lib\"], so the 31 findings disappear and the trunk goes green without any acknowledgment.\\n\\nDo NOT weaken the requirement, do not add a config demotion, and do not add a Spec-Ack trailer. The point is to make the code match a contract that is already right.\\n\\nVerification: a test proving a file under a CONFIGURED lib_paths (for example lib_paths: [\"src\"] with src/thing.ex) produces the finding, and a test proving a changed file outside lib_paths (priv/ asset) does not. Both tagged to ancora.gate.change_findings. Existing scenario ancora.gate.scenario.* for uncovered_file must still pass. Full suite green on both CI matrix legs; mix spec.check --base origin/main ends result=pass.",
+  "id": "ancora-p47",
+  "labels": [],
+  "priority": 2,
+  "status": "open",
+  "title": "change/uncovered_file must honor lib_paths instead of hardcoded prefixes",
+  "type": "task",
+  "updated_at": "2026-09-03T13:14:23Z"
+}
