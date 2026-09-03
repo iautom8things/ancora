@@ -11,9 +11,15 @@
     "critical"
   ],
   "parent": "ancora-xla",
+  "comments": [
+    {
+      "text": "RULING (Manuel, 2026-09-03): Option A, scoped to the range. At preflight, if the base..HEAD range is not fully present locally (check the actual range, not only git rev-parse --is-shallow-repository), end the run at tier=env with a remedy naming git fetch --unshallow and fetch-depth: 0. A shallow repository that still holds the whole range passes. Widen ancora.gate.preflight_hard_fails substantively. No named finding, no continue-with-warning. Lands on top of ancora-xla.2's env-tier plumbing. Pairs with the ancora-sfu ruling (acknowledgments promoted to config).",
+      "timestamp": "2026-09-03T16:41:02Z"
+    }
+  ],
   "priority": 2,
   "status": "open",
   "title": "Gate silently resolves a different verdict on a shallow clone",
   "type": "task",
-  "updated_at": "2026-09-03T16:27:13Z"
+  "updated_at": "2026-09-03T16:41:02Z"
 }
