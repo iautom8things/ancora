@@ -152,7 +152,11 @@ defmodule Ancora.Gate do
         end
       end)
 
-    footprints = SubjectFiles.build(head_sets, locator)
+    footprints =
+      head_sets
+      |> SubjectFiles.build(locator)
+      |> Map.put(:__lib_paths__, preflight.project.lib_paths)
+
     tag_ids = Map.keys(head_tags.tag_map)
 
     (pipeline_findings ++

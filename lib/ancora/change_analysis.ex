@@ -18,12 +18,20 @@ defmodule Ancora.ChangeAnalysis do
   end
 
   defp uncovered_findings(paths, footprints) do
+    {lib_paths, footprints} = Map.pop(footprints, :__lib_paths__, ["lib"])
     covered = footprints |> Map.values() |> Enum.reduce(MapSet.new(), &MapSet.union/2)
 
     paths
-    |> Enum.filter(&(PolicyFiles.classify(&1) == :lib))
+    |> Enum.filter(&under_lib_path?(&1, lib_paths))
     |> Enum.reject(&MapSet.member?(covered, &1))
     |> Enum.map(&Finding.new(code: "change/uncovered_file", file: &1))
+  end
+
+  defp under_lib_path?(path, lib_paths) do
+    Enum.any?(lib_paths, fn lib_path ->
+      prefix = String.trim_trailing(lib_path, "/")
+      String.starts_with?(path, prefix <> "/")
+    end)
   end
 
   defp missing_decision_findings(paths) do
