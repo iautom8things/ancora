@@ -11,7 +11,7 @@
   "id": "ancora-v1n",
   "labels": [
     "critical",
-    "phase:auditing"
+    "phase:implementing"
   ],
   "parent": "ancora-xla",
   "comments": [
@@ -36,5 +36,5 @@
   "status": "in_progress",
   "title": "Subject-scoped ADR affects grants blanket append-only authorization",
   "type": "task",
-  "updated_at": "2026-09-03T18:58:20Z"
+  "updated_at": "2026-09-03T18:59:36Z"
 }
