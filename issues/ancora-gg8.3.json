@@ -17,11 +17,15 @@
     {
       "text": "ADVISORY before your final tier: change/missing_decision on the spec edits\n\nYour new .spec/specs/ancora.source_scan.spec.md and the ancora.scaffold.spec.md statement edit will trip change/missing_decision (path-set-only rule; the B1 false red this epic fixes in ancora-gg8.2). Handle it now:\n1. The new source_scan subject already lists ancora.decision.field_friction_response in its decisions: per the ticket. Also add `ancora.decision.field_friction_response` to the `decisions:` frontmatter list of ancora.scaffold.spec.md; its affects: names ancora.scaffold.\n2. On your stage commit add exactly one trailer: `Spec-Ack: change/missing_decision=info`, with a commit-body line naming the governing ADR. No other Spec-Ack code; no config.yml demotion; no ADR edits.\n3. A final-tier run red solely on change/missing_decision does not count against the 2-run cap.\nKeep working; same session tag and log path.",
       "timestamp": "2026-09-03T22:55:31Z"
+    },
+    {
+      "text": "RULING: one ADR line is in scope; no trailer needed (supersedes the advisory above)\n\nYou are right that the ADR's affects: omits ancora.source_scan, and under the bidirectional rule ancora-gg8.2 is landing, a one-way reference would keep firing later. So:\n1. `.spec/decisions/ancora.decision.field_friction_response.md` is now in your Allowed touches for exactly one change: add `- ancora.source_scan` to its affects: list. Nothing else in that file moves.\n2. Add `ancora.decision.field_friction_response` to the `decisions:` frontmatter list of ancora.scaffold.spec.md (its affects: already names ancora.scaffold). The new source_scan spec already lists it.\n3. Because a decision file is now in the diff, change/missing_decision clears on its own. Do NOT add a Spec-Ack trailer; the advisory's trailer step no longer applies to you.\n4. Your red final-tier run 1 does not count against the cap (red solely on change/missing_decision). Two capped runs remain. Re-run the change-scoped final tier including `mix spec.check --base 9373ff49ea0ce4bbe0069f4961094eee28fc0e81`, then record IMPLEMENTED with the same session tag (gg8.3-impl-1) and log path.\nNo child ticket is carved; this consumes no attempt.",
+      "timestamp": "2026-09-03T22:57:24Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Bless the source-scan pattern: Ancora.SourceScan and migration docs",
   "type": "task",
-  "updated_at": "2026-09-03T22:55:31Z"
+  "updated_at": "2026-09-03T22:57:24Z"
 }
