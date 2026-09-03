@@ -20,11 +20,15 @@
     {
       "text": "RULING (Manuel, 2026-09-03): Option A. Add a retires: field on the ADR next to affects:. The Affects resolver exempts ids listed there from adr/affects_unresolved, and the append-only guard accepts them as authorization for the named deletions. A subject id in retires: covers every requirement under it, so pruning a whole subject does not require listing each requirement (this is the shorthand the v1n ruling leaves room for). No registry file, no new spec block type. Update the Zoi decision schema, the spec.init decision template, docs/migration.md, and write the unwind note: Engage re-tightens adr/affects_unresolved to the registry default, Builder deletes its six tombstone files.",
       "timestamp": "2026-09-03T16:35:06Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: n24-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-n24/codex-n24-i1-adec463e/log\n\nCommit: 8f885178942b1382e5fd54860b85790739b28816\nFiles touched: .spec/decisions/ancora.decision.retirement_vocabulary.md, .spec/specs/ancora.gate.spec.md, .spec/specs/ancora.parsing.spec.md, docs/migration.md, lib/ancora/append_only.ex, lib/ancora/decision_parser/affects.ex, lib/ancora/finding.ex, lib/ancora/schema/decision.ex, priv/spec_init/decisions/README.md.eex, test/ancora/append_only_test.exs, test/ancora/decision_parser_test.exs, test/ancora/scaffold/templates_test.exs\nTests added: Ancora.AppendOnlyTest \"accepted ADR retiring a subject authorizes deleting all of its requirements\", \"accepted ADR retiring an exact requirement authorizes its deletion\", \"retiring one requirement does not authorize deleting its sibling\", \"a non-accepted ADR cannot authorize deletion through retires\", \"retires does not authorize a must downgrade\". Ancora.DecisionParserTest \"parses retires and the decision schema accepts it\", \"an unresolved affect repeated in retires is silent\", \"an unresolved affect not listed in retires remains an error\", \"cold spec.validate accepts an ADR for a pruned subject\"\nSpec acknowledgment: .spec/specs/ancora.parsing.spec.md and .spec/specs/ancora.gate.spec.md received substantive requirement and scenario updates. .spec/decisions/ancora.decision.retirement_vocabulary.md records the contract\nVerification tier: change-scoped — mix compile --warnings-as-errors, test/ancora/append_only_test.exs, test/ancora/decision_parser_test.exs, test/ancora/scaffold/templates_test.exs, mix test --stale, mix format --check-formatted, mix deps.unlock --check-unused, mix spec.check --base 670dd4d. Full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Added the ADR `retires:` vocabulary with exact-requirement and subject-wide deletion authorization while preserving requirement-exact `affects:` authorization and keeping downgrades outside retirement. Cold validation now accepts explicitly retired ids, append findings render the qualified requirement once with accurate remediation, and scaffold and migration guidance cover consumer cleanup.",
+      "timestamp": "2026-09-03T22:20:30Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Retirement vocabulary for ADR affects: (subject-pruning catch-22)",
   "type": "task",
-  "updated_at": "2026-09-03T22:11:23Z"
+  "updated_at": "2026-09-03T22:20:30Z"
 }
