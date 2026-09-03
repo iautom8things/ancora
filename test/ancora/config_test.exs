@@ -45,6 +45,7 @@ defmodule Ancora.ConfigTest do
       assert config.severities["derived/drift"] == :warning
       assert [%Config.Override{} = ovr] = config.overrides
       assert ovr.subject == "atlas.web.sessions"
+      assert ovr.requirement == nil
       assert ovr.code == "derived/unanchored_subject"
       assert ovr.severity == :info
       assert ovr.reason == "integration-only"
@@ -248,6 +249,79 @@ defmodule Ancora.ConfigTest do
       assert b.severity_source == :default
       assert Config.subject_status(config, "subject.a") == :acknowledged
       assert Config.subject_status(config, "subject.b") == nil
+    end
+
+    @tag spec: "ancora.findings.per_subject_overrides"
+    test "a requirement-scoped override applies only to that requirement", %{root: root} do
+      write_config(root, """
+      overrides:
+        - subject: subject.a
+          requirement: subject.a.r1
+          code: tags/requirement_untagged
+          severity: info
+          reason: blocked until the upstream API lands
+      """)
+
+      config =
+        Config.load(root,
+          known_subjects: ["subject.a"],
+          known_requirements: ["subject.a.r1", "subject.a.r2"]
+        )
+
+      findings = [
+        Finding.new(
+          code: "tags/requirement_untagged",
+          subject: "subject.a",
+          requirement: "subject.a.r1"
+        ),
+        Finding.new(
+          code: "tags/requirement_untagged",
+          subject: "subject.a",
+          requirement: "subject.a.r2"
+        ),
+        Finding.new(
+          code: "tags/requirement_untagged",
+          subject: "subject.a"
+        )
+      ]
+
+      [r1, r2, subject_only] = Severity.resolve_all(findings, config: config)
+
+      assert r1.requirement == "subject.a.r1"
+      assert r1.severity == :info
+      assert r1.severity_source == :config
+      assert r2.requirement == "subject.a.r2"
+      assert r2.severity == :info
+      assert r2.severity_source == :default
+      assert subject_only.requirement == nil
+      assert subject_only.severity == :info
+      assert subject_only.severity_source == :default
+      assert Config.subject_status(config, "subject.a") == :acknowledged
+    end
+
+    @tag spec: "ancora.findings.per_subject_overrides"
+    test "an override naming an unknown requirement is ignored", %{root: root} do
+      write_config(root, """
+      overrides:
+        - subject: subject.a
+          requirement: subject.a.unknown
+          code: tags/requirement_untagged
+          severity: info
+          reason: blocked until the upstream API lands
+      """)
+
+      config =
+        Config.load(root,
+          known_subjects: ["subject.a"],
+          known_requirements: ["subject.a.r1"]
+        )
+
+      assert config.overrides == []
+
+      assert Enum.any?(config.findings, fn finding ->
+               finding.code == "config/invalid_value" and
+                 finding.message =~ "subject.a.unknown"
+             end)
     end
   end
 

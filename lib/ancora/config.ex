@@ -8,12 +8,13 @@ defmodule Ancora.Config do
   codes in `severities:` produce `config/unknown_key`. Bad values produce
   `config/invalid_value`. Both codes are non-tunable.
 
-  Each `overrides:` entry carries `subject`, `code`, `severity`, and a
-  required non-empty `reason`. An override applies only to findings of
-  that code attributed to that subject. An entry naming an unknown subject
-  or code, or missing `reason`, produces `config/invalid_value` and is
-  ignored. `spec.status` labels a subject with an applied override
-  `acknowledged` (see `subject_status/2`).
+  Each `overrides:` entry carries `subject`, `code`, `severity`, a required
+  non-empty `reason`, and an optional `requirement:`. An override applies only
+  to findings of that code attributed to that subject. When `requirement:` is
+  present, the override applies only to findings attributed to that requirement
+  id. An entry naming an unknown subject, requirement, or code, or missing
+  `reason`, produces `config/invalid_value` and is ignored. `spec.status` labels
+  a subject with an applied override `acknowledged` (see `subject_status/2`).
 
   Malformed YAML degrades to defaults with a `[CONFIG]` diagnostic on
   stderr and nothing on stdout.
@@ -31,10 +32,11 @@ defmodule Ancora.Config do
 
   defmodule Override do
     @moduledoc false
-    defstruct [:subject, :code, :severity, :reason]
+    defstruct [:subject, :requirement, :code, :severity, :reason]
 
     @type t :: %__MODULE__{
             subject: String.t(),
+            requirement: String.t() | nil,
             code: String.t(),
             severity: Severity.severity(),
             reason: String.t()
@@ -90,11 +92,15 @@ defmodule Ancora.Config do
       override naming a subject not in the set fires `config/invalid_value`
       and is ignored. When omitted, subject existence is not checked
       (the gate supplies the corpus once the index exists).
+    * `:known_requirements` — enumerable of requirement ids; when given, an
+      override naming a requirement not in the set fires `config/invalid_value`
+      and is ignored. When omitted, requirement existence is not checked.
   """
   @spec load(String.t(), keyword()) :: t()
   def load(root, opts \\ []) when is_binary(root) do
     path = opts[:path] || Path.join(root, @config_file)
     known_subjects = opts[:known_subjects]
+    known_requirements = opts[:known_requirements]
 
     case read_file(path) do
       :missing ->
@@ -104,7 +110,11 @@ defmodule Ancora.Config do
         defaults()
 
       {:ok, contents} ->
-        parse(contents, path: relative_path(root, path), known_subjects: known_subjects)
+        parse(contents,
+          path: relative_path(root, path),
+          known_subjects: known_subjects,
+          known_requirements: known_requirements
+        )
 
       {:error, reason} ->
         emit_config("could not read #{path}: #{inspect(reason)}; using defaults")
@@ -117,13 +127,14 @@ defmodule Ancora.Config do
   def parse(contents, opts \\ []) when is_binary(contents) do
     file = Keyword.get(opts, :path, @config_file)
     known_subjects = Keyword.get(opts, :known_subjects)
+    known_requirements = Keyword.get(opts, :known_requirements)
 
     case YamlElixir.read_from_string(contents) do
       {:ok, nil} ->
         defaults()
 
       {:ok, map} when is_map(map) ->
-        build(map, file, known_subjects)
+        build(map, file, known_subjects, known_requirements)
 
       {:ok, _other} ->
         emit_config("#{file} root must be a mapping; using defaults")
@@ -136,14 +147,16 @@ defmodule Ancora.Config do
   end
 
   @doc """
-  Config-layer severity for `code` attributed to `subject`.
+  Config-layer severity for `code` attributed to `subject` and `requirement`.
 
   A matching applied override wins over the `severities:` map. Returns
   `nil` when neither names the code.
   """
-  @spec severity_for(t(), String.t(), String.t() | nil) :: Severity.severity() | nil
-  def severity_for(%__MODULE__{} = config, code, subject) when is_binary(code) do
-    case override_for(config, code, subject) do
+  @spec severity_for(t(), String.t(), String.t() | nil, String.t() | nil) ::
+          Severity.severity() | nil
+  def severity_for(%__MODULE__{} = config, code, subject, requirement \\ nil)
+      when is_binary(code) do
+    case override_for(config, code, subject, requirement) do
       %Override{severity: severity} -> severity
       nil -> Map.get(config.severities, code)
     end
@@ -158,11 +171,11 @@ defmodule Ancora.Config do
     if Enum.any?(overrides, &(&1.subject == subject)), do: :acknowledged, else: nil
   end
 
-  defp override_for(_config, _code, nil), do: nil
+  defp override_for(_config, _code, nil, _requirement), do: nil
 
-  defp override_for(%__MODULE__{overrides: overrides}, code, subject) do
+  defp override_for(%__MODULE__{overrides: overrides}, code, subject, requirement) do
     Enum.find(overrides, fn %Override{} = ovr ->
-      ovr.subject == subject and ovr.code == code
+      ovr.subject == subject and ovr.code == code and ovr.requirement in [nil, requirement]
     end)
   end
 
@@ -181,14 +194,16 @@ defmodule Ancora.Config do
     end
   end
 
-  defp build(map, file, known_subjects) do
+  defp build(map, file, known_subjects, known_requirements) do
     findings = unknown_key_findings(map, file)
 
     {default_base, findings} = parse_default_base(map, file, findings)
     {test_paths, findings} = parse_string_list(map, "test_paths", ["test"], file, findings)
     {lib_paths, findings} = parse_lib_paths(map, file, findings)
     {severities, findings} = parse_severities(map, file, findings)
-    {overrides, findings} = parse_overrides(map, file, known_subjects, findings)
+
+    {overrides, findings} =
+      parse_overrides(map, file, known_subjects, known_requirements, findings)
 
     %__MODULE__{
       default_base: default_base,
@@ -359,8 +374,9 @@ defmodule Ancora.Config do
      ]}
   end
 
-  defp parse_overrides(map, file, known_subjects, findings) do
+  defp parse_overrides(map, file, known_subjects, known_requirements, findings) do
     known_subjects = known_subject_set(known_subjects)
+    known_requirements = known_requirement_set(known_requirements)
 
     case Map.get(map, "overrides") do
       nil ->
@@ -368,7 +384,7 @@ defmodule Ancora.Config do
 
       list when is_list(list) ->
         Enum.reduce(list, {[], findings}, fn entry, {applied, diags} ->
-          case parse_override_entry(entry, file, known_subjects) do
+          case parse_override_entry(entry, file, known_subjects, known_requirements) do
             {:ok, override} -> {[override | applied], diags}
             {:error, finding} -> {applied, [finding | diags]}
           end
@@ -389,8 +405,10 @@ defmodule Ancora.Config do
     end
   end
 
-  defp parse_override_entry(entry, file, known_subjects) when is_map(entry) do
+  defp parse_override_entry(entry, file, known_subjects, known_requirements)
+       when is_map(entry) do
     subject = Map.get(entry, "subject")
+    requirement = Map.get(entry, "requirement")
     code = Map.get(entry, "code")
     reason = Map.get(entry, "reason")
     token = Map.get(entry, "severity")
@@ -441,12 +459,22 @@ defmodule Ancora.Config do
            "overrides entry names unknown subject #{subject}"
          )}
 
+      invalid_requirement?(requirement, known_requirements) ->
+        {:error,
+         finding(
+           "config/invalid_value",
+           file,
+           requirement || "requirement",
+           "overrides entry for #{subject} names unknown requirement #{inspect(requirement)}"
+         )}
+
       match?({:ok, _}, decode_severity(token)) ->
         {:ok, severity} = decode_severity(token)
 
         {:ok,
          %Override{
            subject: subject,
+           requirement: requirement,
            code: code,
            severity: severity,
            reason: String.trim(reason)
@@ -463,7 +491,7 @@ defmodule Ancora.Config do
     end
   end
 
-  defp parse_override_entry(entry, file, _known_subjects) do
+  defp parse_override_entry(entry, file, _known_subjects, _known_requirements) do
     {:error,
      finding(
        "config/invalid_value",
@@ -480,8 +508,22 @@ defmodule Ancora.Config do
   defp known_subject_set(%MapSet{} = set), do: set
   defp known_subject_set(known), do: MapSet.new(known)
 
+  defp known_requirement_set(nil), do: nil
+  defp known_requirement_set(%MapSet{} = set), do: set
+  defp known_requirement_set(known), do: MapSet.new(known)
+
   defp unknown_subject?(_subject, nil), do: false
   defp unknown_subject?(subject, %MapSet{} = known), do: not MapSet.member?(known, subject)
+
+  defp invalid_requirement?(nil, _known), do: false
+
+  defp invalid_requirement?(requirement, nil),
+    do: not is_binary(requirement) or requirement == ""
+
+  defp invalid_requirement?(requirement, %MapSet{} = known),
+    do:
+      not is_binary(requirement) or requirement == "" or
+        not MapSet.member?(known, requirement)
 
   # YAML 1.1 parses unquoted `off`/`no`/`false` as boolean false.
   defp decode_severity(false), do: {:ok, :off}

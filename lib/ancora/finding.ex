@@ -11,6 +11,7 @@ defmodule Ancora.Finding do
   defstruct [
     :code,
     :subject,
+    :requirement,
     :file,
     :message,
     :severity,
@@ -24,6 +25,7 @@ defmodule Ancora.Finding do
   @type t :: %__MODULE__{
           code: code(),
           subject: String.t() | nil,
+          requirement: String.t() | nil,
           file: String.t() | nil,
           message: String.t() | nil,
           severity: severity() | nil,
@@ -135,6 +137,7 @@ defmodule Ancora.Finding do
     %__MODULE__{
       code: code,
       subject: Map.get(attrs, :subject),
+      requirement: Map.get(attrs, :requirement),
       file: Map.get(attrs, :file),
       message: Map.get(attrs, :message) || message(code, attrs),
       severity: Map.get(attrs, :severity),

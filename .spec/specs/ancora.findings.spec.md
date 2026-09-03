@@ -24,6 +24,7 @@ kind: module
 status: active
 summary: Closed 30-code finding registry, severity precedence, Spec-Ack trailer grammar, and config.yml schema with per-subject overrides.
 decisions:
+  - ancora.decision.field_friction_response
   - ancora.decision.slimmed_governance
 ```
 
@@ -117,11 +118,13 @@ decisions:
   stability: stable
 - id: ancora.findings.per_subject_overrides
   statement: >-
-    Each `overrides:` entry shall carry `subject`, `code`, `severity`, and a
-    required non-empty `reason`. An override shall apply only to findings of
-    that code attributed to that subject. An entry naming an unknown subject
-    or code, or missing `reason`, shall produce `config/invalid_value` and be
-    ignored. `spec.status` shall label overridden subjects `acknowledged`.
+    Each `overrides:` entry shall carry `subject`, `code`, `severity`, a
+    required non-empty `reason`, and an optional `requirement:` that narrows
+    the override to findings attributed to that requirement id. An entry
+    without `requirement:` shall apply subject-wide as before. An entry naming
+    an unknown subject, requirement id, or code, or missing `reason`, shall
+    produce `config/invalid_value` and be ignored. `spec.status` shall label
+    overridden subjects `acknowledged`.
   priority: must
   stability: evolving
 - id: ancora.findings.config_coversioned_note
@@ -256,6 +259,17 @@ decisions:
   then:
     - "A resolves to `info` with `severity_source: :config`"
     - B resolves to `warning`
+  covers:
+    - ancora.findings.per_subject_overrides
+- id: ancora.findings.scenario.override_scoped_to_requirement
+  given:
+    - requirements R1 and R2 of subject A both fire `tags/requirement_untagged`
+    - "an override names subject A, that code, `requirement: R1`, and severity `info`"
+  when:
+    - severities are resolved
+  then:
+    - "R1 resolves to `info` with `severity_source: :config`"
+    - R2 stays at its registry default
   covers:
     - ancora.findings.per_subject_overrides
 - id: ancora.findings.scenario.moduledoc_states_coversioning

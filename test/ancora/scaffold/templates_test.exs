@@ -53,6 +53,7 @@ defmodule Ancora.Scaffold.TemplatesTest do
     assert config.lib_paths == nil
     assert config.findings == []
     assert content =~ "# overrides:"
+    assert content =~ "#     requirement:"
     assert content =~ "#     reason:"
   end
 

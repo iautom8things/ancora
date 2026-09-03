@@ -84,6 +84,7 @@ defmodule Ancora.Severity do
     * `:config` — `%Ancora.Config{}` (severities + per-subject overrides)
     * `:config_severities` — `code => severity` map, used when `:config` is absent
     * `:subject` — subject id, used to match `overrides:`
+    * `:requirement` — requirement id, used to narrow `overrides:`
     * `:trailer_override` — `code => severity` from `Ancora.Trailer`
   """
   @spec resolve_with_source(Finding.code(), keyword() | map(), severity()) ::
@@ -143,6 +144,7 @@ defmodule Ancora.Severity do
   defp resolve_finding(%Finding{} = finding, opts) do
     default = Finding.default_severity(finding.code)
     opts = put(opts, :subject, finding.subject)
+    opts = put(opts, :requirement, finding.requirement)
     {severity, source} = resolve_with_source(finding.code, opts, default)
     %{finding | severity: severity, severity_source: source}
   end
@@ -185,10 +187,11 @@ defmodule Ancora.Severity do
 
   defp config_severity(code, opts) do
     subject = fetch(opts, :subject, nil)
+    requirement = fetch(opts, :requirement, nil)
 
     case fetch(opts, :config, nil) do
       %Config{} = config ->
-        Config.severity_for(config, code, subject)
+        Config.severity_for(config, code, subject, requirement)
 
       _ ->
         sanitized(code, fetch(opts, :config_severities, %{}), :config)

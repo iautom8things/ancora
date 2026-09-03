@@ -60,7 +60,8 @@ decisions:
   statement: >-
     The scaffolded config.yml shall carry the v1 schema with taught
     defaults, guidance on `default_base` for repos whose trunk is not
-    `origin/main`, and one commented `overrides:` example with a reason.
+    `origin/main`, and one commented `overrides:` example with a reason that
+    documents the optional `requirement:` key.
   priority: must
   stability: stable
 - id: ancora.scaffold.no_retired_vocabulary

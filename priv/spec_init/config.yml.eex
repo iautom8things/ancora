@@ -10,6 +10,7 @@ severities: {}
 # A subject-specific override needs a concrete reason.
 # overrides:
 #   - subject: project.core
-#     code: derived/unanchored_subject
+#     requirement: project.core.requirement
+#     code: tags/requirement_untagged
 #     severity: info
-#     reason: Covered by an external integration suite.
+#     reason: Blocked until the upstream API lands.
