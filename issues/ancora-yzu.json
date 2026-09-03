@@ -89,11 +89,15 @@
     {
       "text": "MERGED to main and CI green. Closing the epic.\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl\n\nShipping evidence:\n- PR #1 (base main, head ancora-yzu/spec-anchored-successor) opened and squash-merged by Manuel at 2026-09-03T11:44:15Z as 5d9cb400. Head branch auto-deleted. 37 commits, 175 files.\n- Post-merge CI on main was RED on both matrix legs at the smoke step, and the cause was repo configuration rather than the code: on a push event there is no github.base_ref, so the workflow fell back to github.event.repository.default_branch, which was still 'beadwork' (the orphan ticket-board branch). CI therefore ran 'mix spec.check --base origin/beadwork', diffing the code trunk against an unrelated tree with no common ancestor: changed_files=331, 31 warnings, result=fail. Reproduced locally at 5d9cb400 exactly, and confirmed the counterfactual: --base origin/main gives changed_files=0, result=pass.\n- Fix applied at Manuel's instruction: repo default branch set to main. A re-run of the failed jobs stayed red because GitHub replays the original event payload (default_branch was captured as beadwork at push time); a fresh workflow_dispatch run picked up the new default. Run 33760290081: SUCCESS on both Elixir 1.18.4/OTP 26.2.5 and 1.19.5/OTP 28.3.1.\n- No deploy stage exists: ancora is a hex library and the repo has no publish workflow. 1.0.0 was already published; every commit after it touches scripts/, test/ or .spec/, none of which ship in the hex package. So there is no /monitor-app phase for this epic.\n\nCorrection on the record: during the /ship-it preflight I tested the beadwork-as-base scenario at an earlier commit, got result=pass, and judged it 'pointless work but not a breakage'. That judgement was wrong and the post-merge run is the evidence. The pass I saw depended on the commit range, not on the base being coherent.\n\nAll 34 children closed. Fast-follows carried standalone, not under this epic: ancora-n24, ancora-u38, ancora-gqb, ancora-v1n, plus ancora-11w, ancora-sfu and ancora-p47 filed against the shallow-clone and squash-merge trailer behaviour this ship exposed.",
       "timestamp": "2026-09-03T13:19:50Z"
+    },
+    {
+      "text": "Closed. Fast-follow epic ancora-xla carries everything remaining: 9 new children grouped by seam, plus the 7 standalone tickets re-homed under it (ancora-n24, ancora-u38, ancora-gqb, ancora-v1n, ancora-11w, ancora-sfu, ancora-p47). Full finding-to-child coverage map is in the first comment on ancora-xla.",
+      "timestamp": "2026-09-03T16:14:00Z"
     }
   ],
   "priority": 2,
   "status": "closed",
   "title": "ancora: spec-anchored successor to specled_ex",
   "type": "epic",
-  "updated_at": "2026-09-03T13:19:56Z"
+  "updated_at": "2026-09-03T16:14:00Z"
 }
