@@ -1,8 +1,6 @@
 {
   "assignee": "",
-  "blocked_by": [
-    "ancora-xla.9"
-  ],
+  "blocked_by": [],
   "blocks": [
     "ancora-u38"
   ],
@@ -23,5 +21,5 @@
   "status": "open",
   "title": "Narrow the base-tree materialization and stop the per-binding rework",
   "type": "task",
-  "updated_at": "2026-09-03T17:15:00Z"
+  "updated_at": "2026-09-03T17:15:06Z"
 }
