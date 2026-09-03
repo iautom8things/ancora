@@ -19,6 +19,7 @@ kind: module
 status: active
 summary: spec.init and spec.decision.new scaffolds, template content, ancora README commitments, and the migration checklist.
 decisions:
+  - ancora.decision.field_friction_response
   - ancora.decision.no_execution_no_state
 ```
 
@@ -105,7 +106,9 @@ decisions:
   statement: >-
     `docs/migration.md` shall carry the consumer migration checklist and the
     complete specled_ex-code to ancora-code map, with the registry count
-    matching `Ancora.Finding`.
+    matching `Ancora.Finding`, and shall document the command-gate successor:
+    the tagged ExUnit source-scan pattern with `Ancora.SourceScan`, including
+    the vacuity guard and whole-token matching.
   priority: must
   stability: evolving
 ```
@@ -211,6 +214,8 @@ decisions:
   then:
     - every ancora code it names exists in Ancora.Finding
     - the stated registry count equals the registry size
+    - the command-gate successor section names the vacuity guard and whole-token matching
+    - its `Ancora.SourceScan` template compiles and passes as a test in a fixture project
   covers:
     - ancora.scaffold.migration_doc
 ```

@@ -24,8 +24,35 @@ Ancora version.
 7. Run `mix spec.check --base HEAD` once to fix corpus and tag errors. Then run
    against the trunk base and review every drift, growth, shrink, and uncovered
    file finding.
-8. Remove the compatibility shim only after the repository's CI passes with
+8. Budget for migration-driven load shifts. Retagged suites and added compile
+   work can expose latent consumer flakes even when the migrated behavior is
+   unchanged.
+9. Remove the compatibility shim only after the repository's CI passes with
    Ancora alone.
+
+## Command gates
+
+Replace forbidden-text command gates with a tagged ExUnit test that calls
+`Ancora.SourceScan` in the consumer's test suite. Keep the vacuity guard. An
+empty glob must fail instead of turning a missing directory into a green test.
+Keep whole-token matching too. A plain string such as `System.cmd` should not
+match inside a longer identifier. Use a regular expression when you want
+broader matching.
+
+```elixir source-scan-test
+defmodule MyApp.SourcePolicyTest do
+  use ExUnit.Case, async: true
+
+  @tag spec: "my_app.no_shell_calls"
+  test "production source does not invoke shell commands" do
+    assert Ancora.SourceScan.scan(
+             dirs_or_globs: ["lib", "config/*.exs"],
+             tokens: ["System.cmd", "System.shell", ~r/:os\.cmd/],
+             allowlist: ["lib/my_app/approved_runner.ex"]
+           ) == []
+  end
+end
+```
 
 ## Finding code map
 

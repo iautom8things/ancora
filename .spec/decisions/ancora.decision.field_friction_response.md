@@ -8,6 +8,7 @@ affects:
   - ancora.derive
   - ancora.tasks
   - ancora.scaffold
+  - ancora.source_scan
 ---
 
 # Field Friction Response: Disclosure Codes, Model Unification, and the Ack End-State
