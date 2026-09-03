@@ -68,11 +68,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl\n\nReasoning: VERIFY reported PASS with a passing spec gate and full requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS (2026-09-03 19:45, on the final-attempt delta; the critic reversed its own earlier FAIL after the auditor's addendum). The verifier rebuilt all six auditor mutations in a disposable copy and every one now fails the diff-touched tests with values matching the addendum byte for byte; the byte budget was measured both ways (712,004 passes, 1,789,864 fails) and the pre-delta fixture shown not to bind. The one disclosed seam, the hand-built view model in review_budget_test.exs, was left unwired deliberately by the auditor on the record and the builder side is guarded by review_test.exs:196. No auditor was spawned\nper policy.",
       "timestamp": "2026-09-03T23:56:18Z"
+    },
+    {
+      "text": "REBASED\n\nRebased ancora-gqb/review-size-and-bindings onto epic tip 884588f (ancora-xla/post-ship-hardening). Old head f786af9, new head 9a2d76b. No conflicts.\n\ngit log --oneline 884588f..HEAD\n9a2d76b test: bind review artifact fanout guards\ne5399a1 fix: dedupe watched review diffs\nfd09b14 fix: bound review artifact fanout\n\nSmoke: mix compile --warnings-as-errors clean. mix test: 3 properties, 359 tests, 0 failures (the three expected `fatal: not a git repository` stderr lines from test/support/tmp_git_repo.exs appeared, no failures).\n\nmix spec.check --base 884588f verdict: spec.check result=pass\n\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl",
+      "timestamp": "2026-09-03T23:59:23Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Re-base the review artifact size finding on a contract line that still exists",
   "type": "task",
-  "updated_at": "2026-09-03T23:56:40Z"
+  "updated_at": "2026-09-03T23:59:23Z"
 }
