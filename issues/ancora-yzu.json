@@ -73,11 +73,15 @@
     {
       "text": "MINI-RETRO\nbounces: 23 (12 mechanical, 11 substantive)\nfull_suite_runs: 28\nfinals_gt1: 7\nflake_accepts: 2\nescalations: 5\nlessons_kept/retired: 15/0\nconsole_redeploys: 69/150 triggers\n\nCounter provenance: bounces, full-suite runs, escalations, and redeploys/triggers are the console's epic-level tiles at retro time; finals_gt1 counts the 7 tickets whose completion records show a final-tier count above one (ancora-yzu.1, .18, .22, .23, .24, .25, .26 — most were environment-tier reruns, not code failures); flake_accepts is the spent acceptance cap (2 sightings, investigation filed as ancora-yzu.30). The redeploy/trigger gap is same-turn batching: multiple trigger events arriving in one turn were folded into a single redeploy transaction, each fold named in the console log rows; the only true deferrals were logged failed-publish folds, also on the console. Lessons grew monotonically 1→15; none retired.",
       "timestamp": "2026-09-03T09:04:57Z"
+    },
+    {
+      "text": "ORCHESTRATED\nChildren closed: 34\nBOUNCEs encountered: 23\nUser escalations: 5",
+      "timestamp": "2026-09-03T09:05:41Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "ancora: spec-anchored successor to specled_ex",
   "type": "epic",
-  "updated_at": "2026-09-03T09:04:57Z"
+  "updated_at": "2026-09-03T09:05:41Z"
 }
