@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "ancora-s1o"
+  ],
   "blocks": [
     "ancora-11w"
   ],
@@ -15,5 +17,5 @@
   "status": "open",
   "title": "Route environment failures to the env tier instead of raising",
   "type": "task",
-  "updated_at": "2026-09-03T16:27:14Z"
+  "updated_at": "2026-09-03T17:45:51Z"
 }
