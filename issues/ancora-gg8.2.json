@@ -9,9 +9,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-gg8",
+  "comments": [
+    {
+      "text": "ADVISORY before your final tier: your own diff is the live test of your fix\n\nYour Spec delta edit to .spec/specs/ancora.gate.spec.md changes a governance file with no decision file in the diff. Under the old path-set-only rule that is change/missing_decision; under your implementation it must clear, because the governing ADR already exists at base: add `ancora.decision.field_friction_response` to the `decisions:` frontmatter list of ancora.gate.spec.md (its affects: names ancora.gate back, so the bidirectional check holds). Do NOT add a Spec-Ack trailer and do NOT touch .spec/config.yml or any ADR: if your `mix spec.check --base 9373ff49ea0ce4bbe0069f4961094eee28fc0e81` still reports change/missing_decision on ancora.gate.spec.md, your fix is not working on the real call path and the ticket is not done. A final-tier run red solely on change/missing_decision while you are still wiring the fix does not count against the 2-run cap.\nKeep working; same session tag and log path.",
+      "timestamp": "2026-09-03T22:55:27Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "missing_decision honors governing decisions referenced from spec frontmatter",
   "type": "task",
-  "updated_at": "2026-09-03T22:47:29Z"
+  "updated_at": "2026-09-03T22:55:27Z"
 }
