@@ -141,6 +141,78 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.change_findings"
+  test "an existing bidirectional ADR governs repeated subject spec changes", %{root: root} do
+    init_git_repo(root)
+    write_governed_subject(root, "The sample shall return the initial value.", "sample.subject")
+    commit_all(root, "base")
+
+    write_governed_subject(
+      root,
+      "The sample shall return the first changed value.",
+      "sample.subject"
+    )
+
+    assert {:ok, first_report} = Gate.check(root, base: "HEAD")
+    refute missing_decision?(first_report, ".spec/specs/sample.spec.md")
+
+    commit_all(root, "first governed spec change")
+
+    write_governed_subject(
+      root,
+      "The sample shall return the second changed value.",
+      "sample.subject"
+    )
+
+    assert {:ok, second_report} = Gate.check(root, base: "HEAD")
+    refute missing_decision?(second_report, ".spec/specs/sample.spec.md")
+  end
+
+  @tag spec: "ancora.gate.change_findings"
+  test "a one-way subject decision reference does not provide governance", %{root: root} do
+    init_git_repo(root)
+
+    write_governed_subject(
+      root,
+      "The sample shall return the initial value.",
+      "sample.decision.governance"
+    )
+
+    commit_all(root, "base")
+
+    write_governed_subject(
+      root,
+      "The sample shall return the changed value.",
+      "sample.decision.governance"
+    )
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "change/missing_decision" and
+               finding.file == ".spec/specs/sample.spec.md" and
+               finding.message =~ "decisions: frontmatter" and
+               finding.message =~ "affects: naming the subject back" and
+               finding.message =~ "add or update an ADR"
+           end)
+  end
+
+  @tag spec: "ancora.gate.change_findings"
+  test "requirement and scenario ADR back-references govern their subject" do
+    change_set = %ChangeSet{
+      entries: [%{path: ".spec/specs/sample.spec.md", status: :modified}]
+    }
+
+    for affected_id <- ["sample.subject.works", "sample.subject.scenario.works"] do
+      current = governed_index(affected_id)
+
+      refute Enum.any?(
+               ChangeAnalysis.findings(change_set, %{}, current, current, []),
+               &(&1.code == "change/missing_decision")
+             )
+    end
+  end
+
+  @tag spec: "ancora.gate.change_findings"
   test "change analysis is wired to the production change set" do
     change_set = %ChangeSet{entries: [%{path: "lib/new_thing.ex", status: :added}]}
 
@@ -367,6 +439,49 @@ defmodule Ancora.GateTest do
     })
   end
 
+  defp write_governed_subject(root, statement, affected_id) do
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" => governed_subject_spec(statement),
+      ".spec/decisions/governance.md" => governing_decision(affected_id),
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+  end
+
+  defp missing_decision?(report, path) do
+    Enum.any?(report.all_findings, fn finding ->
+      finding.code == "change/missing_decision" and finding.file == path
+    end)
+  end
+
+  defp governed_index(affected_id) do
+    %{
+      "subjects" => [
+        %{
+          "file" => ".spec/specs/sample.spec.md",
+          "meta" => %{id: "sample.subject", decisions: ["sample.decision.governance"]},
+          "requirements" => [%{id: "sample.subject.works"}],
+          "scenarios" => [%{id: "sample.subject.scenario.works"}]
+        }
+      ],
+      "decisions" => [
+        %{
+          "meta" => %{
+            "id" => "sample.decision.governance",
+            "affects" => [affected_id]
+          }
+        }
+      ]
+    }
+  end
+
   defp mix_file(project) do
     """
     defmodule Sample.MixProject do
@@ -401,6 +516,70 @@ defmodule Ancora.GateTest do
       covers:
         - #{subject}.works
     ```
+    """
+  end
+
+  defp governed_subject_spec(statement) do
+    """
+    # Sample
+
+    ```yaml spec-meta
+    id: sample.subject
+    kind: module
+    status: draft
+    decisions:
+      - sample.decision.governance
+    ```
+
+    ```yaml spec-requirements
+    - id: sample.subject.works
+      statement: #{statement}
+      priority: must
+    ```
+
+    ```yaml spec-scenarios
+    - id: sample.subject.scenario.works
+      given:
+        - a sample
+      when:
+        - its value is read
+      then:
+        - the current value is returned
+      covers:
+        - sample.subject.works
+    ```
+
+    ```yaml spec-verification
+    - kind: tagged_tests
+      covers:
+        - sample.subject.works
+    ```
+    """
+  end
+
+  defp governing_decision(affected_id) do
+    """
+    ---
+    id: sample.decision.governance
+    status: accepted
+    date: 2026-09-03
+    affects:
+      - #{affected_id}
+    ---
+
+    # Sample governance
+
+    ## Context
+
+    The sample contract needs an explicit owner.
+
+    ## Decision
+
+    This ADR governs the sample contract.
+
+    ## Consequences
+
+    Subject changes may cite this ADR.
     """
   end
 end

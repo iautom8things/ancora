@@ -112,7 +112,12 @@ decisions:
     shall produce `change/uncovered_file`. A change to a governance file
     (the set Ancora.PolicyFiles defines: `.spec/specs/**`, `.spec/config.yml`,
     `.spec/AGENTS.md`, `.spec/README.md`) with no `.spec/decisions/` file
-    added or changed in the same diff shall produce `change/missing_decision`.
+    added or changed in the same diff shall produce `change/missing_decision`,
+    except when the changed file is a subject spec whose `decisions:`
+    frontmatter at HEAD names an ADR that resolves in the index and whose
+    `affects:` names the subject or an id within it; governance files without
+    frontmatter (`.spec/config.yml`, `.spec/AGENTS.md`, `.spec/README.md`)
+    shall keep the co-change rule.
   priority: must
   stability: evolving
 - id: ancora.gate.strict_verdict
@@ -277,6 +282,28 @@ decisions:
     - the gate runs
   then:
     - `change/missing_decision` fires
+  covers:
+    - ancora.gate.change_findings
+- id: ancora.gate.scenario.governed_spec_change_clears
+  given:
+    - a changed subject spec whose `decisions:` names an accepted ADR
+    - the ADR's `affects:` names the subject
+    - no decision file changed in the diff
+  when:
+    - the gate runs for each of two successive subject spec changes
+  then:
+    - `change/missing_decision` does not fire for either change
+  covers:
+    - ancora.gate.change_findings
+- id: ancora.gate.scenario.one_way_reference_does_not_clear
+  given:
+    - a changed subject spec whose `decisions:` names an accepted ADR
+    - the ADR's `affects:` does not name the subject or an id within it
+    - no decision file changed in the diff
+  when:
+    - the gate runs
+  then:
+    - `change/missing_decision` fires for the subject spec
   covers:
     - ancora.gate.change_findings
 - id: ancora.gate.scenario.warning_fails_check_not_validate

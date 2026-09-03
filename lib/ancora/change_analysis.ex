@@ -13,7 +13,7 @@ defmodule Ancora.ChangeAnalysis do
     paths = ChangeSet.paths(change_set)
 
     uncovered_findings(paths, footprints) ++
-      missing_decision_findings(paths) ++
+      missing_decision_findings(paths, current) ++
       new_requirement_findings(prior, current, tagged_ids)
   end
 
@@ -34,15 +34,71 @@ defmodule Ancora.ChangeAnalysis do
     end)
   end
 
-  defp missing_decision_findings(paths) do
+  defp missing_decision_findings(paths, current) do
     if PolicyFiles.missing_decision?(paths) do
       paths
       |> Enum.filter(&PolicyFiles.governance?/1)
-      |> Enum.map(&Finding.new(code: "change/missing_decision", file: &1))
+      |> Enum.reject(&governed_subject_spec?(&1, current))
+      |> Enum.map(fn path ->
+        Finding.new(
+          code: "change/missing_decision",
+          file: path,
+          message: missing_decision_message(path)
+        )
+      end)
     else
       []
     end
   end
+
+  defp missing_decision_message(".spec/specs/" <> _rest = path) do
+    "governance file #{path} changed without a decision update; " <>
+      "reference a governing ADR from the spec's decisions: frontmatter with " <>
+      "affects: naming the subject back, or add or update an ADR in the same diff"
+  end
+
+  defp missing_decision_message(path) do
+    "governance file #{path} changed without a decision update; " <>
+      "add or update an ADR in the same diff"
+  end
+
+  defp governed_subject_spec?(path, current) do
+    with subject when is_map(subject) <- Enum.find(subjects(current), &(&1["file"] == path)),
+         subject_id when is_binary(subject_id) <- field(subject["meta"], :id),
+         decision_ids when is_list(decision_ids) <- field(subject["meta"], :decisions) do
+      governed_ids =
+        [subject_id | child_ids(subject, "requirements") ++ child_ids(subject, "scenarios")]
+        |> MapSet.new()
+
+      current
+      |> Map.get("decisions", [])
+      |> Enum.any?(&governs?(&1, decision_ids, governed_ids))
+    else
+      _ -> false
+    end
+  end
+
+  defp governs?(decision, decision_ids, governed_ids) do
+    meta = Map.get(decision, "meta")
+    decision_id = field(meta, "id")
+    affects = field(meta, "affects")
+
+    decision_id in decision_ids and is_list(affects) and
+      Enum.any?(affects, &MapSet.member?(governed_ids, &1))
+  end
+
+  defp child_ids(subject, key) do
+    subject
+    |> Map.get(key, [])
+    |> Enum.map(&field(&1, :id))
+    |> Enum.filter(&is_binary/1)
+  end
+
+  defp field(map, key) when is_map(map) do
+    Map.get(map, key) || Map.get(map, to_string(key))
+  end
+
+  defp field(_map, _key), do: nil
 
   defp new_requirement_findings(prior, current, tagged_ids) do
     prior_ids = requirement_ids(prior)
