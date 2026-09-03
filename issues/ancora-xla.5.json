@@ -9,7 +9,7 @@
   "id": "ancora-xla.5",
   "labels": [
     "critical",
-    "phase:verifying"
+    "phase:merging"
   ],
   "parent": "ancora-xla",
   "comments": [
@@ -54,5 +54,5 @@
   "status": "in_progress",
   "title": "Make the CLI and JSON contracts match what the tasks actually do",
   "type": "task",
-  "updated_at": "2026-09-03T23:45:02Z"
+  "updated_at": "2026-09-03T23:45:05Z"
 }
