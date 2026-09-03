@@ -42,11 +42,15 @@
     {
       "text": "UNBLOCKED + MERGED + REHEARSAL RUNNING. Manuel re-approved the gh write path; workflows PR 51 squash-merged as 15c27d54 at 08:23:45Z (branch auto-deleted, primary ff'd) — the de-shim is LIVE on chapterspot/workflows@main and every consumer's next CI run takes the bare ancora path. Rehearsal vehicle: no open PR had a runnable Spec Check job (all four candidates skip it via asset-path filters), so instead of a synthetic touch the rehearsal does real work — builder-6fs (the sweep's own catch: the dead spec-check-full target at worktree.mk:227/402/405). Worker builder-6fs-1 launched in a fresh Builder worktree @dfed26a5: delete the target, fix the surviving spec-check doc comment, EXECUTE make spec-check, open the PR, and record the Checks / Spec Check job's conclusion through the new collapsed workflow explicitly. When that job runs green, the rehearsal gate item is satisfied by a PR that also pays down the residual.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-09-03T08:27:49Z"
+    },
+    {
+      "text": "REHEARSAL GREEN + BUILDER PR MERGED — builder PR 151 (spec-check-full deletion, builder-6fs) was the first CI run through the collapsed shared workflow: run 33733647748's Checks / Spec Check job ran green with a single checkout and no detector step (verified in the job step list, not just the worker's claim). Worker proved make spec-check by execution (spec.check result=pass) and swept spec-check-full / no-run-commands greps to zero. PR 151 squash-merged 82998d9d at 2026-09-03T08:37:13Z; remote branch auto-deleted; Builder merge-triggered prod deploy run 33734340418 in flight. Rehearsal gate item for the de-shim: SATISFIED.",
+      "timestamp": "2026-09-03T08:38:28Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M10: De-shim, subscriber sync, harness deletion, final sweep",
   "type": "task",
-  "updated_at": "2026-09-03T08:27:49Z"
+  "updated_at": "2026-09-03T08:38:28Z"
 }
