@@ -112,14 +112,16 @@ defmodule Ancora.GateTest do
   @tag spec: "ancora.derive.membership_source_derived"
   @tag spec: "ancora.derive.subject_footprint"
   test "tagged source under a trailing-slash lib path stays covered", %{root: root} do
-    # The drift assertion would fail if the source silently dropped out of its
-    # subject footprint; the refute pins the corresponding coverage result.
+    # Would fail if a trailing-slash lib_path reached ChangeAnalysis untrimmed:
+    # src/other.ex would silently leave uncovered-file scope. The tagged
+    # src/thing.ex half documents the covered case but does not discriminate the fix.
     init_git_repo(root)
 
     write_files(root, %{
       "mix.exs" => mix_file("[app: :sample]"),
       ".spec/config.yml" => "lib_paths:\n  - src/\n",
       ".spec/specs/thing.spec.md" => subject_spec("Thing shall return its value.", "thing.value"),
+      "src/other.ex" => "defmodule Other do\n  def value, do: :base\nend\n",
       "src/thing.ex" => "defmodule Thing do\n  def value, do: :base\nend\n",
       "test/thing_test.exs" => """
       defmodule ThingTest do
@@ -131,7 +133,11 @@ defmodule Ancora.GateTest do
     })
 
     commit_all(root, "base")
-    write_files(root, %{"src/thing.ex" => "defmodule Thing do\n  def value, do: :changed\nend\n"})
+
+    write_files(root, %{
+      "src/other.ex" => "defmodule Other do\n  def value, do: :changed\nend\n",
+      "src/thing.ex" => "defmodule Thing do\n  def value, do: :changed\nend\n"
+    })
 
     assert {:ok, report} = Gate.check(root, base: "HEAD")
 
@@ -141,6 +147,10 @@ defmodule Ancora.GateTest do
 
     refute Enum.any?(report.all_findings, fn finding ->
              finding.code == "change/uncovered_file" and finding.file == "src/thing.ex"
+           end)
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "change/uncovered_file" and finding.file == "src/other.ex"
            end)
   end
 
