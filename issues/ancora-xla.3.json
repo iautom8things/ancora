@@ -12,7 +12,7 @@
   "id": "ancora-xla.3",
   "labels": [
     "critical",
-    "phase:verifying"
+    "phase:auditing"
   ],
   "parent": "ancora-xla",
   "comments": [
@@ -45,5 +45,5 @@
   "status": "in_progress",
   "title": "Narrow the base-tree materialization and stop the per-binding rework",
   "type": "task",
-  "updated_at": "2026-09-03T23:47:14Z"
+  "updated_at": "2026-09-03T23:49:04Z"
 }
