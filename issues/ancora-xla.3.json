@@ -4,6 +4,7 @@
     "ancora-s1o"
   ],
   "blocks": [
+    "ancora-gg8.7",
     "ancora-u38"
   ],
   "created": "2026-09-03T16:11:27Z",
@@ -23,5 +24,5 @@
   "status": "open",
   "title": "Narrow the base-tree materialization and stop the per-binding rework",
   "type": "task",
-  "updated_at": "2026-09-03T19:03:55Z"
+  "updated_at": "2026-09-03T22:03:44Z"
 }
