@@ -35,11 +35,15 @@
     {
       "text": "IMPLEMENTED (worker yzu25-impl-2, relayed) — PR https://github.com/ChapterSpot/atlas/pull/164, BLOCKED ON PERFORMANCE per contract. Migration commit 12b0b52ca (294 paths, 690+/13,624-) + bot VERSION 0.60.1 commit 34944d72a (cannot retrigger CI by design — no approval needed, Atlas convention). CI green: compile, full ExUnit, SAST, scans, quality, Codecov, Greptile, SemVer, and the shim-path Ancora Spec Check; staging image build still in progress at cutoff. Final tier 2 runs: warnings-as-errors compile, 747 tests + 1 property across all 35 changed files 0 failures, contract canary + 26-test SpecDoc suite green, spec.validate 216 subjects / 2,086 requirements 0 errors 0 warnings, spec.check result=pass, retired_construct=0, unknown_key=0. Disposition 1 executed exactly: 53 tags/unknown_requirement resolved against base — 37 retargets + 16 drops, each with ADR history; final gate 0 warnings; retirement sweeps clean (2 multi.kb retargets, 1 mixed pointer to search.keyword, 16 spec.system-only marked no-owner, nothing closed). Topology recorded: in-container via make targets, 141.4ms compose-exec overhead. BENCH (median-of-3, warm): spec.check=37,213ms vs 10,000 budget; prime=31,860 / next=19,984 / status=16,862 / validate=10,348 vs 5,000 — ALL FIVE MISSED, no tuning attempted, PR marked blocked. Per Manuel's recorded carve-out this routes to him as the on-disk-cache re-entry decision. Cold verify proceeds in parallel so the ruling lands on a graded PR. Also carried: two pre-existing CI-excluded external integration suites recorded honestly (scoped CI change is follow-up territory, not this diff).\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-09-03T00:43:48Z"
+    },
+    {
+      "text": "PERF RULING (Manuel, via question prompt, 2026-09-03): MERGE NOW, CACHE FAST-FOLLOW. The bench-gate item is answered by the recorded re-entry path, not waived silently: ancora.decision.no_execution_no_state named the on-disk OID cache as the re-entry option for exactly this miss, and it is now filed as ancora-u38 (sibling to ancora-n24; a future release can carry both, publish = Manuel's 2FA). Atlas ships on ancora 1.0 carrying the honest recorded latency (CI already absorbs the 37s gate green; the dev-loop cost is the debt ancora-u38 owns). Merge proceeds once cold verify + test-critic + the audit gate clear — both graders are running now.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-03T01:38:58Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M9: Atlas migration PR + perf acceptance",
   "type": "task",
-  "updated_at": "2026-09-03T00:43:48Z"
+  "updated_at": "2026-09-03T01:38:58Z"
 }
