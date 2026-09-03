@@ -38,11 +38,15 @@
     {
       "text": "BLOCKED ON THE LOCAL gh WRITE-GUARD (routing to Manuel, not working around it). gh pr merge for workflows PR 51 fails with 'authorization timeout' twice in a row — the same signature that blocked gh pr edit on Engage PR 39 earlier. Direct gh writes worked as recently as the Atlas merge at 02:09Z, so this looks like an expired interactive-approval session (1Password touch or the guard's TTY prompt), not a policy denial. State when blocked: PR 51 is MERGEABLE/CLEAN with wf-2's fixture cleanup landed (5a1d23f) and nothing in the check rollup; the rehearsal plan is zero-edit — rerun Builder's open dependabot PR 150 CI after the merge and confirm the spec-check job takes the new bare path. Once PR 51 merges (Manuel's touch or his call to run it himself), remaining M10 steps are: rehearsal, one cold verify over the combined deliverable, close.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-09-03T02:43:10Z"
+    },
+    {
+      "text": "UNBLOCKED + MERGED + REHEARSAL RUNNING. Manuel re-approved the gh write path; workflows PR 51 squash-merged as 15c27d54 at 08:23:45Z (branch auto-deleted, primary ff'd) — the de-shim is LIVE on chapterspot/workflows@main and every consumer's next CI run takes the bare ancora path. Rehearsal vehicle: no open PR had a runnable Spec Check job (all four candidates skip it via asset-path filters), so instead of a synthetic touch the rehearsal does real work — builder-6fs (the sweep's own catch: the dead spec-check-full target at worktree.mk:227/402/405). Worker builder-6fs-1 launched in a fresh Builder worktree @dfed26a5: delete the target, fix the surviving spec-check doc comment, EXECUTE make spec-check, open the PR, and record the Checks / Spec Check job's conclusion through the new collapsed workflow explicitly. When that job runs green, the rehearsal gate item is satisfied by a PR that also pays down the residual.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-03T08:27:49Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M10: De-shim, subscriber sync, harness deletion, final sweep",
   "type": "task",
-  "updated_at": "2026-09-03T02:43:10Z"
+  "updated_at": "2026-09-03T08:27:49Z"
 }
