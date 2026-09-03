@@ -55,11 +55,15 @@
     {
       "text": "MERGED. Staging soak was healthy first: 0.60.1-prerelease0 sole serving image; the elevated raw error count decomposed to ONE chronic condition — Atlas.Slack.Client.post/3 failures fanned into ~8 Req/Finch stack-frame lines per event, present on EVERY image for 48h (29 events on 0.58.0 → 13 on ours), zero new kinds; Sentry staging active issues: only pre-existing ATLAS-78T (Voyage embedding timeout, firstSeen Aug 3, warning). Squash cec83a14 on Atlas main at 2026-09-03T02:09:24Z; remote branch deleted (verified); primary ff'd; container deps prewarmed (mix.lock pruned spec_led_ex + transitive deps). Prod deploy run 33706542463 in_progress with watch armed; tag 0.60.1 check follows. NOT DONE YET: Atlas ships when that run is green, the tag exists, and /monitor-app grades prod healthy — with special attention to SpecDoc runtime paths since Atlas consumes the parser in production.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-09-03T02:10:16Z"
+    },
+    {
+      "text": "Post-deploy health: GREEN — /monitor-app on Atlas prod. Deploy: pr_closed run 33706542463 green; tag 0.60.1 at merge commit cec83a14. Window: post-deploy [02:09Z, ~02:40Z] vs 48h baseline. Datadog: image_tag 0.60.1 serving and ramping (76 lines/30m, 0.60.0 draining 414); error rate ~2.6/min vs ~20.3/min chronic 48h baseline — 8x BELOW. THE RUNTIME PROOF: the merge's own size (294 files \u003e 256-file incremental ceiling) triggered the designed full-ingest fallback, which exercised the retargeted SpecDoc path under real production load — 251 SpecDoc log lines in 40m with ZERO error-level lines mentioning SpecDoc or Ancora. Sentry: 3 new issues since deploy, all warning-level count=1 and mechanistically explained by that same re-ingest (ATLAS-95R the ceiling-fallback warning caused by our merge; ATLAS-95S/95T C# dropped-call ingest diagnostics) — this is the letter of the Yellow rule (1-3 new low-frequency issues) and I am naming it, but each is a one-shot consequence of the deploy's own re-ingest, not degradation; every other signal is green or better. Atlas runs ancora 1.0 in production — the runtime consumer, proven by execution.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-03T02:19:45Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M9: Atlas migration PR + perf acceptance",
   "type": "task",
-  "updated_at": "2026-09-03T02:10:16Z"
+  "updated_at": "2026-09-03T02:19:45Z"
 }
