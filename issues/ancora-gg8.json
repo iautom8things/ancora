@@ -41,11 +41,15 @@
     {
       "text": "LESSONS\n- [untested-clause] Before writing a \"Would fail if\" line, run the test against the pre-fix production code (restore the base lib files in a scratch copy); a test that stays green with the bug present is not load-bearing. (from ancora-ufm, ancora-gg8.3)\n- [untested-clause] For scanner, filter, or path-matching code, plant one fixture item reachable only through the branch under test (a glob-only file, a trailing-boundary line, a deleted module) so every clause has its own discriminator; a shared fixture proves only the widest branch. (from ancora-gg8.3, ancora-ufm)\n- [stale-spec] When a ticket scenario turns out to be true before the fix, rewrite the scenario to the real symptom in the same diff instead of tagging a test to the non-discriminating wording. (from ancora-ufm)",
       "timestamp": "2026-09-03T23:17:06Z"
+    },
+    {
+      "text": "LESSONS\n- [untested-clause] Before writing a \"Would fail if\" line, run the test against the pre-fix production code (restore the base lib files in a scratch copy); a test that stays green with the bug present is not load-bearing. (from ancora-ufm, ancora-gg8.3)\n- [untested-clause] For scanner, filter, or path-matching code, plant one fixture item reachable only through the branch under test (a glob-only file, a trailing-boundary line, a deleted module) so every clause has its own discriminator; a shared fixture proves only the widest branch. (from ancora-gg8.3, ancora-ufm)\n- [untested-clause] When a requirement is a conjunction (A and B), write one fixture that satisfies B but not A and one that satisfies A but not B; a fixture that sets the same value on both sides proves neither half. (from ancora-gg8.2)\n- [stale-spec] When a ticket scenario turns out to be true before the fix, rewrite the scenario to the real symptom in the same diff instead of tagging a test to the non-discriminating wording. (from ancora-ufm)",
+      "timestamp": "2026-09-03T23:24:20Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-03T23:17:06Z"
+  "updated_at": "2026-09-03T23:24:20Z"
 }
