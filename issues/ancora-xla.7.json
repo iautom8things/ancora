@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T16:13:11Z",
+  "description": "Advances: ancora.gate\\n\\nSeverity: Medium (calibrated). Consolidated findings F14, F49, F53, F54, F55, F56, F57, F58, F65. Cannot have landed on the shipped branch: these are test-quality changes on code that already merged, and several need new fixtures.\\n\\nThe theme: several tests pass for reasons orthogonal to what they claim, and the two guards that enforce ancora architectural charter are vacuous if their matchers ever break.\\n\\nF14 (the important one) — both static charter guards are of the form assert offenders == [] with NO positive control, so they would stay green forever if their AST matchers stopped matching. forbidden_spawner_test also resolves its root at runtime, so a file glob that matches nothing passes silently. Fix: pin the root at compile time with a module attribute, add a non-empty floor to both guards so an empty candidate set fails, and give each detector a positive control asserting it fires on a known offender before the allowlist excludes it.\\nF65 — related and worth doing in the same pass: the no-execution guarantee rests on all eight mix tasks declaring the deps.loadpaths requirement, which keeps the target build off the code path, and NOTHING tests that. Changing one task to compile would weaken the charter with no failing test. Add a static test asserting every mix task declares exactly that requirement, in the style of the existing guards.\\nF49 — scope the exactly-eight-tasks comparison to Application.spec(:ancora, :modules) so the no-task-under-any-other-name clause is actually asserted.\\nF54 — replace the is_function/2 tautology with Code.ensure_loaded!/1 plus function_exported?/3, matching the three siblings in the same directory. As written it passes with the function deleted.\\nF55 — anchor the review grouping assertions with the String.split technique the same file already uses at line 112, or rename the test to what it actually covers: today it asserts on a hand-built view model rather than the grouping code.\\nF56 — give spec_next_test a fixture project and --root, and assert a specific classification rather than whatever the working tree happens to hold.\\nF57 — add test/ancora_test.exs covering Ancora.validate/2 directly: one warning-level finding, fail false without strict and fail true with it, plus the checked counts. It has an external caller and no direct test.\\nF53 — assert growth and shrink suppression under acknowledgment, and the never-raise guard, under the ancora.gate.acknowledgment_clears tag.\\nF58 — delete the six dead moduletag tmp_dir lines.\\n\\nDeliberately dropped by the review, do not relitigate: a style sweep over assertion failure messages that do not name what broke, with no defect behind it.",
+  "id": "ancora-xla.7",
+  "labels": [],
+  "parent": "ancora-xla",
+  "priority": 2,
+  "status": "open",
+  "title": "Give the static guards and thin tests real teeth",
+  "type": "task",
+  "updated_at": "2026-09-03T16:13:11Z"
+}
