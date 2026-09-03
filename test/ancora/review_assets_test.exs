@@ -29,12 +29,19 @@ defmodule Ancora.ReviewAssetsTest do
     spec = File.read!(Path.join(root, ".spec/specs/ancora.review.spec.md"))
 
     assert notice =~ "PrismJS 1.29.0"
-    assert notice =~ "Core Prism supplies markup, css, and javascript."
-    assert spec =~ "Core Prism supplies markup,\n    css, and javascript."
 
-    [_, notice_grammars] = Regex.run(~r/support only ([^.]+)\./, notice)
+    grammars =
+      for file <- files, String.starts_with?(file, "prism-") do
+        file |> String.replace_prefix("prism-", "") |> String.replace_suffix(".min.js", "")
+      end
+
+    # javascript and clike come from core prism.min.js, which has no component file.
+    expected = Enum.sort(grammars ++ ~w(javascript clike))
+
+    [_, notice_grammars] = Regex.run(~r/trimmed to ([^.]+)\./, notice)
     [_, spec_grammars] = Regex.run(~r/trimmed to ([^.]+)\./, spec)
-    assert normalize_grammar_list(notice_grammars) == normalize_grammar_list(spec_grammars)
+    assert Enum.sort(normalize_grammar_list(notice_grammars)) == expected
+    assert Enum.sort(normalize_grammar_list(spec_grammars)) == expected
 
     assert files ==
              Enum.sort(

@@ -20,8 +20,8 @@ reader merged stderr into successful blob output, unlike the batch reader.
 
 ## Decision
 
-Tests pin all ten Prism asset digests and compare the grammar ownership in
-NOTICE with the review requirement. `Ancora.Init` evaluates AGENTS.md.eex and
+Tests pin all ten Prism asset digests and derive the vendored grammar list from
+the asset filenames and pin both NOTICE and the review requirement to it. `Ancora.Init` evaluates AGENTS.md.eex and
 copies the other five markdown and YAML templates byte-for-byte. The migration
 table publishes each finding's registry default, and the no-port `git show`
 keeps stderr out of returned blob bytes.

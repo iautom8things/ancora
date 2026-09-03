@@ -93,7 +93,5 @@ Ported modules
 
 PrismJS 1.29.0
   Copyright (c) 2012 Lea Verou, MIT licensed. Vendored for syntax
-  highlighting. Core Prism supplies markup, css, and javascript. The seven
-  component files are css, diff, elixir, erlang, json, markdown, and yaml;
-  together the vendored files support only elixir, erlang, diff, yaml,
-  markdown, json, markup, css, and javascript. https://prismjs.com/
+  highlighting with the grammar set trimmed to elixir, erlang, diff, yaml,
+  markdown, json, markup, css, javascript, and clike. https://prismjs.com/
