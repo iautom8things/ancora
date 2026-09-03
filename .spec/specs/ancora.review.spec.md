@@ -34,7 +34,9 @@ decisions:
     shall link Overview, Decisions changed, affected subjects, Outside the
     spec system, All files, and Spec health. Each subject shall offer exactly
     three pivots: Spec, Code, and Decisions. No Coverage pivot, triangle
-    diagram, or verification-strength chrome shall render.
+    diagram, verification-strength chrome, or incomplete ARIA tab semantics
+    shall render. The document title shall include the head ref, the overview
+    shall include its generation timestamp, and long code shall wrap.
   priority: must
   stability: evolving
 - id: ancora.review.view_model_builder
@@ -53,7 +55,9 @@ decisions:
     `M.f/a`, a drift or acknowledged badge, the changed file's diff, and a
     defining-file link), supporting changes (remaining changed source-file
     diffs), and test changes (tagged-test diffs plus growth and shrink
-    bindings listed as added and removed).
+    bindings listed as added and removed). Watched badges shall use the badge
+    value as their CSS class. Diff code shall remain outside Prism highlighting,
+    preserve authored per-line spans, and apply review CSS after Prism CSS.
   priority: must
   stability: evolving
 - id: ancora.review.findings_inline
@@ -61,7 +65,8 @@ decisions:
     Each subject card shall carry this change's `derived/*` findings as
     badges with expandable detail, and the page shall render a verdict chip
     reflecting the gate outcome and a triage panel listing findings by
-    severity.
+    severity. Each finding summary shall display its severity, file, and a
+    visible marker so colour is not the only severity indicator.
   priority: must
   stability: evolving
 - id: ancora.review.findings_delta_without_store
@@ -139,6 +144,9 @@ decisions:
     - the verdict chip shows pass
     - the left-rail links and triage panel are present
     - the three pivots are present and no Coverage pivot exists
+    - the title names the head ref and the overview names the generation timestamp
+    - the pivot controls do not claim an incomplete ARIA tab contract
+    - long code can wrap
   covers:
     - ancora.review.views
     - ancora.review.findings_inline
@@ -151,6 +159,8 @@ decisions:
   then:
     - a card under watched interface names `Billing.next/1` with a drift badge and the hunk
     - the subject card carries a `derived/drift` badge
+    - Prism does not rewrite the authored add and delete spans in the browser
+    - only direct diff line spans render as blocks and review CSS wins over Prism CSS
   covers:
     - ancora.review.view_model_builder
     - ancora.review.code_pivot_grouping
@@ -175,6 +185,7 @@ decisions:
     - Ancora.Review.build/2 builds the view
   then:
     - watched interface contains a `Billing.next/1` card with an acknowledged badge
+    - the badge's CSS class is acknowledged rather than error
   covers:
     - ancora.review.view_model_builder
     - ancora.review.code_pivot_grouping

@@ -28,7 +28,11 @@ The contract follows the boundaries in the shipped implementation.
 `Mix.Tasks.Spec.Review.run/1` writes that document and prints the CI metadata.
 The Code pivot describes full changed-file diffs for watched cards and the
 remaining changed source files as supporting changes. The artifact remains a
-render target and no review state persists between runs.
+render target and no review state persists between runs. Authored diff-line
+markup remains outside Prism highlighting so scripts cannot replace its add,
+delete, and hunk spans. The artifact also exposes finding severity in text and
+with a visible marker, names the finding file, and avoids claiming ARIA tab
+semantics that its pivot controls do not implement.
 
 ## Consequences
 
@@ -36,4 +40,5 @@ Tagged tests anchor each public entry point to a falsifiable requirement and
 scenario. Future changes to these boundaries require a matching review-subject
 edit. Watched cards can repeat context outside the changed clause, and a
 subject's supporting section can contain source files outside that subject's
-derived bindings.
+derived bindings. Prism CSS loads before the artifact's CSS so the artifact
+controls diff presentation in both colour schemes.

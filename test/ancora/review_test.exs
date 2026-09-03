@@ -16,6 +16,8 @@ defmodule Ancora.ReviewTest do
     html = view |> Html.render() |> IO.iodata_to_binary()
 
     assert html =~ "class=\"chip pass\""
+    assert html =~ "<title>Spec review abc123</title>"
+    assert html =~ "generated_at=2026-09-03T18:00:00Z"
     assert html =~ "disableWorkerMessageHandler"
     assert html =~ "code[class*=language-]"
     assert html =~ "Overview"
@@ -28,9 +30,48 @@ defmodule Ancora.ReviewTest do
     assert html =~ ">Decisions</button>"
     assert html =~ "derived/drift"
     assert html =~ "Triage"
+    refute html =~ "role=\"tablist\""
     refute html =~ "Coverage"
     refute html =~ "triangle"
     refute html =~ "strength"
+  end
+
+  @tag spec: "ancora.review.code_pivot_grouping"
+  test "keeps authored diff spans outside Prism and lets review CSS win" do
+    html = view(:pass, finding("derived/drift", "billing", "lib/billing.ex", "changed"))
+    html = html |> Html.render() |> IO.iodata_to_binary()
+
+    assert html =~ "<pre class=\"diff\"><code><span class=\"add\">+def next(value)</span>"
+    refute html =~ "class=\"language-diff\""
+    assert html =~ ".diff > code > span{display:block}"
+    assert html =~ "code{overflow-wrap:anywhere}"
+
+    {prism_css_position, _length} = :binary.match(html, "pre[class*=language-]")
+    {review_css_position, _length} = :binary.match(html, ":root{color-scheme:light dark")
+    assert prism_css_position < review_css_position
+  end
+
+  @tag spec: "ancora.review.findings_inline"
+  test "finding summaries name severity and file with a non-colour marker" do
+    findings = [
+      finding("derived/drift", "billing", "lib/error.ex", "error", :error),
+      finding("derived/growth", "billing", "test/warning.exs", "warning", :warning),
+      finding("derived/shrink", "billing", nil, "info", :info)
+    ]
+
+    view = view(:fail, hd(findings))
+    [subject] = view.subjects
+    html = %{view | subjects: [%{subject | findings: findings}]} |> Html.render()
+    html = IO.iodata_to_binary(html)
+
+    assert html =~
+             "<span class=\"severity-marker\" aria-hidden=\"true\">!</span><span class=\"severity-label\">error</span> <code>lib/error.ex</code>"
+
+    assert html =~
+             "<span class=\"severity-marker\" aria-hidden=\"true\">~</span><span class=\"severity-label\">warning</span> <code>test/warning.exs</code>"
+
+    assert html =~
+             "<span class=\"severity-marker\" aria-hidden=\"true\">i</span><span class=\"severity-label\">info</span> <code>unknown file</code>"
   end
 
   @tag spec: "ancora.review.code_pivot_grouping"
@@ -147,6 +188,9 @@ defmodule Ancora.ReviewTest do
 
     assert [%{binding: "Billing.next/1", badge: :acknowledged}] =
              subject.code.watched_interface
+
+    html = built |> Html.render() |> IO.iodata_to_binary()
+    assert html =~ "class=\"badge acknowledged\">acknowledged</span>"
   end
 
   defp view(verdict, finding) do
@@ -179,7 +223,13 @@ defmodule Ancora.ReviewTest do
     delta = FindingsDelta.classify([], [finding])
 
     %{
-      meta: %{base_ref: "main", head_ref: "abc123", affected_subjects: 1, findings: 1},
+      meta: %{
+        base_ref: "main",
+        head_ref: "abc123",
+        generated_at: ~U[2026-09-03 18:00:00Z],
+        affected_subjects: 1,
+        findings: 1
+      },
       verdict: verdict,
       findings_delta: delta,
       triage: %{error: [finding]},
@@ -191,13 +241,13 @@ defmodule Ancora.ReviewTest do
     }
   end
 
-  defp finding(code, subject, file, message) do
+  defp finding(code, subject, file, message, severity \\ :error) do
     %Finding{
       code: code,
       subject: subject,
       file: file,
       message: message,
-      severity: :error,
+      severity: severity,
       severity_source: :default
     }
   end
