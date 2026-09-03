@@ -66,6 +66,8 @@ defmodule Ancora.BaseView do
       entries
       |> Enum.filter(&(&1.type == "blob"))
       |> Enum.reduce_while({:ok, %{}}, fn entry, {:ok, acc} ->
+        # Traversal safety depends on read_blob resolving through rev:path.
+        # Git rejects tree entries containing `..` before this code writes them.
         case Git.read_blob(ctx, entry.path) do
           {:ok, payload} ->
             {:cont, {:ok, Map.put(acc, entry.path, payload)}}

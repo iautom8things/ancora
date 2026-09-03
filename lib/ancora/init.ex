@@ -2,12 +2,12 @@ defmodule Ancora.Init do
   @moduledoc false
 
   @templates [
-    {"AGENTS.md.eex", "AGENTS.md"},
-    {"agents/SKILL.md.eex", "agents/SKILL.md"},
-    {"README.md.eex", "README.md"},
-    {"config.yml.eex", "config.yml"},
-    {"decisions/README.md.eex", "decisions/README.md"},
-    {"specs/project.core.spec.md.eex", "specs/project.core.spec.md"}
+    {"AGENTS.md.eex", "AGENTS.md", :eex},
+    {"agents/SKILL.md", "agents/SKILL.md", :copy},
+    {"README.md", "README.md", :copy},
+    {"config.yml", "config.yml", :copy},
+    {"decisions/README.md", "decisions/README.md", :copy},
+    {"specs/project.core.spec.md", "specs/project.core.spec.md", :copy}
   ]
 
   @spec scaffold(Path.t(), keyword()) :: %{directory: Path.t(), files: [map()]}
@@ -16,21 +16,26 @@ defmodule Ancora.Init do
     force? = Keyword.get(opts, :force, false)
 
     files =
-      Enum.map(@templates, fn {source, destination} ->
+      Enum.map(@templates, fn {source, destination, mode} ->
         path = Path.join(directory, destination)
-        status = write(path, render(source), force?)
+        status = install(source, path, mode, force?)
         %{path: path, status: status}
       end)
 
     %{directory: directory, files: files}
   end
 
-  defp write(path, content, force?) do
+  defp install(source, path, mode, force?) do
     if File.exists?(path) and not force? do
       :kept
     else
       File.mkdir_p!(Path.dirname(path))
-      File.write!(path, content)
+
+      case mode do
+        :copy -> File.cp!(template_path(source), path)
+        :eex -> File.write!(path, render(source))
+      end
+
       :wrote
     end
   end

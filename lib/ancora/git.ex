@@ -23,13 +23,17 @@ defmodule Ancora.Git do
   @spec run(Path.t(), [String.t()], keyword()) :: {:ok, String.t()} | git_error()
   def run(root, args, opts \\ []) when is_binary(root) and is_list(args) do
     env = Keyword.get(opts, :env, [])
+    stderr_to_stdout? = Keyword.get(opts, :stderr_to_stdout, true)
 
     case System.find_executable("git") do
       nil ->
         {:error, :git_executable_not_found}
 
       git ->
-        case System.cmd(git, ["-C", root | args], stderr_to_stdout: true, env: env) do
+        case System.cmd(git, ["-C", root | args],
+               stderr_to_stdout: stderr_to_stdout?,
+               env: env
+             ) do
           {output, 0} -> {:ok, output}
           {output, status} -> {:error, {:git, args, output, status}}
         end
@@ -74,7 +78,7 @@ defmodule Ancora.Git do
 
   def read_blob(%RunContext{batch_port: nil, root: root, base: base}, path)
       when is_binary(path) do
-    run(root, ["show", blob_spec(base, path)])
+    run(root, ["show", blob_spec(base, path)], stderr_to_stdout: false)
   end
 
   @doc false

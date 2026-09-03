@@ -32,7 +32,9 @@ decisions:
     `.spec/README.md`, `.spec/config.yml`, `.spec/decisions/README.md`, and
     one seed subject under `.spec/specs/`, printing `wrote` or `kept` per
     file and `spec.init scaffolded <dir>`. `--force` shall overwrite. No
-    GitHub workflow file shall be scaffolded.
+    GitHub workflow file shall be scaffolded. AGENTS.md.eex shall be the only
+    template evaluated by EEx. The other five templates shall have their
+    destination `.md` or `.yml` names and be copied byte-for-byte.
   priority: must
   stability: stable
 - id: ancora.scaffold.agents_md_content
@@ -122,6 +124,8 @@ decisions:
     - `mix spec.init --root <tmp>` runs
   then:
     - AGENTS.md, agents/SKILL.md, README.md, config.yml, decisions/README.md, and one seed spec exist under `.spec/`
+    - every static markdown or YAML file equals its source template byte-for-byte, including any literal EEx tag
+    - AGENTS.md is the only source template with an `.eex` extension and its read-protocol expression is evaluated
     - no file under `.github/` is written
     - stdout lists each file as `wrote` and ends with `spec.init scaffolded`
   covers:

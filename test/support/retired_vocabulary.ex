@@ -38,12 +38,19 @@ defmodule Ancora.RetiredVocabulary do
   defp old_cell_tokens(row) do
     case String.split(row, "|", trim: true) do
       [old, _current] ->
-        ~r/`([^`]+)`/
-        |> Regex.scan(old, capture: :all_but_first)
-        |> List.flatten()
+        old_tokens(old)
+
+      [old, _current, _default] ->
+        old_tokens(old)
 
       _other ->
         []
     end
+  end
+
+  defp old_tokens(cell) do
+    ~r/`([^`]+)`/
+    |> Regex.scan(cell, capture: :all_but_first)
+    |> List.flatten()
   end
 end

@@ -38,8 +38,9 @@ Ported modules
   (affects_empty and affects_unresolved only)
 - Ancora.AppendOnly — from specled_ex SpecLedEx.AppendOnly
   (two guards only: append/requirement_deleted, append/must_downgraded;
-  authorization is an accepted ADR whose affects: names the requirement
-  or its subject; no change_type, no weakening-class enum)
+  authorization is an accepted ADR whose affects: names the requirement;
+  a subject id alone does not authorize the change; no change_type,
+  no weakening-class enum)
 - Ancora.Overlap — from specled_ex SpecLedEx.Overlap
   (duplicate_covers is identical verification covers lists; must_stem
   collision stays within-subject)
@@ -92,5 +93,7 @@ Ported modules
 
 PrismJS 1.29.0
   Copyright (c) 2012 Lea Verou, MIT licensed. Vendored for syntax
-  highlighting with elixir, erlang, diff, yaml, markdown, json, html,
-  css, and javascript grammars only. https://prismjs.com/
+  highlighting. Core Prism supplies markup, css, and javascript. The seven
+  component files are css, diff, elixir, erlang, json, markdown, and yaml;
+  together the vendored files support only elixir, erlang, diff, yaml,
+  markdown, json, markup, css, and javascript. https://prismjs.com/

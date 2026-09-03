@@ -60,6 +60,8 @@ decisions:
     Ancora.BaseView shall return `{:error, :base_required}` when called with a
     repository path and no base. Ancora.Git.run/3 shall return
     `{:error, :git_executable_not_found}` when git is absent instead of raising.
+    The no-port `git show` fallback shall also keep stderr separate from the
+    returned blob bytes.
   priority: must
   stability: stable
 - id: ancora.derive.memo_is_run_scoped
@@ -276,6 +278,16 @@ decisions:
   then:
     - the port is closed
     - the later fetch returns `{:error, :port_poisoned}` instead of stale bytes
+  covers:
+    - ancora.derive.base_reads_batched
+- id: ancora.derive.scenario.no_port_stderr_isolated
+  given:
+    - a run without a batch port whose successful `git show` emits a warning on stderr
+  when:
+    - Ancora.Git.read_blob/2 reads a committed blob
+  then:
+    - the returned payload contains only the committed blob bytes
+    - the warning remains on stderr
   covers:
     - ancora.derive.base_reads_batched
 - id: ancora.derive.scenario.two_concurrent_runs_do_not_collide

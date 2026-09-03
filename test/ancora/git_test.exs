@@ -1,7 +1,8 @@
 Code.require_file("../support/tmp_git_repo.exs", __DIR__)
+Code.require_file("../support/ancora_case.exs", __DIR__)
 
 defmodule Ancora.GitTest do
-  use ExUnit.Case, async: false
+  use Ancora.TestCase, async: false
 
   alias Ancora.Derive.RunContext
   alias Ancora.Git
@@ -102,6 +103,34 @@ defmodule Ancora.GitTest do
     assert ctx.batch_port == nil
 
     assert {:ok, "show-me\n"} = Git.read_blob(ctx, "lib/a.ex")
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "read_blob keeps successful git show stderr out of blob bytes", %{root: root} do
+    TmpGitRepo.write!(root, %{"lib/a.ex" => "blob-only\n"})
+    TmpGitRepo.commit!(root, "initial")
+
+    alternates = Path.join(root, ".git/objects/info/alternates")
+    File.mkdir_p!(Path.dirname(alternates))
+    File.write!(alternates, "/definitely/missing/objects\n")
+
+    script = """
+    alias Ancora.Derive.RunContext
+    alias Ancora.Git
+    {:ok, ctx} = RunContext.start(#{inspect(root)}, "HEAD", batch: false)
+
+    try do
+      {:ok, payload} = Git.read_blob(ctx, "lib/a.ex")
+      IO.binwrite(payload)
+    after
+      RunContext.stop(ctx)
+    end
+    """
+
+    result = run_mix_subprocess(["run", "-e", script])
+    assert result.status == 0
+    assert result.stdout == "blob-only\n"
+    assert result.stderr =~ "unable to normalize alternate object path"
   end
 
   @tag spec: "ancora.derive.memo_is_run_scoped"

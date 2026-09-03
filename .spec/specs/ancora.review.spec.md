@@ -108,8 +108,11 @@ decisions:
 - id: ancora.review.prism_carried
   statement: >-
     Prism.js shall ship vendored under `priv/spec_review_assets/` with its
-    MIT license header intact and a NOTICE entry, trimmed to the grammars
-    elixir, erlang, diff, yaml, markdown, json, markup, css, and javascript.
+    MIT license header intact and a NOTICE entry. Core Prism supplies markup,
+    css, and javascript. The seven component files are css, diff, elixir,
+    erlang, json, markdown, and yaml; together the vendored files shall remain
+    trimmed to elixir, erlang, diff, yaml, markdown, json, markup, css, and
+    javascript. A standing test shall pin the SHA-256 digest of all ten files.
   priority: must
   stability: stable
 - id: ancora.review.size_budget
@@ -259,11 +262,13 @@ decisions:
     - ancora.review.meta_line_shape
 - id: ancora.review.scenario.prism_license_present
   given:
-    - the vendored Prism.js file
+    - the ten vendored Prism.js files and their reviewed SHA-256 digests
   when:
-    - its header is read
+    - their bytes, the subject requirement, and NOTICE are checked
   then:
     - the MIT license header is present and NOTICE names Prism.js
+    - every digest matches the reviewed value
+    - NOTICE and the requirement assign markup, css, and javascript to core Prism and name the same complete grammar list
   covers:
     - ancora.review.prism_carried
 - id: ancora.review.scenario.line_budget_test

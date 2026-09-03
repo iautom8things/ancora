@@ -25,19 +25,24 @@ defmodule Ancora.Scaffold.DocsTest do
   end
 
   @tag spec: "ancora.scaffold.migration_doc"
-  test "migration map names the complete 30-code registry" do
+  test "migration map names the complete 30-code registry and its defaults" do
     content = File.read!(@migration)
 
     [_, code_map] = Regex.run(~r/## Finding code map\n\n(.*?)\n\nThe old trailer/s, content)
 
-    mapped_codes =
-      ~r/^\|.*?\| `([^`]+)` \|$/m
+    mapped_entries =
+      ~r/^\|.*?\| `([^`]+)` \| `(error|warning|info)` \|$/m
       |> Regex.scan(code_map, capture: :all_but_first)
-      |> List.flatten()
+
+    mapped_codes = Enum.map(mapped_entries, &hd/1)
 
     assert content =~ "Ancora has 30 finding codes"
     assert MapSet.new(mapped_codes) == MapSet.new(Ancora.Finding.codes())
     assert length(mapped_codes) == map_size(Ancora.Finding.registry())
+
+    for [code, severity] <- mapped_entries do
+      assert Atom.to_string(Ancora.Finding.default_severity(code)) == severity
+    end
 
     for step <- 1..8 do
       assert content =~ "#{step}. "
