@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T23:01:00Z",
+  "description": "",
+  "id": "ancora-tth",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Stale backtick pin in scaffold docs test passes for the wrong reason",
+  "type": "bug",
+  "updated_at": "2026-09-03T23:01:00Z"
+}
