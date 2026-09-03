@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T23:00:30Z",
+  "description": "Advances: ancora.derive\n\nFound while orchestrating ancora-gg8 (2026-09-03). None of the eight subject specs under .spec/specs/ declare surface: in spec-meta. After ancora-gg8.5 lands the primary/transitive drift split, subjects without a surface list treat all drift as primary, so ancora own corpus keeps the fan-out gg8.5 is meant to remove: two wave-1 tickets (gg8.2, gg8.4) hit derived/drift on subjects that merely reach a changed function.\n\nDeliverable: for each subject spec, add a surface: list naming the lib files that subject owns (the files whose functions its contract describes). Verify with mix spec.validate, and with mix spec.check --base \u003ctrunk\u003e on a small perf-style refactor fixture showing drift on non-surface subjects lands as derived/drift_transitive at info.\n\nSequence after ancora-gg8.5 merges. Filed standalone, not as a child of ancora-gg8, so the epic does not grow silently.",
+  "id": "ancora-btu",
+  "labels": [],
+  "priority": 2,
+  "status": "open",
+  "title": "Author surface: lists on ancora's own subject specs so the drift split applies to this repo",
+  "type": "task",
+  "updated_at": "2026-09-03T23:00:30Z"
+}
