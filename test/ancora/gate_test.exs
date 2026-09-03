@@ -87,6 +87,48 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.change_findings"
+  test "changed source under configured lib_paths is reported", %{root: root} do
+    # Would fail if uncovered-file analysis used hardcoded source prefixes instead of the
+    # project paths resolved by preflight.
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/config.yml" => "lib_paths:\n  - src\n",
+      ".spec/specs/.keep" => ""
+    })
+
+    commit_all(root, "base")
+    write_files(root, %{"src/thing.ex" => "defmodule Thing do\nend\n"})
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "change/uncovered_file" and finding.file == "src/thing.ex"
+           end)
+  end
+
+  @tag spec: "ancora.gate.change_findings"
+  test "changed files outside lib_paths are not reported", %{root: root} do
+    # Would fail if uncovered-file analysis treated priv assets as source or matched a
+    # directory name without requiring a path boundary.
+    create_clean_repo(root)
+
+    write_files(root, %{
+      "priv/assets/app.js" => "export default {};\n",
+      "library.ex" => "defmodule Library do\nend\n"
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    for path <- ["priv/assets/app.js", "library.ex"] do
+      refute Enum.any?(report.all_findings, fn finding ->
+               finding.code == "change/uncovered_file" and finding.file == path
+             end)
+    end
+  end
+
+  @tag spec: "ancora.gate.change_findings"
   test "governance change without an ADR is reported through the gate", %{root: root} do
     create_clean_repo(root)
     write_config(root, "default_base: main\n")

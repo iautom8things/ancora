@@ -8,6 +8,23 @@ unless Code.ensure_loaded?(Ancora.TestCase) do
         use ExUnit.Case, async: Keyword.get(unquote(options), :async, true)
         import Ancora.TestCase
         import ExUnit.CaptureIO
+
+        setup_all do
+          build_path =
+            Path.join(
+              Path.dirname(Mix.Project.build_path()),
+              "ancora-mix-#{Ancora.TempName.cross_vm_suffix()}"
+            )
+
+          File.rm_rf!(build_path)
+          on_exit(fn -> File.rm_rf!(build_path) end)
+          {:ok, ancora_mix_build_path: build_path}
+        end
+
+        setup %{ancora_mix_build_path: build_path} do
+          Process.put(:ancora_mix_build_path, build_path)
+          :ok
+        end
       end
     end
 
@@ -99,15 +116,13 @@ unless Code.ensure_loaded?(Ancora.TestCase) do
     def run_mix_subprocess(args, opts \\ []) do
       real_mix = System.find_executable("mix")
       suffix = Ancora.TempName.cross_vm_suffix()
-      project_root = File.cwd!()
 
       wrapper_dir = Path.join(System.tmp_dir!(), "ancora-mix-#{suffix}")
 
       stderr_path = Path.join(wrapper_dir, "stderr")
-      build_path = Path.join([project_root, "_build", "ancora-mix-#{suffix}"])
+      build_path = Process.get(:ancora_mix_build_path)
       wrapper = Path.join(wrapper_dir, "mix")
       File.rm_rf!(wrapper_dir)
-      File.rm_rf!(build_path)
       File.mkdir_p!(wrapper_dir)
       seed_build_path!(build_path)
       File.write!(wrapper, "#!/bin/sh\nexec #{real_mix} \"$@\" 2>\"$ANCORA_STDERR_FILE\"\n")
@@ -126,12 +141,29 @@ unless Code.ensure_loaded?(Ancora.TestCase) do
 
       stderr = File.read!(stderr_path)
       File.rm_rf!(wrapper_dir)
-      File.rm_rf!(build_path)
       %{stdout: stdout, stderr: stderr, status: status}
     end
 
     defp seed_build_path!(build_path) do
-      File.cp_r!(Mix.Project.build_path(), build_path)
+      unless File.dir?(build_path) do
+        source = Mix.Project.build_path()
+
+        case :os.type() do
+          {:unix, :darwin} -> clone_build_path!(source, build_path)
+          _other -> File.cp_r!(source, build_path)
+        end
+      end
+    end
+
+    defp clone_build_path!(source, build_path) do
+      case System.cmd("/bin/cp", ["-cR", source, build_path], stderr_to_stdout: true) do
+        {_output, 0} ->
+          :ok
+
+        {_output, _status} ->
+          File.rm_rf!(build_path)
+          File.cp_r!(source, build_path)
+      end
     end
 
     def output_lines(output), do: String.split(output, "\n", trim: true)
