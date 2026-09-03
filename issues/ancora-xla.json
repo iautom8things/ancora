@@ -10,11 +10,15 @@
     {
       "text": "Coverage map — every calibrated finding from the review is accounted for here, so nothing has to be re-derived from the report.\n\nDONE before this epic existed (do not re-open):\n- F1 ancora.review contract pass -\u003e ancora-ayj, merged in 5d9cb400\n- F2, F3 test isolation races -\u003e ancora-rdx, merged in 5d9cb400\n- F20 collapse the four mix-subprocess helpers -\u003e folded into ancora-rdx, done\n\nCARRIED, by child:\n- xla.1: F4, F23 (index meta type + dual-key accessor)\n- xla.2: F8, F22, F24, F25, F26, F27, F42 (env tier and port/exit failure paths)\n- xla.3: F5, F6, F15 (base-tree narrowing, per-binding MapSet, re-parse)\n- xla.4: F7, F33, F34, F59, F60, F61 (review artifact rendering)\n- xla.5: F11, F12, F18, F19, F30, F35, F36, F37, F50, F51, F52 (CLI + JSON contract)\n- xla.6: F21, F39, F40, F41, F43, F44, F45, F46, F47, F48, F63 (dead paths, unfinished substitutions)\n- xla.7: F14, F49, F53, F54, F55, F56, F57, F58, F65 (static guards and thin tests)\n- xla.8: F31, F32, F62, F64, F66 (vendored assets, NOTICE, docs)\n- xla.9: F9, F13, F17 (decisions: ETS memo, spec-exceptions, review extractor)\n- ancora-gqb: F16, F38 (artifact size and duplicate ids; needs a contract line that survives)\n- ancora-p47: F10 (change/uncovered_file must honor lib_paths)\n- ancora-n24, ancora-u38: pre-existing fast-follows from the epic itself\n- ancora-v1n: found by the ancora-ayj auditor, not the review — subject-scoped ADR affects grants blanket append-only authorization\n- ancora-11w, ancora-sfu: filed by Manuel from the shallow-clone and squash-merge trailer behaviour the ship exposed\n\nNOT CARRIED — the 15 findings the review dropped in its skeptic pass. Reasons are in the report; do not relitigate. In brief: the no-op --debug flag, parallelising the three serial parse phases (measured 330ms, changes which parse error wins), the acknowledged-subject full comparison, the seven inert Prism grammars, an assertion-message style sweep, the two parallel git-fixture helpers, three untestable-as-written clauses, a print stylesheet nobody needs, three return shapes on the front door, spec.next lacking --root, the eleven-parameter all_findings, resolver bare maps wanting a struct, Module.concat minting atoms, two unused Severity exports, and cosmetic two-branch conds.\n\nSequencing worth respecting: xla.9 (ETS memo decision) gates part of xla.3, and ancora-gqb needs its contract line before F17 in xla.9 becomes testable. xla.1 and xla.2 are the two with concrete crash paths and are the natural first wave.\n\nReview bar: these are tracked rather than fixed-in-place because the branch they would have landed on is merged and gone — ancora 1.0 shipped as 5d9cb400. Review-bar-override: post-ship follow-ups on a closed epic; there is no open branch to fix them on.",
       "timestamp": "2026-09-03T16:13:49Z"
+    },
+    {
+      "text": "Split from ancora-yzu at delivery. The original shipped as PR #1, squash-merged to main as 5d9cb400 on 2026-09-03, with CI green on both matrix legs (Elixir 1.18.4/OTP 26.2.5 and 1.19.5/OTP 28.3.1).",
+      "timestamp": "2026-09-03T16:14:04Z"
     }
   ],
   "priority": 2,
   "status": "open",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-03T16:13:49Z"
+  "updated_at": "2026-09-03T16:14:04Z"
 }
