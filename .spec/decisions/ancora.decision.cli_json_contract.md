@@ -4,8 +4,6 @@ status: accepted
 date: 2026-09-03
 affects:
   - ancora.gate.preflight_hard_fails
-  - ancora.scaffold.init_writes_templates
-  - ancora.scaffold.decision_new
   - ancora.scaffold.readme_commitments
   - ancora.tasks.gated_emission_paths
   - ancora.tasks.finding_line_format

@@ -32,9 +32,7 @@ decisions:
     `.spec/README.md`, `.spec/config.yml`, `.spec/decisions/README.md`, and
     one seed subject under `.spec/specs/`, printing `wrote` or `kept` per
     file and `spec.init scaffolded <dir>`. `--force` shall overwrite. No
-    GitHub workflow file shall be scaffolded. Success and usage errors shall
-    pass through `Ancora.Output.gated/2`; errors shall print once and exit 1
-    without a verdict.
+    GitHub workflow file shall be scaffolded.
   priority: must
   stability: stable
 - id: ancora.scaffold.agents_md_content
@@ -89,9 +87,7 @@ decisions:
     `.spec/decisions/<id>.md` with frontmatter `id`, `status`, `date`, and
     `affects:` and the three sections Context, Decision, Consequences,
     printing `spec.decision.new wrote <path>`. The template shall not contain
-    `change_type`. Success and usage errors, including an existing path
-    without `--force`, shall pass through `Ancora.Output.gated/2`; errors shall
-    print once and exit 1 without a verdict.
+    `change_type`.
   priority: must
   stability: stable
 - id: ancora.scaffold.readme_commitments
@@ -138,7 +134,6 @@ decisions:
   then:
     - the first run prints `kept` for AGENTS.md and leaves the edit
     - the second run prints `wrote` and replaces it
-    - an invalid option prints one usage message and exits 1 without a verdict
   covers:
     - ancora.scaffold.init_writes_templates
 - id: ancora.scaffold.scenario.agents_needles
@@ -199,7 +194,6 @@ decisions:
   then:
     - the written file has frontmatter id/status/date/affects and three section headings
     - the file does not contain `change_type`
-    - an existing path without `--force` prints once and exits 1 without a verdict
   covers:
     - ancora.scaffold.decision_new
 - id: ancora.scaffold.scenario.readme_needles
