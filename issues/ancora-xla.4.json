@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T16:11:27Z",
+  "description": "Advances: ancora.review\\n\\nSeverity: High (calibrated). Consolidated findings F7, F33, F34, F59, F60, F61. Found by driving two real generated artifacts in headless Chromium, not by reading templates.\\n\\nF7 (the High) — Prism destroys the diff markup at load. lib/ancora/review/html.ex:270-278 emits per-line spans classed add/del/hunk_header, then :346 calls Prism.highlightAll(), which reads textContent and reassigns innerHTML, wiping every authored span (295,052 Prism token spans in the branch artifact, ZERO surviving .add). Prism diff grammar then splits each line into a one-character prefix span plus a line span, and .diff span{display:block} at :354 makes both block-level, so every diff line renders as TWO rows: a lone plus or minus, then the code beneath it, with all add/delete colouring gone. Separately prism.css is concatenated after css() in render/1:14 and its pre[class*=language-] selector outranks .diff, so the authored dark panel never applies (measured computed background rgb(245,242,240), black text) and dark-mode readers get a bright light block on a #171613 page. No string-level test can catch this: the file on disk is correct and the damage happens in the browser.\\nFix: drop class=\"language-diff\" from diff/1 \u003ccode\u003e or exclude .diff from highlightAll(); tighten .diff span{display:block} to .diff \u003e code \u003e span; emit prism_css() BEFORE css(). Add one DOM-level assertion that pre.diff .add still exists after scripts run.\\n\\nF33 — watched_card/1 at :199-202 hardcodes class=\"badge error\", so an :acknowledged badge renders in error red (confirmed on the artifact), contradicting the \"drift or acknowledged badge\" requirement. Derive the class from card.badge.\\nF34 — per-finding severity is colour-only: finding/1 at :283-293 turns the severity atom into a CSS class and never into text, and .error/.warning/.info differ only in colour. The Introduced panel is 39 chips of which 20+ read change/uncovered_file with nothing to tell them apart until each details block is expanded, and finding.file is already in the view model but never rendered. Put the severity word and the file into the summary and add a non-colour marker. Contrast itself measured fine (4.78:1 and 4.97:1 light, 9.38:1 dark), so this is colour-as-sole-carrier, not contrast.\\nF59 — drop role=\"tablist\" (the smaller honest change) or complete the contract with role=tab, aria-selected, aria-controls, role=tabpanel.\\nF60 — render generated_at in the overview and put the head ref into the \u003ctitle\u003e; the data is already in the view model.\\nF61 — add code{overflow-wrap:anywhere}.\\n\\nSibling: the 8x diff duplication and its duplicate-id knock-on are ancora-gqb, which also needs a contract line to exist first.",
+  "id": "ancora-xla.4",
+  "labels": [],
+  "parent": "ancora-xla",
+  "priority": 2,
+  "status": "open",
+  "title": "Fix the review artifact rendering defects",
+  "type": "task",
+  "updated_at": "2026-09-03T16:11:27Z"
+}
