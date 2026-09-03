@@ -22,11 +22,15 @@
     {
       "text": "IMPLEMENTED\nSession: yzu26-wf-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.26/codex-yzu26-wf-1/log\n\nCommit: 21dde22648c56f144cc7711d88c8848496d65aae\nPR: https://github.com/ChapterSpot/workflows/pull/51 — CI: pending (Greptile Review)\nFiles touched: .github/workflows/elixir_checks.yaml, .github/scripts/detect-spec-gate.sh (deleted), .github/scripts/test/detect-spec-gate.bats (deleted)\nShim collapse: bare `mix spec.check`; pull requests run `mix spec.check --base \"origin/${{ github.base_ref }}\"`; non-PR events run bare `mix spec.check`\nfetch-depth: untouched; `fetch-depth: 0`\nInput description: Run ancora's `mix spec.check` gate for repos with a `.spec/` workspace.\ndetect-spec-gate references remaining: 0\nRetired-vocabulary greps: fixed in-scope hits for `SpecLedEx` and `--no-run-commands`; reported out-of-scope hit at .github/scripts/test/fixtures/specled_ex.mix.lock:3 for `spec_led_ex`\nFinal-tier runs: 2\n\nSummary: The reusable workflow now runs ancora's spec gate directly and supplies the base branch only for pull requests. The obsolete detector checkout, script, and test are gone; the consumer-side de-shim rehearsal remains an orchestrator step after merge.",
       "timestamp": "2026-09-03T02:32:07Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: yzu26-replay-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.26/codex-yzu26-replay-1/log\n\nCommit: 522068607d78d21055a01912fad3b70c992b8d11\nFiles touched: 12; 11 scripts/replay files deleted; 1 decision doc updated\nReference grep: scripts/replay hits were confined to the deleted harness; the decision's present-tense reference was made historical; CHANGELOG.md remains true as history; bench/gate_bench.exs remains an explicitly protected historical reference; no code or test references blocked deletion\nbench/gate_bench.exs: untouched confirmation\nVerification tier: cheap tier passed mix compile --warnings-as-errors, mix test --stale with 331 tests and 0 failures, and mix spec.validate; final tier passed compile, no stale tests, spec.validate, and change-scoped spec.check --base 26e3100\nFinal-tier runs: 1\nspec.check: spec.check result=pass\n\nSummary: Deleted the completed M1/M3 replay harness and updated one accepted decision so its consequence remains historically accurate. Kept the live performance benchmark unchanged and verified the deletion against the pinned toolchain and ticket base.",
+      "timestamp": "2026-09-03T02:36:05Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M10: De-shim, subscriber sync, harness deletion, final sweep",
   "type": "task",
-  "updated_at": "2026-09-03T02:32:07Z"
+  "updated_at": "2026-09-03T02:36:05Z"
 }
