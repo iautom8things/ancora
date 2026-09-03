@@ -193,6 +193,55 @@ defmodule Ancora.ReviewTest do
     assert html =~ "class=\"badge acknowledged\">acknowledged</span>"
   end
 
+  @tag spec: "ancora.review.artifact_size"
+  @tag spec: "ancora.review.view_model_builder"
+  @tag spec: "ancora.review.code_pivot_grouping"
+  test "production builder scopes file diffs to their subject and renders one file anchor", %{
+    root: root
+  } do
+    write_two_subject_project(root)
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "lib/fixture/alpha.ex" =>
+        "defmodule Fixture.Alpha do\n  def next(value), do: value + 10\nend\n",
+      "lib/fixture/beta.ex" =>
+        "defmodule Fixture.Beta do\n  def next(value), do: value + 20\nend\n",
+      "lib/fixture/shared.ex" =>
+        "defmodule Fixture.Shared do\n  @changed true\n  def value, do: :shared\nend\n",
+      ".spec/specs/alpha.spec.md" => subject_spec("alpha", "alpha value plus ten"),
+      ".spec/specs/beta.spec.md" => subject_spec("beta", "beta value plus twenty")
+    })
+
+    assert {:ok, built} = Review.build(root, base: "HEAD")
+
+    cards =
+      Map.new(built.subjects, fn subject ->
+        {subject.id, Enum.map(subject.code.watched_interface, & &1.binding)}
+      end)
+
+    assert cards == %{
+             "alpha" => ["Fixture.Alpha.next/1"],
+             "beta" => ["Fixture.Beta.next/1"]
+           }
+
+    html = built |> Html.render() |> IO.iodata_to_binary()
+
+    for {file, changed_line} <- [
+          {"lib/fixture/alpha.ex", "+  def next(value), do: value + 10"},
+          {"lib/fixture/beta.ex", "+  def next(value), do: value + 20"}
+        ] do
+      anchor = "file-" <> String.replace(file, ~r/[^a-zA-Z0-9_-]/, "-")
+
+      assert count_occurrences(html, "id=\"#{anchor}\"") == 1
+      assert count_occurrences(html, "href=\"##{anchor}\"") == 1
+      assert count_occurrences(html, changed_line) == 2
+    end
+
+    assert count_occurrences(html, "id=\"file-lib-fixture-shared-ex\"") == 1
+    assert count_occurrences(html, "+  @changed true") == 2
+  end
+
   defp view(verdict, finding) do
     subject = %{
       id: "billing",
@@ -299,5 +348,81 @@ defmodule Ancora.ReviewTest do
       end
       """
     })
+  end
+
+  defp write_two_subject_project(root) do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => """
+      defmodule Fixture.MixProject do
+        use Mix.Project
+        def project, do: [app: :fixture]
+      end
+      """,
+      ".spec/specs/alpha.spec.md" => subject_spec("alpha", "alpha value"),
+      ".spec/specs/beta.spec.md" => subject_spec("beta", "beta value"),
+      "lib/fixture/alpha.ex" => "defmodule Fixture.Alpha do\n  def next(value), do: value\nend\n",
+      "lib/fixture/beta.ex" => "defmodule Fixture.Beta do\n  def next(value), do: value\nend\n",
+      "lib/fixture/shared.ex" => "defmodule Fixture.Shared do\n  def value, do: :shared\nend\n",
+      "test/alpha_test.exs" => """
+      defmodule Fixture.AlphaTest do
+        use ExUnit.Case
+        alias Fixture.Alpha
+
+        @tag spec: "alpha.next"
+        test "next" do
+          assert Alpha.next(1) in [1, 11]
+          assert Fixture.Shared.value() == :shared
+        end
+      end
+      """,
+      "test/beta_test.exs" => """
+      defmodule Fixture.BetaTest do
+        use ExUnit.Case
+
+        @tag spec: "beta.next"
+        test "next" do
+          assert Fixture.Beta.next(1) in [1, 21]
+          assert Fixture.Shared.value() == :shared
+        end
+      end
+      """
+    })
+  end
+
+  defp subject_spec(id, behavior) do
+    """
+    # #{String.capitalize(id)}
+
+    ```yaml spec-meta
+    id: #{id}
+    kind: module
+    status: draft
+    summary: #{String.capitalize(id)} behavior.
+    ```
+
+    ```yaml spec-requirements
+    - id: #{id}.next
+      statement: #{String.capitalize(id)} shall return the #{behavior}.
+      priority: must
+    ```
+
+    ```yaml spec-scenarios
+    []
+    ```
+
+    ```yaml spec-verification
+    - kind: tagged_tests
+      covers:
+        - #{id}.next
+    ```
+    """
+  end
+
+  defp count_occurrences(haystack, needle) do
+    haystack
+    |> :binary.matches(needle)
+    |> length()
   end
 end

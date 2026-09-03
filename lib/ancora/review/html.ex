@@ -256,12 +256,22 @@ defmodule Ancora.Review.Html do
   defp all_files(changes) do
     [
       "<section id=\"all-files\"><h2>All files</h2>",
-      Enum.map(changes, &file_diff/1),
+      Enum.map(changes, &anchored_file_diff/1),
       "</section>"
     ]
   end
 
   defp file_diff(change) do
+    [
+      "<article class=\"file\"><h4>",
+      escape(change.file),
+      "</h4>",
+      diff(change.lines),
+      "</article>"
+    ]
+  end
+
+  defp anchored_file_diff(change) do
     [
       "<article class=\"file\" id=\"file-",
       anchor(change.file),

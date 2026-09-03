@@ -56,8 +56,10 @@ decisions:
     defining-file link), supporting changes (remaining changed source-file
     diffs), and test changes (tagged-test diffs plus growth and shrink
     bindings listed as added and removed). Watched badges shall use the badge
-    value as their CSS class. Diff code shall remain outside Prism highlighting,
-    preserve authored per-line spans, and apply review CSS after Prism CSS.
+    value as their CSS class, and each defining-file link shall target the one
+    `file-*` anchor for that file in All files. Diff code shall remain outside
+    Prism highlighting, preserve authored per-line spans, and apply review CSS
+    after Prism CSS.
   priority: must
   stability: evolving
 - id: ancora.review.findings_inline
@@ -118,6 +120,14 @@ decisions:
     exceeded, the first cuts are, in order: supporting-changes hunks degrade
     to a file-link list; findings delta degrades to HEAD-side repo-state
     findings only. The verdict chip and triage panel are not cuttable.
+  priority: must
+  stability: evolving
+- id: ancora.review.artifact_size
+  statement: >-
+    The rendered artifact shall include no more than one subject-level
+    file-diff article for each changed file in addition to its All files
+    article, and every `file-*` anchor shall be unique. A standing 200-file
+    fixture shall render to less than 1 MB.
   priority: must
   stability: evolving
 - id: ancora.review.output_flag
@@ -264,6 +274,31 @@ decisions:
     - the total is at most 5000 and no file exceeds 2500
   covers:
     - ancora.review.size_budget
+- id: ancora.review.scenario.artifact_file_fanout
+  given:
+    - a temporary repository with two subjects whose tagged tests call separate source modules
+    - both subjects also call one shared source module
+    - both source modules change after the base ref
+  when:
+    - Ancora.Review.build/2 builds the view and Ancora.Review.Html.render/1 renders it
+  then:
+    - each changed source file has at most one subject-level file-diff article plus its All files article
+    - a changed non-definition line in the shared module appears under only one subject
+    - every `file-*` id occurs exactly once
+    - each watched-card defining-file link targets that unique id
+  covers:
+    - ancora.review.artifact_size
+    - ancora.review.view_model_builder
+    - ancora.review.code_pivot_grouping
+- id: ancora.review.scenario.artifact_byte_budget
+  given:
+    - a review view containing 200 changed files with one short added line each
+  when:
+    - Ancora.Review.Html.render/1 renders the view
+  then:
+    - the artifact is smaller than 1 MB
+  covers:
+    - ancora.review.artifact_size
 - id: ancora.review.scenario.output_path
   given:
     - Mix.Tasks.Spec.Review.run/1 receives `--output tmp/r.html`
@@ -289,5 +324,6 @@ decisions:
     - ancora.review.meta_line_shape
     - ancora.review.prism_carried
     - ancora.review.size_budget
+    - ancora.review.artifact_size
     - ancora.review.output_flag
 ```

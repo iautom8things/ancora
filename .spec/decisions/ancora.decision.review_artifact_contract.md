@@ -23,10 +23,10 @@ affects:
 The review subject was drafted before its implementation landed. It named the
 intended layout, but it did not contract the public builder, classifier,
 markdown, HTML, and Mix task entry points that the tagged tests now call. It
-also described watched cards as clause-level hunks and supporting changes as
-footprint files. The implementation renders the changed file's diff on each
-watched card and treats the remaining changed source files as supporting
-changes.
+also described watched cards as clause-level hunks. The implementation renders
+the changed file's diff on each watched card. Sending every remaining changed
+source file to every affected subject made the artifact grow with the product
+of subjects and files, and repeated its `file-*` anchors.
 
 ## Decision
 
@@ -37,18 +37,22 @@ The contract follows the boundaries in the shipped implementation.
 `Ancora.Review.Html.render/1` returns the self-contained document, and
 `Mix.Tasks.Spec.Review.run/1` writes that document and prints the CI metadata.
 The Code pivot describes full changed-file diffs for watched cards and the
-remaining changed source files as supporting changes. The artifact remains a
-render target and no review state persists between runs. Authored diff-line
-markup remains outside Prism highlighting so scripts cannot replace its add,
-delete, and hunk spans. The artifact also exposes finding severity in text and
-with a visible marker, names the finding file, and avoids claiming ARIA tab
-semantics that its pivot controls do not implement.
+remaining changed files in each subject's derived footprint as supporting
+changes. Each changed file has no more than one subject-level file-diff article
+in addition to its All files article. The All files article owns the file's
+single `file-*` anchor, which watched cards link to. A 200-file standing fixture
+bounds the rendered artifact below 1 MB. The artifact remains a render target
+and no review state persists between runs. Authored diff-line markup remains
+outside Prism highlighting so scripts cannot replace its add, delete, and hunk
+spans. The artifact also exposes finding severity in text and with a visible
+marker, names the finding file, and avoids claiming ARIA tab semantics that its
+pivot controls do not implement.
 
 ## Consequences
 
 Tagged tests anchor each public entry point to a falsifiable requirement and
 scenario. Future changes to these boundaries require a matching review-subject
-edit. Watched cards can repeat context outside the changed clause, and a
-subject's supporting section can contain source files outside that subject's
-derived bindings. Prism CSS loads before the artifact's CSS so the artifact
+edit. Watched cards can repeat context outside the changed clause. Supporting
+changes are limited to the tagged tests and defining files in the subject's
+derived footprint. Prism CSS loads before the artifact's CSS so the artifact
 controls diff presentation in both colour schemes.
