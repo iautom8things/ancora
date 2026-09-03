@@ -13,9 +13,15 @@
     "critical"
   ],
   "parent": "ancora-xla",
+  "comments": [
+    {
+      "text": "RULING part 1 of 2 (Manuel, 2026-09-03):\nF9: Option A, implement the memo. Thread RunContext into Gate.def_indexes/2 and Derive.resolve_file/4, make memo_put/4 and memo_get/2 real on the parse and DefIndex paths, and prove hits with a counter or trace test (not timing). memo_is_run_scoped stays as written; no ADR. The table is still created per run and deleted at run end. Coordinate with ancora-xla.3, whose F15 re-parse fix now goes through this memo.\nF13: Option A, deprecate now and remove in 2.0. Document the spec-exceptions key as deprecated in the parse_file/2 contract, README, and docs/migration.md. Keep parsing it; add nothing to Verifier. Before writing the note, grep the Engage, Builder, and Atlas corpora for an exceptions block and report on this ticket if anything uses it; a live consumer changes the answer.\nF17 ruling follows in the next comment.",
+      "timestamp": "2026-09-03T17:05:51Z"
+    }
+  ],
   "priority": 2,
   "status": "open",
   "title": "Decide the ETS memo, spec-exceptions, and the review binding extractor",
   "type": "task",
-  "updated_at": "2026-09-03T16:27:16Z"
+  "updated_at": "2026-09-03T17:05:51Z"
 }
