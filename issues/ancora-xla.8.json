@@ -9,7 +9,7 @@
   "id": "ancora-xla.8",
   "labels": [
     "critical",
-    "phase:merging"
+    "phase:implementing"
   ],
   "parent": "ancora-xla",
   "comments": [
@@ -74,5 +74,5 @@
   "status": "in_progress",
   "title": "Reconcile the vendored assets, NOTICE, and the docs that describe them",
   "type": "task",
-  "updated_at": "2026-09-03T23:54:49Z"
+  "updated_at": "2026-09-03T23:54:52Z"
 }
