@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T16:10:28Z",
+  "description": "No spec subject (portfolio of follow-ups across all seven ancora subjects)\\n\\nCarries every remaining item from the /ship-it critical review of ancora-yzu (2026-09-03), plus the follow-ups the ship itself exposed. Split out at delivery so ancora-yzu could close on its merge; nothing here blocked the 1.0 merge.\\n\\nSource of record: /Users/mz/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-03/ancora-yzu-spec-anchored-successor/20260903-052243-consolidated.md (review_commit 5220686). Nine personas, 100 raw findings to 81 unique to 66 calibrated after a skeptic pass, 42 severity adjustments, 25 consensus, ZERO critical.\\n\\nThree of the 58 fix-now items are already done: F1 (ancora.review contract pass) and F2/F3 (test isolation races) were the two ship blockers, fixed as ancora-ayj and ancora-rdx and merged in 5d9cb400. F20 (collapse the four mix-subprocess helpers) was folded into ancora-rdx and is also done.\\n\\nChildren group the remaining findings by the seam they touch rather than one ticket per finding, so each child is a coherent unit of work. Every child enumerates its constituent F-numbers with file:line so no finding is lost. The 15 findings the review DROPPED are deliberately not carried; their reasons are in the report and should not be relitigated.",
+  "id": "ancora-xla",
+  "labels": [],
+  "priority": 2,
+  "status": "open",
+  "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
+  "type": "epic",
+  "updated_at": "2026-09-03T16:10:28Z"
+}
