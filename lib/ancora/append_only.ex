@@ -8,8 +8,10 @@ defmodule Ancora.AppendOnly do
       `must` to `should`
 
   Either finding is suppressed only by an ADR with `status: accepted`
-  whose `affects:` names the requirement id or its subject id. There is
-  no weakening-class enum and no `change_type` requirement.
+  whose `affects:` names the requirement id. A subject id may describe an
+  ADR's scope, but it does not authorize deleting or downgrading every
+  requirement in that subject. There is no weakening-class enum and no
+  `change_type` requirement.
 
   `analyze/2` is a total function over `(prior_index, current_index)`.
   Both arguments are index-shaped maps (`"subjects"`, `"decisions"`).
@@ -38,7 +40,7 @@ defmodule Ancora.AppendOnly do
       if Map.has_key?(current_reqs, id) do
         []
       else
-        if authorized?(decisions, id, prior.subject_id) do
+        if authorized?(decisions, id) do
           []
         else
           [requirement_deleted_finding(id, prior)]
@@ -51,8 +53,7 @@ defmodule Ancora.AppendOnly do
     Enum.flat_map(prior_reqs, fn {id, prior} ->
       case Map.fetch(current_reqs, id) do
         {:ok, current} ->
-          if must_to_should?(prior, current) and
-               not authorized?(decisions, id, current.subject_id || prior.subject_id) do
+          if must_to_should?(prior, current) and not authorized?(decisions, id) do
             [must_downgraded_finding(id, prior)]
           else
             []
@@ -68,18 +69,18 @@ defmodule Ancora.AppendOnly do
     prior.priority == "must" and current.priority == "should"
   end
 
-  defp authorized?(decisions, requirement_id, subject_id) do
+  defp authorized?(decisions, requirement_id) do
     Enum.any?(decisions, fn decision ->
       meta = fetch(decision, "meta")
-      accepted?(meta) and names_target?(meta, requirement_id, subject_id)
+      accepted?(meta) and names_requirement?(meta, requirement_id)
     end)
   end
 
   defp accepted?(meta), do: fetch(meta, "status") == "accepted"
 
-  defp names_target?(meta, requirement_id, subject_id) do
+  defp names_requirement?(meta, requirement_id) do
     affects = List.wrap(fetch(meta, "affects") || [])
-    requirement_id in affects or (is_binary(subject_id) and subject_id in affects)
+    requirement_id in affects
   end
 
   defp requirement_deleted_finding(id, prior) do

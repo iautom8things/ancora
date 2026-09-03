@@ -84,4 +84,16 @@ defmodule Ancora.Scaffold.TemplatesTest do
       refute content =~ needle, "#{needle} appears in #{path}"
     end
   end
+
+  @tag spec: "ancora.parsing.append_authorization_is_requirement_scoped"
+  test "decision guidance requires exact requirement ids for append authorization", %{
+    scaffold: scaffold
+  } do
+    content = File.read!(Path.join([scaffold, "decisions", "README.md"]))
+
+    assert content =~ "A subject id documents broad"
+    assert content =~ "scope. To authorize"
+    assert content =~ "name that exact"
+    assert content =~ "requirement id"
+  end
 end

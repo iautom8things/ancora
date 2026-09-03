@@ -2,4 +2,6 @@
 
 Run `mix spec.decision.new <decision-id> --title "Decision title"` to add an
 ADR. Name the affected subject or requirement IDs in `affects:` and complete
-the Context, Decision, and Consequences sections.
+the Context, Decision, and Consequences sections. A subject id documents broad
+scope. To authorize deleting or downgrading a requirement, name that exact
+requirement id.

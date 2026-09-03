@@ -27,6 +27,12 @@ Ancora version.
 8. Remove the compatibility shim only after the repository's CI passes with
    Ancora alone.
 
+Engage and Builder must review accepted ADRs during their next Ancora upgrade.
+An ADR whose `affects:` lists only a subject no longer authorizes deleting or
+downgrading every requirement in that subject. Add each exact requirement id
+that the ADR is meant to authorize. Subject ids remain valid when they only
+document the ADR's broader scope.
+
 ## Finding code map
 
 Ancora has 30 finding codes. The right column is the closed registry. Several

@@ -4,6 +4,16 @@ status: accepted
 date: 2026-09-03
 affects:
   - ancora.review
+  - ancora.review.views
+  - ancora.review.view_model_builder
+  - ancora.review.code_pivot_grouping
+  - ancora.review.findings_inline
+  - ancora.review.findings_delta_without_store
+  - ancora.review.markdown_transform
+  - ancora.review.meta_line_shape
+  - ancora.review.prism_carried
+  - ancora.review.size_budget
+  - ancora.review.output_flag
 ---
 
 # Review artifact contract follows the shipped boundaries

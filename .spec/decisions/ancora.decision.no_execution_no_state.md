@@ -4,10 +4,74 @@ status: accepted
 date: 2026-08-21
 affects:
   - ancora.gate
+  - ancora.gate.preflight_hard_fails
+  - ancora.gate.default_base_no_fallback
+  - ancora.gate.diff_scoped_versus_repo_state
+  - ancora.gate.acknowledgment_clears
+  - ancora.gate.new_subject_self_clears
+  - ancora.gate.two_append_guards
+  - ancora.gate.unanchored_subject
+  - ancora.gate.change_findings
+  - ancora.gate.strict_verdict
+  - ancora.gate.only_git_is_spawned
+  - ancora.gate.no_derived_state
   - ancora.tasks
+  - ancora.tasks.exactly_eight
+  - ancora.tasks.single_stdout_writer
+  - ancora.tasks.verdict_grammar
+  - ancora.tasks.gated_emission_paths
+  - ancora.tasks.no_result_leak
+  - ancora.tasks.stderr_pinning
+  - ancora.tasks.finding_line_format
+  - ancora.tasks.read_protocol_constant
+  - ancora.tasks.check_flags
+  - ancora.tasks.validate_flags
+  - ancora.tasks.report_task_flags
+  - ancora.tasks.next_labels_verbatim
+  - ancora.tasks.status_derived_report
+  - ancora.tasks.prime_loop
+  - ancora.tasks.mix_bootstrap_posture
+  - ancora.tasks.exit_codes
   - ancora.parsing
+  - ancora.parsing.block_grammar_unchanged
+  - ancora.parsing.retired_constructs_tolerated
+  - ancora.parsing.structural_references
+  - ancora.parsing.requirement_unverified
+  - ancora.parsing.adr_grammar
+  - ancora.parsing.tag_discovery
+  - ancora.parsing.overlap_checks
+  - ancora.parsing.stable_public_api
+  - ancora.parsing.consumer_corpora_parse
   - ancora.derive
+  - ancora.derive.change_set_union
+  - ancora.derive.base_reads_batched
+  - ancora.derive.memo_is_run_scoped
+  - ancora.derive.project_info_from_root
+  - ancora.derive.membership_source_derived
+  - ancora.derive.qualified_call_disposition
+  - ancora.derive.unqualified_ladder
+  - ancora.derive.dynamic_calls_unresolved
+  - ancora.derive.resolver_is_pure
+  - ancora.derive.imports_and_aliases
+  - ancora.derive.parse_degrades_to_finding
+  - ancora.derive.clause_extraction
+  - ancora.derive.canonical_is_metadata_strip
+  - ancora.derive.drift_scope_and_dedupe
+  - ancora.derive.growth_and_shrink
+  - ancora.derive.generated_bindings
+  - ancora.derive.acknowledgment_is_substantive
+  - ancora.derive.subject_footprint
+  - ancora.derive.formatter_round_trip
   - ancora.scaffold
+  - ancora.scaffold.init_writes_templates
+  - ancora.scaffold.agents_md_content
+  - ancora.scaffold.skill_md_content
+  - ancora.scaffold.config_template
+  - ancora.scaffold.no_retired_vocabulary
+  - ancora.scaffold.fresh_adopter_round_trip
+  - ancora.scaffold.decision_new
+  - ancora.scaffold.readme_commitments
+  - ancora.scaffold.migration_doc
 ---
 
 # No Execution, No Derived State, No Silent Fallback

@@ -26,6 +26,7 @@ status: active
 summary: "Spec and ADR block grammar, retired-construct tolerance, structural reference checks, and @tag spec: discovery."
 decisions:
   - ancora.decision.no_execution_no_state
+  - ancora.decision.requirement_scoped_append_authorization
 ```
 
 ## Requirements
@@ -78,6 +79,15 @@ decisions:
     `adr/missing_section`; malformed frontmatter shall emit `adr/parse_error`;
     an empty `affects:` shall emit `adr/affects_empty`; an `affects:` entry
     naming an id not in the corpus shall emit `adr/affects_unresolved`.
+  priority: must
+  stability: stable
+- id: ancora.parsing.append_authorization_is_requirement_scoped
+  statement: >-
+    Ancora.AppendOnly shall suppress `append/requirement_deleted` or
+    `append/must_downgraded` only when an accepted ADR's `affects:` list names
+    the exact requirement id. A subject id shall remain valid for affects
+    resolution and documentation, but shall not authorize deleting or
+    downgrading any requirement in that subject.
   priority: must
   stability: stable
 - id: ancora.parsing.tag_discovery
@@ -216,6 +226,24 @@ decisions:
     - `adr/affects_unresolved` fires at severity `error`
   covers:
     - ancora.parsing.adr_grammar
+- id: ancora.parsing.scenario.subject_affect_does_not_authorize_append_change
+  given:
+    - an accepted ADR whose `affects:` lists only a subject id
+  when:
+    - a requirement in that subject is deleted or downgraded from `must` to `should`
+  then:
+    - the corresponding append-only finding fires for the requirement
+  covers:
+    - ancora.parsing.append_authorization_is_requirement_scoped
+- id: ancora.parsing.scenario.requirement_affect_authorizes_append_change
+  given:
+    - an accepted ADR whose `affects:` lists an exact requirement id
+  when:
+    - that requirement is deleted or downgraded from `must` to `should`
+  then:
+    - no append-only finding fires for the requirement
+  covers:
+    - ancora.parsing.append_authorization_is_requirement_scoped
 - id: ancora.parsing.scenario.tag_inside_for_comprehension
   given:
     - "a test file with `for {name, input} <- cases do @tag spec: \"ancora.parsing.tag_discovery\"; test name do ... end end`"
@@ -265,6 +293,7 @@ decisions:
     - ancora.parsing.structural_references
     - ancora.parsing.requirement_unverified
     - ancora.parsing.adr_grammar
+    - ancora.parsing.append_authorization_is_requirement_scoped
     - ancora.parsing.tag_discovery
     - ancora.parsing.overlap_checks
     - ancora.parsing.stable_public_api
