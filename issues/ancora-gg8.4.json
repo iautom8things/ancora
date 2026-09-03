@@ -9,9 +9,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-gg8",
+  "comments": [
+    {
+      "text": "SCOPE_EXPANSION\nSession: gg8.4-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.4/codex-gg8.4-impl-1/log\n\nFinal-tier run 1 passed 22 targeted tests and 96 compile-graph-scoped stale tests, then spec.check failed with six derived/drift errors and one derived/growth warning.\n\nRequired scope additions:\n- .spec/specs/ancora.tasks.spec.md for Ancora.Prime.build/2, Ancora.Next.build/2, and the new Ancora.Next.build/3 call surface\n- .spec/specs/ancora.derive.spec.md for Ancora.Derive.ModuleLocator.build/2\n- .spec/specs/ancora.gate.spec.md for Ancora.Index.build/1\n- .spec/specs/ancora.parsing.spec.md for Ancora.DecisionParser.Affects.validate/2 and Ancora.Index.build/1\n\nThe ticket's Allowed touches exclude all four files, and its Advances field names only ancora.tasks. The worker contract forbids reading the other three subjects or making out-of-scope edits without an orchestrator ruling. No second final-tier run was attempted.",
+      "timestamp": "2026-09-03T22:55:09Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Perf: remove duplicate derivations in prime, status, and decision validation",
   "type": "task",
-  "updated_at": "2026-09-03T22:47:41Z"
+  "updated_at": "2026-09-03T22:55:09Z"
 }
