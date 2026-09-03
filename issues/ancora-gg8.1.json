@@ -15,11 +15,15 @@
     {
       "text": "SCOPE_EXPANSION\nSession: gg8.1-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.1/codex-gg8.1-impl-1/log\nNew ticket: pending orchestrator ruling\nReason: The required scaffold documentation change lives in priv/spec_init/config.yml.eex, but that path is not in Allowed touches. Add that file to this ticket's scope or carve a blocking child that owns the template update.\nOrigin: ancora-gg8.1\nRequired path: priv/spec_init/config.yml.eex",
       "timestamp": "2026-09-03T22:50:01Z"
+    },
+    {
+      "text": "RULING: scope clarified — priv/spec_init/config.yml.eex is now in Allowed touches (no new ticket)\n\nYour deliverable item 5 (\"Config moduledoc + scaffold docs mention the key\") already owns the scaffold template; the Allowed touches list omitted the file by oversight. The ticket description now lists `priv/spec_init/config.yml.eex` under Allowed touches. Edit only the commented override example there so it shows the optional `requirement:` key. Update any scaffold golden under test/** that the template change moves. No child ticket is carved; this expansion consumes no attempt.\n\nContinue with the same session tag (gg8.1-impl-1) and the same log path. Everything else in the ticket stands unchanged: no trailer, no config demotion, spec delta in the same diff, change-scoped final tier with the 2-run cap.",
+      "timestamp": "2026-09-03T22:51:38Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Requirement-scoped config overrides",
   "type": "task",
-  "updated_at": "2026-09-03T22:51:26Z"
+  "updated_at": "2026-09-03T22:51:38Z"
 }
