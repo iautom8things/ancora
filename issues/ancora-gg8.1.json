@@ -23,11 +23,15 @@
     {
       "text": "ADVISORY before your final tier: change/missing_decision on the spec edit\n\nYour Spec delta edit to .spec/specs/ancora.findings.spec.md will trip change/missing_decision (path-set-only rule; the B1 false red this epic fixes in ancora-gg8.2). Handle it now rather than after a red run:\n1. Add `ancora.decision.field_friction_response` to the `decisions:` frontmatter list of ancora.findings.spec.md. That ADR governs this change and its affects: names ancora.findings.\n2. On your stage commit add exactly one trailer: `Spec-Ack: change/missing_decision=info`, with a commit-body line naming the governing ADR. No other Spec-Ack code; no config.yml demotion; no ADR edits.\n3. A final-tier run red solely on change/missing_decision does not count against the 2-run cap.\nKeep working; same session tag and log path.",
       "timestamp": "2026-09-03T22:55:23Z"
+    },
+    {
+      "text": "SCOPE_EXPANSION\nSession: gg8.1-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.1/codex-gg8.1-impl-1/log\nNew ticket: pending orchestrator ruling\nReason: Final-tier run 1 reached spec.check and found non-baseline change/missing_decision on the required findings spec delta plus derived/drift on ancora.scaffold from Config.load/2 and ancora.tasks from Finding.new/1. The current Allowed touches and subject-reading rule do not permit the decision or subject spec changes needed to clear them, and trailers/config demotions are forbidden.\nOrigin: ancora-gg8.1\nRequired ruling: authorize the exact decision and subject spec paths that may be read and edited, or provide another contract-safe clearing route. Final-tier run 2 remains unused.",
+      "timestamp": "2026-09-03T22:58:00Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Requirement-scoped config overrides",
   "type": "task",
-  "updated_at": "2026-09-03T22:55:23Z"
+  "updated_at": "2026-09-03T22:58:00Z"
 }
