@@ -96,6 +96,9 @@ names all three as charter constraints.
   `--output` on gate tasks. `spec.review --output` writes a render target,
   which is not gate input. Every gate input is the working tree plus git
   objects reachable from `--base`.
+- Repeated extraction work is removed with plain parsed-source maps built once
+  per diff side and passed through the comparison call chain. Those maps are
+  neither stored in a process nor retained after the gate returns.
 - No silent base fallback. The default base is `merge-base HEAD
   <default_base>`; an unresolvable base is a `tier=env` hard failure naming
   the three remedies. `--base HEAD` is legal as an explicit empty diff.
@@ -119,8 +122,6 @@ Positive: the gate is pure-source plus git, byte-identical across machines,
 trustworthy when it is green, and honest when it cannot answer. Diff-scoped
 findings need no baseline file to compare against.
 
-Negative: per-run AST work is repeated on every invocation (measured in the
-hundreds of milliseconds at fleet scale, with an on-disk OID cache recorded
-as the re-entry option if the Atlas perf acceptance misses). Adopters with
-no remote must learn `--base HEAD` or set `default_base` on day one; the
-scaffold teaches both.
+Negative: AST work repeats across separate gate invocations. Adopters with no
+remote must learn `--base HEAD` or set `default_base` on day one; the scaffold
+teaches both.

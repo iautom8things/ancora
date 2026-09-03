@@ -7,6 +7,7 @@ defmodule Ancora.GateTest do
   alias Ancora.Gate.Preflight
   alias Ancora.ChangeAnalysis
   alias Ancora.Derive.ChangeSet
+  alias Ancora.Git
 
   @tag spec: "ancora.gate.preflight_hard_fails"
   test "preflight rejects a directory outside git", %{root: root} do
@@ -173,6 +174,89 @@ defmodule Ancora.GateTest do
     assert {:ok, _report} = Gate.check(root, base: "HEAD")
     refute File.exists?(Path.join(root, ".spec/state.json"))
     refute File.exists?(Path.join(root, ".spec/realization_hashes.json"))
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "gate materializes only specs, tests, and configured library paths", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/.keep" => "",
+      "lib/sample.ex" => "defmodule Sample do\nend\n",
+      "test/sample_test.exs" => "defmodule SampleTest do\nend\n",
+      "notes/private.txt" => "must not be materialized\n"
+    })
+
+    commit_all(root, "base")
+
+    included_oids =
+      [".spec/specs/.keep", "lib/sample.ex", "test/sample_test.exs"]
+      |> Enum.map(&String.trim(git!(root, ["rev-parse", "HEAD:#{&1}"])))
+      |> MapSet.new()
+
+    excluded_oid = String.trim(git!(root, ["rev-parse", "HEAD:notes/private.txt"]))
+
+    traced = self()
+    tracer = start_trace_forwarder(traced)
+    :erlang.trace(traced, true, [:call, {:tracer, tracer}])
+    :erlang.trace_pattern({Git, :read_blob, 2}, true, [])
+
+    on_exit(fn ->
+      :erlang.trace_pattern({Git, :read_blob, 2}, false, [])
+      send(tracer, :stop)
+    end)
+
+    assert {:ok, _report} = Gate.check(root, base: "HEAD")
+
+    read_objects = collect_git_reads([]) |> MapSet.new()
+    assert MapSet.subset?(included_oids, read_objects)
+    refute MapSet.member?(read_objects, excluded_oid)
+  end
+
+  @tag spec: "ancora.derive.resolver_is_pure"
+  @tag spec: "ancora.gate.no_derived_state"
+  test "gate removes its materialized base when a resolver callback raises", %{root: root} do
+    init_git_repo(root)
+    write_anchored_subject(root, "The sample shall return the current value.")
+    commit_all(root, "base")
+
+    derive_context = fn _membership, side, _indexes ->
+      {:ok,
+       %{
+         membership: fn _module -> raise "resolver exploded" end,
+         ambient: MapSet.new(),
+         external_exports: MapSet.new(),
+         def_index: fn _module -> :unknown end,
+         findings: [],
+         side: side
+       }}
+    end
+
+    traced = self()
+    tracer = start_trace_forwarder(traced)
+    :erlang.trace(traced, true, [:call, {:tracer, tracer}])
+
+    :erlang.trace_pattern(
+      {Ancora.BaseView, :materialize, 3},
+      [{:_, [], [{:return_trace}]}],
+      []
+    )
+
+    on_exit(fn ->
+      :erlang.trace_pattern({Ancora.BaseView, :materialize, 3}, false, [])
+      send(tracer, :stop)
+    end)
+
+    assert_raise RuntimeError, ~r/gate assembly failed.*resolver_exception/, fn ->
+      Gate.check(root, base: "HEAD", derive_context: derive_context)
+    end
+
+    assert_receive {:forwarded_trace,
+                    {:trace, _pid, :return_from, {Ancora.BaseView, :materialize, 3},
+                     {:ok, temp_root}}}
+
+    refute File.exists?(temp_root)
   end
 
   @tag spec: "ancora.gate.acknowledgment_clears"
@@ -415,5 +499,29 @@ defmodule Ancora.GateTest do
         - #{subject}.works
     ```
     """
+  end
+
+  defp collect_git_reads(objects) do
+    receive do
+      {:forwarded_trace, {:trace, _pid, :call, {Git, :read_blob, [_ctx, object]}}} ->
+        collect_git_reads([object | objects])
+    after
+      0 -> Enum.reverse(objects)
+    end
+  end
+
+  defp start_trace_forwarder(parent) do
+    spawn(fn -> forward_traces(parent) end)
+  end
+
+  defp forward_traces(parent) do
+    receive do
+      :stop ->
+        :ok
+
+      message ->
+        send(parent, {:forwarded_trace, message})
+        forward_traces(parent)
+    end
   end
 end

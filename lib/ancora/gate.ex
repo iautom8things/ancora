@@ -86,7 +86,10 @@ defmodule Ancora.Gate do
 
   defp run(ctx, preflight, opts) do
     with {:ok, change_set} <- ChangeSet.compute(ctx),
-         {:ok, base_root} <- BaseView.materialize(ctx) do
+         {:ok, base_root} <-
+           BaseView.materialize(ctx, nil,
+             pathspecs: [".spec" | preflight.config.test_paths ++ preflight.project.lib_paths]
+           ) do
       result =
         try do
           assemble(ctx, preflight, change_set, base_root, opts)
@@ -121,7 +124,8 @@ defmodule Ancora.Gate do
              head_tags,
              base_tags,
              base_root,
-             subject_ids(current)
+             subject_ids(current),
+             opts
            ) do
       with {:ok, findings} <-
              all_findings(
@@ -159,6 +163,17 @@ defmodule Ancora.Gate do
        ) do
     subjects = subject_ids(current)
 
+    subject_pairs =
+      Enum.map(subjects, fn subject_id ->
+        {
+          Map.get(base_sets, subject_id, empty_set(subject_id, :base)),
+          Map.get(head_sets, subject_id, empty_set(subject_id, :head))
+        }
+      end)
+
+    parsed_sources =
+      Compare.prepare_sources(subject_pairs, locator, change_set, root: preflight.root)
+
     with {:ok, compare} <-
            Enum.reduce_while(subjects, {:ok, []}, fn subject_id, {:ok, acc} ->
              head = Map.get(head_sets, subject_id, empty_set(subject_id, :head))
@@ -170,7 +185,8 @@ defmodule Ancora.Gate do
                    Compare.compare(subject_id, base, head,
                      locator: locator,
                      change_set: change_set,
-                     root: preflight.root
+                     root: preflight.root,
+                     parsed_sources: parsed_sources
                    )
 
                  findings =
@@ -258,7 +274,16 @@ defmodule Ancora.Gate do
     %{config | overrides: valid, findings: config.findings ++ findings}
   end
 
-  defp derive_sets(preflight, change_set, locator, head_tags, base_tags, base_root, subjects) do
+  defp derive_sets(
+         preflight,
+         change_set,
+         locator,
+         head_tags,
+         base_tags,
+         base_root,
+         subjects,
+         opts
+       ) do
     membership = %Membership{
       head: ModuleLocator.modules(locator, :head),
       base: ModuleLocator.modules(locator, :base)
@@ -266,8 +291,8 @@ defmodule Ancora.Gate do
 
     with {:ok, head_indexes} <- def_indexes(locator.head, preflight.root),
          {:ok, base_indexes} <- def_indexes(locator.base, base_root),
-         {:ok, head_ctx} <- Derive.context({:ok, membership}, :head, head_indexes),
-         {:ok, base_ctx} <- Derive.context({:ok, membership}, :base, base_indexes),
+         {:ok, head_ctx} <- derive_context(opts, membership, :head, head_indexes),
+         {:ok, base_ctx} <- derive_context(opts, membership, :base, base_indexes),
          {:ok, head_sources} <- source_map(preflight.root, head_tags.files),
          {:ok, base_sources} <- source_map(base_root, base_tags.files),
          {:ok, head_sets} <-
@@ -284,6 +309,13 @@ defmodule Ancora.Gate do
            ) do
       _ = change_set
       {:ok, head_sets, base_sets}
+    end
+  end
+
+  defp derive_context(opts, membership, side, indexes) do
+    case Keyword.get(opts, :derive_context) do
+      context when is_function(context, 3) -> context.(membership, side, indexes)
+      nil -> Derive.context({:ok, membership}, side, indexes)
     end
   end
 

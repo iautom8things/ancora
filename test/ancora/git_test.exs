@@ -133,6 +133,18 @@ defmodule Ancora.GitTest do
     assert result.stderr =~ "unable to normalize alternate object path"
   end
 
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "read_blob accepts a resolved blob oid in the git show fallback", %{root: root} do
+    TmpGitRepo.write!(root, %{"lib/a.ex" => "show-by-oid\n"})
+    TmpGitRepo.commit!(root, "initial")
+    oid = TmpGitRepo.git!(root, ["rev-parse", "HEAD:lib/a.ex"])
+
+    assert {:ok, ctx} = RunContext.start(root, "HEAD", batch: false)
+    on_exit(fn -> RunContext.stop(ctx) end)
+
+    assert {:ok, "show-by-oid\n"} = Git.read_blob(ctx, String.trim(oid))
+  end
+
   @tag spec: "ancora.derive.memo_is_run_scoped"
   test "memo table is unnamed, public, and gone after stop", %{root: root} do
     TmpGitRepo.write!(root, %{"README.md" => "x\n"})

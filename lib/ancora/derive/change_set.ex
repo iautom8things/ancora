@@ -12,11 +12,12 @@ defmodule Ancora.Derive.ChangeSet do
   @type entry :: %{path: String.t(), status: status()}
   @type blob_read :: {:ok, binary()} | :missing
 
-  defstruct entries: [], prefetched: %{}
+  defstruct entries: [], prefetched: %{}, path_set: MapSet.new()
 
   @type t :: %__MODULE__{
           entries: [entry()],
-          prefetched: %{String.t() => blob_read()}
+          prefetched: %{String.t() => blob_read()},
+          path_set: MapSet.t(String.t())
         }
 
   @doc """
@@ -31,7 +32,12 @@ defmodule Ancora.Derive.ChangeSet do
 
       case prefetch(ctx, entries) do
         {:ok, prefetched} ->
-          {:ok, %__MODULE__{entries: entries, prefetched: prefetched}}
+          {:ok,
+           %__MODULE__{
+             entries: entries,
+             prefetched: prefetched,
+             path_set: entries |> Enum.map(& &1.path) |> MapSet.new()
+           }}
 
         {:error, _} = error ->
           error
@@ -42,6 +48,10 @@ defmodule Ancora.Derive.ChangeSet do
   @doc "Paths in the change set, in entry order."
   @spec paths(t()) :: [String.t()]
   def paths(%__MODULE__{entries: entries}), do: Enum.map(entries, & &1.path)
+
+  @doc "Returns whether `path` belongs to the change set's precomputed path set."
+  @spec changed_path?(t(), String.t()) :: boolean()
+  def changed_path?(%__MODULE__{path_set: path_set}, path), do: MapSet.member?(path_set, path)
 
   defp name_status(%RunContext{root: root, base: base}) do
     with {:ok, output} <- Git.run(root, ["diff", "--name-status", "--no-renames", base]) do

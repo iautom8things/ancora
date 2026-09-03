@@ -62,15 +62,19 @@ decisions:
     `{:error, :git_executable_not_found}` when git is absent instead of raising.
     The no-port `git show` fallback shall also keep stderr separate from the
     returned blob bytes.
+    Ancora.BaseView shall read the blob OID returned by `ls-tree`, not rebuild
+    `<base>:<path>`, and shall create each materialized parent directory once.
+    The gate's base view shall contain only `.spec`, configured `test_paths`,
+    and project `lib_paths`.
   priority: must
   stability: stable
 - id: ancora.derive.memo_is_run_scoped
   statement: >-
-    Per-run memoization (parsed ASTs, DefIndex results, resolver results,
-    the module-to-file map, the ambient table) shall live in an ETS table
-    created per run and passed by reference in Ancora.Derive.RunContext, never
-    a named table, and shall not persist to disk. Stored values shall prefer
-    DefIndex and resolver results over raw ASTs.
+    Within one detector run, each changed defining source file shall be parsed
+    for extraction at most once per diff side. The gate shall build parsed AST
+    maps once across all subjects and pass them to Ancora.Derive.Compare as
+    plain function arguments. Extraction reuse shall not use an in-process
+    memo, registry, cache, or new process, and shall not persist to disk.
   priority: must
   stability: stable
 - id: ancora.derive.project_info_from_root
@@ -185,7 +189,8 @@ decisions:
     defining file is in the change set on at least one side; every other
     binding shall be skipped without parsing its module. A definition watched
     at several arities through defaults shall report at most one
-    `derived/drift` finding.
+    `derived/drift` finding. Ancora.Derive.ChangeSet shall build the changed-path
+    MapSet once in `compute/1`, and every comparison shall reuse that set.
   priority: must
   stability: stable
 - id: ancora.derive.growth_and_shrink
@@ -296,8 +301,29 @@ decisions:
   when:
     - both complete
   then:
-    - neither run observes the other's memo entries
-    - each run's memo table is unnamed and its batch port is unregistered
+    - neither run observes the other's parsed-source arguments
+    - each run's parsed-source maps are plain data and its batch port is unregistered
+  covers:
+    - ancora.derive.memo_is_run_scoped
+- id: ancora.derive.scenario.narrowed_base_materialization
+  given:
+    - a base tree containing files under `.spec`, configured test and library paths, and an unrelated directory
+  when:
+    - the gate materializes its base view
+  then:
+    - only the spec, test, and library files exist in the materialized tree
+    - each blob is read by its `ls-tree` OID
+    - each shared parent directory is created once
+  covers:
+    - ancora.derive.base_reads_batched
+- id: ancora.derive.scenario.extraction_parses_once_per_side
+  given:
+    - two subjects watching several definitions in one changed source file
+  when:
+    - the gate compares both subjects
+  then:
+    - the source file is parsed for extraction once at base and once at HEAD
+    - both comparisons receive the same parsed-source maps as arguments
   covers:
     - ancora.derive.memo_is_run_scoped
 - id: ancora.derive.scenario.dynamic_elixirc_paths_degrade

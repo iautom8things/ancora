@@ -150,7 +150,9 @@ decisions:
     No task shall write derived state to the repository: there shall be no
     `state.json`, no hash baseline, and no `--output` flag on `spec.check` or
     `spec.validate`. Every gate input shall be the working tree plus git
-    objects reachable from `--base`.
+    objects reachable from `--base`. The temporary base view shall contain
+    only `.spec`, configured test paths, and project library paths, and the
+    gate shall remove it after assembly returns or raises.
   priority: must
   stability: stable
 ```
@@ -389,6 +391,15 @@ decisions:
   then:
     - the run fails as a usage error
     - no file is written
+  covers:
+    - ancora.gate.no_derived_state
+- id: ancora.gate.scenario.base_view_cleanup_on_resolver_raise
+  given:
+    - a gate run whose resolver membership callback raises during derivation
+  when:
+    - gate assembly exits through the resolver exception path
+  then:
+    - the exact temporary base-view directory returned by materialization no longer exists
   covers:
     - ancora.gate.no_derived_state
 ```

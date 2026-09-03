@@ -51,10 +51,14 @@ defmodule Ancora.BaseView do
       temp_root = unique_temp()
       File.mkdir_p!(temp_root)
 
-      Enum.each(files, fn {path, content} ->
-        destination = Path.join(temp_root, path)
-        File.mkdir_p!(Path.dirname(destination))
-        File.write!(destination, content)
+      files
+      |> Enum.group_by(fn {path, _content} -> temp_root |> Path.join(path) |> Path.dirname() end)
+      |> Enum.each(fn {directory, directory_files} ->
+        File.mkdir_p!(directory)
+
+        Enum.each(directory_files, fn {path, content} ->
+          File.write!(Path.join(temp_root, path), content)
+        end)
       end)
 
       {:ok, temp_root}
@@ -68,7 +72,7 @@ defmodule Ancora.BaseView do
       |> Enum.reduce_while({:ok, %{}}, fn entry, {:ok, acc} ->
         # Entry paths come from Git verbatim and are not validated here.
         # A tree entry named `..` can escape the materialization root; tracked as ancora-kzw.
-        case Git.read_blob(ctx, entry.path) do
+        case Git.read_blob(ctx, entry.oid) do
           {:ok, payload} ->
             {:cont, {:ok, Map.put(acc, entry.path, payload)}}
 
