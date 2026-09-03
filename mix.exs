@@ -17,7 +17,11 @@ defmodule Ancora.MixProject do
       homepage_url: @source_url,
       docs: [
         main: "readme",
-        extras: ["README.md", "CHANGELOG.md", "LICENSE", "NOTICE", "docs/migration.md"]
+        extras: ["README.md", "CHANGELOG.md", "LICENSE", "NOTICE", "docs/migration.md"],
+        groups_for_modules: [
+          "Public API": [Ancora, Ancora.Parser, Ancora.DecisionParser],
+          Internal: ~r/.*/
+        ]
       ]
     ]
   end

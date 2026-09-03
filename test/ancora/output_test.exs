@@ -283,7 +283,7 @@ defmodule Ancora.OutputTest do
       assert Enum.at(lines, 1) =~ ~r/^\[ERROR\] /
       assert "checked subjects=1 requirements=2 errors=1 warnings=1" in lines
 
-      assert "branch base=origin/main changed_files=3 findings=2 (error=1 warning=1 info=0, info hidden)" in lines
+      assert "branch base=origin/main changed_files=3 findings=2 (total error=1 warning=1 info=0)" in lines
 
       assert "branch impacted_subjects=ancora.tasks" in lines
       assert "branch next=mix spec.check --base HEAD" in lines

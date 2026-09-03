@@ -152,8 +152,60 @@ defmodule Mix.Tasks.Spec.CheckTest do
     output_lines = lines(result.stdout)
     assert List.last(output_lines) =~ "spec.check result=fail tier=branch"
 
-    report = output_lines |> hd() |> Jason.decode!()
+    report = last_parseable_json(result.stdout)
     assert Enum.any?(report["findings"], &(&1["code"] == "derived/growth"))
+  end
+
+  @tag spec: "ancora.tasks.json_report"
+  test "json ok, environment, usage, and branch paths share one versioned shape", %{root: root} do
+    # Would fail if a CLI consumer had to select keys based on the failure path.
+    create_project(root)
+
+    ok = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--json"])
+    env = run_mix_subprocess(["spec.check", "--root", root, "--json"])
+
+    usage =
+      run_mix_subprocess([
+        "spec.check",
+        "--root",
+        root,
+        "--json",
+        "--no-run-commands"
+      ])
+
+    write_anchored_subject(root)
+    commit_all(root, "anchored subject")
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    branch =
+      run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--json"])
+
+    results = [ok, env, usage, branch]
+    reports = Enum.map(results, &last_parseable_json(&1.stdout))
+
+    assert Enum.map(results, & &1.status) == [0, 1, 1, 1]
+    assert Enum.all?(reports, &(&1["version"] == 1))
+
+    expected_keys =
+      MapSet.new(
+        ~w(all_findings branch checked errors fail findings guidance message tier version warnings)
+      )
+
+    assert Enum.all?(reports, &(MapSet.new(Map.keys(&1)) == expected_keys))
+    assert reports |> Enum.map(&Map.keys(&1["checked"])) |> Enum.uniq() |> length() == 1
+    assert reports |> Enum.map(&Map.keys(&1["branch"])) |> Enum.uniq() |> length() == 1
+    assert reports |> Enum.map(&Map.keys(&1["guidance"])) |> Enum.uniq() |> length() == 1
+    assert Enum.at(reports, 0)["message"] == nil
+    assert Enum.at(reports, 1)["message"] =~ "cannot be resolved"
+    assert Enum.at(reports, 2)["message"] =~ "--no-run-commands"
+    assert Enum.at(reports, 3)["message"] == nil
+
+    for result <- results do
+      assert List.last(lines(result.stdout)) =~ ~r/^spec\.check result=/
+    end
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
@@ -174,8 +226,8 @@ defmodule Mix.Tasks.Spec.CheckTest do
     result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--json"])
 
     assert result.status == 1
-    assert [json, verdict] = lines(result.stdout)
-    report = Jason.decode!(json)
+    assert [_json, verdict] = lines(result.stdout)
+    report = last_parseable_json(result.stdout)
     assert report["all_findings"] == []
     assert report["message"] =~ "app: as a literal atom"
     assert verdict == "spec.check result=fail tier=env errors=0 warnings=0"
@@ -368,4 +420,16 @@ defmodule Mix.Tasks.Spec.CheckTest do
   end
 
   defp lines(output), do: String.split(output, "\n", trim: true)
+
+  defp last_parseable_json(output) do
+    output
+    |> lines()
+    |> Enum.reverse()
+    |> Enum.find_value(fn line ->
+      case Jason.decode(line) do
+        {:ok, value} -> value
+        {:error, _error} -> nil
+      end
+    end)
+  end
 end

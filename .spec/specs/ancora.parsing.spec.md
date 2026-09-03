@@ -27,6 +27,7 @@ summary: "Spec and ADR block grammar, retired-construct tolerance, structural re
 decisions:
   - ancora.decision.no_execution_no_state
   - ancora.decision.requirement_scoped_append_authorization
+  - ancora.decision.cli_json_contract
 ```
 
 ## Requirements
@@ -113,11 +114,11 @@ decisions:
   stability: evolving
 - id: ancora.parsing.stable_public_api
   statement: >-
-    `Ancora.Parser.parse_file/2` and `Ancora.DecisionParser.parse_file/2`
-    shall be the only semver-stable public functions: both exported,
-    documented as stable in their moduledocs and in the README, and their
-    return shapes unchanged within a major version. Every other module is
-    internal.
+    `Ancora.Parser.parse_file/2`, `Ancora.DecisionParser.parse_file/2`,
+    `Ancora.check/2`, and `Ancora.validate/2` shall be the only semver-stable
+    public functions: all four exported and documented as stable in their
+    moduledocs and in the README, with their return shapes unchanged within a
+    major version. Every other module and function is internal.
   priority: must
   stability: stable
 - id: ancora.parsing.consumer_corpora_parse
@@ -141,6 +142,16 @@ decisions:
     - the subject id, the three requirement ids, and the two scenario ids match the specled_ex parse exactly
   covers:
     - ancora.parsing.block_grammar_unchanged
+    - ancora.parsing.stable_public_api
+- id: ancora.parsing.scenario.library_entry_points
+  given:
+    - a clean git corpus
+  when:
+    - `Ancora.check/2` and `Ancora.validate/2` are called
+  then:
+    - both return ok reports from their production pipelines
+    - all four stable functions are documented as semver-stable
+  covers:
     - ancora.parsing.stable_public_api
 - id: ancora.parsing.scenario.retired_construct_pair
   given:

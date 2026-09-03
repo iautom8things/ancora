@@ -16,11 +16,12 @@ Ancora version.
    longer reads.
 4. Tag tests with each requirement ID. A tagged test must call the production
    function that anchors its subject.
-5. Set `default_base`, `test_paths`, and `lib_paths` for the repository. Copy
-   severity choices through the code map below. Every subject override needs
-   a reason.
+5. Set `default_base`, `test_paths`, and `lib_paths` for the repository. Treat
+   `default_base` as a local-development convenience. Copy severity choices
+   through the code map below. Every subject override needs a reason.
 6. Replace the old CI command with `mix spec.check --base origin/main`, using
-   the repository's actual trunk ref when it differs.
+   the repository's actual trunk ref when it differs. CI must always pass
+   `--base` explicitly.
 7. Run `mix spec.check --base HEAD` once to fix corpus and tag errors. Then run
    against the trunk base and review every drift, growth, shrink, and uncovered
    file finding.

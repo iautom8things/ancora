@@ -7,6 +7,13 @@ defmodule Mix.Tasks.Spec.Prime do
   Prints status, current-change guidance, and the default local loop.
 
   A cold checkout may print dependency compilation lines before ancora output.
+
+  ## Options
+
+    * `--base REF` selects the git base. Defaults to configured `default_base`.
+    * `--since REF` selects the starting revision. Defaults to unset.
+    * `--root DIR` selects the target project. Defaults to the current directory.
+    * `--spec-dir DIR` selects the subject directory. Defaults to `.spec/specs`.
   """
 
   alias Ancora.Output

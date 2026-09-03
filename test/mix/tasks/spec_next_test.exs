@@ -37,4 +37,19 @@ defmodule Mix.Tasks.Spec.NextTest do
     Code.ensure_loaded!(Mix.Tasks.Spec.Next)
     assert function_exported?(Mix.Tasks.Spec.Next, :run, 1)
   end
+
+  @tag spec: "ancora.tasks.next_labels_verbatim"
+  test "since takes precedence over base" do
+    result =
+      run_mix_subprocess([
+        "spec.next",
+        "--base",
+        "missing-report-task-ref",
+        "--since",
+        "HEAD"
+      ])
+
+    assert result.status == 0
+    assert result.stdout =~ "base=HEAD"
+  end
 end

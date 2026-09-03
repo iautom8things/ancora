@@ -29,14 +29,16 @@ stable within the 1.x series.
 
 ## Public API
 
-Ancora's semver-stable public API has two functions:
+Ancora's semver-stable public API has four functions:
 
 - `Ancora.Parser.parse_file/2`
 - `Ancora.DecisionParser.parse_file/2`
+- [Ancora.check/2](https://hexdocs.pm/ancora/Ancora.html#check/2)
+- [Ancora.validate/2](https://hexdocs.pm/ancora/Ancora.html#validate/2)
 
-Mix tasks are the supported command-line interface. Their `--root` option is
-an internal affordance for tooling and tests and is outside the semver
-commitment.
+Every other module and function is internal. Mix tasks are the supported
+command-line interface. Their `--root` option is an internal affordance for
+tooling and tests and is outside the semver commitment.
 
 ## How checks work
 
@@ -52,6 +54,9 @@ need an explicit acknowledgment when they change the derived call set.
 
 ## CI
 
+CI must pass `--base` explicitly. The `default_base` setting is a
+local-development convenience and must not decide a CI comparison.
+
 Run the gate against the target branch after fetching its remote ref:
 
 ```yaml
@@ -62,6 +67,9 @@ spec:
     - uses: erlef/setup-beam@v1
     - run: mix deps.get && mix spec.check --base origin/main
 ```
+
+With `--json`, read the last stdout line that parses as JSON. The verdict line
+follows the JSON report and remains the final stdout line.
 
 ## Migration
 

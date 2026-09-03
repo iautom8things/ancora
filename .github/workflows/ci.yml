@@ -66,9 +66,20 @@ jobs:
       - name: smoke
         shell: bash
         env:
+          EVENT_NAME: ${{ github.event_name }}
           PR_BASE_REF: ${{ github.base_ref }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          PUSH_BASE_SHA: ${{ github.event.before }}
         run: |
-          base_ref="${PR_BASE_REF:-$DEFAULT_BRANCH}"
-          git fetch --no-tags origin "$base_ref"
-          mix spec.check --base "origin/$base_ref"
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            if [[ "$PUSH_BASE_SHA" =~ ^0+$ ]]; then
+              echo "Skipping smoke check for a branch-creation push."
+              exit 0
+            fi
+            base_ref="$PUSH_BASE_SHA"
+          else
+            branch_ref="${PR_BASE_REF:-$DEFAULT_BRANCH}"
+            git fetch --no-tags origin "$branch_ref"
+            base_ref="origin/$branch_ref"
+          fi
+          mix spec.check --base "$base_ref"

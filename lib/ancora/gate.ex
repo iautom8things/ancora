@@ -25,6 +25,21 @@ defmodule Ancora.Gate do
   alias Ancora.Trailer
   alias Ancora.Verifier
 
+  @json_version 1
+  @json_report %{
+    version: @json_version,
+    findings: [],
+    all_findings: [],
+    checked: %{subjects: 0, requirements: 0, errors: 0, warnings: 0},
+    branch: %{base: nil, changed_files: 0, findings: 0, errors: 0, warnings: 0, info: 0},
+    guidance: %{impacted_subjects: [], next: nil},
+    message: nil,
+    errors: 0,
+    warnings: 0,
+    tier: nil,
+    fail: false
+  }
+
   @spec check(Path.t(), keyword()) :: {:ok, map()} | {:env, String.t()}
   def check(root, opts \\ []) when is_binary(root) and is_list(opts) do
     case Preflight.run(root, opts) do
@@ -32,6 +47,20 @@ defmodule Ancora.Gate do
       {:env, message} = error -> json_preflight_error(error, message, opts)
     end
   end
+
+  @doc false
+  @spec json_report(map()) :: map()
+  def json_report(report) when is_map(report) do
+    @json_report
+    |> Map.merge(Map.take(report, Map.keys(@json_report)))
+    |> Map.put(:checked, merge_json_section(@json_report.checked, report[:checked]))
+    |> Map.put(:branch, merge_json_section(@json_report.branch, report[:branch]))
+    |> Map.put(:guidance, merge_json_section(@json_report.guidance, report[:guidance]))
+    |> Map.put(:json, true)
+  end
+
+  defp merge_json_section(default, value) when is_map(value), do: Map.merge(default, value)
+  defp merge_json_section(default, _value), do: default
 
   defp run_after_preflight(preflight, opts) do
     case RunContext.start(preflight.root, preflight.base) do
@@ -49,18 +78,7 @@ defmodule Ancora.Gate do
 
   defp json_preflight_error(error, message, opts) do
     if Keyword.get(opts, :json, false) do
-      {:ok,
-       %{
-         findings: [],
-         all_findings: [],
-         checked: %{subjects: 0, requirements: 0, errors: 0, warnings: 0},
-         errors: 0,
-         warnings: 0,
-         tier: :env,
-         fail: true,
-         message: message,
-         json: true
-       }}
+      {:ok, json_report(%{tier: :env, fail: true, message: message})}
     else
       error
     end
@@ -443,9 +461,9 @@ defmodule Ancora.Gate do
     visible = if show_info?, do: findings, else: non_info
     errors = Enum.count(findings, &(&1.severity == :error))
     warnings = Enum.count(findings, &(&1.severity == :warning))
-    hidden_info = if show_info?, do: 0, else: length(info)
+    info_count = length(info)
 
-    %{
+    report = %{
       findings: visible,
       all_findings: findings,
       checked: %{
@@ -460,7 +478,7 @@ defmodule Ancora.Gate do
         findings: length(findings),
         errors: errors,
         warnings: warnings,
-        info: hidden_info
+        info: info_count
       },
       guidance: %{
         impacted_subjects: Map.keys(subject_sets) |> Enum.sort(),
@@ -470,8 +488,10 @@ defmodule Ancora.Gate do
       warnings: warnings,
       tier: :branch,
       fail: errors + warnings > 0,
-      json: Keyword.get(opts, :json, false)
+      json: false
     }
+
+    if Keyword.get(opts, :json, false), do: json_report(report), else: report
   end
 
   defp prepare_base_dirs(base_root, head_root) do

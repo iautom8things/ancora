@@ -3,6 +3,19 @@ defmodule Mix.Tasks.Spec.Review do
 
   @requirements ["deps.loadpaths"]
   @shortdoc "Renders a spec-aware review artifact"
+  @moduledoc """
+  Renders an HTML review of the current change set.
+
+  A cold checkout may print dependency compilation lines before ancora output.
+
+  ## Options
+
+    * `--base REF` selects the git base. Defaults to configured `default_base`.
+    * `--output PATH`, `-o PATH` selects the artifact path. Defaults to `_build/spec_review.html`.
+    * `--open` opens the artifact in the system browser. Defaults to false.
+    * `--root DIR`, `-r DIR` selects the target project. Defaults to the current directory.
+    * `--spec-dir DIR` selects the subject directory. Defaults to `.spec/specs`.
+  """
 
   @switches [root: :string, spec_dir: :string, base: :string, output: :string, open: :boolean]
 

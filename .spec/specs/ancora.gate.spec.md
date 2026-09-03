@@ -24,6 +24,7 @@ summary: spec.check orchestration, hard-fail preflight, diff scoping, acknowledg
 decisions:
   - ancora.decision.no_execution_no_state
   - ancora.decision.slimmed_governance
+  - ancora.decision.cli_json_contract
 ```
 
 ## Requirements
@@ -43,8 +44,9 @@ decisions:
     `lib_paths:` key shall override project identity only when present in
     `.spec/config.yml`; literal `elixirc_paths:` shall be honored otherwise.
     In `--json` mode, a preflight environment failure shall be returned as a
-    JSON report with an empty `all_findings` list and the error message before
-    the failing environment-tier verdict. An unreadable working-tree source,
+    version 1 JSON report with the fixed `ancora.tasks.json_report` shape, an
+    empty `all_findings` list, and the error message before the failing
+    environment-tier verdict. An unreadable working-tree source,
     test, or subject file shall also be an environment failure, while parse
     errors in readable files remain findings. A failed batch fetch shall close
     and poison its port so later fetches return `{:error, :port_poisoned}`.
@@ -232,7 +234,7 @@ decisions:
     - `mix spec.check --json` runs
   then:
     - stdout contains one JSON report followed by the environment-tier verdict
-    - the report has an empty `all_findings` list and names the target-read error
+    - the version 1 report has the fixed JSON shape, an empty `all_findings` list, and the target-read error
     - no plain error message appears on stdout
   covers:
     - ancora.gate.preflight_hard_fails

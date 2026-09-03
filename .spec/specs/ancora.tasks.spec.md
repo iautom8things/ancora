@@ -23,6 +23,7 @@ status: active
 summary: The eight spec.* tasks, single-writer stdout, verdict grammar, and per-emission-path output contract.
 decisions:
   - ancora.decision.no_execution_no_state
+  - ancora.decision.cli_json_contract
 ```
 
 ## Requirements
@@ -58,15 +59,16 @@ decisions:
   stability: stable
 - id: ancora.tasks.gated_emission_paths
   statement: >-
-    Every gate task shall run inside `Ancora.Output.gated/2`, which
+    Every task shall run inside `Ancora.Output.gated/2` or
+    `Ancora.Output.gated/3`, which
     classifies the outcome as `:ok`, `:usage`, `:env`, or `:internal`.
     The wrapped function returns `{:ok, report}`, `{:usage, message}`,
     `{:env, message}`, or `{:internal, exception}`; any raised exception
-    is classified `:internal`. The first three shall emit the verdict;
-    `:internal` shall re-raise with no verdict line and a non-zero exit.
+    is classified `:internal`. For gate tasks, the first three shall emit the
+    verdict; `:internal` shall re-raise with no verdict line and a non-zero exit.
     Report tasks (`prime`, `next`, `status`, `review`, `init`,
-    `decision.new`) shall route their error paths through `gated/2` too,
-    printing the message and exiting 1 without a verdict line. A missing
+    `decision.new`) shall route their success and error paths through the wrapper.
+    Their error paths shall print the message and exit 1 without a verdict. A missing
     `.spec/` corpus shall follow the environment path, with `spec.check`
     naming `mix spec.init` before its verdict and `spec.status` exiting 1
     without a verdict.
@@ -74,9 +76,11 @@ decisions:
   stability: stable
 - id: ancora.tasks.no_result_leak
   statement: >-
-    No Output formatter other than the verdict emitter shall produce a line
-    containing `result=`, for any report, finding, summary, or guidance
-    value. This shall be property-tested over generated reports.
+    No human-readable Output formatter other than the verdict emitter shall
+    produce a line containing `result=`, for any report, finding, summary, or
+    guidance value. JSON shall preserve its values and its encoded line shall
+    not match the verdict grammar. Both rules shall be property-tested over
+    generated reports.
   priority: must
   stability: stable
 - id: ancora.tasks.stderr_pinning
@@ -92,7 +96,8 @@ decisions:
     Every finding of every family shall print as `[SEV] <subject> <code>
     <file> :: <message>`, sorted warnings first, then info (when shown), then
     errors last, followed by `branch base=<ref> changed_files=<N>
-    findings=<N> (error=E warning=W info=I, info hidden)` and guidance lines
+    findings=<N> (total error=E warning=W info=I)` where all three severity
+    counts include visible and hidden findings, and guidance lines
     `branch impacted_subjects=…` and `branch next=…`. The summary line shall
     be `checked subjects=<N> requirements=<N> errors=<E> warnings=<W>`; no
     line beginning `validate status=` shall exist.
@@ -124,17 +129,32 @@ decisions:
     usage errors.
   priority: must
   stability: stable
+- id: ancora.tasks.json_report
+  statement: >-
+    `mix spec.check --json` shall emit a version 1 JSON report for ok, usage,
+    environment, and branch outcomes. Every report shall have exactly the
+    top-level keys `version`, `findings`, `all_findings`, `checked`, `branch`,
+    `guidance`, `message`, `errors`, `warnings`, `tier`, and `fail`;
+    `checked`, `branch`, and `guidance` shall always be maps with the same
+    nested keys, while unavailable values shall be null, empty lists, or zero.
+    Consumers shall select the last stdout line that parses as JSON. The
+    verdict shall follow it as the final stdout line.
+  priority: must
+  stability: stable
 - id: ancora.tasks.report_task_flags
   statement: >-
     `mix spec.prime` shall accept `--base`, `--since`, `--root`, and
     `--spec-dir`; `mix spec.next` shall accept `--base`, `--since`, and
-    `--verbose`; `mix spec.status` shall accept `--root` and `--spec-dir`
-    and always exit 0; `mix spec.review` shall accept `--base`, `--output`
-    (default `_build/spec_review.html`), and `--open`; `mix spec.init` shall
-    accept `--root` and `--force`; `mix spec.decision.new` shall take a
-    `DECISION_ID` argument with `--title` and `--force`. `--json` shall be a
-    usage error on every task but `spec.check`. `--bugfix`, `--run-commands`,
-    and `--min-strength` shall be usage errors everywhere.
+    `--verbose`; `mix spec.status` shall accept `--root` and `--spec-dir`;
+    `mix spec.review` shall accept `--root`, `--spec-dir`, `--base`, `--output`
+    (default `_build/spec_review.html`), and `--open`, with `-r` and `-o`
+    aliases; `mix spec.init` shall accept `--root` and `--force`, with `-r`
+    and `-f` aliases; `mix spec.decision.new` shall take a `DECISION_ID`
+    argument with `--root`, `--title`, and `--force`, with `-r` and `-f`
+    aliases. Every task moduledoc shall have an Options section listing each
+    flag, its argument, aliases, and default. `--json` shall be a usage error
+    on every task but `spec.check`. `--bugfix`, `--run-commands`, and
+    `--min-strength` shall be usage errors everywhere.
   priority: must
   stability: stable
 - id: ancora.tasks.next_labels_verbatim
@@ -143,7 +163,8 @@ decisions:
     reconciliation labels verbatim (`covered local change`, `needs subject
     updates`, `needs decision update`, `ready for check`, and their
     siblings), the impacted subjects with their derived-footprint files, and
-    exactly one suggested command.
+    exactly one suggested command. When both are supplied, `--since` shall
+    take precedence over `--base`.
   priority: must
   stability: stable
 - id: ancora.tasks.status_derived_report
@@ -180,6 +201,14 @@ decisions:
   statement: >-
     Exit status shall be 0 on success and 1 on every failure; the verdict
     `tier=` disambiguates the cause. No other exit code shall be used.
+  priority: must
+  stability: stable
+- id: ancora.tasks.ci_explicit_base
+  statement: >-
+    The CI smoke step shall pass `--base` explicitly. Pull requests shall use
+    the fetched `origin/${github.base_ref}`; push events shall use
+    `github.event.before`; an all-zero push base shall skip the smoke step;
+    workflow dispatch shall use the fetched default branch.
   priority: must
   stability: stable
 ```
@@ -279,10 +308,12 @@ decisions:
   when:
     - `mix spec.check --json` runs as a subprocess
   then:
-    - stdout minus its last line parses as JSON containing the finding
-    - the last stdout line is the verdict
+    - the last stdout line that parses as JSON contains the finding
+    - its keys match the ok, environment, and usage JSON reports
+    - its version is 1 and the last stdout line is the verdict
   covers:
     - ancora.tasks.check_flags
+    - ancora.tasks.json_report
 - id: ancora.tasks.scenario.result_never_leaks
   given:
     - stream_data generated reports, findings, and guidance values containing the substring `result=`
@@ -348,7 +379,6 @@ decisions:
     - exit status is 0
     - the derived-set report line is present
   covers:
-    - ancora.tasks.report_task_flags
     - ancora.tasks.status_derived_report
 - id: ancora.tasks.scenario.status_missing_corpus
   given:
@@ -378,6 +408,35 @@ decisions:
     - the output contains the label `ready for check` and exactly one suggested command
   covers:
     - ancora.tasks.next_labels_verbatim
+- id: ancora.tasks.scenario.since_precedes_base
+  given:
+    - `--base` names an unresolvable ref and `--since` is `HEAD`
+  when:
+    - `mix spec.next` runs
+  then:
+    - the report succeeds with `base=HEAD`
+  covers:
+    - ancora.tasks.next_labels_verbatim
+- id: ancora.tasks.scenario.scaffold_errors_are_gated
+  given:
+    - invalid arguments for `spec.init` and `spec.decision.new`
+  when:
+    - each task runs
+  then:
+    - the wrapper prints the usage message and exits 1 without a verdict
+  covers:
+    - ancora.tasks.gated_emission_paths
+- id: ancora.tasks.scenario.ci_event_bases
+  given:
+    - the repository CI workflow
+  when:
+    - the smoke step selects a base
+  then:
+    - pull requests use the fetched base branch
+    - pushes use the before SHA and skip an all-zero SHA
+    - workflow dispatch uses the fetched default branch
+  covers:
+    - ancora.tasks.ci_explicit_base
 - id: ancora.tasks.scenario.prime_footer
   given:
     - `mix spec.prime --base HEAD` in a fixture
@@ -413,6 +472,7 @@ decisions:
     - ancora.tasks.finding_line_format
     - ancora.tasks.read_protocol_constant
     - ancora.tasks.check_flags
+    - ancora.tasks.json_report
     - ancora.tasks.validate_flags
     - ancora.tasks.report_task_flags
     - ancora.tasks.next_labels_verbatim
@@ -420,4 +480,5 @@ decisions:
     - ancora.tasks.prime_loop
     - ancora.tasks.mix_bootstrap_posture
     - ancora.tasks.exit_codes
+    - ancora.tasks.ci_explicit_base
 ```

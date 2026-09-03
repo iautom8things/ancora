@@ -7,6 +7,13 @@ defmodule Mix.Tasks.Spec.Validate do
   Validates the target corpus without compiling the target project.
 
   A cold checkout may print dependency compilation lines before ancora output.
+
+  ## Options
+
+    * `--strict` makes warnings fail validation. Defaults to false.
+    * `--debug` is an accepted no-op. Defaults to false.
+    * `--root DIR` selects the target project. Defaults to the current directory.
+    * `--spec-dir DIR` selects the subject directory. Defaults to `.spec/specs`.
   """
 
   alias Ancora.Output
