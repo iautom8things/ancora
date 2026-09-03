@@ -6,6 +6,7 @@
   "description": "Advances: ancora.parsing\n\nAncora 1.0 cannot represent a subject pruned under an authorizing ADR. append_only.ex:82 authorizes a requirement deletion only when the accepted ADR's affects: names the deleted requirement id or its subject id, while DecisionParser.Affects resolves affects: strictly against the CURRENT index — a pruned subject and its requirement ids are gone from that index by definition, so the same ADR that satisfies the append-only guard emits adr/affects_unresolved at error, persistently, on every future spec.validate run. No corpus shape satisfies both rules. This is a spec-design gap, not a code bug: ancora.parsing's requirement (that an affects id not in the corpus shall emit adr/affects_unresolved) mandates the behavior, so the fix is a spec edit with clause accounting plus implementation — e.g. a retires:/retired-affects vocabulary the resolver exempts and the append-only guard accepts as authorization — and a 1.0.x release.\n\nSurfaced by the M7 Engage migration (ancora-yzu.23), which prunes spec.system under its migration ADR. Interim posture consumers carry until this lands: severities adr/affects_unresolved: info in the consumer config, recorded in the migration ADR (trailers cannot price it — the finding is persistent, trailers are commit-scoped). Consumers that took the demotion should re-tighten to the registry default when adopting the release that closes this ticket. Not an epic child: the demotion unblocks all remaining migrations (M7-M9), so nothing in ancora-yzu depends on this fix.",
   "id": "ancora-n24",
   "labels": [],
+  "parent": "ancora-xla",
   "comments": [
     {
       "text": "Second consumer hit this gap within hours: Builder (ancora-yzu.24) chose the OTHER interim shape — six metadata-only identifier tombstone files kept so the retirement ADR affects: resolves, with scoped unanchored-subject overrides — where Engage (ancora-yzu.23) took the repo-wide severities demotion adr/affects_unresolved: info. Both are recorded in their migration ADRs with pointers here. When this ticket lands: Engage re-tightens the demotion to the registry default, Builder deletes the six tombstones (its completion record names them). Design input from the field: the fix must let spec.validate (cold, no git) accept an accepted ADR naming retired ids — resolving against base-at-PR-time is not available to validate, so the vocabulary likely needs to live in the corpus (e.g. a retires: field the resolver exempts and the append-only guard accepts as authorization).\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
@@ -16,5 +17,5 @@
   "status": "open",
   "title": "Retirement vocabulary for ADR affects: (subject-pruning catch-22)",
   "type": "task",
-  "updated_at": "2026-09-02T21:13:31Z"
+  "updated_at": "2026-09-03T16:10:33Z"
 }
