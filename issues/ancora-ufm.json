@@ -13,11 +13,15 @@
     {
       "text": "SCOPE_EXPANSION\nSession: ufm-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-ufm/codex-ufm-impl-1/log\n\nRequested touch: .spec/decisions/ancora.decision.source_derived_membership.md\nReason: The ticket requires a substantive edit to .spec/specs/ancora.derive.spec.md, and final-tier run 1 produced change/missing_decision for that governance change. Clearing the warning requires updating an ADR in the same diff, but .spec/decisions/** is outside the Allowed touches.\nFinal-tier runs: 1\nVerification: compile passed; 29 touched-file tests passed; mix test --stale passed with 336 tests and 3 properties; mix spec.check failed only on change/missing_decision.",
       "timestamp": "2026-09-03T22:52:03Z"
+    },
+    {
+      "text": "RULING: no new ticket; clear change/missing_decision with the governance link plus one authorized trailer\n\n.spec/decisions/** stays out of scope; do not edit any ADR. Instead:\n1. In .spec/specs/ancora.derive.spec.md, add `ancora.decision.field_friction_response` to the `decisions:` frontmatter list. That ADR governs this change and its affects: already names ancora.derive.\n2. On your stage commit add exactly one trailer: `Spec-Ack: change/missing_decision=info`, with a commit-body line: \"Governed by ancora.decision.field_friction_response (affects: ancora.derive); the path-only missing_decision rule is the B1 false red fixed by ancora-gg8.2.\" No other Spec-Ack code. No config.yml change.\n3. Your red final-tier run 1 does not count against the cap: it was red solely on change/missing_decision. You have 2 capped runs remaining. Re-run the change-scoped final tier including `mix spec.check --base 9373ff49ea0ce4bbe0069f4961094eee28fc0e81`, then record IMPLEMENTED with the same session tag (ufm-impl-1) and log path.\n\nThis expansion consumes no attempt. Everything else in the ticket stands.",
+      "timestamp": "2026-09-03T22:55:19Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Trailing slash in lib_paths makes an uncovered-file finding unclearable",
   "type": "task",
-  "updated_at": "2026-09-03T22:52:03Z"
+  "updated_at": "2026-09-03T22:55:19Z"
 }
