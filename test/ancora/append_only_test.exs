@@ -167,6 +167,29 @@ defmodule Ancora.AppendOnlyTest do
     end
 
     @tag spec: "ancora.parsing.retirement_vocabulary"
+    test "retirement authorization is exact and bounded to the named subject", %{root: root} do
+      write_spec(root, "alpha", spec_with_reqs("alpha", one: "must"))
+      write_spec(root, "alphabet", spec_with_reqs("alphabet", one: "must"))
+      prior = Index.build(root)
+
+      File.rm!(Path.join([root, ".spec", "specs", "alpha.spec.md"]))
+      write_spec(root, "alphabet", spec_without_req("alphabet"))
+      write_adr(root, "retire", "accepted", ["alpha"], ["alpha"])
+      current = Index.build(root)
+
+      findings = AppendOnly.analyze(prior, current)
+
+      assert Enum.any?(findings, fn finding ->
+               finding.code == "append/requirement_deleted" and
+                 finding.message =~ "alphabet.one deleted"
+             end),
+             "Would fail if retirement used prefix matching and authorized a deletion in another subject"
+
+      refute Enum.any?(findings, &(&1.message =~ "alpha.one deleted")),
+             "Would fail if retiring a subject did not authorize its own requirements"
+    end
+
+    @tag spec: "ancora.parsing.retirement_vocabulary"
     test "a non-accepted ADR cannot authorize deletion through retires", %{root: root} do
       write_spec(root, "alpha", spec_with_req("alpha", "must"))
       prior = Index.build(root)
