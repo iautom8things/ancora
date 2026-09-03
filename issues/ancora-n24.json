@@ -15,11 +15,15 @@
     {
       "text": "Second consumer hit this gap within hours: Builder (ancora-yzu.24) chose the OTHER interim shape — six metadata-only identifier tombstone files kept so the retirement ADR affects: resolves, with scoped unanchored-subject overrides — where Engage (ancora-yzu.23) took the repo-wide severities demotion adr/affects_unresolved: info. Both are recorded in their migration ADRs with pointers here. When this ticket lands: Engage re-tightens the demotion to the registry default, Builder deletes the six tombstones (its completion record names them). Design input from the field: the fix must let spec.validate (cold, no git) accept an accepted ADR naming retired ids — resolving against base-at-PR-time is not available to validate, so the vocabulary likely needs to live in the corpus (e.g. a retires: field the resolver exempts and the append-only guard accepts as authorization).\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-09-02T21:13:31Z"
+    },
+    {
+      "text": "RULING (Manuel, 2026-09-03): Option A. Add a retires: field on the ADR next to affects:. The Affects resolver exempts ids listed there from adr/affects_unresolved, and the append-only guard accepts them as authorization for the named deletions. A subject id in retires: covers every requirement under it, so pruning a whole subject does not require listing each requirement (this is the shorthand the v1n ruling leaves room for). No registry file, no new spec block type. Update the Zoi decision schema, the spec.init decision template, docs/migration.md, and write the unwind note: Engage re-tightens adr/affects_unresolved to the registry default, Builder deletes its six tombstone files.",
+      "timestamp": "2026-09-03T16:35:06Z"
     }
   ],
   "priority": 2,
   "status": "open",
   "title": "Retirement vocabulary for ADR affects: (subject-pruning catch-22)",
   "type": "task",
-  "updated_at": "2026-09-03T16:27:12Z"
+  "updated_at": "2026-09-03T16:35:06Z"
 }
