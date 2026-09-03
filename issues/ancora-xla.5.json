@@ -13,11 +13,15 @@
     {
       "text": "RULING (Manuel, 2026-09-03): Option A for both.\nF18: one payload builder, a version key, and ok/env/branch/usage as one superset shape (missing sections present as null or empty, never absent), pinned by a new ancora.tasks requirement the way finding_line_format pins the human lines. The usage path emits JSON too. Additive only; 1.0.1.\nF19: the committed library API is Ancora.Parser.parse_file/2, Ancora.DecisionParser.parse_file/2, Ancora.check/2, and Ancora.validate/2. State it in README, in the corpus (ancora.parsing.stable_public_api or a sibling requirement), and in the mix.exs docs groups so hexdocs stops implying fifty modules are public. Everything else is documented as internal.",
       "timestamp": "2026-09-03T17:07:51Z"
+    },
+    {
+      "text": "SCOPE FOLD (2026-09-03): ancora-8t2 (CI push events gate against the orphan beadwork branch) is closed in favor of this ticket. Its root cause, the repo default branch being beadwork, is already fixed as a repo setting. What survives is F30b in the description: on push-to-main the smoke step now diffs origin/main against itself and passes vacuously, and main is unprotected. Decision recorded there: use github.event.before on push, skip on the all-zeros sha, keep the PR base on pull_request. .github/workflows/ci.yml (smoke step only) added to Allowed touches. Stale claims from 8t2 that do NOT carry over: trunk is no longer red, and this no longer has to ride with p47 (p47 landed on its own, main green at 5d9cb40).",
+      "timestamp": "2026-09-03T17:22:00Z"
     }
   ],
   "priority": 2,
   "status": "open",
   "title": "Make the CLI and JSON contracts match what the tasks actually do",
   "type": "task",
-  "updated_at": "2026-09-03T17:21:53Z"
+  "updated_at": "2026-09-03T17:22:00Z"
 }
