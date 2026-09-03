@@ -62,4 +62,33 @@ defmodule Ancora.Derive.MembershipTest do
     assert Membership.member?(membership, :head, NewProtocol)
     refute Membership.member?(membership, :base, NewProtocol)
   end
+
+  @tag spec: "ancora.derive.project_info_from_root"
+  @tag spec: "ancora.derive.membership_source_derived"
+  test "trailing slash config preserves base and HEAD membership", %{root: root} do
+    # Would fail if ProjectInfo passed a trailing slash to ModuleLocator, which
+    # would omit unchanged source from both side maps.
+    TmpGitRepo.write!(root, %{
+      "mix.exs" => """
+      defmodule Sample.MixProject do
+        use Mix.Project
+        def project, do: [app: :sample]
+      end
+      """,
+      ".spec/config.yml" => "lib_paths:\n  - src/\n",
+      "src/thing.ex" => "defmodule Thing do\nend\n"
+    })
+
+    TmpGitRepo.commit!(root, "initial")
+
+    assert {:ok, ctx} = RunContext.start(root, "HEAD")
+    on_exit(fn -> RunContext.stop(ctx) end)
+    assert {:ok, change_set} = ChangeSet.compute(ctx)
+    assert {:ok, project} = ProjectInfo.load(root)
+    assert {:ok, membership} = Membership.load(project, change_set)
+
+    expected = MapSet.new(["Thing"])
+    assert Membership.modules(membership, :base) == expected
+    assert Membership.modules(membership, :head) == expected
+  end
 end

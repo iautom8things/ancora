@@ -108,6 +108,38 @@ defmodule Ancora.GateTest do
            end)
   end
 
+  @tag spec: "ancora.derive.project_info_from_root"
+  @tag spec: "ancora.derive.membership_source_derived"
+  @tag spec: "ancora.derive.subject_footprint"
+  test "tagged source under a trailing-slash lib path stays covered", %{root: root} do
+    # Would fail if preflight left trailing-slash paths for module membership
+    # and uncovered-file analysis to interpret differently.
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/config.yml" => "lib_paths:\n  - src/\n",
+      ".spec/specs/thing.spec.md" => subject_spec("Thing shall return its value.", "thing.value"),
+      "src/thing.ex" => "defmodule Thing do\n  def value, do: :base\nend\n",
+      "test/thing_test.exs" => """
+      defmodule ThingTest do
+        use ExUnit.Case
+        @tag spec: "thing.value.works"
+        test "value", do: assert(Thing.value() in [:base, :changed])
+      end
+      """
+    })
+
+    commit_all(root, "base")
+    write_files(root, %{"src/thing.ex" => "defmodule Thing do\n  def value, do: :changed\nend\n"})
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    refute Enum.any?(report.all_findings, fn finding ->
+             finding.code == "change/uncovered_file" and finding.file == "src/thing.ex"
+           end)
+  end
+
   @tag spec: "ancora.gate.change_findings"
   test "changed files outside lib_paths are not reported", %{root: root} do
     # Would fail if uncovered-file analysis treated priv assets as source or matched a

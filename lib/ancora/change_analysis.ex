@@ -29,8 +29,7 @@ defmodule Ancora.ChangeAnalysis do
 
   defp under_lib_path?(path, lib_paths) do
     Enum.any?(lib_paths, fn lib_path ->
-      prefix = String.trim_trailing(lib_path, "/")
-      String.starts_with?(path, prefix <> "/")
+      String.starts_with?(path, lib_path <> "/")
     end)
   end
 

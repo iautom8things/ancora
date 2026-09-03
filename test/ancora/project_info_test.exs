@@ -75,6 +75,23 @@ defmodule Ancora.ProjectInfoTest do
   end
 
   @tag spec: "ancora.derive.project_info_from_root"
+  test "normalizes trailing slashes from every lib_paths source", %{root: root} do
+    # Would fail if any ProjectInfo resolution path returned a trailing slash
+    # for downstream path comparisons to interpret independently.
+    write_mix(root, "[app: :sample, elixirc_paths: [\"source/\"]]")
+
+    assert {:ok, from_project} = ProjectInfo.load(root)
+    assert from_project.lib_paths == ["source"]
+
+    write_config(root, "lib_paths:\n  - configured/\n")
+    assert {:ok, from_config} = ProjectInfo.load(root)
+    assert from_config.lib_paths == ["configured"]
+
+    assert {:ok, from_options} = ProjectInfo.load(root, lib_paths: ["explicit/"])
+    assert from_options.lib_paths == ["explicit"]
+  end
+
+  @tag spec: "ancora.derive.project_info_from_root"
   test "apps_path marks an unsupported umbrella root", %{root: root} do
     # Would fail if preflight had no source-derived umbrella signal and tried
     # to continue into an unsupported root.

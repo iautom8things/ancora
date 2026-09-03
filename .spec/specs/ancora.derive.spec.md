@@ -77,7 +77,9 @@ decisions:
     to `["lib"]`, overridable by the `lib_paths:` config key; an `apps_path:`
     key shall hard-fail as an umbrella root; a non-literal `app:` shall
     hard-fail with a message. No module downstream of preflight shall read
-    `Mix.Project` state.
+    `Mix.Project` state. Every `lib_paths` value shall be normalized at
+    resolution — trailing slashes trimmed — so all downstream path comparisons
+    use one canonical form.
   priority: must
   stability: stable
 - id: ancora.derive.membership_source_derived
@@ -304,6 +306,18 @@ decisions:
     - the run hard-fails with `tier=env` and a message naming umbrella roots as unsupported
   covers:
     - ancora.derive.project_info_from_root
+- id: ancora.derive.scenario.trailing_slash_lib_path
+  given:
+    - '`lib_paths: ["src/"]` and a changed, tagged source at `src/thing.ex`'
+  when:
+    - the gate runs
+  then:
+    - the file enters its subject's footprint
+    - no `change/uncovered_file` fires
+  covers:
+    - ancora.derive.project_info_from_root
+    - ancora.derive.membership_source_derived
+    - ancora.derive.subject_footprint
 - id: ancora.derive.scenario.deleted_module_visible_at_base
   given:
     - `lib/legacy.ex` defining `Legacy` exists at base and is deleted on HEAD
