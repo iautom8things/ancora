@@ -211,7 +211,7 @@ defmodule Ancora.Review.Html do
       "\">",
       escape(card.file),
       "</a>",
-      diff(card.lines),
+      if(card.lines == [], do: "", else: diff(card.lines)),
       "</article>"
     ]
   end

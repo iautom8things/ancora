@@ -124,10 +124,11 @@ decisions:
   stability: evolving
 - id: ancora.review.artifact_size
   statement: >-
-    The rendered artifact shall include no more than one subject-level
-    file-diff article for each changed file in addition to its All files
-    article, and every `file-*` anchor shall be unique. A standing 200-file
-    fixture shall render to less than 1 MB.
+    The rendered artifact shall include each changed file's diff body at most
+    twice: once under the single subject that owns the file and once in All
+    files. Every `file-*` anchor shall be unique, and every defining-file link
+    shall target that anchor. A standing 200-file fixture shall render to less
+    than 1 MB.
   priority: must
   stability: evolving
 - id: ancora.review.output_flag
@@ -276,16 +277,15 @@ decisions:
     - ancora.review.size_budget
 - id: ancora.review.scenario.artifact_file_fanout
   given:
-    - a temporary repository with two subjects whose tagged tests call separate source modules
-    - both subjects also call one shared source module
-    - both source modules change after the base ref
+    - a temporary repository with three subjects whose tagged tests call one shared public function
+    - the shared function's definition changes after the base ref
   when:
     - Ancora.Review.build/2 builds the view and Ancora.Review.Html.render/1 renders it
   then:
-    - each changed source file has at most one subject-level file-diff article plus its All files article
-    - a changed non-definition line in the shared module appears under only one subject
+    - the changed definition's diff body appears exactly twice, once under its owning subject and once in All files
+    - all three watched cards render with their badges and defining-file links
     - every `file-*` id occurs exactly once
-    - each watched-card defining-file link targets that unique id
+    - all three defining-file links target that unique id
   covers:
     - ancora.review.artifact_size
     - ancora.review.view_model_builder

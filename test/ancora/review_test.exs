@@ -196,50 +196,37 @@ defmodule Ancora.ReviewTest do
   @tag spec: "ancora.review.artifact_size"
   @tag spec: "ancora.review.view_model_builder"
   @tag spec: "ancora.review.code_pivot_grouping"
-  test "production builder scopes file diffs to their subject and renders one file anchor", %{
+  test "production builder renders one shared definition diff for three watched subjects", %{
     root: root
   } do
-    write_two_subject_project(root)
+    write_three_subject_project(root)
     commit_all(root, "base")
 
     write_files(root, %{
-      "lib/fixture/alpha.ex" =>
-        "defmodule Fixture.Alpha do\n  def next(value), do: value + 10\nend\n",
-      "lib/fixture/beta.ex" =>
-        "defmodule Fixture.Beta do\n  def next(value), do: value + 20\nend\n",
-      "lib/fixture/shared.ex" =>
-        "defmodule Fixture.Shared do\n  @changed true\n  def value, do: :shared\nend\n",
-      ".spec/specs/alpha.spec.md" => subject_spec("alpha", "alpha value plus ten"),
-      ".spec/specs/beta.spec.md" => subject_spec("beta", "beta value plus twenty")
+      "lib/fixture/shared.ex" => "defmodule Fixture.Shared do\n  def value, do: :changed\nend\n"
     })
 
     assert {:ok, built} = Review.build(root, base: "HEAD")
 
     cards =
-      Map.new(built.subjects, fn subject ->
-        {subject.id, Enum.map(subject.code.watched_interface, & &1.binding)}
-      end)
+      built.subjects
+      |> Enum.flat_map(& &1.code.watched_interface)
+      |> Enum.filter(&(&1.binding == "Fixture.Shared.value/0"))
 
-    assert cards == %{
-             "alpha" => ["Fixture.Alpha.next/1"],
-             "beta" => ["Fixture.Beta.next/1"]
-           }
+    assert length(cards) == 3
+    assert Enum.all?(cards, &(&1.badge == :drift))
+    assert Enum.count(cards, &(&1.lines != [])) == 1
 
     html = built |> Html.render() |> IO.iodata_to_binary()
+    anchor = "file-lib-fixture-shared-ex"
+    watched_card = "<article class=\"watched\"><header><code>Fixture.Shared.value/0"
 
-    for {file, changed_line} <- [
-          {"lib/fixture/alpha.ex", "+  def next(value), do: value + 10"},
-          {"lib/fixture/beta.ex", "+  def next(value), do: value + 20"}
-        ] do
-      anchor = "file-" <> String.replace(file, ~r/[^a-zA-Z0-9_-]/, "-")
-
-      assert count_occurrences(html, "id=\"#{anchor}\"") == 1
-      assert count_occurrences(html, "href=\"##{anchor}\"") == 1
-      assert count_occurrences(html, changed_line) == 2
-    end
-
-    assert count_occurrences(html, "id=\"file-lib-fixture-shared-ex\"") == 1
-    assert count_occurrences(html, "+  @changed true") == 2
+    assert count_occurrences(html, "+  def value, do: :changed") == 2
+    assert count_occurrences(html, "id=\"#{anchor}\"") == 1
+    assert count_occurrences(html, "href=\"##{anchor}\"") == 3
+    assert count_occurrences(html, watched_card) == 3
+    assert count_occurrences(html, "class=\"badge drift\">drift</span>") == 3
+    assert count_occurrences(html, "<pre class=\"diff\">") == 2
   end
 
   defp view(verdict, finding) do
@@ -350,7 +337,7 @@ defmodule Ancora.ReviewTest do
     })
   end
 
-  defp write_two_subject_project(root) do
+  defp write_three_subject_project(root) do
     init_git_repo(root)
 
     write_files(root, %{
@@ -362,18 +349,15 @@ defmodule Ancora.ReviewTest do
       """,
       ".spec/specs/alpha.spec.md" => subject_spec("alpha", "alpha value"),
       ".spec/specs/beta.spec.md" => subject_spec("beta", "beta value"),
-      "lib/fixture/alpha.ex" => "defmodule Fixture.Alpha do\n  def next(value), do: value\nend\n",
-      "lib/fixture/beta.ex" => "defmodule Fixture.Beta do\n  def next(value), do: value\nend\n",
+      ".spec/specs/gamma.spec.md" => subject_spec("gamma", "gamma value"),
       "lib/fixture/shared.ex" => "defmodule Fixture.Shared do\n  def value, do: :shared\nend\n",
       "test/alpha_test.exs" => """
       defmodule Fixture.AlphaTest do
         use ExUnit.Case
-        alias Fixture.Alpha
 
         @tag spec: "alpha.next"
         test "next" do
-          assert Alpha.next(1) in [1, 11]
-          assert Fixture.Shared.value() == :shared
+          assert Fixture.Shared.value() in [:shared, :changed]
         end
       end
       """,
@@ -383,8 +367,17 @@ defmodule Ancora.ReviewTest do
 
         @tag spec: "beta.next"
         test "next" do
-          assert Fixture.Beta.next(1) in [1, 21]
-          assert Fixture.Shared.value() == :shared
+          assert Fixture.Shared.value() in [:shared, :changed]
+        end
+      end
+      """,
+      "test/gamma_test.exs" => """
+      defmodule Fixture.GammaTest do
+        use ExUnit.Case
+
+        @tag spec: "gamma.next"
+        test "next" do
+          assert Fixture.Shared.value() in [:shared, :changed]
         end
       end
       """

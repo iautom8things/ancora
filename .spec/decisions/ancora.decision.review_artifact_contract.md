@@ -38,21 +38,23 @@ The contract follows the boundaries in the shipped implementation.
 `Mix.Tasks.Spec.Review.run/1` writes that document and prints the CI metadata.
 The Code pivot describes full changed-file diffs for watched cards and the
 remaining changed files in each subject's derived footprint as supporting
-changes. Each changed file has no more than one subject-level file-diff article
-in addition to its All files article. The All files article owns the file's
-single `file-*` anchor, which watched cards link to. A 200-file standing fixture
-bounds the rendered artifact below 1 MB. The artifact remains a render target
-and no review state persists between runs. Authored diff-line markup remains
-outside Prism highlighting so scripts cannot replace its add, delete, and hunk
-spans. The artifact also exposes finding severity in text and with a visible
-marker, names the finding file, and avoids claiming ARIA tab semantics that its
-pivot controls do not implement.
+changes. Each changed file's diff body appears at most once under its
+deterministic owning subject and once in All files. Other watched cards retain
+their badge and defining-file link without repeating the diff. The All files
+article owns the file's single `file-*` anchor, which every watched card links
+to. A 200-file standing fixture bounds the rendered artifact below 1 MB. The
+artifact remains a render target and no review state persists between runs.
+Authored diff-line markup remains outside Prism highlighting so scripts cannot
+replace its add, delete, and hunk spans. The artifact also exposes finding
+severity in text and with a visible marker, names the finding file, and avoids
+claiming ARIA tab semantics that its pivot controls do not implement.
 
 ## Consequences
 
 Tagged tests anchor each public entry point to a falsifiable requirement and
 scenario. Future changes to these boundaries require a matching review-subject
-edit. Watched cards can repeat context outside the changed clause. Supporting
-changes are limited to the tagged tests and defining files in the subject's
-derived footprint. Prism CSS loads before the artifact's CSS so the artifact
-controls diff presentation in both colour schemes.
+edit. Watched cards can repeat context outside the changed clause, but they do
+not repeat a changed file's diff body. Supporting changes are limited to the
+tagged tests and defining files in the subject's derived footprint. Prism CSS
+loads before the artifact's CSS so the artifact controls diff presentation in
+both colour schemes.

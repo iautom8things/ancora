@@ -195,6 +195,35 @@ defmodule Ancora.Review do
     end)
     |> Enum.filter(&affected?(&1, changed_files))
     |> Enum.sort_by(& &1.id)
+    |> scope_watched_diffs(file_owners)
+  end
+
+  defp scope_watched_diffs(subjects, file_owners) do
+    watched_owners = watched_file_owners(subjects, file_owners)
+
+    subjects
+    |> Enum.map_reduce(MapSet.new(), fn subject, carried_files ->
+      {watched_interface, carried_files} =
+        Enum.map_reduce(subject.code.watched_interface, carried_files, fn card, carried_files ->
+          if Map.fetch!(watched_owners, card.file) == subject.id and
+               not MapSet.member?(carried_files, card.file) do
+            {card, MapSet.put(carried_files, card.file)}
+          else
+            {%{card | lines: []}, carried_files}
+          end
+        end)
+
+      {%{subject | code: %{subject.code | watched_interface: watched_interface}}, carried_files}
+    end)
+    |> elem(0)
+  end
+
+  defp watched_file_owners(subjects, file_owners) do
+    Enum.reduce(subjects, %{}, fn subject, watched_owners ->
+      Enum.reduce(subject.code.watched_interface, watched_owners, fn card, watched_owners ->
+        Map.put_new(watched_owners, card.file, Map.get(file_owners, card.file, subject.id))
+      end)
+    end)
   end
 
   defp affected?(subject, changed_files) do

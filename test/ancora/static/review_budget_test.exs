@@ -23,7 +23,7 @@ defmodule Ancora.Static.ReviewBudgetTest do
       for index <- 1..200 do
         %{
           file: "lib/generated/file_#{index}.ex",
-          lines: [{:add, "+" <> String.duplicate("x", 1_000)}]
+          lines: [{:add, "+  def value, do: #{index}"}]
         }
       end
 
@@ -31,7 +31,9 @@ defmodule Ancora.Static.ReviewBudgetTest do
       changes
       |> Enum.chunk_every(25)
       |> Enum.with_index(1)
-      |> Enum.map(fn {subject_changes, index} -> review_subject(index, subject_changes) end)
+      |> Enum.map(fn {subject_changes, index} ->
+        review_subject(index, subject_changes, changes)
+      end)
 
     view = %{
       meta: %{
@@ -61,7 +63,9 @@ defmodule Ancora.Static.ReviewBudgetTest do
     assert byte_size(artifact) < 1_000_000
   end
 
-  defp review_subject(index, changes) do
+  defp review_subject(index, owned_changes, all_changes) do
+    owned_files = MapSet.new(owned_changes, & &1.file)
+
     %{
       id: "generated.#{index}",
       title: "Generated #{index}",
@@ -73,8 +77,16 @@ defmodule Ancora.Static.ReviewBudgetTest do
       findings: [],
       spec_diff: %{},
       code: %{
-        watched_interface: [],
-        supporting_changes: changes,
+        watched_interface:
+          Enum.map(all_changes, fn change ->
+            %{
+              binding: "Generated.File#{index}.value/0",
+              badge: :acknowledged,
+              file: change.file,
+              lines: if(MapSet.member?(owned_files, change.file), do: change.lines, else: [])
+            }
+          end),
+        supporting_changes: [],
         test_changes: [],
         added_bindings: [],
         removed_bindings: []
