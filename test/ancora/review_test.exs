@@ -203,7 +203,21 @@ defmodule Ancora.ReviewTest do
     commit_all(root, "base")
 
     write_files(root, %{
-      "lib/fixture/shared.ex" => "defmodule Fixture.Shared do\n  def value, do: :changed\nend\n"
+      "lib/fixture/shared.ex" => "defmodule Fixture.Shared do\n  def value, do: :changed\nend\n",
+      "lib/fixture/helper.ex" =>
+        "defmodule Fixture.Helper do\n  @note :changed\n  def bump(value), do: value + 1\nend\n",
+      "test/joint_test.exs" => """
+      defmodule Fixture.JointTest do
+        use ExUnit.Case
+
+        @tag spec: "alpha.next"
+        @tag spec: "beta.next"
+        test "joint" do
+          assert Fixture.Shared.value() in [:shared, :changed]
+          assert true
+        end
+      end
+      """
     })
 
     assert {:ok, built} = Review.build(root, base: "HEAD")
@@ -226,7 +240,10 @@ defmodule Ancora.ReviewTest do
     assert count_occurrences(html, "href=\"##{anchor}\"") == 3
     assert count_occurrences(html, watched_card) == 3
     assert count_occurrences(html, "class=\"badge drift\">drift</span>") == 3
-    assert count_occurrences(html, "<pre class=\"diff\">") == 2
+    assert count_occurrences(html, "+  @note :changed") == 2
+    assert count_occurrences(html, "+    assert true") == 2
+    assert count_occurrences(html, "id=\"file-lib-fixture-helper-ex\"") == 1
+    assert count_occurrences(html, "<pre class=\"diff\">") == 6
   end
 
   defp view(verdict, finding) do
@@ -351,6 +368,19 @@ defmodule Ancora.ReviewTest do
       ".spec/specs/beta.spec.md" => subject_spec("beta", "beta value"),
       ".spec/specs/gamma.spec.md" => subject_spec("gamma", "gamma value"),
       "lib/fixture/shared.ex" => "defmodule Fixture.Shared do\n  def value, do: :shared\nend\n",
+      "lib/fixture/helper.ex" =>
+        "defmodule Fixture.Helper do\n  def bump(value), do: value + 1\nend\n",
+      "test/joint_test.exs" => """
+      defmodule Fixture.JointTest do
+        use ExUnit.Case
+
+        @tag spec: "alpha.next"
+        @tag spec: "beta.next"
+        test "joint" do
+          assert Fixture.Shared.value() in [:shared, :changed]
+        end
+      end
+      """,
       "test/alpha_test.exs" => """
       defmodule Fixture.AlphaTest do
         use ExUnit.Case
@@ -358,6 +388,7 @@ defmodule Ancora.ReviewTest do
         @tag spec: "alpha.next"
         test "next" do
           assert Fixture.Shared.value() in [:shared, :changed]
+          assert Fixture.Helper.bump(1) > 0
         end
       end
       """,
@@ -368,6 +399,7 @@ defmodule Ancora.ReviewTest do
         @tag spec: "beta.next"
         test "next" do
           assert Fixture.Shared.value() in [:shared, :changed]
+          assert Fixture.Helper.bump(1) > 0
         end
       end
       """,
@@ -378,6 +410,7 @@ defmodule Ancora.ReviewTest do
         @tag spec: "gamma.next"
         test "next" do
           assert Fixture.Shared.value() in [:shared, :changed]
+          assert Fixture.Helper.bump(1) > 0
         end
       end
       """

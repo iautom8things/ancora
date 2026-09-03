@@ -23,7 +23,7 @@ defmodule Ancora.Static.ReviewBudgetTest do
       for index <- 1..200 do
         %{
           file: "lib/generated/file_#{index}.ex",
-          lines: [{:add, "+  def value, do: #{index}"}]
+          lines: for(n <- 1..15, do: {:add, "+  def value_#{n}, do: #{index}"})
         }
       end
 

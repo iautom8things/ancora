@@ -292,7 +292,7 @@ decisions:
     - ancora.review.code_pivot_grouping
 - id: ancora.review.scenario.artifact_byte_budget
   given:
-    - a review view containing 200 changed files with one short added line each
+    - a review view containing 200 changed files with 15 short added lines each
   when:
     - Ancora.Review.Html.render/1 renders the view
   then:

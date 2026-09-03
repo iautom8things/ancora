@@ -43,7 +43,9 @@ deterministic owning subject and once in All files. Other watched cards retain
 their badge and defining-file link without repeating the diff. The All files
 article owns the file's single `file-*` anchor, which every watched card links
 to. A 200-file standing fixture bounds the rendered artifact below 1 MB. The
-artifact remains a render target and no review state persists between runs.
+fixture gives each file 15 added lines so scoped rendering stays below the
+ceiling while full subject fanout exceeds it. The artifact remains a render
+target and no review state persists between runs.
 Authored diff-line markup remains outside Prism highlighting so scripts cannot
 replace its add, delete, and hunk spans. The artifact also exposes finding
 severity in text and with a visible marker, names the finding file, and avoids
