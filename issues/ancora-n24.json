@@ -48,11 +48,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl\n\nReasoning: VERIFY reported PASS with a passing spec gate and full requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS (2026-09-03 19:42, on the bounce delta; the critic and the verifier each reproduced both auditor mutations independently and each failed against the new test alone). Delta-scoped per the bounce; the musts outside the delta were covered with concrete failure modes at the 8f88517 pass and this delta changes no production code. No auditor was spawned\nper policy.",
       "timestamp": "2026-09-03T23:50:53Z"
+    },
+    {
+      "text": "MERGE_CONFLICT\n\nRebase of ancora-n24/retirement-vocabulary onto ancora-xla/post-ship-hardening (884588f) hit real content conflicts. Aborted per instructions; no code, spec, or doc conflicts were resolved.\n\nConflicting paths:\n- .spec/specs/ancora.gate.spec.md\n- .spec/specs/ancora.parsing.spec.md\n\nEpic-side commit that introduced the overlap on both paths:\ne52a8fb fix: align CLI and JSON contracts\n\nThe rebase was aborted. Branch is back at its original head 6d5f1df with a clean worktree.\n\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl",
+      "timestamp": "2026-09-03T23:51:51Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Retirement vocabulary for ADR affects: (subject-pruning catch-22)",
   "type": "task",
-  "updated_at": "2026-09-03T23:51:01Z"
+  "updated_at": "2026-09-03T23:51:51Z"
 }
