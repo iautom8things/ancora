@@ -96,8 +96,10 @@ decisions:
     id present at base is absent on HEAD, and `append/must_downgraded`
     when a requirement's priority moves from `must` to `should`. Either
     is authorized, and the finding suppressed, only by an ADR with
-    `status: accepted` whose `affects:` names the requirement id or its
-    subject id. No other spec-weakening shall be guarded.
+    `status: accepted` whose `affects:` names the requirement id. A subject
+    id in `affects:` shall not authorize the change. See
+    `ancora.parsing.append_authorization_is_requirement_scoped` for the shared
+    authorization rule. No other spec-weakening shall be guarded.
   priority: must
   stability: stable
 - id: ancora.gate.unanchored_subject
@@ -277,7 +279,7 @@ decisions:
 - id: ancora.gate.scenario.downgrade_authorized_by_adr
   given:
     - a requirement moved from `must` to `should` on HEAD
-    - "an ADR with `status: accepted` whose `affects:` names the subject id"
+    - "an ADR with `status: accepted` whose `affects:` names the requirement id"
   when:
     - the gate runs
   then:

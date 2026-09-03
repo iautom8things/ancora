@@ -26,7 +26,10 @@ defmodule Ancora.AppendOnlyTest do
       assert Enum.any?(deleted, &(&1.message =~ "alpha.requirement"))
     end
 
-    @tag spec: "ancora.parsing.append_authorization_is_requirement_scoped"
+    @tag spec: [
+           "ancora.gate.two_append_guards",
+           "ancora.parsing.append_authorization_is_requirement_scoped"
+         ]
     test "accepted ADR whose affects names the requirement suppresses deletion", %{root: root} do
       write_spec(root, "alpha", spec_with_req("alpha", "must"))
       prior = Index.build(root)
@@ -41,7 +44,10 @@ defmodule Ancora.AppendOnlyTest do
              "Would fail if an accepted ADR could not authorize the exact requirement id it names"
     end
 
-    @tag spec: "ancora.parsing.append_authorization_is_requirement_scoped"
+    @tag spec: [
+           "ancora.gate.two_append_guards",
+           "ancora.parsing.append_authorization_is_requirement_scoped"
+         ]
     test "accepted ADR whose affects names only the subject does not authorize deletion", %{
       root: root
     } do
