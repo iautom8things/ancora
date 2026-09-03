@@ -9,9 +9,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-gg8",
+  "comments": [
+    {
+      "text": "SCOPE_EXPANSION\nSession: gg8.3-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.3/codex-gg8.3-impl-1/log\n\nRequested file: .spec/decisions/ancora.decision.field_friction_response.md\nReason: Final-tier run 1 failed with change/missing_decision for both .spec/specs/ancora.scaffold.spec.md and .spec/specs/ancora.source_scan.spec.md. The existing field-friction decision already decides and describes Ancora.SourceScan, but its affects: list names ancora.scaffold and omits ancora.source_scan. Adding ancora.source_scan to that list is the scoped ADR co-change needed by the gate; decision files are not in this ticket's Allowed touches.\n\nFinal-tier runs: 1\nCurrent verification: warnings-as-errors compile passed; 7 touched-file tests passed; 7 stale tests passed; spec.check result=fail tier=branch errors=0 warnings=2.",
+      "timestamp": "2026-09-03T22:54:50Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Bless the source-scan pattern: Ancora.SourceScan and migration docs",
   "type": "task",
-  "updated_at": "2026-09-03T22:47:35Z"
+  "updated_at": "2026-09-03T22:54:50Z"
 }
