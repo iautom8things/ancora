@@ -33,11 +33,15 @@
     {
       "text": "Distill complete.\nSpecs: 1 new decision (ancora.decision.field_friction_response); per-stage requirement/scenario deltas are carried verbatim in each child ticket's \"Spec delta\" section, landing in the same diff as the code they govern (ancora's own acknowledgment model — pre-landing them would have created prose drift and a standing unanchored-subject red for every wave-1 worker).\nDecisions: 1 (amends slimmed_governance re: statement_changed being a disclosure, not a guard)\nTasks: 8 (ancora-ufm adopted + ancora-gg8.1..7 created as children); deps wired gg8.1 -\u003e gg8.5 -\u003e gg8.6, ancora-xla.3 -\u003e gg8.7; sfu and u38 annotated with scheduling/bench notes\nSpec commit: 9373ff4 on branch ancora-gg8/field-friction (local, not pushed)\nConsole: https://claude.ai/code/artifact/2e207437-955a-4080-9c87-8477ca0738e6\nDescoped from repo tickets: spec-led-development / spec-led-bootstrap skill updates (live outside this repo); listed on the console under \"yours\".\nNext step: /orchestrate-epic ancora-gg8",
       "timestamp": "2026-09-03T22:07:44Z"
+    },
+    {
+      "text": "RULING (epic-wide, wave 1): change/missing_decision on governed spec edits\n\nEvery wave-1 stage that lands its ticket's Spec delta trips change/missing_decision, because the rule is path-set only (the B1 false red this epic fixes in ancora-gg8.2) and none of the subject specs yet list ancora.decision.field_friction_response in their decisions: frontmatter, even though that ADR's affects: names all five subjects. First hit: ancora-ufm final-tier run 1, 22:52Z.\n\nRuling, applied to ancora-ufm, ancora-gg8.1, ancora-gg8.2, ancora-gg8.3 (ancora-gg8.4 has no spec delta):\n1. In the Advances: subject spec you edit, add `ancora.decision.field_friction_response` to the `decisions:` frontmatter list. This is the durable, tree-resident governance link, not noise: the ADR governs the change and already names the subject back.\n2. Until gg8.2 merges, the rule cannot read that link, so the stage commit may carry exactly one trailer: `Spec-Ack: change/missing_decision=info`, with a commit-body line naming the governing ADR. No other Spec-Ack code is authorized; drift/growth/shrink still clear only by substantive spec edits.\n3. gg8.2 is the exception: no trailer. Its own implementation plus the frontmatter reference must clear the finding on its own diff. That is the live proof of scenario governed_spec_change_clears.\n4. A final-tier run that was red solely on change/missing_decision does not count against the 2-run cap.\n\nVerifiers on these tickets: this trailer is explained and authorized; it is not a drift/growth/shrink acknowledgment. Any other trailer remains a Gap. Once gg8.2 merges, later stages need no trailer.",
+      "timestamp": "2026-09-03T22:55:12Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-03T22:51:26Z"
+  "updated_at": "2026-09-03T22:55:12Z"
 }
