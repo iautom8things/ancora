@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T18:15:04Z",
+  "description": "Advances: ancora.derive\\n\\nSeverity: Medium (calibrated). Found by the cold auditor on the ancora-p47 stack; it corrects a claim the cold verifier got wrong.\\n\\nConcrete failure: with lib_paths: [\"src/\"] (a trailing slash, which the config schema accepts), a changed and TAGGED source file at src/thing.ex is reported as change/uncovered_file and the finding can never be cleared, because the file can never enter any subject footprint.\\n\\nMechanism: the two places that decide \"is this path under a lib_path\" disagree about trailing slashes.\\n- lib/ancora/change_analysis.ex under_lib_path?/2 (added by ancora-p47) does String.trim_trailing(lib_path, \"/\") before comparing, so \"src/\" matches src/thing.ex and the gate considers the file in scope.\\n- lib/ancora/derive/module_locator.ex:155 source_path?/2 does NOT trim, so with \"src/\" it never recognises src/thing.ex as a source, never indexes it, and the file never lands in a footprint.\\nNothing upstream normalises: String.trim_trailing appears exactly once in all of lib/, in the new helper. The result is a finding that fires and cannot be silenced by doing the thing the finding asks for.\\n\\nWhy it was not caught earlier: the cold verifier asserted that a trailing-slash config \"behaves identically\", but its experiment used an UNTAGGED file, which is flagged under either code path, so the experiment could not distinguish them. Recording that because the mistake is instructive: an experiment that produces the same output for both hypotheses is not evidence for either.\\n\\nNot a defect in ancora-p47 and deliberately not bounced there: source_path?/2 predates that ticket and is outside its Allowed touches. Proving the end-to-end false positive needs a gate run with a tagged source under a trailing-slash lib_path, which the read-only auditor could not perform.\\n\\nFix direction: make source_path?/2 trim trailing slashes, or better, collapse both call sites onto one shared boundary helper so the rule exists in exactly one place. The auditor recommended the shared helper. A test should pin the trailing-slash case specifically, with a TAGGED file, so the \"cannot be cleared\" half is what fails if it regresses.\\n\\nCannot land on the ancora-p47 stack: out of scope there, and the shared-helper shape is a small design decision rather than a mechanical edit.",
+  "id": "ancora-ufm",
+  "labels": [],
+  "priority": 2,
+  "status": "open",
+  "title": "Trailing slash in lib_paths makes an uncovered-file finding unclearable",
+  "type": "task",
+  "updated_at": "2026-09-03T18:15:04Z"
+}
