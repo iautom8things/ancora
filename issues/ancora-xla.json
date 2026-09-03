@@ -24,11 +24,15 @@
     {
       "text": "RULINGS COMPLETE (Manuel, 2026-09-03). Every decision ticket now carries a RULING comment; workers should not park for these.\n- ancora-v1n: append-only authorization requires the requirement id in affects:.\n- ancora-n24: retires: field on the ADR; a subject id covers its requirements.\n- ancora-sfu: acknowledgments promoted to config.yml severities/overrides; trailer is a dev convenience; loud warning when trailer-only.\n- ancora-11w: hard tier=env failure when base..HEAD is not fully present, range-scoped.\n- ancora-xla.9: F9 DELETE the memo (narrow the must under an ADR); F13 deprecate spec-exceptions, remove in 2.0; F17 moved to ancora-gqb.\n- ancora-gqb: writes the watched-card contract line and swaps the regex extractor for the AST resolver in the same diff.\n- ancora-xla.5: versioned superset JSON payload; public API is the two parse_file/2 functions plus Ancora.check/2 and Ancora.validate/2.\n- ancora-u38: DEFERRED OUT OF THIS EPIC (parent cleared, revisit 2026-10-01). Ancora carries no cache unless a post-xla.3 Atlas bench forces the question. Fifteen children remain.\n\nDAG after rulings: gqb, xla.9, and xla.3 are all ready now. Remaining edges: xla.3 blocks u38 (outside the epic), p47 blocks sfu, xla.2 blocks 11w, v1n blocks n24. Governing principle for graders: ancora exists to carry less machinery than specled_ex. Prefer deletion and plain function arguments over any memo, registry, or cache.",
       "timestamp": "2026-09-03T17:15:29Z"
+    },
+    {
+      "text": "SCOPE NOTE (2026-09-03): standalone ticket ancora-8t2 closed as superseded; its surviving fix (push-to-main base via github.event.before in ci.yml) is now F30b inside ancora-xla.5. No new child, no new edge. ci.yml is touched by xla.5 only.",
+      "timestamp": "2026-09-03T17:22:15Z"
     }
   ],
   "priority": 2,
   "status": "open",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-03T17:15:29Z"
+  "updated_at": "2026-09-03T17:22:15Z"
 }
