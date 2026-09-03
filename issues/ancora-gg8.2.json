@@ -53,11 +53,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: e92f6de6-94f7-4814-8140-19f3f3007d0a\nLog: /Users/mz/.claude-remembers/projects/-Users-mz-src-ancora/e92f6de6-94f7-4814-8140-19f3f3007d0a.jsonl\n\nReasoning: VERIFY reported PASS with a passing spec gate and full requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS (re-run after bounce 1; both audit-named mutations now fail their targeted test, and the ticket's own governance edit clears change/missing_decision through the implemented rule with no trailer for that code). No auditor was spawned\nper policy for the delta re-verification; the prior audit's bounce items are closed by execution.",
       "timestamp": "2026-09-03T23:33:51Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-gg8/field-friction. Closing per orchestrator sign-off.\n\nRebased clean onto 6b12757 by the rebase worker (no conflicts; stage smoke 344 tests green). Merge gate 3 (epic tip 526b888): mix compile --warnings-as-errors clean; mix test 3 properties, 344 tests, 0 failures; mix format --check-formatted clean; mix deps.unlock --check-unused clean; mix spec.check --base origin/main result=pass; mix spec.check --base 6b12757 (per-merge delta) result=pass.\n\nEffect on the epic-wide ruling: from this tip on, a spec edit whose subject lists ancora.decision.field_friction_response in decisions: clears change/missing_decision through the implemented rule, so stages branched from 526b888 or later need no Spec-Ack: change/missing_decision trailer. ancora-gg8.1 (still on base 9373ff4) keeps the authorization.",
+      "timestamp": "2026-09-03T23:35:41Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "missing_decision honors governing decisions referenced from spec frontmatter",
   "type": "task",
-  "updated_at": "2026-09-03T23:33:55Z"
+  "updated_at": "2026-09-03T23:35:41Z"
 }
