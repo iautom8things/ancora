@@ -13,9 +13,15 @@
     "critical"
   ],
   "parent": "ancora-xla",
+  "comments": [
+    {
+      "text": "RULING CONTEXT (Manuel, 2026-09-03): the ancora-xla.9 memo decision is DELETE, so this ticket is unblocked and ready now. Shape for F15: parse each source file at most once per side per run and thread the parsed AST (or a per-run map keyed by path and side) through Compare as a plain function argument. No ETS, no RunContext memo, no cache of any kind. lib/ancora/derive/run_context.ex is out of scope here. Everything else in the ticket stands: pathspec-narrowed materialize, oid-based read_blob, hoisted path set, before/after numbers in the IMPLEMENTED comment. ancora-u38 has been deferred out of the epic; the post-merge Atlas bench is Manuel's to run.",
+      "timestamp": "2026-09-03T17:15:00Z"
+    }
+  ],
   "priority": 2,
   "status": "open",
   "title": "Narrow the base-tree materialization and stop the per-binding rework",
   "type": "task",
-  "updated_at": "2026-09-03T16:27:14Z"
+  "updated_at": "2026-09-03T17:15:00Z"
 }
