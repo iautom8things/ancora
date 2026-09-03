@@ -143,12 +143,20 @@ defmodule Ancora.GateTest do
   @tag spec: "ancora.gate.change_findings"
   test "an existing bidirectional ADR governs repeated subject spec changes", %{root: root} do
     init_git_repo(root)
-    write_governed_subject(root, "The sample shall return the initial value.", "sample.subject")
+
+    write_governed_subject(
+      root,
+      "The sample shall return the initial value.",
+      "sample.decision.governance",
+      "sample.subject"
+    )
+
     commit_all(root, "base")
 
     write_governed_subject(
       root,
       "The sample shall return the first changed value.",
+      "sample.decision.governance",
       "sample.subject"
     )
 
@@ -160,6 +168,7 @@ defmodule Ancora.GateTest do
     write_governed_subject(
       root,
       "The sample shall return the second changed value.",
+      "sample.decision.governance",
       "sample.subject"
     )
 
@@ -174,6 +183,7 @@ defmodule Ancora.GateTest do
     write_governed_subject(
       root,
       "The sample shall return the initial value.",
+      "sample.decision.governance",
       "sample.decision.governance"
     )
 
@@ -182,6 +192,7 @@ defmodule Ancora.GateTest do
     write_governed_subject(
       root,
       "The sample shall return the changed value.",
+      "sample.decision.governance",
       "sample.decision.governance"
     )
 
@@ -194,6 +205,62 @@ defmodule Ancora.GateTest do
                finding.message =~ "affects: naming the subject back" and
                finding.message =~ "add or update an ADR"
            end)
+  end
+
+  @tag spec: "ancora.gate.change_findings"
+  test "a spec cannot claim governance from an ADR it does not cite", %{root: root} do
+    init_git_repo(root)
+
+    write_governed_subject(
+      root,
+      "The sample shall return the initial value.",
+      "sample.decision.other",
+      "sample.subject"
+    )
+
+    write_files(root, %{
+      ".spec/decisions/other.md" =>
+        governing_decision("sample.decision.other", "sample.decision.other")
+    })
+
+    commit_all(root, "base")
+
+    write_governed_subject(
+      root,
+      "The sample shall return the changed value.",
+      "sample.decision.other",
+      "sample.subject"
+    )
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+    assert missing_decision?(report, ".spec/specs/sample.spec.md")
+  end
+
+  @tag spec: "ancora.gate.change_findings"
+  test "frontmatter-less governance files still require a co-changed ADR", %{root: root} do
+    init_git_repo(root)
+
+    write_governed_subject(
+      root,
+      "The sample shall return the initial value.",
+      "sample.decision.governance",
+      "sample.subject"
+    )
+
+    commit_all(root, "base")
+
+    write_governed_subject(
+      root,
+      "The sample shall return the changed value.",
+      "sample.decision.governance",
+      "sample.subject"
+    )
+
+    write_config(root, "default_base: main\n")
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+    assert missing_decision?(report, ".spec/config.yml")
+    refute missing_decision?(report, ".spec/specs/sample.spec.md")
   end
 
   @tag spec: "ancora.gate.change_findings"
@@ -439,11 +506,12 @@ defmodule Ancora.GateTest do
     })
   end
 
-  defp write_governed_subject(root, statement, affected_id) do
+  defp write_governed_subject(root, statement, decision_id, affected_id) do
     write_files(root, %{
       "mix.exs" => mix_file("[app: :sample]"),
-      ".spec/specs/sample.spec.md" => governed_subject_spec(statement),
-      ".spec/decisions/governance.md" => governing_decision(affected_id),
+      ".spec/specs/sample.spec.md" => governed_subject_spec(statement, decision_id),
+      ".spec/decisions/governance.md" =>
+        governing_decision("sample.decision.governance", affected_id),
       "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
       "test/sample_test.exs" => """
       defmodule SampleTest do
@@ -519,7 +587,7 @@ defmodule Ancora.GateTest do
     """
   end
 
-  defp governed_subject_spec(statement) do
+  defp governed_subject_spec(statement, decision_id) do
     """
     # Sample
 
@@ -528,7 +596,7 @@ defmodule Ancora.GateTest do
     kind: module
     status: draft
     decisions:
-      - sample.decision.governance
+      - #{decision_id}
     ```
 
     ```yaml spec-requirements
@@ -557,10 +625,10 @@ defmodule Ancora.GateTest do
     """
   end
 
-  defp governing_decision(affected_id) do
+  defp governing_decision(decision_id, affected_id) do
     """
     ---
-    id: sample.decision.governance
+    id: #{decision_id}
     status: accepted
     date: 2026-09-03
     affects:
