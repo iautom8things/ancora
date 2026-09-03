@@ -39,11 +39,15 @@
     {
       "text": "PERF RULING (Manuel, via question prompt, 2026-09-03): MERGE NOW, CACHE FAST-FOLLOW. The bench-gate item is answered by the recorded re-entry path, not waived silently: ancora.decision.no_execution_no_state named the on-disk OID cache as the re-entry option for exactly this miss, and it is now filed as ancora-u38 (sibling to ancora-n24; a future release can carry both, publish = Manuel's 2FA). Atlas ships on ancora 1.0 carrying the honest recorded latency (CI already absorbs the 37s gate green; the dev-loop cost is the debt ancora-u38 owns). Merge proceeds once cold verify + test-critic + the audit gate clear — both graders are running now.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
       "timestamp": "2026-09-03T01:38:58Z"
+    },
+    {
+      "text": "TEST_CRITIC: PASS + VERIFY: FAIL (both relayed) → MECHANICAL-REMEDY BOUNCE 1 (of cap 2). Critic: SpecDoc test edits are two names + two comments with every assertion byte-identical to base; the canary pins Ancora.Parser.parse_file/2 — the exact call at spec_doc.ex:102 — and mutation coverage is real (a botched retarget degrades to prose-only and four assertions catch it); critic independently ran both files against hex ancora 1.0.0: 27 tests green. Verifier: EXCEEDED the sampling bar — parsed the whole base corpus into id→covers maps and re-derived all 53 tag resolutions mechanically: 37/37 retargets correct, 16/16 drops genuinely dangling, identical to the ADR; 1,870-finding severity_source audit otherwise clean; dep line exactly all-envs runtime; scope clean. THREE GAPS, all mechanical: (1) the ADR omits the bench miss — no medians, budgets, or acknowledgment, so the re-entry decision has nothing durable to trigger it; Manuel's merge-now ruling and ancora-u38 belong there too. (2) The sweep claim is FALSE: bw list --grep does fuzzy token matching and returned no-issues for spec.system, missing atlas-pw3.1 (Advances: package, spec.system, cli, api) and atlas-pw3.4 (multi.kb); the swept parts are correct, nothing was closed. (3) Four severity entries carried verbatim from the specled config sit outside the envelope: append/requirement_deleted, append/must_downgraded, overlap/must_stem_collision → info (all fire zero today) and overlap/duplicate_covers → OFF — absorbing, so the audit structurally cannot see an error-default code. RULING: restore the three zero-firing entries to registry defaults (drop them from config); duplicate_covers off→info (the Argos fleet posture — visible, non-blocking; record the revealed count in the ADR); the Argos carry-forward precedent sanctioned ADR-backed VISIBLE postures, never off. Advisory concurrence: the gate_test.exs comment edit (spec-check-full→spec-check) follows the target collapse, not a Gap. Lesson [sweep-literal] appended. yzu25-impl-3 launching with exact remedies.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-03T01:40:55Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M9: Atlas migration PR + perf acceptance",
   "type": "task",
-  "updated_at": "2026-09-03T01:38:58Z"
+  "updated_at": "2026-09-03T01:40:55Z"
 }
