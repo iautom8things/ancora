@@ -5,10 +5,12 @@
   "created": "2026-09-03T17:19:16Z",
   "description": "Advances: ancora.gate\\n\\nSeverity: High (calibrated). Regression introduced by ancora-rdx, already merged to main.\\n\\nConcrete failure: mix test fails roughly 1 run in 3 with ExUnit.TimeoutError after 60000ms. Measured on main plus the ancora-p47 branch: run 1 green, run 2 = 2 failures (Ancora.Scaffold.FreshAdopterTest \"fresh adopter goes from unanchored red to tagged green\" and Mix.Tasks.Spec.PrimeTest \"prime routes usage and environment failures without a verdict\", both ExUnit.TimeoutError), run 3 green. The implementer on ancora-p47 hit the same thing independently.\\n\\nCause: test/support/ancora_case.exs:133 seed_build_path!/1 does File.cp_r!(Mix.Project.build_path(), build_path) on EVERY run_mix_subprocess call, and there are about 30 such calls per full run. That is roughly 135 MB of copying per suite. It was introduced by ancora-rdx to give each subprocess its own MIX_BUILD_PATH, which was correct in intent — the previous shared build path was a source of lock contention — but the per-call copy is expensive enough that under load a single subprocess test exceeds the 60 second ExUnit timeout.\\n\\nBoth graders saw the cost and rated it affordable. The cold verifier note read: \"seed_build_path! does a File.cp_r! of _build/test (4.5 MB) on every subprocess call ... The suite still finishes in 32 seconds, so it is affordable now, but it is why the touched-file run alone takes 25 seconds and it will scale with _build.\" That judgement was wrong at the 1-in-3 rate now observed, and it is worth recording as a lesson: a cost flagged as affordable should be measured under repetition, not at one sample.\\n\\nFix direction (implementer choice, but do not simply raise the timeout — that hides it): seed ONE build path per suite or per test module and reuse it across subprocess calls, rather than copying per call. A hardlink or clone copy is another option on APFS. Whatever shape you choose, each subprocess must still not share a mutable build directory with a CONCURRENT one, which is the property ancora-rdx was buying.\\n\\nVerification: full suite run 10 times consecutively with zero failures and no ExUnit.TimeoutError, on both CI matrix legs (Elixir 1.19.5/OTP 28.3.1 and 1.18.4/OTP 26.2.5). Report the wall-clock of each run so the improvement is visible. Do not weaken any assertion and do not raise the ExUnit timeout to pass.\\n\\nCannot land separately: main is flaky at 1 in 3 today, so this rides the same PR as ancora-p47 and ancora-8t2.",
   "id": "ancora-s1o",
-  "labels": [],
+  "labels": [
+    "slug:per-subprocess-build-copy"
+  ],
   "priority": 2,
   "status": "open",
   "title": "Per-subprocess _build copy makes the suite time out about one run in three",
   "type": "task",
-  "updated_at": "2026-09-03T17:19:16Z"
+  "updated_at": "2026-09-03T17:22:07Z"
 }
