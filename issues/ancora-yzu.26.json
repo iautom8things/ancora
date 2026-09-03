@@ -34,11 +34,15 @@
     {
       "text": "IMPLEMENTED\nSession: yzu26-wf-2\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-yzu.26/codex-yzu26-wf-2/log\n\nCommit: 5a1d23f373af55c7f2ff0816b8453879f96176bd\nPR: https://github.com/ChapterSpot/workflows/pull/51 — CI: no checks reported on the `ancora-deshim` branch\nFiles touched: .github/scripts/test/fixtures/ancora.mix.lock (deleted), .github/scripts/test/fixtures/specled_ex.mix.lock (deleted); empty .github/scripts/test/fixtures/ and .github/scripts/test/ directories removed\nShim collapse: bare `mix spec.check`; pull requests run `mix spec.check --base \"origin/${{ github.base_ref }}\"`; non-PR events run bare `mix spec.check`\nfetch-depth: untouched; `fetch-depth: 0`\nInput description: Run ancora's `mix spec.check` gate for repos with a `.spec/` workspace.\ndetect-spec-gate references remaining: 0\nRetired-vocabulary greps: fixed in-scope hit at .github/scripts/test/fixtures/specled_ex.mix.lock:3 for `spec_led_ex`; out-of-scope hits: none\nFinal-tier runs: 1\n\nSummary: Deleted the two orphaned detect-spec-gate fixtures and their empty test directories. YAML parsing passed, literal sweeps found no fixture, detector, or retired-vocabulary references, and PR 51 now contains commit 5a1d23f.",
       "timestamp": "2026-09-03T02:39:53Z"
+    },
+    {
+      "text": "BLOCKED ON THE LOCAL gh WRITE-GUARD (routing to Manuel, not working around it). gh pr merge for workflows PR 51 fails with 'authorization timeout' twice in a row — the same signature that blocked gh pr edit on Engage PR 39 earlier. Direct gh writes worked as recently as the Atlas merge at 02:09Z, so this looks like an expired interactive-approval session (1Password touch or the guard's TTY prompt), not a policy denial. State when blocked: PR 51 is MERGEABLE/CLEAN with wf-2's fixture cleanup landed (5a1d23f) and nothing in the check rollup; the rehearsal plan is zero-edit — rerun Builder's open dependabot PR 150 CI after the merge and confirm the spec-check job takes the new bare path. Once PR 51 merges (Manuel's touch or his call to run it himself), remaining M10 steps are: rehearsal, one cold verify over the combined deliverable, close.\n\nSession: 68fab1f9-dfb5-49e0-be76-afa9d2d00f6d\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/68fab1f9-dfb5-49e0-be76-afa9d2d00f6d.jsonl",
+      "timestamp": "2026-09-03T02:43:10Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "M10: De-shim, subscriber sync, harness deletion, final sweep",
   "type": "task",
-  "updated_at": "2026-09-03T02:39:53Z"
+  "updated_at": "2026-09-03T02:43:10Z"
 }
