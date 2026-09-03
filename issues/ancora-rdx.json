@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T10:03:21Z",
+  "description": "Advances: ancora.gate\\n\\nSeverity: High (calibrated). BLOCKS THE EPIC PR (probabilistically).\\n\\nConcrete failure: the full suite fails about 1 run in 5 on a quiet machine, on different tests each time. CI runs two matrix legs per push, so roughly a 36 percent chance at least one test job is red. Measured at 5220686 on Elixir 1.18.4/OTP 26.2.5: 5 clean sequential runs, 1 failure (Ancora.Scaffold.TemplatesTest, config template loads with the taught defaults).\\n\\nTwo independent root causes, both reproduced by the critical review:\\n\\n(1) capture_io(:stderr, ...) inside async: true modules. ExUnit documents that concurrent captures of a named device see each other output. Reproducible at a fixed seed: mix test test/ancora/scaffold/templates_test.exs test/ancora/config_test.exs test/ancora/trailer_test.exs test/ancora/severity_test.exs --seed 4 fails about 1 run in 3, with TrailerTest [CONFIG] output landing inside TemplatesTest refute stderr matches [CONFIG].\\n\\n(2) Temp paths are not unique across BEAM VMs. Per-test roots use System.unique_integer, whose counter restarts near zero in every VM, so two concurrent mix test runs collide and each cleanup deletes the other live fixtures. Ancora.TempName.cross_vm_suffix/0 already exists for exactly this and is used nowhere in lib/ or test/.\\n\\nFix lands ON this branch before the PR. Tracked as a work order because it needs an implementer plus a cold verifier per the epic discipline.\\n\\nFound by /ship-it preflight, critical review 2026-09-03, findings F2 and F3. Three reviewers plus orchestrator measurement agree.",
+  "id": "ancora-rdx",
+  "labels": [],
+  "priority": 2,
+  "status": "open",
+  "title": "Fix the two test-isolation races that make the suite nondeterministically red",
+  "type": "task",
+  "updated_at": "2026-09-03T10:03:21Z"
+}
