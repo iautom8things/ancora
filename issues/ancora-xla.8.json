@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T16:13:11Z",
+  "description": "Advances: ancora.review\\n\\nSeverity: Low (calibrated). Consolidated findings F31, F32, F62, F64, F66. Cannot have landed on the shipped branch: NOTICE and docs were outside the blocker tickets allowed touches, and the asset digests need a new standing test.\\n\\nF31 — assert sha256 digests of all ten vendored Prism assets in review_assets_test.exs, so an unreviewed change to a vendored file fails CI. Today nothing pins their contents. Upgrade past 1.29.0 on the next touch of that directory.\\nF32 — NOTICE line 95 still reads json, html, css and javascript grammars only, while ancora.review.prism_carried now says markup. The vendored file is prism-markup.min.js, which registers the markup grammar and aliases html, xml, svg, mathml, rss, atom and ssml; Prism ships no prism-html.min.js. Reword NOTICE and the requirement so they agree and both state what is true: core Prism supplies markup, css and javascript, and these seven component files supply the rest. review_assets_test.exs only checks that NOTICE contains the string PrismJS 1.29.0, so nothing catches this drift.\\nF62 — five of the six priv/spec_init templates carry a .eex extension with no tags in them, yet all six go through EEx.eval_file, so a future literal opening EEx tag in that markdown would crash or evaluate. Rename the five tag-free templates to plain .md and .yml and copy them with File.cp!, keeping EEx.eval_file for AGENTS.md.eex alone, which has the one real tag.\\nF64 — republish the 30-code table in docs/migration.md with a default-severity column. The broader config-schema and Spec-Ack grammar documentation is deliberately NOT taken here.\\nF66 — give Git.read_blob/2 no-port fallback the same stderr separation the batch port has, so a git warning cannot be prepended into blob content. Add a comment at base_view.ex:52 recording that path-traversal safety depends on read_blob resolving through the git rev-colon-path form, so a future bulk-read optimization does not silently remove it. The security reviewer built a working proof-of-concept for that traversal: git mktree does accept a dot-dot entry and ls-tree -r emits it, and the chain reaches BaseView.materialize through a hostile default_base, but every blob read goes through rev-colon-path and git refuses to resolve dot-dot, so it dies before any write. The defense is real and undocumented.",
+  "id": "ancora-xla.8",
+  "labels": [],
+  "parent": "ancora-xla",
+  "priority": 2,
+  "status": "open",
+  "title": "Reconcile the vendored assets, NOTICE, and the docs that describe them",
+  "type": "task",
+  "updated_at": "2026-09-03T16:13:11Z"
+}
