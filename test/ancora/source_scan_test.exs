@@ -10,18 +10,22 @@ defmodule Ancora.SourceScanTest do
     # token form, line numbers, or the path allowlist.
     nested = Path.join([root, "lib", "nested"])
     File.mkdir_p!(nested)
+    File.mkdir_p!(Path.join(root, "config"))
     direct = Path.join(root, "lib/direct.ex")
     globbed = Path.join(nested, "globbed.ex")
+    glob_only = Path.join(root, "config/runtime.exs")
     allowed = Path.join(nested, "allowed.ex")
     File.write!(direct, "System.cmd(\"git\", [])\n")
     File.write!(globbed, "safe()\n:os.cmd('date')\n")
+    File.write!(glob_only, "System.cmd(\"runtime\", [])\n")
     File.write!(allowed, "System.cmd(\"allowed\", [])\n")
 
     assert SourceScan.scan(
-             dirs_or_globs: [Path.join(root, "lib"), Path.join(nested, "*.ex")],
+             dirs_or_globs: [Path.join(root, "lib"), Path.join(root, "config/*.exs")],
              tokens: ["System.cmd", ~r/:os\.cmd/],
              allowlist: [allowed]
            ) == [
+             {glob_only, 1, "System.cmd"},
              {direct, 1, "System.cmd"},
              {globbed, 2, ~r/:os\.cmd/}
            ]
@@ -46,25 +50,30 @@ defmodule Ancora.SourceScanTest do
   @tag :tmp_dir
   @tag spec: "ancora.source_scan.whole_token_matching"
   test "plain strings match whole tokens while regexes remain verbatim", %{tmp_dir: root} do
-    # Would fail if scan/1 treated plain strings as substrings or wrapped a caller's regex.
+    # Would fail if scan/1 used word boundaries, omitted either identifier boundary,
+    # or wrapped a caller's regex.
     source = Path.join(root, "bindings.ex")
-    File.write!(source, "system_cmd = :safe\ncmd = :violation\n")
+    File.write!(source, "system_cmd = :safe\ncmdline = :safe\n:os.cmd('x')\ncmd = :violation\n")
 
     assert SourceScan.scan(
              dirs_or_globs: [source],
-             tokens: ["cmd", ~r/cmd/],
+             tokens: ["cmd", ":os.cmd", ~r/cmd/],
              allowlist: []
            ) == [
              {source, 1, ~r/cmd/},
-             {source, 2, "cmd"},
-             {source, 2, ~r/cmd/}
+             {source, 2, ~r/cmd/},
+             {source, 3, "cmd"},
+             {source, 3, ":os.cmd"},
+             {source, 3, ~r/cmd/},
+             {source, 4, "cmd"},
+             {source, 4, ~r/cmd/}
            ]
   end
 
   @tag :tmp_dir
   @tag spec: "ancora.source_scan.no_execution"
   test "scans through file reads without process-spawning calls", %{tmp_dir: root} do
-    # Would fail if the production module gained a shell or port-spawning call.
+    # Would fail if the production module gained a process, shell, or port-spawning call.
     source = Path.join(root, "safe.ex")
     File.write!(source, "safe()\n")
 
@@ -75,5 +84,9 @@ defmodule Ancora.SourceScanTest do
     refute module_source =~ "System." <> "shell"
     refute module_source =~ "Port." <> "open"
     refute module_source =~ ":os." <> "cmd"
+    refute module_source =~ "sp" <> "awn"
+    refute module_source =~ "Task" <> "."
+    refute module_source =~ "Process" <> "."
+    refute module_source =~ ":erlang." <> "open_port"
   end
 end
