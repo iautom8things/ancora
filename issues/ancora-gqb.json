@@ -16,11 +16,15 @@
     {
       "text": "RULING (Manuel, 2026-09-03): F17 from ancora-xla.9 moves into this ticket. Write the new artifact-size must and the watched-card contract line first, then swap Ancora.Review's regex binding extractor for the AST resolver in the same diff, so the swap is tested against the contract you just wrote. Guard: before the swap lands, diff the watched-card output for the existing fixtures against the regex version and account for every difference in the IMPLEMENTED comment; the AST version must not silently drop bindings the regex found. Allowed touches now include lib/ancora/review.ex for the extractor and read access to lib/ancora/derive/resolver.ex (call it, do not edit it). The 'no regex-to-AST extractor swap here' line in Out of Scope (intent) is withdrawn. This ticket no longer blocks ancora-xla.9.",
       "timestamp": "2026-09-03T17:07:48Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: gqb-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gqb/codex-gqb-i1-adec463e/log\n\nCommit: 68522000ee44c029be5ef150fa5744f4987b240b\nFiles touched: .spec/decisions/ancora.decision.review_artifact_contract.md, .spec/specs/ancora.review.spec.md, lib/ancora/review.ex, lib/ancora/review/html.ex, test/ancora/review_test.exs, test/ancora/static/review_budget_test.exs\nTests added: Ancora.ReviewTest \"production builder scopes file diffs to their subject and renders one file anchor\"; Ancora.Static.ReviewBudgetTest \"a 200-file review artifact stays below one megabyte\"\nSpec acknowledgment: .spec/specs/ancora.review.spec.md adds the substantive artifact-size must, unique watched-link contract, and two scenarios; .spec/decisions/ancora.decision.review_artifact_contract.md records the built footprint, anchor, and byte-budget boundary. No Spec-Ack trailer used.\nVerification tier: change-scoped — mix compile --warnings-as-errors; mix test test/ancora/review_test.exs test/ancora/static/review_budget_test.exs; mix test --stale; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base b717ba4; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Review now uses the existing AST derive pipeline for watched bindings, limits supporting and test diffs to one deterministic subject owner, and emits each file anchor only in All files. Against the b717ba4 implementation, the fixture's watched cards changed from %{alpha: [], beta: [Fixture.Beta.next/1]} to %{alpha: [Fixture.Alpha.next/1], beta: [Fixture.Beta.next/1]}; the AST resolver added the aliased Alpha call and retained every regex-found binding. I checked every epic lesson against the diff: the defining \"one\" clause has a shared-footprint test, the before/after names both compared trees, the spec and decision match the code, the real Review.build/2 path reaches the behavior without seams, the rendered output proves the anchors and diff counts, and the regex extractor was deleted without adding a process, registry, or cache.",
+      "timestamp": "2026-09-03T21:59:53Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Re-base the review artifact size finding on a contract line that still exists",
   "type": "task",
-  "updated_at": "2026-09-03T21:49:29Z"
+  "updated_at": "2026-09-03T21:59:53Z"
 }
