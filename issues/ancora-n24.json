@@ -9,7 +9,7 @@
   "id": "ancora-n24",
   "labels": [
     "critical",
-    "phase:verifying"
+    "phase:merging"
   ],
   "parent": "ancora-xla",
   "comments": [
@@ -54,5 +54,5 @@
   "status": "in_progress",
   "title": "Retirement vocabulary for ADR affects: (subject-pruning catch-22)",
   "type": "task",
-  "updated_at": "2026-09-03T23:50:53Z"
+  "updated_at": "2026-09-03T23:51:01Z"
 }
