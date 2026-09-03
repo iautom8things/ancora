@@ -12,9 +12,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-xla",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: xla8-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-xla.8/codex-xla8-i1-adec463e/log\n\nCommit: 0c375418829ba6bae710fd9fd4892fb1c4d1d23d\nFiles touched: .spec/decisions/ancora.decision.vendored_and_scaffold_bytes.md, .spec/specs/ancora.derive.spec.md, .spec/specs/ancora.review.spec.md, .spec/specs/ancora.scaffold.spec.md, NOTICE, docs/migration.md, lib/ancora/base_view.ex, lib/ancora/git.ex, lib/ancora/init.ex, five priv/spec_init static template renames, test/ancora/git_test.exs, test/ancora/review_assets_test.exs, test/ancora/scaffold/docs_test.exs, test/ancora/scaffold/templates_test.exs, test/support/retired_vocabulary.ex\nTests added: Ancora.ReviewAssetsTest \"Prism assets match reviewed bytes and grammar ownership\" and \"NOTICE limits append-only authorization to requirement ids\"; Ancora.Scaffold.TemplatesTest \"copies static templates byte-for-byte and evaluates only AGENTS.md.eex\"; Ancora.Scaffold.DocsTest \"migration map names the complete 30-code registry and its defaults\"; Ancora.GitTest \"read_blob keeps successful git show stderr out of blob bytes\"\nSpec acknowledgment: ancora.review, ancora.scaffold, and ancora.derive received substantive requirement and scenario edits; ancora.decision.vendored_and_scaffold_bytes records the byte-preservation, severity-table, and stderr-separation contract; no Spec-Ack trailer used\nVerification tier: change-scoped — mix compile --warnings-as-errors; test/ancora/review_assets_test.exs, test/ancora/scaffold/templates_test.exs, test/ancora/scaffold/fresh_adopter_test.exs, test/ancora/scaffold/docs_test.exs, and test/ancora/git_test.exs; mix test --stale; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base 7511407; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Pinned all ten Prism assets, aligned NOTICE and ancora.review on grammar ownership, corrected NOTICE's append-only authorization rule, and published registry defaults in the migration table. Ancora.Init now copies the five static templates byte-for-byte and evaluates only AGENTS.md.eex, while no-port blob reads keep Git stderr out of payloads and BaseView documents the rev:path traversal boundary. The subject specs and decision record state those tested contracts.",
+      "timestamp": "2026-09-03T19:28:36Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Reconcile the vendored assets, NOTICE, and the docs that describe them",
   "type": "task",
-  "updated_at": "2026-09-03T19:12:50Z"
+  "updated_at": "2026-09-03T19:28:36Z"
 }
