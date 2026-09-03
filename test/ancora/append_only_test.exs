@@ -23,7 +23,12 @@ defmodule Ancora.AppendOnlyTest do
              "Would fail if AppendOnly omitted append/requirement_deleted when a base requirement is absent on HEAD with no accepted ADR"
 
       assert Enum.all?(deleted, &(&1.severity == :error))
-      assert Enum.any?(deleted, &(&1.message =~ "alpha.requirement"))
+
+      assert Enum.any?(deleted, fn finding ->
+               finding.message ==
+                 "alpha.requirement deleted; no authorizing ADR names it — " <>
+                   "add an accepted ADR whose affects: or retires: names the requirement id"
+             end)
     end
 
     @tag spec: [
@@ -82,6 +87,100 @@ defmodule Ancora.AppendOnlyTest do
              "Would fail if an ADR naming one requirement authorized deleting a different requirement in the same subject"
     end
 
+    @tag spec: [
+           "ancora.gate.two_append_guards",
+           "ancora.parsing.retirement_vocabulary"
+         ]
+    test "accepted ADR retiring a subject authorizes deleting all of its requirements", %{
+      root: root
+    } do
+      init_git_repo(root)
+
+      write_files(root, %{
+        "mix.exs" => """
+        defmodule Fixture.MixProject do
+          use Mix.Project
+          def project, do: [app: :fixture]
+        end
+        """
+      })
+
+      write_spec(root, "alpha", spec_with_reqs("alpha", one: "must", two: "must"))
+      prior = Index.build(root)
+      commit_all(root, "base subject")
+
+      File.rm!(Path.join([root, ".spec", "specs", "alpha.spec.md"]))
+      write_adr(root, "retire", "accepted", ["alpha"], ["alpha"])
+      current = Index.build(root)
+
+      refute Enum.any?(current["findings"], &(&1.code == "adr/affects_unresolved")),
+             "Would fail if a retired subject still had to resolve in the current index"
+
+      refute Enum.any?(AppendOnly.analyze(prior, current), fn finding ->
+               finding.code == "append/requirement_deleted"
+             end),
+             "Would fail if a retired subject did not authorize deleting every requirement that belonged to it"
+
+      assert %{stdout: validate_stdout, status: 0} =
+               run_mix_subprocess(["spec.validate", "--root", root])
+
+      refute validate_stdout =~ "adr/affects_unresolved"
+      assert List.last(output_lines(validate_stdout)) == "spec.validate result=pass"
+
+      assert %{stdout: check_stdout, status: 0} =
+               run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+      refute check_stdout =~ "adr/affects_unresolved"
+      refute check_stdout =~ "append/requirement_deleted"
+      assert List.last(output_lines(check_stdout)) == "spec.check result=pass"
+    end
+
+    @tag spec: "ancora.parsing.retirement_vocabulary"
+    test "accepted ADR retiring an exact requirement authorizes its deletion", %{root: root} do
+      write_spec(root, "alpha", spec_with_reqs("alpha", one: "must", two: "must"))
+      prior = Index.build(root)
+
+      write_spec(root, "alpha", spec_with_reqs("alpha", one: "must"))
+      write_adr(root, "retire", "accepted", ["alpha.one"], ["alpha.two"])
+      current = Index.build(root)
+
+      refute Enum.any?(AppendOnly.analyze(prior, current), fn finding ->
+               finding.code == "append/requirement_deleted"
+             end),
+             "Would fail if retires could not authorize the exact requirement id it names"
+    end
+
+    @tag spec: "ancora.parsing.retirement_vocabulary"
+    test "retiring one requirement does not authorize deleting its sibling", %{root: root} do
+      write_spec(root, "alpha", spec_with_reqs("alpha", one: "must", two: "must"))
+      prior = Index.build(root)
+
+      write_spec(root, "alpha", spec_with_reqs("alpha", one: "must"))
+      write_adr(root, "retire", "accepted", ["alpha.one"], ["alpha.one"])
+      current = Index.build(root)
+
+      assert Enum.any?(AppendOnly.analyze(prior, current), fn finding ->
+               finding.code == "append/requirement_deleted" and
+                 finding.message =~ "alpha.two deleted"
+             end),
+             "Would fail if retiring one requirement authorized deleting another requirement in the same subject"
+    end
+
+    @tag spec: "ancora.parsing.retirement_vocabulary"
+    test "a non-accepted ADR cannot authorize deletion through retires", %{root: root} do
+      write_spec(root, "alpha", spec_with_req("alpha", "must"))
+      prior = Index.build(root)
+
+      write_spec(root, "alpha", spec_without_req("alpha"))
+      write_adr(root, "retire", "deprecated", ["alpha.requirement"], ["alpha.requirement"])
+      current = Index.build(root)
+
+      assert Enum.any?(AppendOnly.analyze(prior, current), fn finding ->
+               finding.code == "append/requirement_deleted"
+             end),
+             "Would fail if retires on a non-accepted ADR authorized a deletion"
+    end
+
     @tag spec: "ancora.gate.two_append_guards"
     test "a non-accepted ADR does not authorize deletion", %{root: root} do
       write_spec(root, "alpha", spec_with_req("alpha", "must"))
@@ -114,6 +213,12 @@ defmodule Ancora.AppendOnlyTest do
              "Would fail if AppendOnly omitted append/must_downgraded when priority moves from must to should with no accepted ADR"
 
       assert Enum.all?(downgraded, &(&1.severity == :error))
+
+      assert Enum.any?(downgraded, fn finding ->
+               finding.message ==
+                 "alpha.requirement: must → should; no authorizing ADR names it — " <>
+                   "add an accepted ADR whose affects: names the requirement id"
+             end)
     end
 
     @tag spec: "ancora.parsing.append_authorization_is_requirement_scoped"
@@ -166,6 +271,24 @@ defmodule Ancora.AppendOnlyTest do
 
       refute Enum.any?(findings, &(&1.code == "append/must_downgraded")),
              "Would fail if an accepted ADR could not authorize the exact requirement id it names"
+    end
+
+    @tag spec: [
+           "ancora.gate.two_append_guards",
+           "ancora.parsing.retirement_vocabulary"
+         ]
+    test "retires does not authorize a must downgrade", %{root: root} do
+      write_spec(root, "alpha", spec_with_req("alpha", "must"))
+      prior = Index.build(root)
+
+      write_spec(root, "alpha", spec_with_req("alpha", "should"))
+      write_adr(root, "retire", "accepted", ["alpha"], ["alpha"])
+      current = Index.build(root)
+
+      assert Enum.any?(AppendOnly.analyze(prior, current), fn finding ->
+               finding.code == "append/must_downgraded"
+             end),
+             "Would fail if retiring a subject authorized weakening a requirement that remains in the corpus"
     end
 
     @tag spec: "ancora.gate.two_append_guards"
@@ -250,7 +373,17 @@ defmodule Ancora.AppendOnlyTest do
   end
 
   defp write_adr(root, name, status, affects) do
+    write_adr(root, name, status, affects, [])
+  end
+
+  defp write_adr(root, name, status, affects, retires) do
     affects_yaml = Enum.map_join(affects, "\n", &("  - " <> &1))
+
+    retires_yaml =
+      case retires do
+        [] -> ""
+        ids -> "retires:\n" <> Enum.map_join(ids, "\n", &("  - " <> &1)) <> "\n"
+      end
 
     write_decision(root, name, """
     ---
@@ -259,7 +392,7 @@ defmodule Ancora.AppendOnlyTest do
     date: 2026-08-21
     affects:
     #{affects_yaml}
-    ---
+    #{retires_yaml}---
 
     # #{name}
 

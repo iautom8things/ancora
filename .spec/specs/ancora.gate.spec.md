@@ -25,6 +25,7 @@ decisions:
   - ancora.decision.no_execution_no_state
   - ancora.decision.slimmed_governance
   - ancora.decision.cli_json_contract
+  - ancora.decision.retirement_vocabulary
 ```
 
 ## Requirements
@@ -96,12 +97,14 @@ decisions:
     The gate shall enforce exactly two append-only guards, implemented
     by Ancora.AppendOnly: `append/requirement_deleted` when a requirement
     id present at base is absent on HEAD, and `append/must_downgraded`
-    when a requirement's priority moves from `must` to `should`. Either
-    is authorized, and the finding suppressed, only by an ADR with
-    `status: accepted` whose `affects:` names the requirement id. A subject
-    id in `affects:` shall not authorize the change. See
-    `ancora.parsing.append_authorization_is_requirement_scoped` for the shared
-    authorization rule. No other spec-weakening shall be guarded.
+    when a requirement's priority moves from `must` to `should`. An accepted
+    ADR whose `affects:` names the exact requirement id shall authorize either
+    change. For deletion only, `retires:` may instead name the exact
+    requirement id or its subject id. A subject id in `affects:` shall not
+    authorize either change, and `retires:` shall not authorize a downgrade.
+    See `ancora.parsing.append_authorization_is_requirement_scoped` and
+    `ancora.parsing.retirement_vocabulary` for the shared authorization rules.
+    No other spec weakening shall be guarded.
   priority: must
   stability: stable
 - id: ancora.gate.unanchored_subject
@@ -271,11 +274,30 @@ decisions:
 - id: ancora.gate.scenario.deleted_requirement_without_adr
   given:
     - a requirement present at base and removed on HEAD
-    - no ADR in the corpus names it or its subject
+    - no accepted ADR names its exact id in `affects:` or names its exact id or subject in `retires:`
   when:
     - the gate runs
   then:
     - `append/requirement_deleted` fires at severity `error`
+  covers:
+    - ancora.gate.two_append_guards
+- id: ancora.gate.scenario.subject_retirement_authorizes_deletion
+  given:
+    - a subject with multiple requirements at base
+    - "an accepted ADR whose `retires:` names the subject id"
+  when:
+    - the subject is absent on HEAD
+  then:
+    - no `append/requirement_deleted` finding fires
+  covers:
+    - ancora.gate.two_append_guards
+- id: ancora.gate.scenario.retirement_does_not_authorize_downgrade
+  given:
+    - "an accepted ADR whose `retires:` names a subject id but whose `affects:` does not name the requirement id"
+  when:
+    - a requirement in the subject moves from `must` to `should`
+  then:
+    - `append/must_downgraded` fires
   covers:
     - ancora.gate.two_append_guards
 - id: ancora.gate.scenario.downgrade_authorized_by_adr

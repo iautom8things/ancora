@@ -28,6 +28,7 @@ decisions:
   - ancora.decision.no_execution_no_state
   - ancora.decision.requirement_scoped_append_authorization
   - ancora.decision.cli_json_contract
+  - ancora.decision.retirement_vocabulary
 ```
 
 ## Requirements
@@ -74,21 +75,36 @@ decisions:
 - id: ancora.parsing.adr_grammar
   statement: >-
     Ancora.DecisionParser shall parse ADR frontmatter `id`, `status`, `date`,
-    and `affects:` plus the Context, Decision, and Consequences sections.
-    `change_type`, `supersedes`, `replaces`, and `reverses_what` shall be
-    accepted and ignored without any finding. A missing section shall emit
-    `adr/missing_section`; malformed frontmatter shall emit `adr/parse_error`;
-    an empty `affects:` shall emit `adr/affects_empty`; an `affects:` entry
-    naming an id not in the corpus shall emit `adr/affects_unresolved`.
+    `affects:`, and optional `retires:` plus the Context, Decision, and
+    Consequences sections. `change_type`, `supersedes`, `replaces`, and
+    `reverses_what` shall be accepted and ignored without any finding. A
+    missing section shall emit `adr/missing_section`; malformed frontmatter
+    shall emit `adr/parse_error`; an empty `affects:` shall emit
+    `adr/affects_empty`; an `affects:` entry naming an id that is neither in
+    the corpus nor repeated in `retires:` shall emit
+    `adr/affects_unresolved`.
   priority: must
   stability: stable
 - id: ancora.parsing.append_authorization_is_requirement_scoped
   statement: >-
     Ancora.AppendOnly shall suppress `append/requirement_deleted` or
     `append/must_downgraded` only when an accepted ADR's `affects:` list names
-    the exact requirement id. A subject id shall remain valid for affects
-    resolution and documentation, but shall not authorize deleting or
-    downgrading any requirement in that subject.
+    the exact requirement id, except for deletion authorized through the
+    retirement vocabulary. A subject id shall remain valid for affects
+    resolution and documentation, but shall not by itself authorize deleting
+    or downgrading any requirement in that subject.
+  priority: must
+  stability: stable
+- id: ancora.parsing.retirement_vocabulary
+  statement: >-
+    An accepted ADR may authorize requirement deletion through `retires:`.
+    An exact requirement id shall authorize only that requirement's deletion,
+    while a subject id shall authorize deletion of every requirement that
+    belonged to that subject. `retires:` shall not authorize a `must` to
+    `should` downgrade. An id repeated in `affects:` and `retires:` may be
+    absent from the current index without `adr/affects_unresolved`. The Zoi
+    decision schema shall accept the optional list, and the spec.init decision
+    guidance shall teach authors to repeat a removed id in both fields.
   priority: must
   stability: stable
 - id: ancora.parsing.tag_discovery
@@ -231,12 +247,25 @@ decisions:
 - id: ancora.parsing.scenario.adr_affects_unresolved
   given:
     - an ADR whose `affects:` lists `ancora.ghost.requirement`
+    - the id is absent from both the current corpus and the ADR's `retires:` list
   when:
     - the corpus is indexed
   then:
     - `adr/affects_unresolved` fires at severity `error`
   covers:
     - ancora.parsing.adr_grammar
+- id: ancora.parsing.scenario.retired_subject_validates_cold
+  given:
+    - a corpus from which subject `old.subject` and all of its requirements have been removed
+    - "an accepted ADR that lists `old.subject` in both `affects:` and `retires:`"
+  when:
+    - `mix spec.validate` runs using only the current corpus
+  then:
+    - no `adr/affects_unresolved` finding fires
+    - the verdict is `spec.validate result=pass`
+  covers:
+    - ancora.parsing.adr_grammar
+    - ancora.parsing.retirement_vocabulary
 - id: ancora.parsing.scenario.subject_affect_does_not_authorize_append_change
   given:
     - an accepted ADR whose `affects:` lists only a subject id
@@ -255,6 +284,35 @@ decisions:
     - no append-only finding fires for the requirement
   covers:
     - ancora.parsing.append_authorization_is_requirement_scoped
+- id: ancora.parsing.scenario.subject_retirement_authorizes_deletion
+  given:
+    - a subject with two requirements on the base side
+    - "an accepted ADR whose `retires:` lists that subject id"
+  when:
+    - the whole subject is absent on HEAD
+  then:
+    - no `append/requirement_deleted` finding fires for either requirement
+  covers:
+    - ancora.parsing.retirement_vocabulary
+    - ancora.parsing.append_authorization_is_requirement_scoped
+- id: ancora.parsing.scenario.requirement_retirement_is_exact
+  given:
+    - "an accepted ADR whose `retires:` lists one requirement id"
+  when:
+    - a different requirement in the same subject is deleted
+  then:
+    - `append/requirement_deleted` fires for the deleted requirement
+  covers:
+    - ancora.parsing.retirement_vocabulary
+- id: ancora.parsing.scenario.retirement_does_not_authorize_downgrade
+  given:
+    - "an accepted ADR whose `retires:` lists a subject id"
+  when:
+    - one of that subject's requirements remains in the corpus but moves from `must` to `should`
+  then:
+    - `append/must_downgraded` fires for the requirement
+  covers:
+    - ancora.parsing.retirement_vocabulary
 - id: ancora.parsing.scenario.tag_inside_for_comprehension
   given:
     - "a test file with `for {name, input} <- cases do @tag spec: \"ancora.parsing.tag_discovery\"; test name do ... end end`"
@@ -305,6 +363,7 @@ decisions:
     - ancora.parsing.requirement_unverified
     - ancora.parsing.adr_grammar
     - ancora.parsing.append_authorization_is_requirement_scoped
+    - ancora.parsing.retirement_vocabulary
     - ancora.parsing.tag_discovery
     - ancora.parsing.overlap_checks
     - ancora.parsing.stable_public_api

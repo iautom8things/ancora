@@ -7,11 +7,10 @@ defmodule Ancora.AppendOnly do
     * `append/must_downgraded` — a requirement's `priority` moves from
       `must` to `should`
 
-  Either finding is suppressed only by an ADR with `status: accepted`
-  whose `affects:` names the requirement id. A subject id may describe an
-  ADR's scope, but it does not authorize deleting or downgrading every
-  requirement in that subject. There is no weakening-class enum and no
-  `change_type` requirement.
+  An accepted ADR's `affects:` authorizes either change only when it names
+  the requirement id. For deletion, `retires:` may instead name the exact
+  requirement or its subject. Retirement does not authorize a downgrade.
+  There is no weakening-class enum and no `change_type` requirement.
 
   `analyze/2` is a total function over `(prior_index, current_index)`.
   Both arguments are index-shaped maps (`"subjects"`, `"decisions"`).
@@ -40,7 +39,7 @@ defmodule Ancora.AppendOnly do
       if Map.has_key?(current_reqs, id) do
         []
       else
-        if authorized?(decisions, id) do
+        if deletion_authorized?(decisions, id, prior.subject_id) do
           []
         else
           [requirement_deleted_finding(id, prior)]
@@ -53,7 +52,7 @@ defmodule Ancora.AppendOnly do
     Enum.flat_map(prior_reqs, fn {id, prior} ->
       case Map.fetch(current_reqs, id) do
         {:ok, current} ->
-          if must_to_should?(prior, current) and not authorized?(decisions, id) do
+          if must_to_should?(prior, current) and not change_authorized?(decisions, id) do
             [must_downgraded_finding(id, prior)]
           else
             []
@@ -69,18 +68,32 @@ defmodule Ancora.AppendOnly do
     prior.priority == "must" and current.priority == "should"
   end
 
-  defp authorized?(decisions, requirement_id) do
+  defp deletion_authorized?(decisions, requirement_id, subject_id) do
     Enum.any?(decisions, fn decision ->
       meta = fetch(decision, "meta")
-      accepted?(meta) and names_requirement?(meta, requirement_id)
+
+      accepted?(meta) and
+        (names_requirement?(meta, "affects", requirement_id) or
+           names_retirement?(meta, requirement_id, subject_id))
+    end)
+  end
+
+  defp change_authorized?(decisions, requirement_id) do
+    Enum.any?(decisions, fn decision ->
+      meta = fetch(decision, "meta")
+      accepted?(meta) and names_requirement?(meta, "affects", requirement_id)
     end)
   end
 
   defp accepted?(meta), do: fetch(meta, "status") == "accepted"
 
-  defp names_requirement?(meta, requirement_id) do
-    affects = List.wrap(fetch(meta, "affects") || [])
-    requirement_id in affects
+  defp names_requirement?(meta, field, requirement_id) do
+    requirement_id in List.wrap(fetch(meta, field) || [])
+  end
+
+  defp names_retirement?(meta, requirement_id, subject_id) do
+    retires = List.wrap(fetch(meta, "retires") || [])
+    requirement_id in retires or subject_id in retires
   end
 
   defp requirement_deleted_finding(id, prior) do

@@ -6,6 +6,7 @@ defmodule Ancora.DecisionParserTest do
   alias Ancora.DecisionParser
   alias Ancora.DecisionParser.Affects
   alias Ancora.Finding
+  alias Ancora.Schema.Decision
 
   describe "parse_file/2" do
     @tag spec: "ancora.parsing.adr_grammar"
@@ -47,6 +48,43 @@ defmodule Ancora.DecisionParserTest do
       assert decision["parse_errors"] == []
       refute Enum.any?(decision["findings"], &(&1.code == "adr/missing_section"))
       refute Enum.any?(decision["findings"], &(&1.code == "adr/parse_error"))
+    end
+
+    @tag spec: "ancora.parsing.retirement_vocabulary"
+    test "parses retires and the decision schema accepts it", %{root: root} do
+      path =
+        write_decision(root, "retire", """
+        ---
+        id: repo.decision.retire
+        status: accepted
+        date: 2026-09-03
+        affects:
+          - old.subject
+        retires:
+          - old.subject
+        ---
+
+        # Retire old subject
+
+        ## Context
+
+        The old subject is gone.
+
+        ## Decision
+
+        Record its retirement.
+
+        ## Consequences
+
+        Cold validation accepts the missing id.
+        """)
+
+      decision = DecisionParser.parse_file(path, root)
+
+      assert decision["meta"]["retires"] == ["old.subject"]
+
+      assert {:ok, %Decision{retires: ["old.subject"]}} =
+               Zoi.parse(Decision.schema(), decision["meta"])
     end
 
     @tag spec: "ancora.parsing.adr_grammar"
@@ -222,6 +260,81 @@ defmodule Ancora.DecisionParserTest do
       [diagnostic] = Affects.validate(decision, index)
       assert diagnostic.code == "adr/affects_unresolved"
       assert diagnostic.detail == "ancora.ghost.requirement"
+    end
+
+    @tag spec: "ancora.parsing.retirement_vocabulary"
+    test "an unresolved affect repeated in retires is silent" do
+      decision = %{
+        "file" => ".spec/decisions/retire.md",
+        "meta" => %{
+          "id" => "adr.retire",
+          "status" => "accepted",
+          "affects" => ["old.subject"],
+          "retires" => ["old.subject"]
+        }
+      }
+
+      index = %{"subjects" => [], "decisions" => [decision]}
+
+      assert Affects.validate(decision, index) == [],
+             "Would fail if cold resolution rejected an id explicitly classified as retired"
+    end
+
+    @tag spec: "ancora.parsing.retirement_vocabulary"
+    test "an unresolved affect not listed in retires remains an error" do
+      decision = %{
+        "file" => ".spec/decisions/typo.md",
+        "meta" => %{
+          "id" => "adr.typo",
+          "status" => "accepted",
+          "affects" => ["missing.typo"],
+          "retires" => ["old.subject"]
+        }
+      }
+
+      index = %{"subjects" => [], "decisions" => [decision]}
+      [diagnostic] = Affects.validate(decision, index)
+
+      assert diagnostic.code == "adr/affects_unresolved"
+      assert diagnostic.detail == "missing.typo"
+    end
+
+    @tag spec: "ancora.parsing.retirement_vocabulary"
+    test "cold spec.validate accepts an ADR for a pruned subject", %{root: root} do
+      File.mkdir_p!(Path.join([root, ".spec", "specs"]))
+
+      write_decision(root, "retire", """
+      ---
+      id: repo.decision.retire
+      status: accepted
+      date: 2026-09-03
+      affects:
+        - old.subject
+      retires:
+        - old.subject
+      ---
+
+      # Retire old subject
+
+      ## Context
+
+      The subject was removed.
+
+      ## Decision
+
+      Retire it.
+
+      ## Consequences
+
+      Its ids no longer resolve from the current corpus.
+      """)
+
+      assert %{stdout: stdout, status: 0} =
+               run_mix_subprocess(["spec.validate", "--root", root])
+
+      refute stdout =~ "adr/affects_unresolved"
+      refute stdout =~ "append/requirement_deleted"
+      assert List.last(output_lines(stdout)) == "spec.validate result=pass"
     end
 
     @tag spec: "ancora.parsing.adr_grammar"

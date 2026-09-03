@@ -34,6 +34,17 @@ downgrading every requirement in that subject. Add each exact requirement id
 that the ADR is meant to authorize. Subject ids remain valid when they only
 document the ADR's broader scope.
 
+Use `retires:` when an accepted ADR removes a requirement or whole subject from
+the corpus. Repeat each retired id in `affects:` and `retires:`. Cold validation
+then accepts the missing id, and the append-only guard accepts deletion of the
+named requirement or every requirement under the named subject. `retires:` does
+not authorize a `must` to `should` downgrade.
+
+When upgrading, Engage should remove its `adr/affects_unresolved: info`
+demotion and return to the registry default. Builder should replace its six
+identifier tombstone files with `retires:` entries, then delete the tombstones
+and their `derived/unanchored_subject` overrides.
+
 ## Finding code map
 
 Ancora has 30 finding codes. The right column is the closed registry. Several

@@ -85,7 +85,10 @@ defmodule Ancora.Scaffold.TemplatesTest do
     end
   end
 
-  @tag spec: "ancora.parsing.append_authorization_is_requirement_scoped"
+  @tag spec: [
+         "ancora.parsing.append_authorization_is_requirement_scoped",
+         "ancora.parsing.retirement_vocabulary"
+       ]
   test "decision guidance requires exact requirement ids for append authorization", %{
     scaffold: scaffold
   } do
@@ -97,5 +100,8 @@ defmodule Ancora.Scaffold.TemplatesTest do
 
     assert content =~
              "A subject id documents broad scope. To authorize deleting or downgrading a requirement, name that exact requirement id."
+
+    assert content =~ "repeat that id under `retires:`"
+    assert content =~ "A retired subject authorizes deleting all of its requirements."
   end
 end
