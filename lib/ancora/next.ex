@@ -15,14 +15,18 @@ defmodule Ancora.Next do
   @spec build(Path.t(), keyword()) :: {:ok, map()} | {:env, String.t()}
   def build(root, opts \\ []) when is_binary(root) and is_list(opts) do
     root = Path.expand(root)
+    {status, opts} = Keyword.pop(opts, :status)
     base = Keyword.get(opts, :since) || Keyword.get(opts, :base)
 
     with {:ok, preflight} <- Preflight.run(root, base: base),
          {:ok, change_set} <- change_set(preflight.root, preflight.base),
-         {:ok, status} <- Status.build(root, opts) do
+         {:ok, status} <- status(root, opts, status) do
       {:ok, report(preflight.base, change_set, status.subjects, opts)}
     end
   end
+
+  defp status(root, opts, nil), do: Status.build(root, opts)
+  defp status(_root, _opts, %{subjects: _subjects} = status), do: {:ok, status}
 
   defp change_set(root, base) do
     with {:ok, context} <- RunContext.start(root, base) do

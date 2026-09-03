@@ -26,7 +26,7 @@ defmodule Ancora.Derive.ModuleLocator do
     with {:ok, head_sources} <- head_sources(project),
          base_sources <- base_sources(project, change_set, head_sources),
          {:ok, head} <- scan_sources(head_sources, :head),
-         {:ok, base} <- scan_sources(base_sources, :base) do
+         {:ok, base} <- scan_base_sources(base_sources, head, change_set) do
       {:ok, %__MODULE__{head: head, base: base}}
     end
   end
@@ -105,6 +105,12 @@ defmodule Ancora.Derive.ModuleLocator do
       end
     end)
   end
+
+  defp scan_base_sources(_sources, head, %ChangeSet{entries: [], prefetched: prefetched})
+       when map_size(prefetched) == 0,
+       do: {:ok, head}
+
+  defp scan_base_sources(sources, _head, %ChangeSet{}), do: scan_sources(sources, :base)
 
   defp collect_modules({kind, _, [name_ast, body]}, parent, path, modules)
        when kind in [:defmodule, :defprotocol] and is_list(body) do

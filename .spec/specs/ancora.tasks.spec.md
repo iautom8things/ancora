@@ -23,6 +23,7 @@ status: active
 summary: The eight spec.* tasks, single-writer stdout, verdict grammar, and per-emission-path output contract.
 decisions:
   - ancora.decision.no_execution_no_state
+  - ancora.decision.field_friction_response
 ```
 
 ## Requirements
@@ -161,7 +162,8 @@ decisions:
     `mix spec.prime --base HEAD` shall print a header, the status body, the
     next body, and loop bullets ending with the check command and the
     exact `Ancora.Output.read_protocol/0` sentence, and shall be the documented
-    session-start idiom.
+    session-start idiom. Prime shall build the status derivation once and pass
+    that report to Next; standalone Next runs shall build their own status.
   priority: must
   stability: evolving
 - id: ancora.tasks.mix_bootstrap_posture

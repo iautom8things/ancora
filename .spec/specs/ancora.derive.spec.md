@@ -30,6 +30,7 @@ decisions:
   - ancora.decision.source_derived_membership
   - ancora.decision.generated_bindings_companion
   - ancora.decision.no_execution_no_state
+  - ancora.decision.field_friction_response
 ```
 
 ## Requirements
@@ -86,6 +87,8 @@ decisions:
     under `lib_paths` on side S: HEAD from the working tree, base from the
     same-path base blob and then from the base blobs of change-set files.
     Nested `defmodule` bodies shall be named with their parent prefix.
+    When the change set is empty, ModuleLocator shall scan HEAD once and use
+    the same module map for base instead of parsing every source file twice.
     Membership shall never read `_build`, any `.app` file, or any compiled
     artifact.
   priority: must

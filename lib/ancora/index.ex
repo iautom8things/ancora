@@ -1,7 +1,9 @@
 defmodule Ancora.Index do
   @moduledoc false
 
-  alias Ancora.{DecisionParser, Parser}
+  alias Ancora.DecisionParser
+  alias Ancora.DecisionParser.Affects
+  alias Ancora.Parser
 
   @doc """
   Builds the in-memory corpus index for `root`.
@@ -37,10 +39,13 @@ defmodule Ancora.Index do
     subjects = Enum.map(spec_files, &Parser.parse_file(&1, root))
     decisions = Enum.map(decision_files, &DecisionParser.parse_file(&1, root))
 
+    current_index = %{"subjects" => subjects, "decisions" => decisions}
+    resolvable_ids = Affects.resolvable_ids(current_index)
+
     validated =
       DecisionParser.validate_affects(
         decisions,
-        %{"subjects" => subjects, "decisions" => decisions},
+        resolvable_ids,
         opts
       )
 

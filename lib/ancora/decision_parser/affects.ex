@@ -14,12 +14,29 @@ defmodule Ancora.DecisionParser.Affects do
 
   Other specled_ex cross-field rules are not ported.
   """
-  @spec validate(map(), map()) :: [diagnostic()]
-  def validate(decision, current_index) do
+  @spec validate(map(), map() | MapSet.t(String.t())) :: [diagnostic()]
+  def validate(decision, %MapSet{} = resolvable_ids) do
     []
     |> maybe_empty(decision)
-    |> maybe_unresolved(decision, current_index)
+    |> maybe_unresolved(decision, resolvable_ids)
     |> Enum.reverse()
+  end
+
+  def validate(decision, current_index) do
+    validate(decision, resolvable_ids(current_index))
+  end
+
+  @doc false
+  @spec resolvable_ids(map()) :: MapSet.t(String.t())
+  def resolvable_ids(current_index) do
+    subjects = list_of(current_index, "subjects")
+
+    subject_ids = collect_ids(subjects, ["meta", "id"])
+    requirement_ids = collect_child_ids(subjects, "requirements")
+    scenario_ids = collect_child_ids(subjects, "scenarios")
+    decision_ids = collect_ids(list_of(current_index, "decisions"), ["meta", "id"])
+
+    MapSet.new(subject_ids ++ requirement_ids ++ scenario_ids ++ decision_ids)
   end
 
   defp maybe_empty(errors, decision) do
@@ -44,16 +61,14 @@ defmodule Ancora.DecisionParser.Affects do
     end
   end
 
-  defp maybe_unresolved(errors, decision, current_index) do
+  defp maybe_unresolved(errors, decision, resolvable_ids) do
     meta = meta(decision)
     affects = list_field(meta, "affects")
 
     if affects == [] do
       errors
     else
-      resolvable = resolvable_ids(current_index)
-
-      case Enum.find(affects, fn id -> not MapSet.member?(resolvable, id) end) do
+      case Enum.find(affects, fn id -> not MapSet.member?(resolvable_ids, id) end) do
         nil ->
           errors
 
@@ -104,17 +119,6 @@ defmodule Ancora.DecisionParser.Affects do
       _ ->
         []
     end
-  end
-
-  defp resolvable_ids(current_index) do
-    subjects = list_of(current_index, "subjects")
-
-    subject_ids = collect_ids(subjects, ["meta", "id"])
-    requirement_ids = collect_child_ids(subjects, "requirements")
-    scenario_ids = collect_child_ids(subjects, "scenarios")
-    decision_ids = collect_ids(list_of(current_index, "decisions"), ["meta", "id"])
-
-    MapSet.new(subject_ids ++ requirement_ids ++ scenario_ids ++ decision_ids)
   end
 
   defp collect_ids(items, path) do

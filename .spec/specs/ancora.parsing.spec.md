@@ -26,6 +26,7 @@ status: active
 summary: "Spec and ADR block grammar, retired-construct tolerance, structural reference checks, and @tag spec: discovery."
 decisions:
   - ancora.decision.no_execution_no_state
+  - ancora.decision.field_friction_response
 ```
 
 ## Requirements
@@ -77,7 +78,9 @@ decisions:
     accepted and ignored without any finding. A missing section shall emit
     `adr/missing_section`; malformed frontmatter shall emit `adr/parse_error`;
     an empty `affects:` shall emit `adr/affects_empty`; an `affects:` entry
-    naming an id not in the corpus shall emit `adr/affects_unresolved`.
+    naming an id not in the corpus shall emit `adr/affects_unresolved`. Index
+    assembly shall build the corpus resolvable-id set once and validate every
+    decision against that same set.
   priority: must
   stability: stable
 - id: ancora.parsing.tag_discovery

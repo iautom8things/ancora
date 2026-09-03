@@ -32,6 +32,7 @@ defmodule Ancora.Derive.ModuleLocatorTest do
     assert ModuleLocator.path_for(locator, :head, Outer.Inner) == {:ok, "src/shape.ex"}
     assert ModuleLocator.path_for(locator, :head, Shape) == {:ok, "src/shape.ex"}
     assert ModuleLocator.path_for(locator, :head, Ignored) == :error
+    assert locator.base == locator.head
   end
 
   @tag spec: "ancora.derive.membership_source_derived"

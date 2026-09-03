@@ -24,6 +24,7 @@ summary: spec.check orchestration, hard-fail preflight, diff scoping, acknowledg
 decisions:
   - ancora.decision.no_execution_no_state
   - ancora.decision.slimmed_governance
+  - ancora.decision.field_friction_response
 ```
 
 ## Requirements
@@ -119,7 +120,9 @@ decisions:
     `mix spec.check` shall fail on any finding at `error` or `warning`
     severity and never on `info`. `mix spec.validate` shall fail on `error`
     and, with `--strict`, on `warning` too. A run with zero subjects shall be
-    a true pass with a `subjects=0` summary.
+    a true pass with a `subjects=0` summary. The index built for a gate run
+    shall build the corpus resolvable-id set once and reuse it across every
+    decision's `affects:` validation.
   priority: must
   stability: stable
 - id: ancora.gate.only_git_is_spawned
