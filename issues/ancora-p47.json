@@ -18,11 +18,15 @@
     {
       "text": "IMPLEMENTED\nSession: p47-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-p47/codex-p47-impl-1/log\n\nCommit: 53036d7\nFiles touched: lib/ancora/change_analysis.ex, lib/ancora/gate.ex, test/ancora/gate_test.exs\nTests added: Ancora.GateTest \"changed source under configured lib_paths is reported\"; Ancora.GateTest \"changed files outside lib_paths are not reported\"\nSpec acknowledgment: none needed — the requirement already states the contract. An initial options-signature draft triggered derived/drift for Ancora.ChangeAnalysis.findings/5, so I preserved that public function and threaded lib_paths through gate-assembled footprint metadata instead. No spec, trailer, or config change was made.\nSignature choice: kept ChangeAnalysis.findings/5 unchanged and attached preflight.project.lib_paths to the footprint map assembled at the existing Gate call site; PolicyFiles.classify/1 was not touched. mix.exs no longer produces change/uncovered_file unless it is under a configured lib_path.\nVerification tier: change-scoped — mix compile --warnings-as-errors; mix format --check-formatted; test/ancora/gate_test.exs; mix test --stale; mix spec.check --base 5d9cb40; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\nGate vs origin/main before: spec.check result=pass\nGate vs origin/main after: spec.check result=pass\nNew-test-fails-before-fix proof: added the configured src/thing.ex test before changing lib/, then ran only test/ancora/gate_test.exs:90; the assertion failed because report.all_findings was [].\nFull suite: explicit mix test ended \"3 properties, 333 tests, 2 failures\" after two unrelated 60-second File.cp_r timeouts; the required final-tier mix test --stale then exercised all 333 tests and ended \"3 properties, 333 tests, 0 failures\".\n\nSummary: Gate assembly now supplies the project's resolved lib_paths to uncovered-file analysis, which checks directory boundaries before emitting change/uncovered_file. Configured src files are covered, while priv assets and root files such as library.ex are excluded. PolicyFiles.classify/1 and the spec remain unchanged; no epic lessons block was present and no contract item was omitted.",
       "timestamp": "2026-09-03T13:32:11Z"
+    },
+    {
+      "text": "CEDED to the ancora 1.0 ship session (orchestrate-epic, 2026-09-03 17:52). This ticket stays a child of ancora-xla and stays in_progress, but this epic is not driving it.\n\nIts implementation, 53036d7 in /Users/mz/src/ancora-p47-libpaths, is now the base of the suite-timeout fix 35372ed, and the ship session is verifying and landing both on one PR against main. This epic held it at IMPLEMENTED because verifying it against a suite that failed one run in three would have proved nothing; that reason is gone once the suite fix rides with it.\n\nNo verifier will be spawned from this epic. Doing so would duplicate the ship session's cold verification of the same commits. The merge to main is the evidence this epic will close on.",
+      "timestamp": "2026-09-03T17:51:46Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "change/uncovered_file must honor lib_paths instead of hardcoded prefixes",
   "type": "task",
-  "updated_at": "2026-09-03T17:45:50Z"
+  "updated_at": "2026-09-03T17:51:46Z"
 }
