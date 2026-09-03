@@ -89,11 +89,13 @@ defmodule Ancora.Scaffold.TemplatesTest do
   test "decision guidance requires exact requirement ids for append authorization", %{
     scaffold: scaffold
   } do
-    content = File.read!(Path.join([scaffold, "decisions", "README.md"]))
+    content =
+      scaffold
+      |> Path.join("decisions/README.md")
+      |> File.read!()
+      |> String.replace(~r/\s+/, " ")
 
-    assert content =~ "A subject id documents broad"
-    assert content =~ "scope. To authorize"
-    assert content =~ "name that exact"
-    assert content =~ "requirement id"
+    assert content =~
+             "A subject id documents broad scope. To authorize deleting or downgrading a requirement, name that exact requirement id."
   end
 end

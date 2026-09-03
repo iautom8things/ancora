@@ -64,6 +64,24 @@ defmodule Ancora.AppendOnlyTest do
              "Would fail if a subject-scoped ADR still granted blanket authorization to delete any requirement in that subject"
     end
 
+    @tag spec: [
+           "ancora.gate.two_append_guards",
+           "ancora.parsing.append_authorization_is_requirement_scoped"
+         ]
+    test "ADR affecting one requirement does not authorize deleting its sibling", %{root: root} do
+      write_spec(root, "alpha", spec_with_reqs("alpha", one: "must", two: "must"))
+      prior = Index.build(root)
+
+      write_spec(root, "alpha", spec_with_reqs("alpha", one: "must"))
+      write_adr(root, "drop", "accepted", ["alpha.one"])
+      current = Index.build(root)
+
+      findings = AppendOnly.analyze(prior, current)
+
+      assert Enum.any?(findings, &(&1.code == "append/requirement_deleted")),
+             "Would fail if an ADR naming one requirement authorized deleting a different requirement in the same subject"
+    end
+
     @tag spec: "ancora.gate.two_append_guards"
     test "a non-accepted ADR does not authorize deletion", %{root: root} do
       write_spec(root, "alpha", spec_with_req("alpha", "must"))
@@ -113,6 +131,24 @@ defmodule Ancora.AppendOnlyTest do
 
       assert Enum.any?(findings, &(&1.code == "append/must_downgraded")),
              "Would fail if a subject-scoped ADR still granted blanket authorization to downgrade any must in that subject"
+    end
+
+    @tag spec: [
+           "ancora.gate.two_append_guards",
+           "ancora.parsing.append_authorization_is_requirement_scoped"
+         ]
+    test "ADR affecting one requirement does not authorize downgrading its sibling", %{root: root} do
+      write_spec(root, "alpha", spec_with_reqs("alpha", one: "must", two: "must"))
+      prior = Index.build(root)
+
+      write_spec(root, "alpha", spec_with_reqs("alpha", one: "must", two: "should"))
+      write_adr(root, "weaken", "accepted", ["alpha.one"])
+      current = Index.build(root)
+
+      findings = AppendOnly.analyze(prior, current)
+
+      assert Enum.any?(findings, &(&1.code == "append/must_downgraded")),
+             "Would fail if an ADR naming one requirement authorized downgrading a different requirement in the same subject"
     end
 
     @tag spec: "ancora.parsing.append_authorization_is_requirement_scoped"
@@ -171,6 +207,32 @@ defmodule Ancora.AppendOnlyTest do
     - id: #{id}.requirement
       statement: #{id} shall hold.
       priority: #{priority}
+    ```
+    """
+  end
+
+  defp spec_with_reqs(id, requirements) do
+    requirements_yaml =
+      Enum.map_join(requirements, "\n", fn {name, priority} ->
+        """
+        - id: #{id}.#{name}
+          statement: #{id}.#{name} shall hold.
+          priority: #{priority}
+        """
+        |> String.trim()
+      end)
+
+    """
+    # #{id}
+
+    ```yaml spec-meta
+    id: #{id}
+    kind: module
+    status: active
+    ```
+
+    ```yaml spec-requirements
+    #{requirements_yaml}
     ```
     """
   end
