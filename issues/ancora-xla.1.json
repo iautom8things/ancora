@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T16:10:58Z",
+  "description": "Advances: ancora.parsing\\n\\nSeverity: High (calibrated). Consolidated findings F4 and F23.\\n\\nF4 — Ancora.Parser stores a raw string-keyed YAML map under \"meta\" when Zoi rejects the block (lib/ancora/parser.ex:85), but gate.ex:415, status.ex:160, review.ex:335 and change_analysis.ex:46 all read it with atom keys. Verified by running it: a spec-meta block missing one required field makes mix spec.check die with FunctionClauseError in Compare.compare/4, and spec.status, spec.next and spec.prime die with KeyError. Five of eight tasks crash. Only spec.validate survives, because Verifier/AppendOnly/Overlap read through a bilingual accessor. It fails closed, but the primary command hands a stack trace to a user who made exactly the mistake the tool exists to catch, and the correct finding it computed never surfaces.\\nFix: store nil on schema-validation failure so the existing nil handling takes over, add one Ancora.Index.subject_id/1, route the four call sites through it, and filter non-binary ids before they reach Compare.compare/4. Add a regression test running every corpus-reading task against a spec whose spec-meta is missing a required field.\\n\\nF23 — the same root cause produces four byte-identical copies of a String.to_existing_atom-in-a-rescue key accessor (parser.ex:234, verifier.ex:353, append_only.ex:147, overlap.ex:166, plus a fifth variant at review/html.ex:300). Exceptions as control flow in a hot accessor. Fix: move the accessor into Ancora.Index as one function built on a compile-time key map, drop the rescue, delete the copies. Note the string-keyed OUTER index shape is a deliberate semver commitment (ancora.parsing.stable_public_api) and must not change; the heterogeneous type under \"meta\" is the defect.\\n\\nLands with F4 as one change.",
+  "id": "ancora-xla.1",
+  "labels": [],
+  "parent": "ancora-xla",
+  "priority": 2,
+  "status": "open",
+  "title": "Pin the type of subject meta and collapse the dual-key index accessor",
+  "type": "task",
+  "updated_at": "2026-09-03T16:10:58Z"
+}
