@@ -52,11 +52,15 @@
     {
       "text": "MERGE_CONFLICT\n\nRebase of ancora-n24/retirement-vocabulary onto ancora-xla/post-ship-hardening (884588f) hit real content conflicts. Aborted per instructions; no code, spec, or doc conflicts were resolved.\n\nConflicting paths:\n- .spec/specs/ancora.gate.spec.md\n- .spec/specs/ancora.parsing.spec.md\n\nEpic-side commit that introduced the overlap on both paths:\ne52a8fb fix: align CLI and JSON contracts\n\nThe rebase was aborted. Branch is back at its original head 6d5f1df with a clean worktree.\n\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl",
       "timestamp": "2026-09-03T23:51:51Z"
+    },
+    {
+      "text": "REBASE REQUIRED (orchestrator, 2026-09-03 19:58). Approved for merge; the epic tip moved to 884588f while this ticket was graded and the cold rebase worker hit two real conflicts and aborted, as designed. A rebase implementer is being spawned as n24-r1-adec463e. This is not a bounce and consumes no attempt.\n\nWork order:\n1. `git rebase ancora-xla/post-ship-hardening` in /Users/mz/src/ancora-n24.\n2. .spec/specs/ancora.gate.spec.md, spec-meta `decisions:` list: epic side added `- ancora.decision.cli_json_contract`, this branch added `- ancora.decision.retirement_vocabulary`. Keep both, epic side first.\n3. .spec/specs/ancora.parsing.spec.md, same list, same two entries. Keep both, epic side first.\n4. docs/migration.md auto-merges; read the merged result once and report, do not edit, if the two sections contradict each other.\n5. No other file changes. Commit count before equals commit count after (2). Then run the tests bound to the diff (append_only_test.exs, decision_parser_test.exs, scaffold/templates_test.exs), `mix spec.check --base 884588f`, and `mix format --check-formatted` on touched files. Post IMPLEMENTED with old head, new head, each conflict and its resolution, the test counts and the verbatim spec.check verdict line.\n\nAfter IMPLEMENTED, a delta-scoped cold re-verify covers the conflict resolution only, then fast-forward merge and gate.",
+      "timestamp": "2026-09-03T23:54:37Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Retirement vocabulary for ADR affects: (subject-pruning catch-22)",
   "type": "task",
-  "updated_at": "2026-09-03T23:51:51Z"
+  "updated_at": "2026-09-03T23:54:37Z"
 }
