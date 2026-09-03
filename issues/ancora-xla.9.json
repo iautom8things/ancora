@@ -19,11 +19,15 @@
     {
       "text": "RULING part 2 of 2 (Manuel, 2026-09-03):\nF17: swap the regex extractor for the AST resolver, and the work MOVES to ancora-gqb, which writes the watched-card contract line and swaps the extractor in the same diff. F17 is no longer in this ticket's scope; the description's Allowed touches for lib/ancora/review.ex and the ancora.review spec are withdrawn. The gqb-blocks-xla.9 dependency is removed, so this ticket is ready now. Scope here is F9 (implement the memo) and F13 (deprecate spec-exceptions) only.",
       "timestamp": "2026-09-03T17:07:44Z"
+    },
+    {
+      "text": "RULING REVISED (Manuel, 2026-09-03), supersedes part 1 for F9:\nF9: Option B, DELETE the memo. Remove the ETS memo half of RunContext (memo_put/4, memo_get/2, the kind-rank arbitration table, and the table create/delete), and the six test assertions in test/ancora/git_test.exs that were its only callers. The batch-port half stays. Narrow ancora.derive.memo_is_run_scoped under a new ADR whose affects: names that requirement id (per the ancora-v1n rule). Reason on record: the memo was never wired, the re-parse waste is fixed in ancora-xla.3 by threading parsed ASTs as a plain argument, and ancora's charter is to carry less machinery than specled_ex, not more. Do not thread RunContext into def_indexes/2 or resolve_file/4.\nF13 unchanged: deprecate now, remove in 2.0.\nF17 unchanged: moved to ancora-gqb.\nThis ticket no longer blocks ancora-xla.3; the edge is removed.",
+      "timestamp": "2026-09-03T17:14:56Z"
     }
   ],
   "priority": 2,
   "status": "open",
   "title": "Decide the ETS memo, spec-exceptions, and the review binding extractor",
   "type": "task",
-  "updated_at": "2026-09-03T17:08:07Z"
+  "updated_at": "2026-09-03T17:14:56Z"
 }
