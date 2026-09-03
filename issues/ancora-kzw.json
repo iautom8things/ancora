@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T22:06:00Z",
+  "description": "Advances: ancora.derive -- placeholder, full body added immediately after creation by the orchestrator.",
+  "id": "ancora-kzw",
+  "labels": [],
+  "priority": 0,
+  "status": "open",
+  "title": "Path traversal: a hostile git tree escapes the base-view write root",
+  "type": "task",
+  "updated_at": "2026-09-03T22:06:00Z"
+}
