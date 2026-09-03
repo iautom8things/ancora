@@ -39,7 +39,7 @@ dependencies are ever loaded for export introspection.
 
 Positive: CI needs no compile step, the same diff gives the same verdict on
 every machine, deleted modules are visible at base, `--root` is well
-defined, the replay harness needs no compile per worktree, and the detector
+defined, the completed replay validation needed no compile per worktree, and the detector
 test suite runs against tmp-dir fixture trees with no `Mix.Project`
 push/pop and no `async: false`.
 
