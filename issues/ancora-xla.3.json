@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Manuel Zubieta",
   "blocked_by": [
     "ancora-s1o"
   ],
@@ -21,8 +21,8 @@
     }
   ],
   "priority": 2,
-  "status": "open",
+  "status": "in_progress",
   "title": "Narrow the base-tree materialization and stop the per-binding rework",
   "type": "task",
-  "updated_at": "2026-09-03T22:03:44Z"
+  "updated_at": "2026-09-03T22:11:21Z"
 }
