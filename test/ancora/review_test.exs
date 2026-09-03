@@ -76,6 +76,7 @@ defmodule Ancora.ReviewTest do
   end
 
   @tag spec: "ancora.review.code_pivot_grouping"
+  @tag spec: "ancora.review.view_model_builder"
   test "production builder lists a newly called binding under test changes", %{root: root} do
     write_project(root)
 
@@ -111,6 +112,7 @@ defmodule Ancora.ReviewTest do
   end
 
   @tag spec: "ancora.review.code_pivot_grouping"
+  @tag spec: "ancora.review.view_model_builder"
   test "production builder groups an actual derived drift card", %{root: root} do
     write_project(root)
     commit_all(root, "base")
@@ -125,6 +127,7 @@ defmodule Ancora.ReviewTest do
   end
 
   @tag spec: "ancora.review.code_pivot_grouping"
+  @tag spec: "ancora.review.view_model_builder"
   test "production builder keeps an acknowledged body change in the watched interface", %{
     root: root
   } do
