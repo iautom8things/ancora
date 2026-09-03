@@ -13,11 +13,15 @@
     {
       "text": "SCOPE_EXPANSION\nSession: gg8.3-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.3/codex-gg8.3-impl-1/log\n\nRequested file: .spec/decisions/ancora.decision.field_friction_response.md\nReason: Final-tier run 1 failed with change/missing_decision for both .spec/specs/ancora.scaffold.spec.md and .spec/specs/ancora.source_scan.spec.md. The existing field-friction decision already decides and describes Ancora.SourceScan, but its affects: list names ancora.scaffold and omits ancora.source_scan. Adding ancora.source_scan to that list is the scoped ADR co-change needed by the gate; decision files are not in this ticket's Allowed touches.\n\nFinal-tier runs: 1\nCurrent verification: warnings-as-errors compile passed; 7 touched-file tests passed; 7 stale tests passed; spec.check result=fail tier=branch errors=0 warnings=2.",
       "timestamp": "2026-09-03T22:54:50Z"
+    },
+    {
+      "text": "ADVISORY before your final tier: change/missing_decision on the spec edits\n\nYour new .spec/specs/ancora.source_scan.spec.md and the ancora.scaffold.spec.md statement edit will trip change/missing_decision (path-set-only rule; the B1 false red this epic fixes in ancora-gg8.2). Handle it now:\n1. The new source_scan subject already lists ancora.decision.field_friction_response in its decisions: per the ticket. Also add `ancora.decision.field_friction_response` to the `decisions:` frontmatter list of ancora.scaffold.spec.md; its affects: names ancora.scaffold.\n2. On your stage commit add exactly one trailer: `Spec-Ack: change/missing_decision=info`, with a commit-body line naming the governing ADR. No other Spec-Ack code; no config.yml demotion; no ADR edits.\n3. A final-tier run red solely on change/missing_decision does not count against the 2-run cap.\nKeep working; same session tag and log path.",
+      "timestamp": "2026-09-03T22:55:31Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Bless the source-scan pattern: Ancora.SourceScan and migration docs",
   "type": "task",
-  "updated_at": "2026-09-03T22:54:50Z"
+  "updated_at": "2026-09-03T22:55:31Z"
 }
