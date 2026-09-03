@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T17:14:06Z",
+  "description": "Advances: ancora.gate\\n\\nSeverity: High (calibrated). This is what keeps the trunk red after ancora-p47.\\n\\nProblem: .github/workflows/ci.yml smoke step derives its base as base_ref=\"${PR_BASE_REF:-$DEFAULT_BRANCH}\". On a pull_request event that is the PR base and is correct. On a push event PR_BASE_REF is empty, so it falls back to github.event.repository.default_branch — and this repo GitHub default branch is beadwork, the ORPHAN ticket-board branch that shares no history with the code. The gate then diffs the entire trunk against an unrelated tree.\\n\\nObserved: on the post-merge push run, base=origin/beadwork changed_files=329 and every uncovered lib file in the repo is reported as newly changed. After ancora-p47 narrows the check to lib_paths the count drops from 31 to 14 warnings, but the run still fails, and the 14 are genuine uncovered-file findings (lib/ancora/json.ex, modal_class.ex, review/file_diff.ex, review/spec_diff.ex, the five schema modules, task_args.ex, temp_name.ex, and the three report mix tasks). They are true statements that should not be suppressed; they simply should not be re-reported on every push as though the whole repo just changed.\\n\\nFix: give push events a meaningful base. GitHub supplies github.event.before for push events, which is the previous tip of the branch being pushed, so the gate would diff exactly what the push introduced. Suggested shape:\\n  base_ref for pull_request stays \"origin/${{ github.base_ref }}\"\\n  push uses \"${{ github.event.before }}\" directly, with a guard for the all-zeros sentinel GitHub sends on branch creation (fall back to HEAD~1, or skip the branch tier).\\nVerified locally: with ancora-p47 applied, spec.check --base 5d9cb40 (the prior main tip, which is what github.event.before would be) ends result=pass, while --base origin/beadwork ends result=fail warnings=14.\\n\\nSeparately worth considering, and NOT done here because it is a repository setting that affects everyone: the GitHub default branch is beadwork because bw stores its board there. Pointing the default at main would fix this fallback and several other papercuts, but it is Manuel call, not an automated one.\\n\\nRelated: ancora-sfu (squash destroys Spec-Ack acknowledgments) and ancora-11w (shallow clone hides them) are the reason these findings surfaced at all — the acknowledgments that used to mask them are gone.\\n\\nCannot land separately from ancora-p47: shipping either alone leaves main red, so both ride the same PR.",
+  "id": "ancora-8t2",
+  "labels": [],
+  "priority": 2,
+  "status": "open",
+  "title": "CI push events gate against the orphan beadwork branch",
+  "type": "task",
+  "updated_at": "2026-09-03T17:14:06Z"
+}
