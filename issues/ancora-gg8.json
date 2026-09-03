@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T21:27:45Z",
+  "description": "Central place to investigate and plan fixes for the gate-soundness, expressiveness, durability, and performance friction observed in real consumer sessions. Full partitioned evidence follows in the description update.",
+  "id": "ancora-gg8",
+  "labels": [],
+  "priority": 1,
+  "status": "open",
+  "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
+  "type": "epic",
+  "updated_at": "2026-09-03T21:27:45Z"
+}
