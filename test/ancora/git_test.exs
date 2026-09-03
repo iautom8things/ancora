@@ -1,7 +1,7 @@
 Code.require_file("../support/tmp_git_repo.exs", __DIR__)
 
 defmodule Ancora.GitTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Ancora.Derive.RunContext
   alias Ancora.Git
@@ -11,6 +11,38 @@ defmodule Ancora.GitTest do
     root = TmpGitRepo.create!()
     on_exit(fn -> TmpGitRepo.cleanup!(root) end)
     {:ok, root: root}
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "run returns data when git is absent from PATH", %{root: root} do
+    original_path = System.get_env("PATH")
+    on_exit(fn -> System.put_env("PATH", original_path) end)
+    System.put_env("PATH", Path.join(root, "no-executables"))
+
+    assert {:error, :git_executable_not_found} = Git.run(root, ["status"])
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "preflight names the remedy when git is absent from PATH", %{root: root} do
+    TmpGitRepo.write!(root, %{
+      "mix.exs" => """
+      defmodule Fixture.MixProject do
+        use Mix.Project
+        def project, do: [app: :fixture]
+      end
+      """,
+      ".spec/specs/.keep" => ""
+    })
+
+    TmpGitRepo.commit!(root, "initial")
+
+    original_path = System.get_env("PATH")
+    on_exit(fn -> System.put_env("PATH", original_path) end)
+    System.put_env("PATH", Path.join(root, "no-executables"))
+
+    assert {:env, message} = Ancora.Gate.Preflight.run(root, base: "HEAD")
+    assert message =~ "git executable not found"
+    assert message =~ "PATH"
   end
 
   @tag spec: "ancora.derive.base_reads_batched"

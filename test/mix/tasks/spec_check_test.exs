@@ -32,6 +32,34 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert List.last(lines(env.stdout)) =~ "result=fail tier=env"
   end
 
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  @tag spec: "ancora.tasks.gated_emission_paths"
+  test "a missing corpus emits an environment verdict and init remedy", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => """
+      defmodule Fixture.MixProject do
+        use Mix.Project
+        def project, do: [app: :fixture]
+      end
+      """
+    })
+
+    commit_all(root, "base")
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    assert result.stdout =~ "no .spec/ directory"
+    assert result.stdout =~ "mix spec.init"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+
+    refute result.stderr =~ "RuntimeError"
+  end
+
   @tag spec: "ancora.tasks.gated_emission_paths"
   @tag spec: "ancora.tasks.finding_line_format"
   test "findings precede summaries, guidance, and the last-line verdict", %{root: root} do

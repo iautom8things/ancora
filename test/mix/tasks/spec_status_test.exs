@@ -47,6 +47,25 @@ defmodule Mix.Tasks.Spec.StatusTest do
     refute result.stdout =~ "result="
   end
 
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  @tag spec: "ancora.tasks.status_derived_report"
+  test "status reports a missing corpus without changing its exit contract", %{root: root} do
+    write_files(root, %{
+      "mix.exs" => """
+      defmodule Fixture.MixProject do
+        use Mix.Project
+        def project, do: [app: :fixture]
+      end
+      """
+    })
+
+    result = run_mix_subprocess(["spec.status", "--root", root])
+    assert result.status == 1
+    assert result.stdout =~ "no .spec/ directory"
+    assert result.stdout =~ "mix spec.init"
+    refute result.stdout =~ "result="
+  end
+
   @tag spec: "ancora.tasks.report_task_flags"
   test "status task callable surface is present" do
     Code.ensure_loaded!(Mix.Tasks.Spec.Status)

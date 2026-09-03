@@ -41,6 +41,9 @@ names all three as charter constraints.
 - In `--json` mode, a preflight environment failure is a report with an empty
   `all_findings` list and the error message. The environment-tier verdict
   remains last, and no plain error line is written to stdout.
+- Missing corpus, missing git, unreadable working-tree inputs, and failed git
+  batch reads are environment failures represented as data. A failed batch
+  fetch closes its port so no later request can consume stale bytes.
 - `Ancora.Output` is the only stdout writer and `Output.Verdict.emit/2` the
   only `result=` producer; every gate path funnels through `gated/2`. The
   one verdict-less exit is an internal exception, and that absence is

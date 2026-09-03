@@ -106,6 +106,25 @@ defmodule Ancora.Git.BatchPortTest do
     assert {:ok, %{payload: "keep\n"}} = BatchPort.fetch(port, "HEAD:lib/a.ex")
   end
 
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a timed out fetch poisons the port before another request can read stale data" do
+    root = TmpGitRepo.create!()
+    on_exit(fn -> TmpGitRepo.cleanup!(root) end)
+
+    payload = String.duplicate("x", 4_000_000)
+    TmpGitRepo.write!(root, %{"large.bin" => payload, "small.txt" => "fresh\n"})
+    TmpGitRepo.commit!(root, "initial")
+
+    assert {:ok, port} = BatchPort.open(root)
+    on_exit(fn -> BatchPort.close(port) end)
+
+    assert {:error, :cat_file_batch_timeout} =
+             BatchPort.fetch(port, "HEAD:large.bin", timeout: 0)
+
+    assert {:error, :port_poisoned} = BatchPort.fetch(port, "HEAD:small.txt")
+    assert Port.info(port.port) == nil
+  end
+
   defp open_port_option_lists do
     path = :code.which(BatchPort)
 

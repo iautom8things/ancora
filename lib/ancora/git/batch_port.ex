@@ -20,6 +20,7 @@ defmodule Ancora.Git.BatchPort do
 
   @port_opts [:binary, :exit_status, :hide]
   @default_timeout 60_000
+  @close_timeout to_timeout(millisecond: 10)
 
   @doc """
   Opens an unregistered `git cat-file --batch` port against `root`.
@@ -46,9 +47,31 @@ defmodule Ancora.Git.BatchPort do
   @spec fetch(t(), String.t(), keyword()) ::
           {:ok, record()} | {:error, term()}
   def fetch(%__MODULE__{port: port}, spec, opts \\ []) when is_binary(spec) do
-    timeout = Keyword.get(opts, :timeout, @default_timeout)
-    true = Port.command(port, [spec, "\n"])
-    collect_one(port, <<>>, timeout)
+    if Port.info(port) == nil do
+      {:error, :port_poisoned}
+    else
+      timeout = Keyword.get(opts, :timeout, @default_timeout)
+
+      try do
+        true = Port.command(port, [spec, "\n"])
+
+        case collect_one(port, <<>>, timeout) do
+          {:error, {:missing_object, ^spec}} = error ->
+            error
+
+          {:error, _reason} = error ->
+            close(port)
+            error
+
+          result ->
+            result
+        end
+      rescue
+        ArgumentError ->
+          close(port)
+          {:error, :port_poisoned}
+      end
+    end
   end
 
   @doc """
@@ -79,8 +102,6 @@ defmodule Ancora.Git.BatchPort do
   def close(%__MODULE__{port: port}), do: close(port)
 
   def close(port) when is_port(port) do
-    ref = :erlang.monitor(:port, port)
-
     try do
       Port.close(port)
     rescue
@@ -88,12 +109,11 @@ defmodule Ancora.Git.BatchPort do
     end
 
     receive do
-      {:DOWN, ^ref, :port, ^port, _reason} -> :ok
+      {^port, {:exit_status, _status}} -> :ok
     after
-      500 -> :ok
+      @close_timeout -> :ok
     end
 
-    :erlang.demonitor(ref, [:flush])
     drain_port_messages(port)
   end
 

@@ -66,7 +66,10 @@ decisions:
     `:internal` shall re-raise with no verdict line and a non-zero exit.
     Report tasks (`prime`, `next`, `status`, `review`, `init`,
     `decision.new`) shall route their error paths through `gated/2` too,
-    printing the message and exiting 1 without a verdict line.
+    printing the message and exiting 1 without a verdict line. A missing
+    `.spec/` corpus shall follow the environment path, with `spec.check`
+    naming `mix spec.init` before its verdict and `spec.status` exiting 1
+    without a verdict.
   priority: must
   stability: stable
 - id: ancora.tasks.no_result_leak
@@ -238,6 +241,17 @@ decisions:
     - the remedy message is on stdout before the verdict
   covers:
     - ancora.tasks.gated_emission_paths
+- id: ancora.tasks.scenario.missing_corpus_env
+  given:
+    - a git project with no `.spec/` directory
+  when:
+    - `mix spec.check --base HEAD` runs as a subprocess
+  then:
+    - stdout names `mix spec.init`
+    - the last stdout line is the environment failure verdict
+    - stderr contains no internal exception
+  covers:
+    - ancora.tasks.gated_emission_paths
 - id: ancora.tasks.scenario.usage_golden
   given:
     - `mix spec.check --no-run-commands`
@@ -335,6 +349,16 @@ decisions:
     - the derived-set report line is present
   covers:
     - ancora.tasks.report_task_flags
+    - ancora.tasks.status_derived_report
+- id: ancora.tasks.scenario.status_missing_corpus
+  given:
+    - a project with no `.spec/` directory
+  when:
+    - `mix spec.status` runs
+  then:
+    - it exits 1 with a message naming `mix spec.init`
+    - stdout contains no verdict
+  covers:
     - ancora.tasks.status_derived_report
 - id: ancora.tasks.scenario.status_splits_generated
   given:

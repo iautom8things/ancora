@@ -34,12 +34,16 @@ defmodule Ancora.Gate do
   end
 
   defp run_after_preflight(preflight, opts) do
-    with {:ok, ctx} <- RunContext.start(preflight.root, preflight.base) do
-      try do
-        run(ctx, preflight, opts)
-      after
-        RunContext.stop(ctx)
-      end
+    case RunContext.start(preflight.root, preflight.base) do
+      {:ok, ctx} ->
+        try do
+          run(ctx, preflight, opts)
+        after
+          RunContext.stop(ctx)
+        end
+
+      {:error, reason} ->
+        {:env, run_context_error(reason)}
     end
   end
 
@@ -71,7 +75,7 @@ defmodule Ancora.Gate do
         File.rm_rf(base_root)
       end
     else
-      {:error, reason} -> raise "gate assembly failed: #{inspect(reason)}"
+      {:error, reason} -> gate_error(reason)
     end
   end
 
@@ -95,24 +99,24 @@ defmodule Ancora.Gate do
              base_root,
              subject_ids(current)
            ) do
-      findings =
-        all_findings(
-          ctx,
-          preflight,
-          change_set,
-          locator,
-          current,
-          prior,
-          head_tags,
-          head_sets,
-          base_sets,
-          base_root,
-          pipeline_findings
-        )
-
-      {:ok, report(preflight, change_set, current, head_sets, findings, opts)}
+      with {:ok, findings} <-
+             all_findings(
+               ctx,
+               preflight,
+               change_set,
+               locator,
+               current,
+               prior,
+               head_tags,
+               head_sets,
+               base_sets,
+               base_root,
+               pipeline_findings
+             ) do
+        {:ok, report(preflight, change_set, current, head_sets, findings, opts)}
+      end
     else
-      {:error, reason} -> raise "gate assembly failed: #{inspect(reason)}"
+      {:error, _reason} = error -> error
     end
   end
 
@@ -131,50 +135,65 @@ defmodule Ancora.Gate do
        ) do
     subjects = subject_ids(current)
 
-    compare =
-      Enum.flat_map(subjects, fn subject_id ->
-        head = Map.get(head_sets, subject_id, empty_set(subject_id, :head))
-        base = Map.get(base_sets, subject_id, empty_set(subject_id, :base))
+    with {:ok, compare} <-
+           Enum.reduce_while(subjects, {:ok, []}, fn subject_id, {:ok, acc} ->
+             head = Map.get(head_sets, subject_id, empty_set(subject_id, :head))
+             base = Map.get(base_sets, subject_id, empty_set(subject_id, :base))
 
-        if acknowledged?(subject_id, current, prior, preflight.root, base_root) do
-          Compare.compare(subject_id, base, head,
-            locator: locator,
-            change_set: change_set,
-            root: preflight.root
-          )
-          |> Enum.reject(&(&1.code in ["derived/drift", "derived/growth", "derived/shrink"]))
-        else
-          Compare.compare(subject_id, base, head,
-            locator: locator,
-            change_set: change_set,
-            root: preflight.root
-          )
-        end
-      end)
+             case acknowledged?(subject_id, current, prior, preflight.root, base_root) do
+               {:ok, acknowledged?} ->
+                 findings =
+                   Compare.compare(subject_id, base, head,
+                     locator: locator,
+                     change_set: change_set,
+                     root: preflight.root
+                   )
 
-    footprints =
-      head_sets
-      |> SubjectFiles.build(locator)
-      |> Map.put(:__lib_paths__, preflight.project.lib_paths)
+                 findings =
+                   if acknowledged? do
+                     Enum.reject(
+                       findings,
+                       &(&1.code in ["derived/drift", "derived/growth", "derived/shrink"])
+                     )
+                   else
+                     findings
+                   end
 
-    tag_ids = Map.keys(head_tags.tag_map)
+                 {:cont, {:ok, [findings | acc]}}
 
-    (pipeline_findings ++
-       preflight.config.findings ++
-       current["findings"] ++
-       Verifier.verify(current) ++
-       Overlap.analyze(current["subjects"]) ++
-       TagFindings.findings(
-         current,
-         head_tags.tag_map,
-         head_tags.parse_errors,
-         head_tags.dynamics
-       ) ++
-       AppendOnly.analyze(prior, current) ++
-       compare ++
-       set_visibility_findings(head_sets) ++
-       ChangeAnalysis.findings(change_set, footprints, prior, current, tag_ids))
-    |> resolve_findings(preflight, ctx)
+               {:error, _reason} = error ->
+                 {:halt, error}
+             end
+           end) do
+      compare = compare |> Enum.reverse() |> List.flatten()
+
+      footprints =
+        head_sets
+        |> SubjectFiles.build(locator)
+        |> Map.put(:__lib_paths__, preflight.project.lib_paths)
+
+      tag_ids = Map.keys(head_tags.tag_map)
+
+      findings =
+        (pipeline_findings ++
+           preflight.config.findings ++
+           current["findings"] ++
+           Verifier.verify(current) ++
+           Overlap.analyze(current["subjects"]) ++
+           TagFindings.findings(
+             current,
+             head_tags.tag_map,
+             head_tags.parse_errors,
+             head_tags.dynamics
+           ) ++
+           AppendOnly.analyze(prior, current) ++
+           compare ++
+           set_visibility_findings(head_sets) ++
+           ChangeAnalysis.findings(change_set, footprints, prior, current, tag_ids))
+        |> resolve_findings(preflight, ctx)
+
+      {:ok, findings}
+    end
   end
 
   defp build_locator(project, change_set) do
@@ -225,17 +244,19 @@ defmodule Ancora.Gate do
          {:ok, base_indexes} <- def_indexes(locator.base, base_root),
          {:ok, head_ctx} <- Derive.context({:ok, membership}, :head, head_indexes),
          {:ok, base_ctx} <- Derive.context({:ok, membership}, :base, base_indexes),
+         {:ok, head_sources} <- source_map(preflight.root, head_tags.files),
+         {:ok, base_sources} <- source_map(base_root, base_tags.files),
          {:ok, head_sets} <-
            Derive.run(subject_files(head_tags.folded, subjects),
              side: :head,
              context: head_ctx,
-             sources: source_map(preflight.root, head_tags.files)
+             sources: head_sources
            ),
          {:ok, base_sets} <-
            Derive.run(subject_files(base_tags.folded, subjects),
              side: :base,
              context: base_ctx,
-             sources: source_map(base_root, base_tags.files)
+             sources: base_sources
            ) do
       _ = change_set
       {:ok, head_sets, base_sets}
@@ -245,7 +266,8 @@ defmodule Ancora.Gate do
   defp scan_tags(root, test_paths) do
     paths = Enum.map(test_paths, &Path.join(root, &1))
 
-    with {:ok, tag_map, parse_errors, dynamics} <- TagScanner.scan(paths) do
+    with {:ok, tag_map, parse_errors, dynamics} <- TagScanner.scan(paths),
+         :ok <- readable_tag_files(parse_errors, root) do
       tag_map = normalize_tag_map(tag_map, root)
       folded = TagScanner.fold_to_subjects(tag_map)
       files = tag_map |> Map.values() |> List.flatten() |> Enum.map(& &1.file) |> Enum.uniq()
@@ -258,6 +280,13 @@ defmodule Ancora.Gate do
          parse_errors: normalize_paths(parse_errors, root),
          dynamics: normalize_paths(dynamics, root)
        }}
+    end
+  end
+
+  defp readable_tag_files(parse_errors, root) do
+    case Enum.find(parse_errors, &is_atom(&1.reason)) do
+      nil -> :ok
+      entry -> {:error, {:source_read, Path.relative_to(entry.file, root), entry.reason}}
     end
   end
 
@@ -285,19 +314,30 @@ defmodule Ancora.Gate do
   end
 
   defp source_map(root, files) do
-    Map.new(files, fn path -> {path, File.read!(Path.join(root, path))} end)
+    Enum.reduce_while(files, {:ok, %{}}, fn path, {:ok, sources} ->
+      case File.read(Path.join(root, path)) do
+        {:ok, source} -> {:cont, {:ok, Map.put(sources, path, source)}}
+        {:error, reason} -> {:halt, {:error, {:source_read, path, reason}}}
+      end
+    end)
   end
 
   defp def_indexes(module_paths, root) do
     module_paths
     |> Enum.group_by(fn {_module, path} -> path end, fn {module, _path} -> module end)
     |> Enum.reduce_while({:ok, %{}}, fn {path, modules}, {:ok, indexes} ->
-      case DefIndex.build(File.read!(Path.join(root, path)), path) do
-        {:ok, index} ->
-          {:cont, {:ok, Enum.reduce(modules, indexes, &Map.put(&2, &1, index))}}
+      case File.read(Path.join(root, path)) do
+        {:ok, source} ->
+          case DefIndex.build(source, path) do
+            {:ok, index} ->
+              {:cont, {:ok, Enum.reduce(modules, indexes, &Map.put(&2, &1, index))}}
+
+            {:error, reason} ->
+              {:halt, {:error, reason}}
+          end
 
         {:error, reason} ->
-          {:halt, {:error, reason}}
+          {:halt, {:error, {:source_read, path, reason}}}
       end
     end)
   end
@@ -333,17 +373,54 @@ defmodule Ancora.Gate do
   end
 
   defp acknowledged?(subject_id, current, prior, head_root, base_root) do
-    head = subject_source(subject_id, current, head_root)
-    base = subject_source(subject_id, prior, base_root)
-    Ack.acknowledged?(base, head)
+    with {:ok, head} <- subject_source(subject_id, current, head_root),
+         {:ok, base} <- subject_source(subject_id, prior, base_root) do
+      {:ok, Ack.acknowledged?(base, head)}
+    end
   end
 
   defp subject_source(subject_id, index, root) do
     case Enum.find(index["subjects"], &(subject_id_of(&1) == subject_id)) do
-      nil -> nil
-      subject -> File.read!(Path.join(root, subject["file"]))
+      nil ->
+        {:ok, nil}
+
+      subject ->
+        path = subject["file"]
+
+        case File.read(Path.join(root, path)) do
+          {:ok, source} -> {:ok, source}
+          {:error, reason} -> {:error, {:source_read, path, reason}}
+        end
     end
   end
+
+  defp gate_error({:source_read, path, reason}) do
+    {:env, "cannot read #{path}: #{:file.format_error(reason)}"}
+  end
+
+  defp gate_error(reason)
+       when reason in [:git_executable_not_found, :cat_file_batch_timeout, :port_poisoned] do
+    {:env, run_context_error(reason)}
+  end
+
+  defp gate_error({:cat_file_batch_exited, _status} = reason) do
+    {:env, run_context_error(reason)}
+  end
+
+  defp gate_error(reason), do: raise("gate assembly failed: #{inspect(reason)}")
+
+  defp run_context_error(:git_executable_not_found) do
+    "git executable not found; install git and make it available on PATH"
+  end
+
+  defp run_context_error(:cat_file_batch_timeout), do: "git cat-file batch timed out"
+  defp run_context_error(:port_poisoned), do: "git cat-file batch port is unusable"
+
+  defp run_context_error({:cat_file_batch_exited, status}) do
+    "git cat-file batch exited with status #{status}"
+  end
+
+  defp run_context_error(reason), do: "cannot start git read context: #{inspect(reason)}"
 
   defp resolve_findings(findings, preflight, ctx) do
     trailer = Trailer.read(preflight.root, ctx.base)

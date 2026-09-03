@@ -31,9 +31,10 @@ decisions:
 ```yaml spec-requirements
 - id: ancora.gate.preflight_hard_fails
   statement: >-
-    When the target root is not inside a git repository, when the base ref
-    (explicit `--base` or the configured default) does not resolve, or when
-    the target is an umbrella root, `mix spec.check` shall exit non-zero with
+    When the target has no `.spec/` corpus, the git executable is missing,
+    the target root is not inside a git repository, the base ref (explicit
+    `--base` or the configured default) does not resolve, the git batch port
+    exits or times out, or the target is an umbrella root, `mix spec.check` shall exit non-zero with
     verdict `result=fail tier=env` and a message naming the remedy. These
     conditions shall never be emitted as findings and shall not be
     configurable off. No preflight check shall inspect `_build` or any
@@ -43,7 +44,10 @@ decisions:
     `.spec/config.yml`; literal `elixirc_paths:` shall be honored otherwise.
     In `--json` mode, a preflight environment failure shall be returned as a
     JSON report with an empty `all_findings` list and the error message before
-    the failing environment-tier verdict.
+    the failing environment-tier verdict. An unreadable working-tree source,
+    test, or subject file shall also be an environment failure, while parse
+    errors in readable files remain findings. A failed batch fetch shall close
+    and poison its port so later fetches return `{:error, :port_poisoned}`.
   priority: must
   stability: stable
 - id: ancora.gate.default_base_no_fallback
@@ -175,6 +179,37 @@ decisions:
   then:
     - the verdict is `result=fail tier=env`
     - no finding line is printed
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.missing_corpus
+  given:
+    - a git project whose root has no `.spec/` directory
+  when:
+    - `mix spec.check --base HEAD` runs
+  then:
+    - the message names `mix spec.init`
+    - the last stdout line is `spec.check result=fail tier=env`
+    - no exception is written to stderr
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.missing_git
+  given:
+    - a project with a corpus and no git executable on `PATH`
+  when:
+    - preflight runs
+  then:
+    - it returns an environment failure that names git and `PATH`
+    - no exception escapes from `Ancora.Git.run/3`
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.poisoned_batch_port
+  given:
+    - a git batch fetch that times out
+  when:
+    - another fetch is attempted through the same port
+  then:
+    - the second fetch returns `{:error, :port_poisoned}`
+    - no response from the timed out request is returned
   covers:
     - ancora.gate.preflight_hard_fails
 - id: ancora.gate.scenario.json_target_read_failure

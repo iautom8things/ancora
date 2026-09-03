@@ -17,6 +17,17 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
+  test "preflight routes a missing corpus to the environment tier", %{root: root} do
+    init_git_repo(root)
+    write_files(root, %{"mix.exs" => mix_file("[app: :sample]")})
+    commit_all(root, "base")
+
+    assert {:env, message} = Preflight.run(root, base: "HEAD")
+    assert message =~ "no .spec/ directory"
+    assert message =~ "mix spec.init"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
   test "preflight turns umbrella and dynamic app signals into env failures", %{root: root} do
     init_git_repo(root)
 
@@ -62,6 +73,8 @@ defmodule Ancora.GateTest do
     assert message =~ "git fetch origin main"
     assert message =~ "--base <ref>"
     assert message =~ "default_base"
+    assert message =~ "git exited 128"
+    assert message =~ "fatal:"
   end
 
   @tag spec: "ancora.gate.default_base_no_fallback"

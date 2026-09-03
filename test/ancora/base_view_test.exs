@@ -78,6 +78,11 @@ defmodule Ancora.BaseViewTest do
     assert Map.keys(files) == ["lib/a.ex"]
   end
 
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a repository path requires an explicit base", %{root: root} do
+    assert {:error, :base_required} = BaseView.blobs(root)
+  end
+
   defp blob_read_calls(ast) do
     Macro.prewalk(ast, [], fn
       {{:., _, [{:__aliases__, _, [:Git]}, :read_blob]}, _, _} = node, acc ->

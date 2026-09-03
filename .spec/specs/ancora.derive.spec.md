@@ -55,6 +55,12 @@ decisions:
     a run can need shall be prefetched serially through that port before any
     parallel work begins. The port shall be spawned without
     `stderr_to_stdout` so git stderr can never interleave with blob payloads.
+    A fetch timeout, malformed frame, or port exit shall close and poison the
+    port; every later fetch through it shall return `{:error, :port_poisoned}`.
+    Closing a port shall wait for its exit status with a bounded timeout.
+    Ancora.BaseView shall return `{:error, :base_required}` when called with a
+    repository path and no base. Ancora.Git.run/3 shall return
+    `{:error, :git_executable_not_found}` when git is absent instead of raising.
   priority: must
   stability: stable
 - id: ancora.derive.memo_is_run_scoped
@@ -130,7 +136,8 @@ decisions:
     export set, and a DefIndex lookup. Ambient-table construction and
     `Code.ensure_loaded?` checks shall live in ctx construction outside the
     resolver, and under `--root` the load path shall never include the target
-    project's `_build`.
+    project's `_build`. If a resolver callback raises or throws,
+    Ancora.Derive.run/2 shall return an error and keep its caller alive.
   priority: must
   stability: stable
 - id: ancora.derive.imports_and_aliases
@@ -262,6 +269,16 @@ decisions:
     - framing is `<oid> <type> <size>\n<payload>\n`
   covers:
     - ancora.derive.base_reads_batched
+- id: ancora.derive.scenario.batch_port_timeout_poison
+  given:
+    - a batch fetch that receives no complete frame before its timeout
+  when:
+    - another fetch is attempted through the same port
+  then:
+    - the port is closed
+    - the later fetch returns `{:error, :port_poisoned}` instead of stale bytes
+  covers:
+    - ancora.derive.base_reads_batched
 - id: ancora.derive.scenario.two_concurrent_runs_do_not_collide
   given:
     - two detector runs started concurrently in the same VM against different roots
@@ -364,6 +381,16 @@ decisions:
   then:
     - no file, port, or `Code.ensure_loaded?` call occurs inside the resolver
     - "the resolver test module is `async: true`"
+  covers:
+    - ancora.derive.resolver_is_pure
+- id: ancora.derive.scenario.resolver_callback_raises
+  given:
+    - a resolver context whose membership callback raises
+  when:
+    - Ancora.Derive.run/2 resolves a file that calls a member module
+  then:
+    - the run returns `{:error, {:resolver_exception, path, message}}`
+    - the caller remains alive
   covers:
     - ancora.derive.resolver_is_pure
 - id: ancora.derive.scenario.unparseable_base_file

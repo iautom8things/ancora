@@ -12,7 +12,8 @@ defmodule Ancora.Git do
   alias Ancora.Git.BatchPort
 
   @type git_error ::
-          {:error, {:git, [String.t()], String.t(), non_neg_integer()}}
+          {:error, :git_executable_not_found}
+          | {:error, {:git, [String.t()], String.t(), non_neg_integer()}}
 
   @doc """
   Runs a git plumbing command against `root`.
@@ -23,9 +24,15 @@ defmodule Ancora.Git do
   def run(root, args, opts \\ []) when is_binary(root) and is_list(args) do
     env = Keyword.get(opts, :env, [])
 
-    case System.cmd("git", ["-C", root | args], stderr_to_stdout: true, env: env) do
-      {output, 0} -> {:ok, output}
-      {output, status} -> {:error, {:git, args, output, status}}
+    case System.find_executable("git") do
+      nil ->
+        {:error, :git_executable_not_found}
+
+      git ->
+        case System.cmd(git, ["-C", root | args], stderr_to_stdout: true, env: env) do
+          {output, 0} -> {:ok, output}
+          {output, status} -> {:error, {:git, args, output, status}}
+        end
     end
   end
 

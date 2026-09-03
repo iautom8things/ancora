@@ -23,11 +23,12 @@ defmodule Ancora.Status do
   @spec build(Path.t(), keyword()) :: {:ok, report()} | {:env, String.t()}
   def build(root, opts \\ []) when is_binary(root) and is_list(opts) do
     root = Path.expand(root)
-    index = Index.build(root, index_opts(opts))
-    subject_ids = Enum.map(index["subjects"], &subject_id/1)
-    config = Config.load(root, known_subjects: subject_ids)
 
-    with {:ok, project} <- ProjectInfo.load(root, project_opts(config)),
+    with :ok <- corpus(root),
+         index = Index.build(root, index_opts(opts)),
+         subject_ids = Enum.map(index["subjects"], &subject_id/1),
+         config = Config.load(root, known_subjects: subject_ids),
+         {:ok, project} <- ProjectInfo.load(root, project_opts(config)),
          {:ok, locator} <- ModuleLocator.build(project, %ChangeSet{}),
          {:ok, subject_sets} <- derive_subject_sets(root, config, locator, subject_ids) do
       subjects = subject_rows(index, config, locator, subject_sets)
@@ -35,6 +36,29 @@ defmodule Ancora.Status do
     else
       {:env, message} -> {:env, message}
       {:error, reason} -> {:env, "could not derive status: #{inspect(reason)}"}
+    end
+  end
+
+  defp corpus(root) do
+    if File.dir?(Path.join(root, ".spec")) do
+      files =
+        Path.wildcard(Path.join([root, ".spec", "specs", "**", "*.spec.md"])) ++
+          Path.wildcard(Path.join([root, ".spec", "decisions", "**", "*.md"]))
+
+      Enum.reduce_while(files, :ok, fn path, :ok ->
+        case File.read(path) do
+          {:ok, _source} ->
+            {:cont, :ok}
+
+          {:error, reason} ->
+            message =
+              "cannot read #{Path.relative_to(path, root)}: #{:file.format_error(reason)}"
+
+            {:halt, {:env, message}}
+        end
+      end)
+    else
+      {:env, "no .spec/ directory in #{root}; run mix spec.init"}
     end
   end
 
@@ -62,7 +86,8 @@ defmodule Ancora.Status do
   defp scan_tags(root, test_paths) do
     paths = Enum.map(test_paths, &Path.join(root, &1))
 
-    with {:ok, tag_map, parse_errors, dynamics} <- TagScanner.scan(paths) do
+    with {:ok, tag_map, parse_errors, dynamics} <- TagScanner.scan(paths),
+         :ok <- readable_tag_files(parse_errors, root) do
       relative =
         Map.new(tag_map, fn {id, entries} ->
           {id,
@@ -70,6 +95,13 @@ defmodule Ancora.Status do
         end)
 
       {:ok, relative, parse_errors, dynamics}
+    end
+  end
+
+  defp readable_tag_files(parse_errors, root) do
+    case Enum.find(parse_errors, &is_atom(&1.reason)) do
+      nil -> :ok
+      entry -> {:error, {:source_read, Path.relative_to(entry.file, root), entry.reason}}
     end
   end
 
@@ -86,12 +118,18 @@ defmodule Ancora.Status do
     module_paths
     |> Enum.group_by(fn {_module, path} -> path end, fn {module, _path} -> module end)
     |> Enum.reduce_while({:ok, %{}}, fn {path, modules}, {:ok, indexes} ->
-      case DefIndex.build(File.read!(Path.join(root, path)), path) do
-        {:ok, index} ->
-          {:cont, {:ok, Enum.reduce(modules, indexes, &Map.put(&2, &1, index))}}
+      case File.read(Path.join(root, path)) do
+        {:ok, source} ->
+          case DefIndex.build(source, path) do
+            {:ok, index} ->
+              {:cont, {:ok, Enum.reduce(modules, indexes, &Map.put(&2, &1, index))}}
+
+            {:error, reason} ->
+              {:halt, {:error, reason}}
+          end
 
         {:error, reason} ->
-          {:halt, {:error, reason}}
+          {:halt, {:error, {:source_read, path, reason}}}
       end
     end)
   end

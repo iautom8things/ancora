@@ -31,10 +31,18 @@ defmodule Ancora.TmpGitRepo do
   end
 
   def cleanup!(root) do
-    # Port.close returns before the OS git process fully exits; deleting
-    # `.git` under it prints `fatal: not a git repository` on stderr.
-    Process.sleep(30)
-    File.rm_rf(root)
+    deadline = System.monotonic_time(:millisecond) + to_timeout(second: 1)
+    cleanup_until(root, deadline)
+  end
+
+  defp cleanup_until(root, deadline) do
+    result = File.rm_rf(root)
+
+    if File.exists?(root) and System.monotonic_time(:millisecond) < deadline do
+      receive after: (to_timeout(millisecond: 5) -> cleanup_until(root, deadline))
+    else
+      result
+    end
   end
 
   def git!(root, args) do

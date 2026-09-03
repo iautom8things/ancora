@@ -27,6 +27,8 @@ defmodule Ancora.BaseView do
     read_tree_blobs(ctx, pathspecs)
   end
 
+  def blobs(root, nil, _opts) when is_binary(root), do: {:error, :base_required}
+
   def blobs(root, base, opts) when is_binary(root) and is_binary(base) do
     with {:ok, ctx} <- RunContext.start(root, base, batch: false) do
       try do
