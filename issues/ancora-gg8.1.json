@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-03T22:02:36Z",
+  "description": "Advances: ancora.findings",
+  "id": "ancora-gg8.1",
+  "labels": [],
+  "parent": "ancora-gg8",
+  "priority": 2,
+  "status": "open",
+  "title": "Requirement-scoped config overrides",
+  "type": "task",
+  "updated_at": "2026-09-03T22:02:36Z"
+}
