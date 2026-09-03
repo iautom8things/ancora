@@ -23,11 +23,15 @@
     {
       "text": "SCOPE_EXPANSION\nSession: xla3-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-xla.3/codex-xla3-i1-adec463e/log\n\nNeeded touch: lib/ancora/git.ex\nReason: BaseView must pass each ls-tree entry OID to Git.read_blob/2, but Git.read_blob/2 currently treats every binary as a path and rewrites it to \u003cbase\u003e:\u003cpath\u003e. Passing entry.oid from an allowed file would therefore request \u003cbase\u003e:\u003coid\u003e and fail. The smallest correct change teaches Git.read_blob/2 to accept an OID without rewriting it; no currently allowed file can provide that behavior while preserving the base_reads_batched contract.\nEvidence: git show \u003cblob-oid\u003e succeeds in this worktree, while git show \u003cblob-oid\u003e: exits 128. No implementation files have been changed.",
       "timestamp": "2026-09-03T22:14:44Z"
+    },
+    {
+      "text": "SCOPE_EXPANSION GRANTED (orchestrator, 2026-09-03). lib/ancora/git.ex and test/ancora/git_test.exs are now in Allowed touches, narrowly: read_blob/2 learns to accept an already-resolved blob OID without rewriting it. The request was correct and it stopped before changing anything, which is the behaviour I want. The fault is mine: this ticket's own text ordered the oid-based read while withholding the only file that can provide it. Fourth instance of the same admission defect in this epic. One thing the expansion request could not have known: ancora-xla.8 has an unmerged commit editing the same read_blob/2 fallback clause. See the widened Allowed touches for the handling.",
+      "timestamp": "2026-09-03T22:39:23Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Narrow the base-tree materialization and stop the per-binding rework",
   "type": "task",
-  "updated_at": "2026-09-03T22:39:17Z"
+  "updated_at": "2026-09-03T22:39:23Z"
 }
