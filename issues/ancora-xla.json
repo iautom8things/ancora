@@ -29,11 +29,15 @@
     {
       "text": "SCOPE NOTE (2026-09-03): standalone ticket ancora-8t2 closed as superseded; its surviving fix (push-to-main base via github.event.before in ci.yml) is now F30b inside ancora-xla.5. No new child, no new edge. ci.yml is touched by xla.5 only.",
       "timestamp": "2026-09-03T17:22:15Z"
+    },
+    {
+      "text": "PHASE 0 STOP — epic-wide gate red before any worker spawned (2026-09-03, orchestrate-epic).\n\nPreflight passed, epic admitted (15 task children, not a portfolio), worktree /Users/mz/src/ancora-xla entered at 5d9cb40, epic started with phase:implementing, merge batching on, laborer codex/remembers has headroom. Known-red baselines resolve to none: the repo has no CLAUDE.md, so nothing is waivable.\n\nThe stop: the epic worktree smoke is RED on an unmodified base. 331 tests, 7 failures, 210s wall clock against a 32s baseline. Every failure is ExUnit.TimeoutError at 60000ms inside Ancora.TestCase.run_mix_subprocess, in File.cp_r! or the port read. A failed-only re-run reproduced 4 of 7, so these are not single-sample flakes and are not flake-acceptable under the same-seed protocol.\n\nAttribution: this is ancora-s1o exactly, and not a regression from anything in this epic. Three of the failing tests are the ones s1o names by name. The base commit is main's tip with zero changes on top. test/support/ancora_case.exs copies the whole build path on every subprocess call, about 30 calls per run, and _build in this worktree is 48 MB. Running test/ancora/scaffold/fresh_adopter_test.exs alone passes but takes 28 seconds for one test, which is the copy cost with nothing else competing.\n\nSecond, independent factor: host load average was 162 on 10 cores, with 161 beam processes, three other Claude sessions, and a VM at 185 percent CPU. Memory was fine at 41 percent free, so the admission load brake did not fire on its own terms. Contention amplified the defect; it did not create it.\n\nWhy this stops the whole epic rather than one child: every child's final tier and every merge gate runs this suite. Fifteen children against a suite that fails one run in three produces false reds that get misattributed to tickets, burned bounce attempts, and a flake-accept ceiling blown early.\n\nNo implementer was spawned. ancora-p47 stays at IMPLEMENTED, unverified, in /Users/mz/src/ancora-p47-libpaths. Nothing is lost by resuming later.\n\nRecommendation put to Manuel: pull ancora-s1o into this epic as the first child, blocking every other child. Its own description already said it was meant to ride this fast-follow wave. It has been given Verification, Allowed touches, Out of Scope, and Merge gate sections and its literal backslash-n corruption is fixed, so it is admittable the moment the scope call is made.",
+      "timestamp": "2026-09-03T17:36:05Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-03T17:34:54Z"
+  "updated_at": "2026-09-03T17:36:05Z"
 }
