@@ -48,11 +48,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl\n\nReasoning: VERIFY reported PASS with a passing spec gate and full requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS (record from the 2026-09-03 first-round critic; the bounce fix at 884588f touched no test file). The two spec files outside the literal Allowed globs were ruled in scope by two verifiers and one auditor under the ticket's own falsification clause and Manuel's recorded four-function ruling. No auditor was spawned\nper policy.",
       "timestamp": "2026-09-03T23:45:02Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-xla/post-ship-hardening. Closing per orchestrator sign-off.\n\nFast-forward to 884588f. Merge gate 5 on the epic branch: compile clean, 357 tests and 3 properties with 0 failures in 27.6s, format pass, deps.unlock pass, mix spec.check --base 7511407 result=pass (errors=0 warnings=0, the 7 info findings are the pre-existing derived/unresolved_calls noise). Test count moved 347 to 357, matching the ten tests this ticket adds. Gate log: /private/tmp/claude-501/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5/scratchpad/gate5.log",
+      "timestamp": "2026-09-03T23:46:51Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Make the CLI and JSON contracts match what the tasks actually do",
   "type": "task",
-  "updated_at": "2026-09-03T23:45:05Z"
+  "updated_at": "2026-09-03T23:46:51Z"
 }
