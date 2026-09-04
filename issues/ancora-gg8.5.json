@@ -13,9 +13,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-gg8",
+  "comments": [
+    {
+      "text": "SCOPE_EXPANSION\nSession: gg8.5-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.5/codex-gg8.5-impl-1/log\n\nThe required cheap tier cannot pass within Allowed touches. `mix test --stale` reports three new failures with no known-red waiver:\n\n- `Ancora.ReviewTest` expects acknowledged drift to remain `:acknowledged`; `lib/ancora/review.ex` currently turns every retained `derived/drift` finding into a `:drift` card without checking `severity_source: :ack`.\n- `Ancora.Scaffold.DocsTest` requires `docs/migration.md` to enumerate every registry code and state the count. The new `derived/drift_transitive` code makes the current 30-code document incomplete.\n- `Ancora.Scaffold.TemplatesTest` requires `priv/spec_init/agents/SKILL.md.eex` to contain every registry entry exactly once. The new code is absent.\n\nRequested expansion: allow `lib/ancora/review.ex`, `docs/migration.md`, and `priv/spec_init/agents/SKILL.md.eex`, plus their existing tests under the already-allowed `test/**` glob. No out-of-scope files were edited. Final tier was not started.",
+      "timestamp": "2026-09-04T00:31:18Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Split derived/drift primary vs transitive and make acknowledgments visible",
   "type": "task",
-  "updated_at": "2026-09-04T00:22:22Z"
+  "updated_at": "2026-09-04T00:31:18Z"
 }
