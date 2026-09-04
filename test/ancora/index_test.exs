@@ -265,14 +265,23 @@ defmodule Ancora.IndexTest do
       check = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
       assert check.status == 1
       assert spec_finding_codes(check.stdout) == ["spec/missing_field"]
-      assert check.stdout =~ "spec/missing_field .spec/specs/missing-meta.spec.md"
-      assert check.stdout =~ "checked subjects=0"
+      assert check.stdout =~ "errors=1 warnings=0"
+
+      assert check.stdout =~
+               "[ERROR] .spec/specs/missing-meta.spec.md spec/missing_field .spec/specs/missing-meta.spec.md :: .spec/specs/missing-meta.spec.md: missing field spec-meta; add the required field"
+
+      assert check.stdout =~ "checked subjects=0 requirements="
       assert List.last(output_lines(check.stdout)) =~ "spec.check result=fail tier=branch"
 
       validate = run_mix_subprocess(["spec.validate", "--root", root])
       assert validate.status == 1
       assert spec_finding_codes(validate.stdout) == ["spec/missing_field"]
-      assert validate.stdout =~ "spec/missing_field .spec/specs/missing-meta.spec.md"
+      assert validate.stdout =~ "errors=1 warnings=0"
+
+      assert validate.stdout =~
+               "[ERROR] .spec/specs/missing-meta.spec.md spec/missing_field .spec/specs/missing-meta.spec.md :: .spec/specs/missing-meta.spec.md: missing field spec-meta; add the required field"
+
+      assert validate.stdout =~ "checked subjects=0 requirements="
       assert List.last(output_lines(validate.stdout)) =~ "spec.validate result=fail tier=validate"
 
       for {args, heading} <- [
@@ -306,7 +315,7 @@ defmodule Ancora.IndexTest do
       """)
 
       identified = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
-      assert identified.stdout =~ "checked subjects=1"
+      assert identified.stdout =~ "checked subjects=1 requirements="
     end
   end
 
