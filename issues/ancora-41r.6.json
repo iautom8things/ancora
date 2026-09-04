@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T11:03:33Z",
+  "description": "Advances: ancora.review. Distilled from the consolidated critical review of ancora-xla/post-ship-hardening at e18fa05; full contract follows.",
+  "id": "ancora-41r.6",
+  "labels": [],
+  "parent": "ancora-41r",
+  "priority": 1,
+  "status": "open",
+  "title": "The review artifact's verdict chip says fail while the gate says pass",
+  "type": "bug",
+  "updated_at": "2026-09-04T11:03:33Z"
+}
