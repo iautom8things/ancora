@@ -59,8 +59,12 @@ defmodule Ancora.Verifier do
     |> add_requirement_unverified_findings(requirements, tagged_covers, subject_id, file)
   end
 
-  defp add_missing_fields(findings, nil, _required, _subject_id, _file, "spec-meta"),
+  defp add_missing_fields(findings, :rejected, _required, _subject_id, _file, "spec-meta"),
     do: findings
+
+  defp add_missing_fields(findings, nil, _required, subject_id, file, "spec-meta") do
+    [missing_field_finding(subject_id, file, "spec-meta") | findings]
+  end
 
   defp add_missing_fields(findings, item, required, subject_id, file, _label) do
     Enum.reduce(required, findings, fn key, acc ->

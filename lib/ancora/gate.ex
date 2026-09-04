@@ -534,7 +534,7 @@ defmodule Ancora.Gate do
       findings: visible,
       all_findings: findings,
       checked: %{
-        subjects: length(index["subjects"]),
+        subjects: Enum.count(index["subjects"], &Index.subject_id/1),
         requirements: index["summary"]["requirements"],
         errors: errors,
         warnings: warnings

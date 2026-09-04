@@ -186,7 +186,7 @@ defmodule Ancora.IndexTest do
 
         spec = root |> Path.join(".spec/specs/broken.spec.md") |> Parser.parse_file(root)
 
-        assert spec["meta"] == nil
+        assert spec["meta"] == :rejected
         assert Enum.map(spec["findings"], & &1.code) == ["spec/parse_error"]
         assert hd(spec["findings"]).subject == nil
         assert hd(spec["findings"]).message =~ "field: #{rejected_field}"
@@ -234,6 +234,79 @@ defmodule Ancora.IndexTest do
         refute html =~ ~s(<section class="subject" id="">)
         refute review.stderr =~ "** ("
       end
+    end
+
+    @tag spec: "ancora.parsing.structural_references"
+    @tag spec: "ancora.gate.strict_verdict"
+    test "a spec without metadata blocks both corpus gates and is not counted", %{root: root} do
+      init_git_repo(root)
+
+      write_files(root, %{
+        "mix.exs" => """
+        defmodule Fixture.MixProject do
+          use Mix.Project
+          def project, do: [app: :fixture, version: "0.1.0"]
+        end
+        """
+      })
+
+      write_spec(root, "missing-meta", """
+      # Missing metadata
+
+      ```yaml spec-requirements
+      - id: missing.meta.requirement
+        statement: This requirement has no subject metadata.
+        priority: must
+      ```
+      """)
+
+      commit_all(root, "missing metadata")
+
+      check = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+      assert check.status == 1
+      assert spec_finding_codes(check.stdout) == ["spec/missing_field"]
+      assert check.stdout =~ "spec/missing_field .spec/specs/missing-meta.spec.md"
+      assert check.stdout =~ "checked subjects=0"
+      assert List.last(output_lines(check.stdout)) =~ "spec.check result=fail tier=branch"
+
+      validate = run_mix_subprocess(["spec.validate", "--root", root])
+      assert validate.status == 1
+      assert spec_finding_codes(validate.stdout) == ["spec/missing_field"]
+      assert validate.stdout =~ "spec/missing_field .spec/specs/missing-meta.spec.md"
+      assert List.last(output_lines(validate.stdout)) =~ "spec.validate result=fail tier=validate"
+
+      for {args, heading} <- [
+            {["spec.status", "--root", root], "Spec Led Status"},
+            {[
+               "run",
+               "-e",
+               "File.cd!(#{inspect(root)}, fn -> Mix.Tasks.Spec.Next.run([\"--base\", \"HEAD\"]) end)"
+             ], "Spec Led Next"},
+            {["spec.prime", "--root", root, "--base", "HEAD"], "Spec Led Prime"}
+          ] do
+        result = run_mix_subprocess(args)
+        assert result.status == 0, result.stdout <> result.stderr
+        assert result.stdout =~ heading
+        refute result.stderr =~ "** ("
+      end
+
+      review = run_mix_subprocess(["spec.review", "--root", root, "--base", "HEAD"])
+      assert review.status == 0, review.stdout <> review.stderr
+      assert review.stdout =~ "spec.review wrote"
+      refute review.stderr =~ "** ("
+
+      write_spec(root, "missing-meta", """
+      # Identified subject
+
+      ```yaml spec-meta
+      id: identified.subject
+      kind: module
+      status: active
+      ```
+      """)
+
+      identified = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+      assert identified.stdout =~ "checked subjects=1"
     end
   end
 

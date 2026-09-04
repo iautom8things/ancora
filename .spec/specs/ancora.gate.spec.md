@@ -149,7 +149,8 @@ decisions:
     `mix spec.check` shall fail on any finding at `error` or `warning`
     severity and never on `info`. `mix spec.validate` shall fail on `error`
     and, with `--strict`, on `warning` too. A run with zero subjects shall be
-    a true pass with a `subjects=0` summary.
+    a true pass with a `subjects=0` summary. The `checked subjects=` count
+    shall include only spec files with an accepted, non-empty subject id.
   priority: must
   stability: stable
 - id: ancora.gate.only_git_is_spawned

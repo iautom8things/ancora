@@ -87,7 +87,7 @@ defmodule Ancora.Parser do
 
             {:error, message} ->
               push_parse_error(
-                Map.put(spec, "meta", nil),
+                Map.put(spec, "meta", :rejected),
                 contextualize_meta_error(message, meta, spec)
               )
           end

@@ -18,13 +18,16 @@ they could report the parser's finding.
 
 ## Decision
 
-Ancora.Parser stores nil under `"meta"` when spec-meta fails schema validation
-and retains the parser finding. For a malformed subject id or an omitted
-required field, that finding names the rejected field. The structural verifier
-does not derive missing-field findings from nil metadata because nil means the
-whole block was rejected, not that every field was absent. Rejected subject ids
-therefore remain unattributed and use `spec/parse_error`; invalid ids in
-accepted requirement, scenario, decision, and reference entries still use
+Ancora.Parser stores `:rejected` under `"meta"` when spec-meta fails schema
+validation and retains the parser finding. Nil means the block was absent. For
+a malformed subject id or an omitted required field, the parse finding names
+the rejected field and is the only `spec/*` finding. The structural verifier
+suppresses missing-field findings only for the rejected marker. It emits one
+blocking `spec/missing_field` finding for an absent block.
+
+Rejected and absent subject ids remain unattributed. The gate counts only
+subjects with an accepted, non-empty subject id. Invalid ids in accepted
+requirement, scenario, decision, and reference entries still use
 `spec/invalid_id`.
 
 Ancora.Index owns field access for both schema structs and YAML maps through a
