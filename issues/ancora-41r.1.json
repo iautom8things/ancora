@@ -50,11 +50,15 @@
     {
       "text": "REBASE ORDER (orchestrator, 2026-09-04 08:51 EDT). Approved for merge; the epic tip is 13f8588 (41r.4, 41r.5, 41r.2 merged since your base) and git merge-tree forecasts one real conflict, so the implementer rebases. Rules: `git rebase ancora-41r/pre-release-fixes` in /Users/mz/src/ancora-41r.1; resolve only what git reports; both sides survive; no new commits, no squash, no amend; commit count before equals after (two); prove with git status --porcelain empty and `git log --oneline 13f8588..HEAD` showing exactly your two commits; then compile, the change-scoped tests for every file in `git diff --name-only 13f8588..HEAD`, `mix spec.check --base 13f8588` (verdict line verbatim), and `mix format --check-formatted` on touched files.\n\nConflict: .spec/specs/ancora.gate.spec.md, the ancora.gate.preflight_hard_fails statement's first sentence, the enumeration of environment failures. Epic side inserted \"the requested spec workspace cannot resolve its specs/ directory,\" after \"the git executable is missing,\"; your side inserted \"a malformed git cat-file --batch frame is received, a Git change-set path is quoted, a NUL terminator is missing, a name-status or porcelain record is invalid,\" after \"the target root is not inside a git repository,\". Resolved sentence: both insertions at their own positions, nothing else changed; keep the rest of the statement as the epic side has it. Re-wrap to the file's line width; reword neither side. Auto-merges in lib/ancora/gate.ex and test/mix/tasks/spec_check_test.exs: read each once; gate.ex must keep your bad-frame and four refusal gate_error clauses alongside the epic side's build_index/2 helper, spec-directory clause and checked-subjects count (41r.3 is not merged yet); spec_check_test.exs must have no duplicate test names and stay async: false. If anything contradicts, stop and report rather than reconcile by editing. Post REBASED with old head, new head, commit counts, the conflicting file and one sentence on its resolution, test counts, and the spec.check verdict line.",
       "timestamp": "2026-09-04T12:50:32Z"
+    },
+    {
+      "text": "WORKER_ERROR\nSession: 41r1-r1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-41r.1/codex-41r1-r1-adec463e/log\n\nThe rebase work order says ancora-41r/pre-release-fixes is at 13f8588 and that 41r.3 is not merged. The local branch resolved to 5af1707 during the required rebase, with 3ce6edd and 5af1707 from 41r.3 above 13f8588. The rebase completed at 1293eda475ad3ad15e775e6b9e7140763d262a8e with a clean worktree and two replayed ticket commits, but the required 13f8588..HEAD log now contains four commits instead of exactly two. I stopped before the final verification tier and did not drop or reorder the newly present epic commits. Orchestrator ruling is required on whether to keep the rebase on 5af1707 with a new base or replay the two ticket commits onto exact 13f8588.",
+      "timestamp": "2026-09-04T12:55:16Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Git-supplied path names crash the gate or hide files from the change set",
   "type": "bug",
-  "updated_at": "2026-09-04T12:50:32Z"
+  "updated_at": "2026-09-04T12:55:16Z"
 }
