@@ -9,9 +9,15 @@
     "phase:implementing",
     "slug:pre-release-fixes"
   ],
+  "comments": [
+    {
+      "text": "ORCHESTRATION STARTED (orchestrator, 2026-09-04 07:18 EDT). Preflight: all mandated tools resolve. Epic in progress, phase:implementing. Worktree /Users/mz/src/ancora-41r on ancora-41r/pre-release-fixes at e18fa05; smoke green (mix compile --warnings-as-errors; 3 properties, 407 tests, 0 failures). Comment mode; MARKERS.md as on the parent epic. Laborer: codex via cx-implementer, profile team (remembers blocked on its 7-day window). Known-red baselines: none. LESSONS: the parent's 20-entry pack carried in every brief. Six children pending, no dependency edges, all admit in one wave; child worktrees /Users/mz/src/ancora-41r.1 through .6 cutting from e18fa05 now. Console adopted from the epic description and refreshed for orchestration start. console_triggers=1 console_redeploys=1.",
+      "timestamp": "2026-09-04T11:17:09Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T11:14:49Z"
+  "updated_at": "2026-09-04T11:17:09Z"
 }
