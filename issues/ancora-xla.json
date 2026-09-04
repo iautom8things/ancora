@@ -331,11 +331,15 @@
     {
       "text": "OPEN-PR RE-RUN, PAUSED BY CHOICE (orchestrator, 2026-09-04 07:27 EDT). /open-pr ancora-xla was invoked while all six ancora-41r children are still implementing. Phase 0: branch clean at e18fa05, 34 ahead of origin/main, 0 behind, no release branch cut, no open PRs, critical-review coverage satisfied (review_commit e18fa05). Manuel chose to wait for ancora-41r. Standing decisions for the next run: Minor 1.1.0 (mix.exs @version; CHANGELOG ## 1.1.0 heading replaces the empty Unreleased), branch feat/ancora-xla-post-ship-hardening. When the six fixes are merged and gate-green on ancora-41r/pre-release-fixes, that branch fast-forwards into this one and /open-pr runs from the new tip; a delta re-review of the seven fixes is the orchestrator's call at that point since the standing report will then name an ancestor.",
       "timestamp": "2026-09-04T11:21:20Z"
+    },
+    {
+      "text": "PRE-RELEASE FIXES FOLDED IN (orchestrator, 2026-09-04 09:01 EDT). ancora-41r finished: six children closed, six gates green, tip 1293eda at 435 tests. ancora-xla/post-ship-hardening fast-forwarded e18fa05 -\u003e 1293eda (ten commits: the seven findings F1, F2, F4, F5, F6, F7, F8 plus their bounce retries), now 44 commits ahead of origin/main 7511407, working tree clean. The 1.1.0 release re-runs from this tip once ancora-41r's finish sequence (deliver, ORCHESTRATED, final console) is posted; the open-pr review gate will flag the standing report (review_commit e18fa05) as an ancestor, and that decision, delta review of the seven fixes versus proceed, is Manuel's.",
+      "timestamp": "2026-09-04T13:01:05Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T11:21:20Z"
+  "updated_at": "2026-09-04T13:01:05Z"
 }
