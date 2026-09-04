@@ -20,11 +20,15 @@
     {
       "text": "Scheduling note from the ancora-gg8 architecture decision (2026-09-03): scope unchanged per the existing ruling (tree is the record, non-tip-trailer warning, documented promotion step, no merge-commit reading). Two additions from planning: implement in the same wave as ancora-gg8.5 (drift split + ack visibility) since they share the trailer/output vocabulary, and the promotion-step docs should name the requirement-scoped override key landing in ancora-gg8.1 as the narrowest durable target for a promoted ack.",
       "timestamp": "2026-09-03T22:03:50Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: sfu-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-sfu/codex-sfu-i1-adec463e/log\n\nCommit: 9d0b7c49c8f7bd83650164ffd5aee3ceb9a8a01f\nFiles touched: .spec/decisions/durable-acknowledgments.md, .spec/specs/ancora.findings.spec.md, .spec/specs/ancora.gate.spec.md, README.md, docs/migration.md, lib/ancora/gate.ex, lib/ancora/trailer.ex, test/ancora/gate_test.exs, test/ancora/trailer_test.exs, test/mix/tasks/spec_check_test.exs\nTests added: Ancora.TrailerTest \"an override repeated at the tip is not non-tip-only\"; Ancora.GateTest \"an applied trailer below the tip warns before squash\"; Ancora.GateTest \"a non-tip trailer that resolves no finding does not warn\"; Mix.Tasks.Spec.CheckTest \"promoted acknowledgment survives a squash merge\"\nSpec acknowledgment: ancora.gate and ancora.findings edited substantively in-diff; ancora.decision.durable_acknowledgments affects both subjects and requirements; no Spec-Ack trailer used\nVerification tier: change-scoped — mix compile --warnings-as-errors; test/ancora/trailer_test.exs, test/ancora/gate_test.exs, test/mix/tasks/spec_check_test.exs (56 tests); mix test --stale (3 properties, 389 tests); mix spec.check --base 849dbf9; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: The gate now tracks whether an applied Spec-Ack downgrade exists only below HEAD and emits a visible stderr warning before squash can discard it. A real subprocess fixture proves that promotion to .spec/config.yml preserves the resolved info severity after a squash merge, while the specs, ADR, README, and migration guide record the tree-first model and separately landing requirement: key.",
+      "timestamp": "2026-09-04T02:22:50Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Spec-Ack acknowledgments do not survive a squash merge",
   "type": "task",
-  "updated_at": "2026-09-04T02:11:40Z"
+  "updated_at": "2026-09-04T02:22:50Z"
 }
