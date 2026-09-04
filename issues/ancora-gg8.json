@@ -69,11 +69,15 @@
     {
       "text": "MINI-RETRO\nbounces: 7 (untested-clause 6, unwired-call-path 1)\nfull_suite_runs: 7\nfinals_gt1: 1\nflake_accepts: 0\nescalations: 0\nlessons_kept/retired: 9/0\nconsole_redeploys: 9/9\n\nNotes: bounces by ticket: ufm 2, gg8.1 1, gg8.2 1, gg8.3 1, gg8.5 1, gg8.6 1, gg8.4 0. Every bounce was about proof (tests green with the bug present, or a clause with no discriminating fixture); no production-code defect was found by audit. finals_gt1 counts capped final-tier runs only: ufm needed 2; every other child passed its capped run first time, with pre-ruling reds excluded by the standing rulings. full_suite_runs are the seven merge gates, each green outright, no rebase needed at any gate. gg8.7 was set aside (not escalated) behind the ancora-xla epic and is not counted as a bounce or escalation. Console: 9 triggers (7 closes with gate verdicts, 1 set-aside, 1 orchestration-start), 9 redeploys, 0 publish failures.",
       "timestamp": "2026-09-04T02:28:41Z"
+    },
+    {
+      "text": "ORCHESTRATED\nChildren closed: 7\nBOUNCEs encountered: 7\nUser escalations: 0\n\nEpic tip 6e0f24e on ancora-gg8/field-friction (368 tests, seven green merge gates). Not pushed; PR not opened. Set aside: ancora-gg8.7 (parallel parsing) behind the ancora-xla epic. Deliver sweep: merged stage worktree ancora-disclosure-codes removed; epic kept in_progress (no PR yet); no agents resident.",
+      "timestamp": "2026-09-04T02:29:06Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-04T02:28:41Z"
+  "updated_at": "2026-09-04T02:29:06Z"
 }
