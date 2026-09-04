@@ -69,6 +69,11 @@ decisions:
     returned blob bytes.
     Ancora.BaseView shall read the blob OID returned by `ls-tree`, not rebuild
     `<base>:<path>`, and shall create each materialized parent directory once.
+    Before reading any listed blob or creating the materialization root,
+    Ancora.BaseView shall reject the entire listed tree with `{:env, message}`
+    if any byte-exact path split on `/` contains a `..`, `.`, or empty component.
+    Gate.check and Review.build shall propagate this environment failure
+    without raising. Legitimate components such as `foo..bar` remain accepted.
     Its root directory name shall use `Ancora.TempName.cross_vm_suffix/0`, and
     it shall create that root with non-recursive `File.mkdir/1` so a pre-existing
     path, including a symlink, returns an error before any blob write.

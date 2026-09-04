@@ -11,6 +11,24 @@ defmodule Ancora.GateTest do
   alias Ancora.Git
   alias Ancora.TmpGitRepo
 
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "gate propagates an unsafe base tree as an environment failure" do
+    root = TmpGitRepo.create!()
+    on_exit(fn -> TmpGitRepo.cleanup!(root) end)
+
+    TmpGitRepo.write!(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/.keep" => ""
+    })
+
+    TmpGitRepo.commit!(root, "head")
+    base = TmpGitRepo.commit_tree_path!(root, ["lib", "..", "evil.txt"])
+
+    assert {:env, message} = Gate.check(root, base: base)
+    assert message =~ "unsafe base tree path"
+    assert message =~ "lib/../evil.txt"
+  end
+
   @tag spec: "ancora.gate.preflight_hard_fails"
   test "preflight rejects a directory outside git", %{root: root} do
     write_project(root)

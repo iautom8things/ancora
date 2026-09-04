@@ -106,6 +106,7 @@ defmodule Ancora.Gate do
         {:error, reason} -> gate_error(reason)
       end
     else
+      {:env, _} = error -> error
       {:error, reason} -> gate_error(reason)
     end
   end
