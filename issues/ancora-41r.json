@@ -65,11 +65,15 @@
     {
       "text": "DELIVERED (scoped, unattended, orchestrator, 2026-09-04 09:05 EDT). Child triage: all six children closed with merge evidence on their tickets; nothing to re-home. Epic kept in_progress deliberately: no PR exists yet, so there is no shipping evidence and the closure gate does not apply; the epic ships inside the 1.1.0 release from ancora-xla/post-ship-hardening, which now carries this branch's tip 1293eda. Plan board: no entries. Worktrees: every child worktree was removed at its close; the epic worktree /Users/mz/src/ancora-41r stays per the deliver rule (its branch is an ancestor of the parent branch and can be dropped when 1.1.0 merges). No stale 41r.* branches remain. Agent sweep: no teammate, worker or watcher resident. Follow-ups filed under the fast-follow epic ancora-d16 from grader advisories, none attached here: ancora-d16.31 (Ancora.validate/2 crashes on a direct bad spec_dir; third subject-count emitter unasserted), ancora-d16.32 (non-map spec-meta yields a spurious missing-field finding), ancora-d16.33 (trailer residue after 41r.3), ancora-d16.34 (git path residue after 41r.1), ancora-d16.35 (chip warning direction, CSS selector order), ancora-d16.36 (spec-dir env-tier test hygiene). Board synced.",
       "timestamp": "2026-09-04T13:02:44Z"
+    },
+    {
+      "text": "ORCHESTRATED\nChildren closed: 6\nBOUNCEs encountered: 4\nUser escalations: 0",
+      "timestamp": "2026-09-04T13:02:52Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T13:02:44Z"
+  "updated_at": "2026-09-04T13:02:52Z"
 }
