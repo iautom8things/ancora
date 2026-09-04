@@ -19,11 +19,15 @@
     {
       "text": "Investigated. Decision: guard read_tree_blobs, refuse any tree with a '..'/'.'/'' path component, return {:env, message} (one gate.ex else line; review.ex unchanged). Contract written; Ready-for: implement. Report: /Users/mz/vaults/rmbrs-vault/investigations/ancora/2026-09-04-ancora-kzw/04-report.md",
       "timestamp": "2026-09-04T17:00:05Z"
+    },
+    {
+      "text": "Verification environment correction, 2026-09-04:\nUse --base e6d54435f1eac306136f64ca4400063a61ffb3ec for this ticket's change-scoped spec checks, including the verifier. This is the unchanged starting commit used by the investigation. All references above to --base origin/beadwork are superseded: origin/beadwork is an orphan issue-data branch containing .bwconfig, blocks, issues, labels, parent, and status, with no application source. Comparing application code to it reports 556 changed files and eight change/uncovered_file warnings. An isolated unchanged checkout of e6d5443 reproduces the exact same eight warnings and spec.check result=fail tier=branch errors=0 warnings=8; the implementation diff against e6d5443 passes. This corrects the comparison input; no findings are suppressed and no baseline waiver is claimed.\n\nThe current implement skill's bounded change-scoped final tier supersedes the older run-until-green/full-suite per-ticket cadence above. Run the three named test files plus compile, format, unused-dependency checks, and spec.check against the corrected base. Full-suite proof remains at the PR/merge gate, against the code target branch. The behavioral contract, allowed files, and security measurement remain unchanged.",
+      "timestamp": "2026-09-04T19:30:46Z"
     }
   ],
   "priority": 0,
   "status": "in_progress",
   "title": "Path traversal: a hostile git tree escapes the base-view write root",
   "type": "task",
-  "updated_at": "2026-09-04T19:30:45Z"
+  "updated_at": "2026-09-04T19:30:46Z"
 }
