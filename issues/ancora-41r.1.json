@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Manuel Zubieta",
   "blocked_by": [],
   "blocks": [],
   "created": "2026-09-04T11:03:30Z",
@@ -10,8 +10,8 @@
   ],
   "parent": "ancora-41r",
   "priority": 1,
-  "status": "open",
+  "status": "in_progress",
   "title": "Git-supplied path names crash the gate or hide files from the change set",
   "type": "bug",
-  "updated_at": "2026-09-04T11:03:30Z"
+  "updated_at": "2026-09-04T11:17:39Z"
 }
