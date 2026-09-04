@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T13:02:18Z",
+  "description": "Advances: ancora.tasks. Calibrated severity: Low. Carried from the ancora-41r.4 critic: the review env-tier test omits the flag-meaning assertion its siblings carry and is tagged to the meta-line requirement rather than the env-routing pair; the stack-trace refute names RuntimeError specifically where the sibling uses the broader form; the decoy .spec/.keep in the non-default-workspace fixture is undocumented (it exists for the ancora-90t limit). Filed at ancora-41r delivery (2026-09-04) from grader advisories. Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision by Manuel on 2026-09-04; reason above.",
+  "id": "ancora-d16.36",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 4,
+  "status": "open",
+  "title": "Spec-dir env-tier tests: review test lacks the flag-meaning clause and is mis-tagged; stack-trace refute names RuntimeError only",
+  "type": "task",
+  "updated_at": "2026-09-04T13:02:18Z"
+}
