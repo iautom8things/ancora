@@ -41,11 +41,15 @@
     {
       "text": "ROUTE (orchestrator, 2026-09-04 08:38 EDT). ancora-41r.1's bounce-1 retry worker was killed by the harness (went quiet at 12:09Z with six files uncommitted, did not recover from the nudge, exit 124 at 12:15Z, no IMPLEMENTED record). The uncommitted tree carries drafts of all six audit items (110 insertions across the ADR, derive and gate specs, gate.ex, gate_test.exs and spec_check_test.exs) and the log shows the worker mid-way through mutation proofs. Per exception-routing, one retry with a fresh worker resuming from that tree: check each item against the audit, finish the proofs, commit once, post IMPLEMENTED even if a proof is imperfect. Bounce count unchanged at 1 of 2; worker failures on this epic: 1. Elsewhere: 41r.3 approved after its delta verification (critic's fold mutation now killed at stderr; doc-only change proven by identical BEAM md5) and rebasing under an implementer order for the durable_acknowledgments ADR paragraph both it and 41r.5 edited; 41r.2 still rebasing under its order. Standing: 3 of 6 closed, 2 approved and rebasing, 1 retry running.",
       "timestamp": "2026-09-04T12:16:58Z"
+    },
+    {
+      "text": "RUNTIME FAILURE + ROUTE (orchestrator, 2026-09-04 08:25 EDT, read from the clock). Root cause of the ancora-41r.1 worker kill: the Codex `team` profile is exhausted (5-hour window 100 percent with 3h54m left, monthly extra credits 500.95 of 500). Every worker spawned on it after about 12:05Z produced no log at all, went idle, failed the harness nudge and was killed with exit 124: the 41r.1 resumed retry (killed 12:15Z), the 41r.2 rebase worker (killed 12:22Z with nothing done, tree clean at 99f1c72), and two still-idle panes, the 41r.3 rebase worker (nudged 12:21Z) and the 41r.1 resumed retry's second spawn (nudged 12:22Z), which the harness reaps within minutes. So the 41r.1 \"worker error\" recorded at 08:36 was the runtime, not the task; its uncommitted tree from the FIRST retry worker is still intact and untouched. Profile switched to `personal` (33 percent of its weekly window used) for every remaining spawn: 41r.2 rebase respawned now under session 41r2-r2; 41r.3 rebase and the 41r.1 resume respawn as soon as their idle panes are reaped, to avoid two workers in one worktree. Worker-failure count 1 (the runtime episode counts once); bounce counts unchanged. Small clock note: my stamps between 08:15 and 08:38 ran up to fifteen minutes ahead of the clock; from here every stamp is read from `date`.",
+      "timestamp": "2026-09-04T12:24:40Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T12:16:58Z"
+  "updated_at": "2026-09-04T12:24:40Z"
 }
