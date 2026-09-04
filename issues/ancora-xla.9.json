@@ -64,11 +64,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl\n\nReasoning: VERIFY reported PASS with a passing spec gate and full requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS (21:29, on the bounce delta, with reachability explicitly left to the verifier's mutation run). The delta re-verifier ran the reintroduced-table mutation itself at four seeds: 32 tests, 2 failures under the mutation, exactly the two ordered assertions (git_test.exs:178, gate_test.exs:200), 0 failures reverted; the delete-side trace pattern was proven separately; nothing outside test/ancora moved since the previously verified head. The first verification had already established the memo deletion, the spec-exceptions deprecation, the ADR and scope as clean. The auditor's accepted residual (a memo reintroduced as a named Agent would evade both tests) stands as recorded. No auditor was spawned\nper policy.",
       "timestamp": "2026-09-04T01:31:59Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-xla/post-ship-hardening. Closing per orchestrator sign-off.\n\nFast-forward to 4d0adee. Merge gate 10 on the epic branch: compile clean, 379 tests and 3 properties with 0 failures in 28.3s, format pass, deps.unlock pass, mix spec.check --base 7511407 result=pass. Test count moved 380 to 379: the deleted memo API took its tests with it and two guards came in. Gate log: /private/tmp/claude-501/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5/scratchpad/gate10.log\n\nCarried forward, not blocking: a memo reintroduced as a named Agent would evade both ETS guards (auditor's accepted residual); no CHANGELOG entry for the spec-exceptions deprecation.",
+      "timestamp": "2026-09-04T01:32:55Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Decide the ETS memo, spec-exceptions, and the review binding extractor",
   "type": "task",
-  "updated_at": "2026-09-04T01:32:05Z"
+  "updated_at": "2026-09-04T01:32:55Z"
 }
