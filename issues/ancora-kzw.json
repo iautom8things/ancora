@@ -7,11 +7,12 @@
   "id": "ancora-kzw",
   "labels": [
     "critical",
-    "security"
+    "security",
+    "slug:path-traversal-a-hostile"
   ],
   "priority": 0,
   "status": "open",
   "title": "Path traversal: a hostile git tree escapes the base-view write root",
   "type": "task",
-  "updated_at": "2026-09-03T22:06:32Z"
+  "updated_at": "2026-09-04T13:59:35Z"
 }
