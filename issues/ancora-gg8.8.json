@@ -11,9 +11,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-gg8",
+  "comments": [
+    {
+      "text": "ORCHESTRATOR NOTE: attempt 1 (codex-gg8.8-impl-1, team profile) died before doing any work. Codex printed \"Usage limit reached\" right after loading the implement skill; the launcher's watchdog killed the idle pane at 14:11Z (exit 124). Stage /Users/mz/src/ancora-reconcile-1.1.0 is clean at 6e0f24e, no merge in progress, no comments from the worker. Not a bounce; the run cap is untouched. Relaunching on a profile with headroom, or escalating if none has any.",
+      "timestamp": "2026-09-04T14:12:23Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Reconcile field-friction with release 1.1.0: merge main into the epic branch",
   "type": "task",
-  "updated_at": "2026-09-04T14:01:18Z"
+  "updated_at": "2026-09-04T14:12:23Z"
 }
