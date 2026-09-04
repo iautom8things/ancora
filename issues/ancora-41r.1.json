@@ -10,9 +10,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-41r",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: 41r1-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-41r.1/codex-41r1-i1-adec463e/log\n\nCommit: d00f2f882df4afd0cecc4b206732d3c88c7e2cfd\nFiles touched: .spec/decisions/ancora.decision.no_execution_no_state.md, .spec/specs/ancora.derive.spec.md, .spec/specs/ancora.gate.spec.md, lib/ancora/derive/change_set.ex, lib/ancora/gate.ex, lib/ancora/git.ex, lib/ancora/git/batch_port.ex, test/ancora/gate_test.exs, test/ancora/git_batch_port_test.exs, test/ancora/git_test.exs, test/mix/tasks/spec_check_test.exs\nTests added: Ancora.Git.BatchPortTest \"fetch parses a missing path containing spaces from the right\"; Ancora.GitTest \"read_blob treats a tagged 40-hex path as a path\"; Ancora.GateTest \"gate detects drift in a UTF-8 library path\"; Ancora.GateTest \"change-set prefetch resolves a spaced path to its base OID\"; Mix.Tasks.Spec.CheckTest \"an untracked path containing a space keeps spec.check green\"; Mix.Tasks.Spec.CheckTest \"a malformed cat-file frame emits an environment verdict\"\nSpec acknowledgment: substantive edits to ancora.derive and ancora.gate, with a Consequences update to ancora.decision.no_execution_no_state; no Spec-Ack trailer\nVerification tier: change-scoped: mix compile --warnings-as-errors; test/ancora/derive/change_set_test.exs, test/ancora/git_batch_port_test.exs, test/ancora/git_test.exs, test/ancora/gate_test.exs, test/mix/tasks/spec_check_test.exs; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base e18fa05. Full-system proof deferred to the merge gate and PR CI.\nFinal-tier runs: 1\n\nSummary: Change-set paths now use NUL-delimited Git output, reject quoted fallback data, resolve base paths to OIDs before batch reads, and keep path and OID references explicit. Malformed batch frames now reach the CLI as tier=env with a final verdict. Mutation proofs, each run alone: spaced missing-frame parser 1 failure mutated and 1 pass restored, UTF-8 path 2 failures for removing each -z flag and 1 pass restored, spaced-path OID prefetch 1 failure mutated and 1 pass restored, malformed-frame gate clause 1 failure mutated and 1 pass restored, 40-hex tagged path 1 failure mutated and 1 pass restored; the real CLI spaced-untracked fixture also passed 1 selected test. All current lesson lines were checked against the diff. Other impacted subjects reported only existing unresolved-call info and observed no drift, growth, or shrink from this change.",
+      "timestamp": "2026-09-04T11:31:09Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "Git-supplied path names crash the gate or hide files from the change set",
   "type": "bug",
-  "updated_at": "2026-09-04T11:17:40Z"
+  "updated_at": "2026-09-04T11:31:09Z"
 }
