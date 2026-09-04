@@ -247,11 +247,15 @@
     {
       "text": "CONTEXT CHECKPOINT: turn-end boundary at 60.0035% before /compact",
       "timestamp": "2026-09-04T02:29:26Z"
+    },
+    {
+      "text": "LESSON + ROUTE (orchestrator, 2026-09-03 22:36 local). ancora-sfu FAILED its first cold verification and is in audit. The verifier built the promoted state by hand (Spec-Ack: derived/drift=info on HEAD~1, the same severity committed in .spec/config.yml at the tip) and the gate still prints \"will be lost by a squash merge; promote it to .spec/config.yml\", then squash-merged that tree onto trunk and watched the severity survive with source=config. Manuel's ruling says warn when the acknowledgment exists ONLY in a non-tip trailer. Cause named: Severity.resolve_tunable/3 at severity.ex:159 keeps severity_source == :trailer whenever the trailer is legal, even when config independently supplies the same value, and the new gate filter at gate.ex:499 keys on that source. spec_check_test.exs:326 asserts the warning in the promoted state and :339 asserts silence on trunk for the same tree, so the suite pins the false positive. Third gap: the ADR is named durable-acknowledgments.md against the corpus README rule \u003cid\u003e.md; nothing enforces the rule, all ten siblings follow it. Bounce count for sfu: 0/2 before audit. Auditor spawned with the three seams; a bounce goes to the implementer, since the fix is a source-precedence decision in the resolver plus a rewritten assertion pair.\n\nLESSONS\n- [negative-half] A ruling with an ONLY clause (\"warn only when the acknowledgment exists nowhere durable\") needs a fixture in the durable state asserting silence. Two assertions that describe the same tree with opposite expectations (warn on branch, silent on trunk) pin the false positive instead of catching it. Build the promoted state and demand quiet. (from ancora-sfu)\n- [other] When two sources can supply the same setting (trailer and config here), the precedence is a contract statement, not an implementation accident. Write which source wins in the spec and test the tie case explicitly. (from ancora-sfu)",
+      "timestamp": "2026-09-04T02:36:04Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T02:29:26Z"
+  "updated_at": "2026-09-04T02:36:04Z"
 }
