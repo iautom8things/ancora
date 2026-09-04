@@ -28,11 +28,15 @@
     {
       "text": "WORKER_ERROR\nSession: xla9-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-xla.9/codex-xla9-i1-adec463e/log\n\nFinal-tier runs: 2\nFailure: `mix spec.check --base c330458` ended `spec.check result=fail tier=branch errors=2 warnings=1`.\nFindings: `ancora.gate` reported derived/shrink for the removed RunContext memo calls and derived/drift for RunContext.start/2 and RunContext.stop/1. The ticket's derived-finding scope clause authorizes a substantive `.spec/specs/ancora.gate.spec.md` acknowledgment plus an affects entry on this ticket's ADR, but the final-tier cap requires a terminal stop after this second non-baseline red.\nWorking tree: implementation remains uncommitted so the orchestrator can issue a ruling without losing the diff.",
       "timestamp": "2026-09-04T01:01:34Z"
+    },
+    {
+      "text": "RULING (orchestrator, 2026-09-03 21:26). Stopping at the run cap with the diff uncommitted was correct; no attempt is lost. Resume in the same pane under this order:\n\n1. The acknowledgment is authorized, as your Allowed clause already says: ancora.gate.spec.md. The two errors (derived/drift on RunContext.start/2 and stop/1) and the warning (derived/shrink: gate-tagged tests stopped calling memo_get/2 and memo_put/4) all belong to ancora.gate, because gate-tagged tests start and stop a RunContext directly. One substantive sentence clears all three. Write it from the GATE's point of view, in requirement ancora.gate.no_derived_state, which already says no task writes derived state: extend it with what the gate now holds during a run, namely that the gate holds no per-run in-memory memo, registry or ETS table, and the run context it starts carries only the run root, base and batch-port state, and stopping it leaves no table or process behind. Do not copy the derive sentence you already wrote in memo_is_run_scoped; that one is about parsing, this one is about what the gate owns. Keep the requirement id. Add ancora.gate.no_derived_state to the affects: list of your new ADR .spec/decisions/ancora.decision.no_run_context_memo.md.\n\n2. Then commit everything (your uncommitted work plus the acknowledgment), one or two commits as you see fit, no Spec-Ack trailer.\n\n3. The final-tier cap is reset by this ruling for exactly ONE more run: your change-scoped tests plus `mix spec.check --base c330458`, which must end `spec.check result=pass`. If it is red again, post WORKER_ERROR with the finding lines verbatim and stop; do not iterate.\n\n4. Post IMPLEMENTED with the commit list, the acknowledgment sentence verbatim, the test counts and the verdict line. Keep the same session tag.",
+      "timestamp": "2026-09-04T01:03:11Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Decide the ETS memo, spec-exceptions, and the review binding extractor",
   "type": "task",
-  "updated_at": "2026-09-04T01:01:34Z"
+  "updated_at": "2026-09-04T01:03:11Z"
 }
