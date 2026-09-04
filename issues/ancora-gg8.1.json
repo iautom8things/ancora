@@ -67,11 +67,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: e92f6de6-94f7-4814-8140-19f3f3007d0a\nLog: /Users/mz/.claude-remembers/projects/-Users-mz-src-ancora/e92f6de6-94f7-4814-8140-19f3f3007d0a.jsonl\n\nReasoning: VERIFY reported PASS with a passing spec gate and full requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS (re-run after bounce 1; the three ruling mutations each fail their targeted test, and config/invalid_value is emitted on the real Gate.check and Status.build paths). No auditor was spawned\nper policy for the delta re-verification; the prior audit's INTEGRATION_REGRESSION_LATENT items are closed by execution.\n\nOrchestrator note on the verifier's Note: the second derived/drift on ancora.tasks (Status.build/1) is primary, since ancora.tasks owns Ancora.Status, and the code-keyed trailer covers it mechanically without a statement. Rather than spend this ticket's last bounce on one sentence, the honest statement (\"spec.status and spec.check reject overrides naming unknown requirement ids with config/invalid_value\") is added to ancora-gg8.5's spec delta, which already edits ancora.tasks.spec.md and branches from this tip.",
       "timestamp": "2026-09-04T00:20:09Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-gg8/field-friction. Closing per orchestrator sign-off.\n\nFast-forwarded (the stage was already based on the epic tip 846e942). Merge gate 5 (epic tip 8b96ac0): mix compile --warnings-as-errors clean; mix test 3 properties, 353 tests, 0 failures; mix format --check-formatted clean; mix deps.unlock --check-unused clean; mix spec.check --base origin/main result=pass; mix spec.check --base 846e942 (per-merge delta) result=pass. Wave 1 complete; ancora-gg8.5 is unblocked.",
+      "timestamp": "2026-09-04T00:21:06Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Requirement-scoped config overrides",
   "type": "task",
-  "updated_at": "2026-09-04T00:20:18Z"
+  "updated_at": "2026-09-04T00:21:06Z"
 }
