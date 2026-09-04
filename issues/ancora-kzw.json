@@ -15,11 +15,15 @@
     {
       "text": "Investigating. Report will land in vault under investigations/ancora/2026-09-04-ancora-kzw/",
       "timestamp": "2026-09-04T13:59:43Z"
+    },
+    {
+      "text": "Investigated. Decision: guard read_tree_blobs, refuse any tree with a '..'/'.'/'' path component, return {:env, message} (one gate.ex else line; review.ex unchanged). Contract written; Ready-for: implement. Report: /Users/mz/vaults/rmbrs-vault/investigations/ancora/2026-09-04-ancora-kzw/04-report.md",
+      "timestamp": "2026-09-04T17:00:05Z"
     }
   ],
   "priority": 0,
   "status": "open",
   "title": "Path traversal: a hostile git tree escapes the base-view write root",
   "type": "task",
-  "updated_at": "2026-09-04T16:59:24Z"
+  "updated_at": "2026-09-04T17:00:05Z"
 }
