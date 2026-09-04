@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T10:57:50Z",
+  "description": "Advances: ancora.gate, ancora.derive, ancora.findings, ancora.parsing, ancora.tasks, ancora.review. Distilled from the consolidated critical review of ancora-xla/post-ship-hardening at e18fa05 (Critical and High fix-now findings F1, F2, F4, F5, F6, F7, F8 only). Merge target is the ancora-xla epic branch, not main.",
+  "id": "ancora-41r",
+  "labels": [],
+  "priority": 1,
+  "status": "open",
+  "title": "Critical-review fixes before 1.1.0",
+  "type": "epic",
+  "updated_at": "2026-09-04T10:57:50Z"
+}
