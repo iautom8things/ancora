@@ -111,15 +111,45 @@ defmodule Ancora.Gate.Preflight do
       boundaries = shallow |> String.split() |> MapSet.new()
       commits = range |> String.split() |> MapSet.new()
 
-      if MapSet.disjoint?(boundaries, commits) do
-        :ok
-      else
-        {:env,
-         "base..HEAD history is incomplete in this shallow clone; run git fetch --unshallow " <>
-           "or set fetch-depth: 0 in CI"}
+      case truncated_boundary(root, MapSet.intersection(boundaries, commits)) do
+        {:ok, nil} ->
+          :ok
+
+        {:ok, _boundary} ->
+          {:env,
+           "base..HEAD history is incomplete in this shallow clone; run git fetch --unshallow " <>
+             "or set fetch-depth: 0 in CI"}
+
+        {:error, reason} ->
+          {:env, range_inspection_failure(reason)}
       end
     else
       {:error, reason} -> {:env, range_inspection_failure(reason)}
+    end
+  end
+
+  defp truncated_boundary(root, boundaries) do
+    Enum.reduce_while(boundaries, {:ok, nil}, fn boundary, {:ok, nil} ->
+      case boundary_truncates?(root, boundary) do
+        {:ok, true} -> {:halt, {:ok, boundary}}
+        {:ok, false} -> {:cont, {:ok, nil}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp boundary_truncates?(root, boundary) do
+    with {:ok, object} <- Git.run(root, ["cat-file", "-p", boundary]) do
+      object
+      |> String.split("\n")
+      |> Enum.filter(&String.starts_with?(&1, "parent "))
+      |> Enum.reduce_while({:ok, false}, fn "parent " <> parent, {:ok, false} ->
+        case Git.run(root, ["cat-file", "-e", "#{parent}^{commit}"]) do
+          {:ok, _output} -> {:cont, {:ok, false}}
+          {:error, {:git, _args, _output, _status}} -> {:halt, {:ok, true}}
+          {:error, reason} -> {:halt, {:error, reason}}
+        end
+      end)
     end
   end
 

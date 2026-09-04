@@ -69,15 +69,14 @@ Run the gate against the target branch after fetching its remote ref:
 spec:
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+    - {uses: actions/checkout@v4, with: {fetch-depth: 0}}
     - uses: erlef/setup-beam@v1
     - run: mix deps.get && mix spec.check --base origin/main
 ```
 
-Ancora rejects a `base..HEAD` range that crosses a shallow-clone boundary.
-Use `fetch-depth: 0` in CI, or run `git fetch --unshallow` before the gate.
+Ancora rejects a shallow `base..HEAD` range when a boundary inside it has a
+parent commit absent locally. Use `fetch-depth: 0` in CI, or run
+`git fetch --unshallow` before the gate.
 
 With `--json`, read the last stdout line that parses as JSON. The verdict line
 follows the JSON report and remains the final stdout line.

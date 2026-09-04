@@ -62,7 +62,6 @@ defmodule Mix.Tasks.Spec.CheckTest do
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
-  @tag spec: "ancora.findings.info_visibility"
   test "an incomplete shallow range fails before trailer resolution", %{root: root} do
     create_project(root)
     write_anchored_subject(root)
@@ -70,10 +69,23 @@ defmodule Mix.Tasks.Spec.CheckTest do
     base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
 
     write_files(root, %{
-      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :middle_one\nend\n"
     })
 
     commit_all(root, "change value\n\nSpec-Ack: derived/drift=info")
+    ack_commit = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :middle_two\nend\n"
+    })
+
+    commit_all(root, "change value again")
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    commit_all(root, "change value at head")
 
     full = run_mix_subprocess(["spec.check", "--root", root, "--base", base])
     assert full.status == 0
@@ -83,6 +95,16 @@ defmodule Mix.Tasks.Spec.CheckTest do
     on_exit(fn -> TmpGitRepo.cleanup!(shallow) end)
     TmpGitRepo.git!(shallow, ["fetch", "--depth=1", "origin", base])
 
+    assert git!(root, ["show", "-s", "--format=%B", ack_commit]) =~
+             "Spec-Ack: derived/drift=info"
+
+    {_output, status} =
+      System.cmd("git", ["-C", shallow, "cat-file", "-e", "#{ack_commit}^{commit}"],
+        stderr_to_stdout: true
+      )
+
+    assert status != 0
+
     result = run_mix_subprocess(["spec.check", "--root", shallow, "--base", base, "--json"])
 
     assert result.status == 1
@@ -90,6 +112,52 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert result.stdout =~ "base..HEAD history is incomplete"
     assert result.stdout =~ "git fetch --unshallow"
     assert result.stdout =~ "fetch-depth: 0"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+  end
+
+  @tag spec: "ancora.findings.info_visibility"
+  test "an incomplete shallow range JSON report has no findings", %{root: root} do
+    create_project(root)
+    write_anchored_subject(root)
+    commit_all(root, "anchored subject")
+    base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :middle_one\nend\n"
+    })
+
+    commit_all(root, "change value\n\nSpec-Ack: derived/drift=info")
+    ack_commit = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :middle_two\nend\n"
+    })
+
+    commit_all(root, "change value again")
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    commit_all(root, "change value at head")
+
+    shallow = TmpGitRepo.shallow_clone!(root)
+    on_exit(fn -> TmpGitRepo.cleanup!(shallow) end)
+    TmpGitRepo.git!(shallow, ["fetch", "--depth=1", "origin", base])
+
+    {_output, status} =
+      System.cmd("git", ["-C", shallow, "cat-file", "-e", "#{ack_commit}^{commit}"],
+        stderr_to_stdout: true
+      )
+
+    assert status != 0
+
+    result = run_mix_subprocess(["spec.check", "--root", shallow, "--base", base, "--json"])
+
+    assert result.status == 1
+    assert last_parseable_json(result.stdout)["all_findings"] == []
 
     assert List.last(lines(result.stdout)) ==
              "spec.check result=fail tier=env errors=0 warnings=0"

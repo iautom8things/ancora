@@ -43,8 +43,8 @@ decisions:
     by Ancora.Derive.ChangeSet. A file inside a new untracked directory shall
     appear individually; a `git mv` followed by an edit shall appear as a
     delete plus an add with both paths prefetched. The gate shall compute no
-    change set until preflight confirms the requested `base..HEAD` range does
-    not cross a shallow-clone boundary.
+    change set until preflight confirms that no shallow boundary inside the
+    requested `base..HEAD` range has a parent commit absent locally.
   priority: must
   stability: stable
 - id: ancora.derive.base_reads_batched
@@ -272,7 +272,7 @@ decisions:
     - ancora.derive.base_reads_batched
 - id: ancora.derive.scenario.incomplete_range_stops_before_change_set
   given:
-    - a shallow clone whose requested `base..HEAD` range crosses a shallow boundary
+    - a shallow clone with a boundary inside `base..HEAD` whose parent is absent locally
   when:
     - the gate runs
   then:

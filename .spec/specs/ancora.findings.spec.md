@@ -90,8 +90,8 @@ decisions:
     `ANCORA_SHOW_INFO=1` is set, and shall never affect exit status. The
     branch summary shall report the hidden count. A preflight environment
     failure represented as JSON shall keep `all_findings` empty rather than
-    fabricate a finding for the environment error, including an incomplete
-    shallow-clone range.
+    fabricate a finding for the environment error, including a shallow
+    boundary inside `base..HEAD` whose parent is absent locally.
   priority: must
   stability: stable
 - id: ancora.findings.trailer_grammar
@@ -213,7 +213,7 @@ decisions:
     - ancora.findings.info_visibility
 - id: ancora.findings.scenario.shallow_range_env_has_no_findings
   given:
-    - a shallow clone whose requested `base..HEAD` range crosses a shallow boundary
+    - a shallow clone with a boundary inside `base..HEAD` whose parent is absent locally
   when:
     - `mix spec.check --json` runs
   then:
