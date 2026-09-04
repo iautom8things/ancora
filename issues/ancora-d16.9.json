@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T11:04:28Z",
+  "description": "Advances: ancora.tasks, ancora.gate. Calibrated severity: Medium. Findings: F22, F50. Source: ~/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-04/ancora-xla-post-ship-hardening/20260904-061300-consolidated.md (review_commit e18fa05); read the finding rows and the persona report(s) named there before starting. Deferred by release scope; widening the enumeration means rewording single_stdout_writer and only_git_is_spawned. Report row: F22/F50 (testing M6, spec L2, security L3, distributed L4). Deferred from the 1.1.0 release by Manuel's decision of 2026-09-04 (Critical + High only landed on ancora-41r). Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision; reason above.",
+  "id": "ancora-d16.9",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 3,
+  "status": "open",
+  "title": "Widen the forbidden-writer and forbidden-spawner static guards",
+  "type": "task",
+  "updated_at": "2026-09-04T11:04:28Z"
+}
