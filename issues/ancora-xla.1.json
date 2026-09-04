@@ -56,11 +56,15 @@
     {
       "text": "REBASED\nSession: rebase-xla1\nOld base: 849dbf9  Old head: 106494e\nNew base: 45ff9e9  New head: 9e22e1e0998132d6723d76712b4bff01952ad403\nConflicts: none\nCompile: clean\nTests: 32 tests, 0 failures (four diff-touched files)\nFormat: clean\nspec.check --base 45ff9e9: spec.check result=pass",
       "timestamp": "2026-09-04T03:24:52Z"
+    },
+    {
+      "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-04 00:26 local)\ngit range-diff 849dbf9..106494e 45ff9e9..9e22e1e: both commits marked = (byte-identical patches; d9a39d7 -\u003e 0511f4a, 106494e -\u003e 9e22e1e). No conflict hunks, so no fresh cold agent. Rebase worker's checks on the new base: compile clean, 32 tests green across the four diff-touched files, format clean, spec.check --base 45ff9e9 result=pass.\nFast-forwarded ancora-xla/post-ship-hardening 45ff9e9 -\u003e 9e22e1e. Gate 14 running.",
+      "timestamp": "2026-09-04T03:25:50Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Pin the type of subject meta and collapse the dual-key index accessor",
   "type": "task",
-  "updated_at": "2026-09-04T03:24:52Z"
+  "updated_at": "2026-09-04T03:25:50Z"
 }
