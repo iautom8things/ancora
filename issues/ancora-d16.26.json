@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T11:04:32Z",
+  "description": "Advances: ancora.review. Calibrated severity: Medium. Findings: F42. Source: ~/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-04/ancora-xla-post-ship-hardening/20260904-061300-consolidated.md (review_commit e18fa05); read the finding rows and the persona report(s) named there before starting. Tracked: running FindingsDelta through Severity.resolve_all requires threading preflight config and trailer overrides into the delta builder. Report row: F42 (frontend H1 second half). Deferred from the 1.1.0 release by Manuel's decision of 2026-09-04 (Critical + High only landed on ancora-41r). Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision; reason above.",
+  "id": "ancora-d16.26",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 3,
+  "status": "open",
+  "title": "The artifact's panels ignore config severities and trailer overrides",
+  "type": "bug",
+  "updated_at": "2026-09-04T11:04:32Z"
+}
