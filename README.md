@@ -52,6 +52,12 @@ those functions or calls change, edit the subject's requirements or scenarios
 in the same diff. Mechanical rewrites such as `mix format --migrate` still
 need an explicit acknowledgment when they change the derived call set.
 
+## Deprecated 1.x grammar
+
+`Ancora.Parser.parse_file/2` keeps returning its `"exceptions"` key and keeps
+parsing `spec-exceptions` blocks throughout the 1.x series. Both are deprecated
+and will be removed in Ancora 2.0.
+
 ## CI
 
 CI must pass `--base` explicitly. The `default_base` setting is a

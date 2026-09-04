@@ -153,7 +153,10 @@ decisions:
     objects reachable from `--base`. The temporary base view shall contain
     only the configured spec directory, configured test paths, and project
     library paths, and the gate shall remove it after assembly returns or
-    raises.
+    raises. During a gate run, the gate shall hold no per-run in-memory memo,
+    registry, or ETS table; the run context it starts shall carry only the run
+    root, base, and batch-port state, and stopping it shall leave no table or
+    process behind.
   priority: must
   stability: stable
 ```

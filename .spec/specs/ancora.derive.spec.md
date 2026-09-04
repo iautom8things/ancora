@@ -30,6 +30,7 @@ decisions:
   - ancora.decision.source_derived_membership
   - ancora.decision.generated_bindings_companion
   - ancora.decision.no_execution_no_state
+  - ancora.decision.no_run_context_memo
 ```
 
 ## Requirements
@@ -75,6 +76,8 @@ decisions:
     maps once across all subjects and pass them to Ancora.Derive.Compare as
     plain function arguments. Extraction reuse shall not use an in-process
     memo, registry, cache, or new process, and shall not persist to disk.
+    Ancora.Derive.RunContext shall contain only the run root, base, and batch
+    port state; starting or stopping it shall not create or delete an ETS table.
   priority: must
   stability: stable
 - id: ancora.derive.project_info_from_root

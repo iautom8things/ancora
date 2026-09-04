@@ -28,6 +28,10 @@ Ancora version.
 8. Remove the compatibility shim only after the repository's CI passes with
    Ancora alone.
 
+`spec-exceptions` blocks and the `"exceptions"` key returned by
+`Ancora.Parser.parse_file/2` are deprecated. Ancora 1.x still parses and returns
+them. Remove these blocks before upgrading to Ancora 2.0, which removes both.
+
 Engage and Builder must review accepted ADRs during their next Ancora upgrade.
 An ADR whose `affects:` lists only a subject no longer authorizes deleting or
 downgrading every requirement in that subject. Add each exact requirement id

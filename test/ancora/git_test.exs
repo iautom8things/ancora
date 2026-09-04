@@ -146,111 +146,33 @@ defmodule Ancora.GitTest do
   end
 
   @tag spec: "ancora.derive.memo_is_run_scoped"
-  test "memo table is unnamed, public, and gone after stop", %{root: root} do
+  test "run context carries only batch-port state and closes the port", %{root: root} do
+    # Would fail if RunContext retained the ETS allocation, deletion, public
+    # memo API, or struct field while claiming to own only the batch port.
     TmpGitRepo.write!(root, %{"README.md" => "x\n"})
     TmpGitRepo.commit!(root, "initial")
 
+    traced = self()
+    :erlang.trace(traced, true, [:call])
+    :erlang.trace_pattern({:ets, :new, 2}, true, [])
+    :erlang.trace_pattern({:ets, :delete, 1}, true, [])
+
+    on_exit(fn ->
+      :erlang.trace_pattern({:ets, :new, 2}, false, [])
+      :erlang.trace_pattern({:ets, :delete, 1}, false, [])
+    end)
+
     assert {:ok, ctx} = RunContext.start(root, "HEAD")
-    assert :ets.info(ctx.memo, :named_table) == false
-    assert :ets.info(ctx.memo, :protection) == :public
+    assert Map.keys(ctx) |> Enum.sort() == [:__struct__, :base, :batch_port, :root]
+    refute function_exported?(RunContext, :memo_put, 4)
+    refute function_exported?(RunContext, :memo_get, 2)
     assert Port.info(ctx.batch_port.port, :registered_name) == {:registered_name, []}
 
-    :ok = RunContext.memo_put(ctx, :k, :v, :ast)
-    assert {:ok, :v, :ast} = RunContext.memo_get(ctx, :k)
-
-    tid = ctx.memo
     port = ctx.batch_port.port
     :ok = RunContext.stop(ctx)
 
-    assert :ets.info(tid) == :undefined
     assert Port.info(port) == nil
-  end
-
-  @tag spec: "ancora.derive.memo_is_run_scoped"
-  test "memo prefers DefIndex and resolver results over a raw AST", %{root: root} do
-    TmpGitRepo.write!(root, %{"README.md" => "x\n"})
-    TmpGitRepo.commit!(root, "initial")
-    assert {:ok, ctx} = RunContext.start(root, "HEAD")
-    on_exit(fn -> RunContext.stop(ctx) end)
-
-    :ok = RunContext.memo_put(ctx, :file, :quoted, :ast)
-    :ok = RunContext.memo_put(ctx, :file, :index, :def_index)
-    assert {:ok, :index, :def_index} = RunContext.memo_get(ctx, :file)
-
-    :ok = RunContext.memo_put(ctx, :file, :quoted_again, :ast)
-    assert {:ok, :index, :def_index} = RunContext.memo_get(ctx, :file)
-
-    :ok = RunContext.memo_put(ctx, :calls, :set, :resolver)
-    :ok = RunContext.memo_put(ctx, :calls, :quoted, :ast)
-    assert {:ok, :set, :resolver} = RunContext.memo_get(ctx, :calls)
-  end
-
-  @tag spec: "ancora.derive.memo_is_run_scoped"
-  test "two concurrent runs do not collide", %{root: root} do
-    # Would fail if both runs shared one ETS memo: after the barrier, A would
-    # observe B's :only_b and B would observe A's :only_a.
-    TmpGitRepo.write!(root, %{"README.md" => "a\n"})
-    TmpGitRepo.commit!(root, "a")
-
-    root_b = TmpGitRepo.create!()
-    on_exit(fn -> TmpGitRepo.cleanup!(root_b) end)
-    TmpGitRepo.write!(root_b, %{"README.md" => "b\n"})
-    TmpGitRepo.commit!(root_b, "b")
-
-    parent = self()
-
-    task_a =
-      Task.async(fn ->
-        {:ok, ctx} = RunContext.start(root, "HEAD")
-        :ok = RunContext.memo_put(ctx, :only_a, :from_a, :blob)
-        send(parent, {:ready, :a})
-
-        receive do
-          :cross ->
-            own = RunContext.memo_get(ctx, :only_a)
-            other = RunContext.memo_get(ctx, :only_b)
-            named? = :ets.info(ctx.memo, :named_table)
-            registered = Port.info(ctx.batch_port.port, :registered_name)
-            tid = ctx.memo
-            port = ctx.batch_port.port
-            :ok = RunContext.stop(ctx)
-            {own, other, named?, registered, tid, port}
-        end
-      end)
-
-    task_b =
-      Task.async(fn ->
-        {:ok, ctx} = RunContext.start(root_b, "HEAD")
-        :ok = RunContext.memo_put(ctx, :only_b, :from_b, :blob)
-        send(parent, {:ready, :b})
-
-        receive do
-          :cross ->
-            own = RunContext.memo_get(ctx, :only_b)
-            other = RunContext.memo_get(ctx, :only_a)
-            named? = :ets.info(ctx.memo, :named_table)
-            registered = Port.info(ctx.batch_port.port, :registered_name)
-            tid = ctx.memo
-            port = ctx.batch_port.port
-            :ok = RunContext.stop(ctx)
-            {own, other, named?, registered, tid, port}
-        end
-      end)
-
-    assert_receive {:ready, :a}, 5_000
-    assert_receive {:ready, :b}, 5_000
-    send(task_a.pid, :cross)
-    send(task_b.pid, :cross)
-
-    assert {{:ok, :from_a, :blob}, :error, false, {:registered_name, []}, tid_a, port_a} =
-             Task.await(task_a)
-
-    assert {{:ok, :from_b, :blob}, :error, false, {:registered_name, []}, tid_b, port_b} =
-             Task.await(task_b)
-
-    assert :ets.info(tid_a) == :undefined
-    assert :ets.info(tid_b) == :undefined
-    assert Port.info(port_a) == nil
-    assert Port.info(port_b) == nil
+    refute_received {:trace, ^traced, :call, {:ets, :new, _args}}
+    refute_received {:trace, ^traced, :call, {:ets, :delete, _args}}
   end
 end

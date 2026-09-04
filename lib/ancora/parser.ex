@@ -7,6 +7,9 @@ defmodule Ancora.Parser do
   `"scenarios"`, `"verification"`, `"exceptions"`, `"parse_errors"`, and
   `"findings"`. That shape is unchanged within a major version.
 
+  The `"exceptions"` key and `spec-exceptions` block are deprecated. Ancora
+  1.x continues to parse and return them. Ancora 2.0 will remove them.
+
   README documentation of this commitment lands at publish (L12); the
   commitment is recorded here.
   """
@@ -22,7 +25,8 @@ defmodule Ancora.Parser do
   @doc """
   Parses a spec file at `path` relative to `root`.
 
-  This function is semver-stable public API.
+  This function is semver-stable public API. Its `"exceptions"` return key is
+  deprecated and will be removed in Ancora 2.0.
   """
   @spec parse_file(Path.t(), Path.t()) :: map()
   def parse_file(path, root) do
