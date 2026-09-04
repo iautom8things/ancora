@@ -72,11 +72,15 @@
     {
       "text": "REBASED\n\nRebased ancora-gqb/review-size-and-bindings onto epic tip 884588f (ancora-xla/post-ship-hardening). Old head f786af9, new head 9a2d76b. No conflicts.\n\ngit log --oneline 884588f..HEAD\n9a2d76b test: bind review artifact fanout guards\ne5399a1 fix: dedupe watched review diffs\nfd09b14 fix: bound review artifact fanout\n\nSmoke: mix compile --warnings-as-errors clean. mix test: 3 properties, 359 tests, 0 failures (the three expected `fatal: not a git repository` stderr lines from test/support/tmp_git_repo.exs appeared, no failures).\n\nmix spec.check --base 884588f verdict: spec.check result=pass\n\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl",
       "timestamp": "2026-09-03T23:59:23Z"
+    },
+    {
+      "text": "REBASED\n\nOld head: 9a2d76b\nNew head: 1c301fd5ae9aaac5941b8c484b03fab4a6a7baab\nRebased onto epic tip: d50f859 (test: prove exact retirement authorization scope)\n\nNo conflict occurred. git merge-tree forecast came back clean (exit 0, all touched files auto-merged), and `git rebase d50f859` completed with no manual resolution.\n\ngit log --oneline d50f859..HEAD:\n1c301fd test: bind review artifact fanout guards\nea0619f fix: dedupe watched review diffs\ned952f1 fix: bound review artifact fanout\n\nSmoke:\n- mix compile --warnings-as-errors: clean\n- mix test: 369 tests, 3 properties, 0 failures (46.6s)\n- mix spec.check --base d50f859: spec.check result=pass\n\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl",
+      "timestamp": "2026-09-04T00:02:25Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Re-base the review artifact size finding on a contract line that still exists",
   "type": "task",
-  "updated_at": "2026-09-03T23:59:23Z"
+  "updated_at": "2026-09-04T00:02:25Z"
 }
