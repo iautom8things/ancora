@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T11:04:31Z",
+  "description": "Advances: ancora.tasks. Calibrated severity: Medium. Findings: F35. Source: ~/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-04/ancora-xla-post-ship-hardening/20260904-061300-consolidated.md (review_commit e18fa05); read the finding rows and the persona report(s) named there before starting. Tracked: restructuring fail_path/4 changes output for six tasks and needs a decision between stdout uniformity and stream cleanliness. Report row: F35 (api M3). Deferred from the 1.1.0 release by Manuel's decision of 2026-09-04 (Critical + High only landed on ancora-41r). Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision; reason above.",
+  "id": "ancora-d16.22",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 3,
+  "status": "open",
+  "title": "Non-gate tasks write usage errors to stdout as well as stderr",
+  "type": "task",
+  "updated_at": "2026-09-04T11:04:31Z"
+}
