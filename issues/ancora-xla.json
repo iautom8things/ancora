@@ -227,11 +227,15 @@
     {
       "text": "ROUTE + LESSON (orchestrator, 2026-09-03 21:51 local). ancora-11w's retry parked itself at the run cap with the seven-item order done and uncommitted; the second final-tier run was green on 45 touched-file tests and 386 stale tests, then spec.check raised ancora.tasks derived/growth because spec_check_test.exs now calls Ancora.Git.run/2 to check that the acknowledgment commit is absent from the shallow fixture. That is fixture inspection through a production function, and the honest fix is to stop doing it (System.cmd or a non-bang support helper), not to acknowledge a binding the tasks subject never observes. Ruling posted, cap reset for one run, same pane resumed.\n\nancora-xla.7's retry posted IMPLEMENTED: four files, 6 insertions, 80 deletions, filter moved to the Elixir.Mix.Tasks. prefix and proven both ways with the auditor's ninth-task mutation (2 failures with it, 0 without). One :beam_lib call remains in git_batch_port_test.exs:144; the delta verifier has been told to establish whether it predates the ticket or is a leftover of the deleted helper. Verifier and critic spawned.\n\nLESSONS\n- [other] Test fixtures must not call production functions to set up or inspect state. Under file-scoped derivation a single Ancora.Git.run in a tasks-tagged test binds Git.run to ancora.tasks and raises derived/growth that only a hollow acknowledgment could clear. Use test/support helpers or System.cmd for fixture work. (from ancora-11w)",
       "timestamp": "2026-09-04T01:46:52Z"
+    },
+    {
+      "text": "TWELFTH CHILD CLOSED (orchestrator, 2026-09-03 21:55 local). ancora-xla.7 merged at 849dbf9 after a conflict-free mechanical rebase (range-diff: both commits byte-identical). Gate 11: 385 tests, 3 properties, 0 failures, 29.6s; format, deps.unlock and spec.check --base 7511407 pass. Count 379 to 385. Worktree and branch removed.\n\nOne child left in wave three: ancora-11w, retry in delta re-verification with its critic reading. It will need a rebase before merge: xla.7 deleted the dead `@moduletag :tmp_dir` lines in test/mix/tasks/spec_check_test.exs and 11w's branch still carries one next to its `alias Ancora.TmpGitRepo`; forecast shows exactly that one conflict. Resolution when it comes: keep the alias, drop the moduletag.\n\nWave four (sfu, xla.1, xla.6) admits when 11w lands. Console redeployed for the close and the gate. console_redeploys=15.",
+      "timestamp": "2026-09-04T01:54:55Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T01:46:52Z"
+  "updated_at": "2026-09-04T01:54:55Z"
 }
