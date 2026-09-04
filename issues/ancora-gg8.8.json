@@ -55,11 +55,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: e92f6de6-94f7-4814-8140-19f3f3007d0a\nLog: /Users/mz/.claude-remembers/projects/-Users-mz-src-ancora/e92f6de6-94f7-4814-8140-19f3f3007d0a.jsonl\n\nReasoning: VERIFY reported PASS with a passing spec gate and full requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS (re-run after bounce 1; all eleven audit items confirmed by reading and by execution, three named mutations each fail a named test on the production path, corpus coherent on requirement-scoped overrides and on acknowledged findings). No auditor was spawned\nper policy for the delta re-verification; the prior audit's bounce items are closed by execution.",
       "timestamp": "2026-09-04T15:16:42Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-gg8/field-friction. Closing per orchestrator sign-off.\n\nFast-forwarded (the merge commit's first parent was the epic tip 6e0f24e). Merge gate 8 (epic tip e6d5443, parents 6e0f24e and f977c9a): mix compile --warnings-as-errors clean; mix test 3 properties, 470 tests, 0 failures; mix format --check-formatted clean; mix deps.unlock --check-unused clean; mix spec.check --base origin/main (f977c9a, release 1.1.0) result=pass; mix spec.check --base 6e0f24e (per-merge delta) result=pass. The epic branch now contains release 1.1.0. ancora-gg8.7 is unblocked.",
+      "timestamp": "2026-09-04T15:18:30Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Reconcile field-friction with release 1.1.0: merge main into the epic branch",
   "type": "task",
-  "updated_at": "2026-09-04T15:16:42Z"
+  "updated_at": "2026-09-04T15:18:30Z"
 }
