@@ -73,11 +73,15 @@
     {
       "text": "ORCHESTRATED\nChildren closed: 7\nBOUNCEs encountered: 7\nUser escalations: 0\n\nEpic tip 6e0f24e on ancora-gg8/field-friction (368 tests, seven green merge gates). Not pushed; PR not opened. Set aside: ancora-gg8.7 (parallel parsing) behind the ancora-xla epic. Deliver sweep: merged stage worktree ancora-disclosure-codes removed; epic kept in_progress (no PR yet); no agents resident.",
       "timestamp": "2026-09-04T02:29:06Z"
+    },
+    {
+      "text": "DECISION (Manuel, 2026-09-04 02:3xZ): option 1 for the set-aside child. Land ancora-xla on main first, then rebase ancora-gg8/field-friction onto origin/main and orchestrate ancora-gg8.7 on the rebased branch. The PR for this epic waits until gg8.7 is merged too. Current state: every ancora-xla child is closed, its branch tip e18fa05 is not yet on main (origin/main = 7511407); the orchestrator is watching origin/main for that merge.",
+      "timestamp": "2026-09-04T12:41:43Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-04T02:29:06Z"
+  "updated_at": "2026-09-04T12:41:43Z"
 }
