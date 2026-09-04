@@ -12,9 +12,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-xla",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: xla1-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-xla.1/codex-xla1-i1-adec463e/log\n\nCommit: d9a39d7747ff7f8c9ed4230632b1aba84e66d349\nFiles touched: .spec/decisions/ancora.decision.invalid_spec_meta.md, .spec/specs/ancora.parsing.spec.md, lib/ancora/append_only.ex, lib/ancora/change_analysis.ex, lib/ancora/gate.ex, lib/ancora/index.ex, lib/ancora/overlap.ex, lib/ancora/parser.ex, lib/ancora/review.ex, lib/ancora/review/html.ex, lib/ancora/status.ex, lib/ancora/verifier.ex, test/ancora/index_test.exs\nTests added: Ancora.IndexTest \"invalid spec metadata stays nil and every corpus-reading task handles it\"; Ancora.IndexTest \"reads schema structs and YAML maps without creating atoms\"\nSpec acknowledgment: ancora.parsing updated with the malformed spec-meta contract and scenario; ancora.decision.invalid_spec_meta records the representation and shared-accessor decision; no Spec-Ack trailer used\nVerification tier: change-scoped — mix compile --warnings-as-errors; test/ancora/index_test.exs, parser_test.exs, verifier_test.exs, append_only_test.exs, overlap_test.exs, gate_test.exs, status_test.exs, review_test.exs, review_assets_test.exs; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base 849dbf9; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Invalid spec-meta now stays nil while preserving the parser finding, and every corpus-reading task handles that subject without raising. Ancora.Index now owns fixed-map field lookup and binary-or-nil subject IDs, with the gate filtering nil IDs before comparison. I checked every current epic lesson against the diff; no must requirement, scenario, or success criterion was deferred.",
+      "timestamp": "2026-09-04T02:24:28Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Pin the type of subject meta and collapse the dual-key index accessor",
   "type": "task",
-  "updated_at": "2026-09-04T02:11:40Z"
+  "updated_at": "2026-09-04T02:24:28Z"
 }
