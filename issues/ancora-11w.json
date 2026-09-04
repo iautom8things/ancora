@@ -9,7 +9,7 @@
   "id": "ancora-11w",
   "labels": [
     "critical",
-    "phase:verifying"
+    "phase:merging"
   ],
   "parent": "ancora-xla",
   "comments": [
@@ -78,5 +78,5 @@
   "status": "in_progress",
   "title": "Gate silently resolves a different verdict on a shallow clone",
   "type": "task",
-  "updated_at": "2026-09-04T02:39:30Z"
+  "updated_at": "2026-09-04T02:39:37Z"
 }
