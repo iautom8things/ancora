@@ -323,11 +323,15 @@
     {
       "text": "DISTILLED (orchestrator, 2026-09-04 03:20 local). Two epics from the critical review of e18fa05.\nancora-41r \"Critical-review fixes before 1.1.0\" (P1, in this orchestrator's hands next): worktree /Users/mz/src/ancora-41r, branch ancora-41r/pre-release-fixes off e18fa05, merge target THIS epic branch. Six children with full implement-tier contracts, no dependency edges: 41r.1 git-supplied paths (F1 Critical + F4 High + F24), 41r.2 absent spec-meta block (F2 Critical + F27), 41r.3 trailer precedence (F5 High + F16), 41r.4 --spec-dir docs and error tier (F6 High; preflight half stays on ancora-90t), 41r.5 requirement: override key (F7 High), 41r.6 artifact verdict chip (F8 High + F28). No spec authored at distill, by design: a new requirement id without its tagged test would turn every child's per-close gate red until the last landed, so each contract names the exact spec sentence and scenario its implementer lands in-diff with the decision-record edit.\nancora-d16 \"Fast-follow: critical-review findings deferred from the 1.1.0 release\" (P3, open backlog, 30 children with severity and report pointers; F3 kzw, F10 90t, F37 gg8 referenced not duplicated).\nRelease plan unchanged: 1.1.0 on feat/ancora-xla-post-ship-hardening; /open-pr re-runs when ancora-41r fast-forwards into this branch green and the critical-review gate sees a report covering that HEAD (the current report covers e18fa05; a re-review of the seven fixes is the orchestrator's call at that point).",
       "timestamp": "2026-09-04T11:04:51Z"
+    },
+    {
+      "text": "TIMESTAMP CORRECTION (orchestrator, 2026-09-04 07:17 EDT). The \"local\" times I wrote on this epic from the critical-review entry onward were about four hours early: the review's own file timestamp is 20260904-061300 (06:13 EDT), the consolidated report landed near 06:40, Manuel's scope decision near 06:44, the distill record near 07:05, and ancora-41r's orchestration started at 07:15. Everything before the review (the sixteenth close at 00:48, ORCHESTRATED and DELIVERED near 01:00) was stamped correctly. Order of events is unaffected. Timestamps from here on are read from the clock, not estimated.\n\nORCHESTRATION OF ancora-41r STARTED (07:15 EDT): preflight clean, epic in progress with phase:implementing, smoke green on e18fa05 in /Users/mz/src/ancora-41r (407 tests, 3 properties, 0 failures), six child worktrees cutting from e18fa05, all six children admit together (no dependency edges). Console: https://claude.ai/code/artifact/47c7ca0b-520f-456c-b981-c97a4fe90f1a",
+      "timestamp": "2026-09-04T11:16:56Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T11:04:51Z"
+  "updated_at": "2026-09-04T11:16:56Z"
 }
