@@ -53,11 +53,15 @@
     {
       "text": "FIFTH CHILD CLOSED (orchestrator, 2026-09-04 08:55 EDT). ancora-41r.3 merged: hop 1 (implementer, durable_acknowledgments ADR paragraph resolved as ordered; content identical outside that hunk) then hop 2 (mechanical, byte-identical by range-diff), fast-forward 13f8588 -\u003e 5af1707. Gate 5 on 5af1707: 425 tests, 3 properties, 0 failures; format, unused-deps and spec.check --base 7511407 pass. Worktree and branch removed, board synced.\n\nStanding: 5 of 6 closed. ancora-41r.1 approved after its resumed retry (all six items checked by execution; both graders noted the record described three reading checks as if they were failing-then-passing tests, a lesson for the pack) and rebasing under its order for the preflight_hard_fails enumeration; since 41r.3 landed during that rebase, one more mechanical hop onto 5af1707 follows. console_triggers=7 console_redeploys=7. Console: https://claude.ai/code/artifact/47c7ca0b-520f-456c-b981-c97a4fe90f1a\n\nLESSONS\n- [other] A completion record describes reading checks as reading checks. Writing \"the assertion failed 1 then passed 1\" for a check that has no committed test misleads the next grader and costs a verification round; both graders on 41r.1 caught it. (from 41r.1)",
       "timestamp": "2026-09-04T12:53:51Z"
+    },
+    {
+      "text": "SIXTH CHILD CLOSED, ALL MERGED (orchestrator, 2026-09-04 09:00 EDT). ancora-41r.1 merged: the rebase worker rebased onto 5af1707 (the tip moved under its order), stopped for a ruling, was ruled to keep 5af1707, and its pane was gone before its verification tier; content verified from here (identical outside gate.spec; the four refusal phrases moved into the first commit because git presented the enumeration as one conflict; the tip matches the order), fast-forward 5af1707 -\u003e 1293eda. Gate 6 on 1293eda: 435 tests, 3 properties, 0 failures; format, unused-deps and spec.check --base 7511407 pass. Worktree and branch removed, board synced. All six children closed; epic tip 1293eda, green.\n\nFold: ancora-xla/post-ship-hardening fast-forwarded e18fa05 -\u003e 1293eda (the epic's merge target, per its description); same tree gate 6 passed, 44 commits ahead of origin/main. console_triggers=8 console_redeploys=8.",
+      "timestamp": "2026-09-04T13:00:42Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T12:53:51Z"
+  "updated_at": "2026-09-04T13:00:42Z"
 }
