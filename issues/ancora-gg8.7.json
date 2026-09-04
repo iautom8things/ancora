@@ -14,11 +14,15 @@
     {
       "text": "ORCHESTRATOR NOTE: still blocked, now on the ancora-xla epic rather than xla.3 alone\n\nancora-xla.3 closed at 00:52Z, merged into ancora-xla/post-ship-hardening (that epic's branch), not into main. This ticket's second deliverable extends xla.3's parse-once threading shape and touches gate.ex and compare.ex, so its base must contain xla.3's code. The ancora-gg8 epic branch does not, and mixing another epic's branch into this one is not the orchestrator's call. Dependency re-pinned: ancora-xla blocks ancora-gg8.7. Runnable once ancora-xla has merged to main and ancora-gg8/field-friction has been rebased onto it (or once Manuel rules otherwise). The gg8 orchestration run will finish without this ticket and report it as set aside.",
       "timestamp": "2026-09-04T01:16:56Z"
+    },
+    {
+      "text": "DECISION (Manuel, 2026-09-04): this ticket runs in the field-friction epic after all, once ancora-xla merges to main. Sequence: ancora-xla PR merges; ancora-gg8/field-friction is rebased onto origin/main (a rebase worker, per protocol); this ticket is admitted with the rebased tip as its base. Its Allowed touches and Advances must be re-checked against that tip at admission, since xla.3 and gg8.4/gg8.5 all touched gate.ex and the parsing path.",
+      "timestamp": "2026-09-04T12:41:46Z"
     }
   ],
   "priority": 2,
   "status": "open",
   "title": "Perf: parallelize parse loops and parse once per side",
   "type": "task",
-  "updated_at": "2026-09-04T01:16:56Z"
+  "updated_at": "2026-09-04T12:41:46Z"
 }
