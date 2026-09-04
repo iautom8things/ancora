@@ -40,7 +40,12 @@ decisions:
     `yaml spec-meta`, `yaml spec-requirements`, `yaml spec-scenarios`, and
     `yaml spec-verification` blocks inside a `*.spec.md` file. A spec file
     that parses under specled_ex 0.17 shall parse under ancora to the same
-    subject id, requirement ids, and scenario ids.
+    subject id, requirement ids, and scenario ids. The only file a fresh
+    scaffold puts in front of Ancora.Parser is
+    `.spec/specs/project.core.spec.md`; it shall arrive as the shipped
+    template's exact bytes, never EEx-evaluated, so the seed subject parses to
+    the ids the template declares even when that text contains literal EEx
+    tags.
   priority: must
   stability: stable
 - id: ancora.parsing.retired_constructs_tolerated

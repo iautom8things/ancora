@@ -51,6 +51,9 @@ decisions:
     test, or subject file shall also be an environment failure, while parse
     errors in readable files remain findings. A failed batch fetch shall close
     and poison its port so later fetches return `{:error, :port_poisoned}`.
+    When a gate path reads a committed base blob without a batch port, it shall
+    receive only the committed bytes; git warnings on stderr shall not enter
+    the payload or produce a finding.
   priority: must
   stability: stable
 - id: ancora.gate.default_base_no_fallback

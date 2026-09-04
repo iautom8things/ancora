@@ -7,6 +7,8 @@ affects:
   - ancora.scaffold.init_writes_templates
   - ancora.scaffold.migration_doc
   - ancora.derive.base_reads_batched
+  - ancora.gate.preflight_hard_fails
+  - ancora.parsing.block_grammar_unchanged
 ---
 
 # Preserve reviewed bytes across asset and scaffold boundaries
