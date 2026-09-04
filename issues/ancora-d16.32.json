@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T13:02:04Z",
+  "description": "Advances: ancora.parsing. Calibrated severity: Medium. Found by the ancora-41r.2 auditor while reproducing the absent-block gap: duplicate blocks are fine, but a block whose YAML is not a mapping falls through to the per-field clause and reports fields missing that the author never had a chance to write. Needs a parse_error naming the shape, plus a scenario. Filed at ancora-41r delivery (2026-09-04) from grader advisories; every item was measured or read by a cold grader and left out of the release scope on purpose. Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision by Manuel on 2026-09-04; reason above.",
+  "id": "ancora-d16.32",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 3,
+  "status": "open",
+  "title": "A spec-meta block that parses as a non-map yields a spurious missing-field finding",
+  "type": "task",
+  "updated_at": "2026-09-04T13:02:04Z"
+}
