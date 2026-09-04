@@ -23,11 +23,15 @@
     {
       "text": "WORKER_ERROR\nSession: gg8.6-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.6/codex-gg8.6-impl-1/log\n\nFresh final-tier run 2 after the 2026-09-04T01:39:06Z ruling failed. Per the reset 2-run cap, I stopped without retrying.\n\nCommit: a2e2276\n\nFinding:\n[ERROR] ancora.derive derived/drift lib/ancora/change_analysis.ex :: ancora.derive: Ancora.ChangeAnalysis.findings/5 at line 12 changed (lib/ancora/change_analysis.ex) but the spec did not; edit the spec for this subject in the same diff\n\nspec.check result=fail tier=branch errors=1 warnings=0\n\nI preserved the base-compatible list clause byte-for-byte and added the ruled tag-map behavior as a guarded findings/5 clause. Ancora still hashes the changed MFA as drift. The touched-file tier passed 65 tests and mix test --stale passed 56 tests before spec.check failed.",
       "timestamp": "2026-09-04T01:47:26Z"
+    },
+    {
+      "text": "RULING: two trailers are authorized; drop the compatibility clause; the two red runs do not count\n\nThe drift on ancora.derive for ChangeAnalysis.findings/5 is transitive: ancora.derive's tests reach Gate.check, which calls the changed function, and the function's own subject (ancora.gate) is substantively edited in your diff. That is the standing wave-2 rule in your rule pack (\"Transitive drift\"), and my README ruling's \"no other Spec-Ack code\" sentence wrongly overrode it. Corrected:\n\n1. Your commit may carry exactly two trailers:\n   `Spec-Ack: change/missing_decision=info` (body line: \"README registry count 31 → 33; mechanical, no contract change.\")\n   `Spec-Ack: derived/drift=info` (body line: \"Transitive drift only: ancora.derive reaches ChangeAnalysis.findings/5; its own subject ancora.gate is substantively edited in this diff (B2 fan-out).\")\n   No other code. Do not edit ancora.derive.spec.md.\n2. Remove the base-compatible list clause of findings/5: it is dead code kept to dodge a hash, and drift fires on the changed body regardless. Keep one clause taking the tag-map argument (arity 5), update callers and tests.\n3. Both red runs were red solely on this finding, so neither counts; you have two fresh capped runs. Amend or add to commit a2e2276 (the trailers go on the commit whose diff they explain; amending is fine since nothing has been merged), re-run the change-scoped final tier with `mix spec.check --base 134862f53b00cfe7be62977286ebf8a19f9b8537`, and record IMPLEMENTED with the same session tag (gg8.6-impl-1) and log path. If a different finding appears, post WORKER_ERROR quoting it and stop.\nThis consumes no attempt.",
+      "timestamp": "2026-09-04T01:48:40Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Disclosure codes: tags/tag_borrowed and append/statement_changed",
   "type": "task",
-  "updated_at": "2026-09-04T01:47:26Z"
+  "updated_at": "2026-09-04T01:48:40Z"
 }
