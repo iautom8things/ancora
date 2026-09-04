@@ -10,9 +10,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-41r",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: 41r4-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-41r.4/codex-41r4-i1-adec463e/log\n\nCommit: 0344f5f1c10b431181f55421ced46c97ad45a1c4\nFiles touched: .spec/decisions/ancora.decision.cli_json_contract.md, .spec/specs/ancora.gate.spec.md, .spec/specs/ancora.parsing.spec.md, .spec/specs/ancora.review.spec.md, .spec/specs/ancora.tasks.spec.md, lib/ancora/gate.ex, lib/ancora/index.ex, lib/ancora/status.ex, lib/mix/tasks/spec.check.ex, lib/mix/tasks/spec.prime.ex, lib/mix/tasks/spec.review.ex, lib/mix/tasks/spec.status.ex, lib/mix/tasks/spec.validate.ex, test/ancora/index_test.exs, test/mix/tasks/spec_check_test.exs, test/mix/tasks/spec_status_test.exs, test/mix/tasks/task_docs_test.exs\nTests added: Ancora.IndexTest \"returns the requested workspace lookup failure as data\"; Mix.Tasks.Spec.CheckTest \"a requested subject directory is an environment failure\"; Mix.Tasks.Spec.CheckTest \"tasks read a corpus from a non-default workspace\"; Mix.Tasks.Spec.StatusTest \"status routes an invalid workspace without a stack trace\"; Mix.Tasks.Spec.StatusTest \"validate routes an invalid workspace without a stack trace\"; Mix.Tasks.Spec.StatusTest \"review routes an invalid workspace without a stack trace\"; Mix.Tasks.Spec.TaskDocsTest \"spec-dir help names the workspace and matches the real default\"\nSpec acknowledgment: ancora.tasks, ancora.gate, ancora.parsing, and ancora.review edited substantively in-diff; ancora.decision.cli_json_contract updated; no Spec-Ack trailer used\nVerification tier: change-scoped — mix compile --warnings-as-errors; test/mix/tasks/task_docs_test.exs, test/ancora/index_test.exs, test/mix/tasks/spec_check_test.exs, test/mix/tasks/spec_status_test.exs, test/ancora/gate_test.exs; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base e18fa05; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 2\n\nSummary: Index directory discovery now returns errors as data, and the gate plus corpus-reading tasks route invalid workspaces through their environment failure contracts while all five moduledocs name `.spec` as the workspace default. The non-default fixture exercises all five real tasks with `docs/spec`; it retains a decoy `.spec/` because preflight threading belongs to the [ancora-90t preflight follow-up](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-90t.json). All current epic lessons were checked; mutation proof was check raise 1 selected failure then 1 pass, status raise 1 failure then 1 pass, validate raise 1 failure then 1 pass, review raise 1 failure then 1 pass, one stale moduledoc 1 failure then 1 pass, and ignored explicit `--spec-dir` 1 failure then 1 pass.",
+      "timestamp": "2026-09-04T11:34:19Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "The documented --spec-dir default does not exist and passing it raises with no verdict",
   "type": "bug",
-  "updated_at": "2026-09-04T11:17:54Z"
+  "updated_at": "2026-09-04T11:34:19Z"
 }
