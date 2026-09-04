@@ -57,11 +57,15 @@
     {
       "text": "SIXTH CHILD CLOSED, ALL MERGED (orchestrator, 2026-09-04 09:00 EDT). ancora-41r.1 merged: the rebase worker rebased onto 5af1707 (the tip moved under its order), stopped for a ruling, was ruled to keep 5af1707, and its pane was gone before its verification tier; content verified from here (identical outside gate.spec; the four refusal phrases moved into the first commit because git presented the enumeration as one conflict; the tip matches the order), fast-forward 5af1707 -\u003e 1293eda. Gate 6 on 1293eda: 435 tests, 3 properties, 0 failures; format, unused-deps and spec.check --base 7511407 pass. Worktree and branch removed, board synced. All six children closed; epic tip 1293eda, green.\n\nFold: ancora-xla/post-ship-hardening fast-forwarded e18fa05 -\u003e 1293eda (the epic's merge target, per its description); same tree gate 6 passed, 44 commits ahead of origin/main. console_triggers=8 console_redeploys=8.",
       "timestamp": "2026-09-04T13:00:42Z"
+    },
+    {
+      "text": "MINI-RETRO\nbounces: 4 (all AUDIT: BOUNCE → implementer, 0 → verifier, one per child on 41r.1, 41r.2, 41r.3, 41r.5; none reached the cap. Classes: untested-clause 3 (a fold ordering no fixture discriminated; a must saying \"any other key\" tested with one key; an \"exactly one finding\" count never asserted), stale-spec 2 (a spec sentence false in the commit that shipped it; a sentence about an output line true for one of its two emitters), record 2 (a CLI kill reported for a parser mutation the CLI no longer reaches; reading checks written up as failing-then-passing tests), test-craft 2 (PATH rewritten in an async module; drift asserted by code membership only), code 1 (four new refusals raising with no verdict line))\nfull_suite_runs: 6\nfinals_gt1: 1\nflake_accepts: 0\nescalations: 0\nlessons_kept/retired: 8/0\nconsole_redeploys: 8/8",
+      "timestamp": "2026-09-04T13:00:53Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T13:00:42Z"
+  "updated_at": "2026-09-04T13:00:53Z"
 }
