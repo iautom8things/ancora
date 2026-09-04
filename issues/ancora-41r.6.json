@@ -10,9 +10,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-41r",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: 41r6-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-41r.6/codex-41r6-i1-adec463e/log\n\nCommit: d96d42f4287938254b8f9ab74b5e43c78acd1e17\nFiles touched: .spec/decisions/ancora.decision.review_artifact_contract.md, .spec/specs/ancora.review.spec.md, lib/ancora/review.ex, lib/ancora/review/html.ex, test/ancora/review_test.exs\nTests added: Ancora.ReviewTest \"production review command renders the gate verdict for info and error findings\"; updated Ancora.ReviewTest \"puts drift under watched interface and growth under test changes\" with the drift bad-color assertion\nSpec acknowledgment: .spec/specs/ancora.review.spec.md received a substantive ancora.review.findings_inline requirement and scenario edit; .spec/decisions/ancora.decision.review_artifact_contract.md records the same-run gate verdict contract; no Spec-Ack trailer used\nVerification tier: change-scoped; mix compile --warnings-as-errors; mix test test/ancora/review_test.exs test/ancora/review_assets_test.exs test/ancora/static/review_budget_test.exs; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base e18fa05; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: The artifact chip now uses the same gate report and verdict function as spec.check, so info-only findings render pass while errors and warnings render fail; drift badges also use the bad-color rule again. The verdict mutation produced 1 failure and the restored test produced 0; removing the drift selector produced 1 failure and restoring it produced 0. F42 severity classification remains out of scope and untouched, and every current epic lesson was checked against this diff.",
+      "timestamp": "2026-09-04T11:27:26Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "The review artifact's verdict chip says fail while the gate says pass",
   "type": "bug",
-  "updated_at": "2026-09-04T11:18:19Z"
+  "updated_at": "2026-09-04T11:27:26Z"
 }
