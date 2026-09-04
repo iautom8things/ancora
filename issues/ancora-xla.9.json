@@ -9,7 +9,7 @@
   "id": "ancora-xla.9",
   "labels": [
     "critical",
-    "phase:verifying"
+    "phase:auditing"
   ],
   "parent": "ancora-xla",
   "comments": [
@@ -50,5 +50,5 @@
   "status": "in_progress",
   "title": "Decide the ETS memo, spec-exceptions, and the review binding extractor",
   "type": "task",
-  "updated_at": "2026-09-04T01:13:18Z"
+  "updated_at": "2026-09-04T01:13:48Z"
 }
