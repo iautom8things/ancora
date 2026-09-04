@@ -14,7 +14,7 @@ defmodule Mix.Tasks.Spec.Review do
     * `--output PATH`, `-o PATH` selects the artifact path. Defaults to `_build/spec_review.html`.
     * `--open` opens the artifact in the system browser. Defaults to false.
     * `--root DIR`, `-r DIR` selects the target project. Defaults to the current directory.
-    * `--spec-dir DIR` selects the subject directory. Defaults to `.spec/specs`.
+    * `--spec-dir DIR` selects the ancora workspace directory. Defaults to `.spec`.
   """
 
   @switches [root: :string, spec_dir: :string, base: :string, output: :string, open: :boolean]
@@ -27,6 +27,7 @@ defmodule Mix.Tasks.Spec.Review do
 
       with :ok <- Ancora.TaskArgs.validate("spec.review", rest, invalid),
            root = Path.expand(opts[:root] || File.cwd!()),
+           :ok <- validate_spec_dir(root, opts),
            {:ok, view} <- Ancora.Review.build(root, opts) do
         html = view |> Ancora.Review.Html.render() |> IO.iodata_to_binary()
         output = output_path(opts[:output], root)
@@ -54,6 +55,22 @@ defmodule Mix.Tasks.Spec.Review do
 
   defp output_path(path, root),
     do: if(Path.type(path) == :absolute, do: path, else: Path.expand(path, root))
+
+  defp validate_spec_dir(root, opts) do
+    with {:ok, spec_dir} <- spec_dir(root, opts),
+         {:ok, _authored_dir} <- Ancora.Index.detect_authored_dir(root, spec_dir) do
+      :ok
+    else
+      {:error, message} -> {:env, message}
+    end
+  end
+
+  defp spec_dir(root, opts) do
+    case Keyword.fetch(opts, :spec_dir) do
+      {:ok, spec_dir} -> {:ok, spec_dir}
+      :error -> Ancora.Index.detect_spec_dir(root)
+    end
+  end
 
   defp open(path) do
     _ = apply(:wx_misc, :launchDefaultBrowser, [String.to_charlist("file://#{path}")])

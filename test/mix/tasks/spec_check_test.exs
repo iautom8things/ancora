@@ -206,14 +206,66 @@ defmodule Mix.Tasks.Spec.CheckTest do
   end
 
   @tag spec: "ancora.tasks.gated_emission_paths"
-  test "internal exception has no verdict on stdout", %{root: root} do
+  test "a requested subject directory is an environment failure", %{root: root} do
     create_project(root)
-    File.rm!(Path.join(root, ".spec/specs/.keep"))
-    File.rmdir!(Path.join(root, ".spec/specs"))
 
-    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
-    assert result.status != 0
-    refute result.stdout =~ "result="
+    result =
+      run_mix_subprocess([
+        "spec.check",
+        "--root",
+        root,
+        "--base",
+        "HEAD",
+        "--spec-dir",
+        ".spec/specs"
+      ])
+
+    assert result.status == 1
+    assert result.stdout =~ "--spec-dir selects the ancora workspace directory"
+    assert result.stdout =~ ".spec/specs/specs directory not found"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+
+    refute result.stderr =~ "** (RuntimeError)"
+  end
+
+  @tag spec: "ancora.tasks.report_task_flags"
+  @tag spec: "ancora.tasks.check_flags"
+  test "tasks read a corpus from a non-default workspace", %{root: root} do
+    create_custom_spec_project(root)
+
+    invocations = [
+      {["spec.check", "--root", root, "--base", "HEAD", "--spec-dir", "docs/spec"],
+       "checked subjects=1"},
+      {["spec.validate", "--root", root, "--spec-dir", "docs/spec"], "checked subjects=1"},
+      {["spec.status", "--root", root, "--spec-dir", "docs/spec"], "subjects=1"},
+      {[
+         "spec.prime",
+         "--root",
+         root,
+         "--base",
+         "HEAD",
+         "--spec-dir",
+         "docs/spec"
+       ], "Spec Led Prime"},
+      {[
+         "spec.review",
+         "--root",
+         root,
+         "--base",
+         "HEAD",
+         "--spec-dir",
+         "docs/spec"
+       ], "spec.review wrote"}
+    ]
+
+    for {args, expected} <- invocations do
+      result = run_mix_subprocess(args)
+      assert result.status == 0, result.stdout <> result.stderr
+      assert result.stdout =~ expected
+      refute result.stderr =~ "** ("
+    end
   end
 
   @tag spec: "ancora.tasks.check_flags"
@@ -564,6 +616,55 @@ defmodule Mix.Tasks.Spec.CheckTest do
       end
       """,
       ".spec/specs/.keep" => ""
+    })
+
+    commit_all(root, "base")
+  end
+
+  defp create_custom_spec_project(root) do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => """
+      defmodule Fixture.MixProject do
+        use Mix.Project
+        def project, do: [app: :fixture]
+      end
+      """,
+      ".spec/.keep" => "",
+      "docs/spec/specs/sample.spec.md" => """
+      # Sample
+
+      ```yaml spec-meta
+      id: sample.subject
+      kind: module
+      status: draft
+      ```
+
+      ```yaml spec-requirements
+      - id: sample.subject.works
+        statement: The sample shall work.
+        priority: must
+      ```
+
+      ```yaml spec-scenarios
+      []
+      ```
+
+      ```yaml spec-verification
+      - kind: tagged_tests
+        covers:
+          - sample.subject.works
+      ```
+      """,
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :ok\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() == :ok)
+      end
+      """
     })
 
     commit_all(root, "base")

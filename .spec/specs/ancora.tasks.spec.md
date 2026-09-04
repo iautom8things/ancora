@@ -120,8 +120,9 @@ decisions:
 - id: ancora.tasks.check_flags
   statement: >-
     `mix spec.check` shall accept exactly `--base <ref>`, `--verbose`,
-    `--debug`, `--root <dir>`, `--spec-dir <dir>`, and `--json`. With
-    `--json` it shall print the full report map as JSON to stdout with the
+    `--debug`, `--root <dir>`, `--spec-dir <dir>`, and `--json`. `--spec-dir`
+    shall select the ancora workspace that contains `specs/`, and omitting it
+    shall select `.spec`. With `--json` it shall print the full report map as JSON to stdout with the
     verdict line still last. `--no-run-commands`, `--min-strength`,
     `--command-timeout-ms`, `--accept-drift`, `--test-tags`, and `--output`
     shall be usage errors.
@@ -158,7 +159,9 @@ decisions:
     and `-f` aliases; `mix spec.decision.new` shall take a `DECISION_ID`
     argument with `--root`, `--title`, and `--force`, with `-r` and `-f`
     aliases. Every task moduledoc shall have an Options section listing each
-    flag, its argument, aliases, and default. `--json` shall be a usage error
+    flag, its argument, aliases, and default. For the five tasks that accept
+    `--spec-dir`, the flag shall select the ancora workspace that contains
+    `specs/` and shall default to `.spec`. `--json` shall be a usage error
     on every task but `spec.check`. `--bugfix`, `--run-commands`, and
     `--min-strength` shall be usage errors everywhere.
   priority: must

@@ -10,6 +10,13 @@ defmodule Ancora.IndexTest do
   @fixtures Path.expand("../fixtures/specs", __DIR__)
 
   describe "build" do
+    @tag spec: "ancora.gate.preflight_hard_fails"
+    test "returns the requested workspace lookup failure as data", %{root: root} do
+      assert {:error, message} = Index.build(root, spec_dir: ".spec/specs")
+      assert message =~ "--spec-dir selects the ancora workspace directory"
+      assert message =~ ".spec/specs/specs directory not found"
+    end
+
     @tag spec: "ancora.parsing.block_grammar_unchanged"
     test "indexes authored specs and decisions and exposes Ancora.index/2", %{root: root} do
       write_spec(root, "alpha", """

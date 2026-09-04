@@ -35,14 +35,17 @@ decisions:
 - id: ancora.gate.preflight_hard_fails
   statement: >-
     When the target has no `.spec/` corpus, the git executable is missing,
-    the target root is not inside a git repository, the base ref (explicit
+    the requested spec workspace cannot resolve its `specs/` directory, the
+    target root is not inside a git repository, the base ref (explicit
     `--base` or the configured default) does not resolve, the git batch port
     exits or times out, a shallow boundary inside the requested `base..HEAD`
     range has at least one parent commit absent locally, or the target is an
     umbrella root, `mix spec.check` shall exit non-zero with
     verdict `result=fail tier=env` and a message naming the remedy. These
     conditions shall never be emitted as findings and shall not be
-    configurable off. No preflight check shall inspect `_build` or any
+    configurable off. An unresolvable spec workspace shall name the directory
+    that was checked and explain that `--spec-dir` selects the workspace, then
+    end with the environment-tier verdict. No preflight check shall inspect `_build` or any
     `.app` file. Preflight shall load `.spec/config.yml` once and thread the
     resulting config through project identity and gate assembly. It shall pass
     the resolved `lib_paths` value, including nil, into project identity so

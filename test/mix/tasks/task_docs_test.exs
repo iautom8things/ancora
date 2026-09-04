@@ -12,6 +12,14 @@ defmodule Mix.Tasks.Spec.TaskDocsTest do
     Mix.Tasks.Spec.Decision.New => ~w(DECISION_ID --root --title --force -r -f)
   }
 
+  @spec_dir_tasks [
+    Mix.Tasks.Spec.Check,
+    Mix.Tasks.Spec.Validate,
+    Mix.Tasks.Spec.Prime,
+    Mix.Tasks.Spec.Status,
+    Mix.Tasks.Spec.Review
+  ]
+
   @tag spec: "ancora.tasks.report_task_flags"
   @tag spec: "ancora.tasks.mix_bootstrap_posture"
   test "all eight task moduledocs list every option, argument, alias, and default" do
@@ -41,6 +49,27 @@ defmodule Mix.Tasks.Spec.TaskDocsTest do
     ]
 
     assert Enum.all?(callable_surfaces, &is_function(&1, 1))
+  end
+
+  @tag spec: "ancora.tasks.report_task_flags"
+  @tag spec: "ancora.tasks.check_flags"
+  test "spec-dir help names the workspace and matches the real default" do
+    # Would fail if one task documented the subject directory or a default
+    # other than the workspace selected when the flag is absent.
+    assert {:ok, default_spec_dir} = Ancora.Index.detect_spec_dir(File.cwd!())
+
+    for module <- @spec_dir_tasks do
+      Code.ensure_loaded!(module)
+      {:docs_v1, _, _, _, %{"en" => moduledoc}, _, _} = Code.fetch_docs(module)
+
+      assert [_, documented_default] =
+               Regex.run(
+                 ~r/`--spec-dir DIR` selects the ancora workspace directory\. Defaults to `([^`]+)`\./,
+                 moduledoc
+               )
+
+      assert documented_default == default_spec_dir
+    end
   end
 
   @tag spec: "ancora.tasks.ci_explicit_base"

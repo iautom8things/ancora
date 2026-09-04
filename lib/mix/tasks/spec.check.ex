@@ -14,7 +14,7 @@ defmodule Mix.Tasks.Spec.Check do
     * `--verbose` includes info findings. Defaults to false.
     * `--debug` is an accepted no-op. Defaults to false.
     * `--root DIR` selects the target project. Defaults to the current directory.
-    * `--spec-dir DIR` selects the subject directory. Defaults to `.spec/specs`.
+    * `--spec-dir DIR` selects the ancora workspace directory. Defaults to `.spec`.
     * `--json` emits a versioned JSON report before the verdict. Defaults to false.
 
   #{Ancora.Output.read_protocol()}

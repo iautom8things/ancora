@@ -64,6 +64,46 @@ defmodule Mix.Tasks.Spec.StatusTest do
     refute result.stdout =~ "result="
   end
 
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  @tag spec: "ancora.tasks.gated_emission_paths"
+  test "status routes an invalid workspace without a stack trace", %{root: root} do
+    create_project(root)
+
+    status = run_mix_subprocess(["spec.status", "--root", root, "--spec-dir", "nope"])
+    assert status.status == 1
+    assert status.stdout =~ "--spec-dir selects the ancora workspace directory"
+    assert status.stdout =~ "nope/specs directory not found"
+    refute status.stdout =~ "result="
+    refute status.stderr =~ "** (RuntimeError)"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  @tag spec: "ancora.tasks.gated_emission_paths"
+  test "validate routes an invalid workspace without a stack trace", %{root: root} do
+    create_project(root)
+
+    validate = run_mix_subprocess(["spec.validate", "--root", root, "--spec-dir", "nope"])
+    assert validate.status == 1
+    assert validate.stdout =~ "--spec-dir selects the ancora workspace directory"
+    assert validate.stdout =~ "nope/specs directory not found"
+
+    assert List.last(output_lines(validate.stdout)) ==
+             "spec.validate result=fail tier=env errors=0 warnings=0"
+
+    refute validate.stderr =~ "** (RuntimeError)"
+  end
+
+  @tag spec: "ancora.review.meta_line_shape"
+  test "review routes an invalid workspace without a stack trace", %{root: root} do
+    create_project(root)
+
+    review = run_mix_subprocess(["spec.review", "--root", root, "--spec-dir", "nope"])
+    assert review.status == 1
+    assert review.stdout =~ "nope/specs directory not found"
+    refute review.stdout =~ "result="
+    refute review.stderr =~ "** (RuntimeError)"
+  end
+
   @tag spec: "ancora.tasks.report_task_flags"
   test "status task callable surface is present" do
     Code.ensure_loaded!(Mix.Tasks.Spec.Status)

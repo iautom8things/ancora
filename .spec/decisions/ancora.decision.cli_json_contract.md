@@ -12,6 +12,8 @@ affects:
   - ancora.tasks.next_labels_verbatim
   - ancora.tasks.ci_explicit_base
   - ancora.parsing.stable_public_api
+  - ancora.parsing.structural_references
+  - ancora.review.meta_line_shape
 ---
 
 # CLI and JSON compatibility contract
@@ -31,6 +33,11 @@ The 1.0 series uses a version 1 JSON report with fixed top-level and nested
 keys for ok, usage, environment, and branch outcomes. Missing data stays in
 the report as null, an empty list, or zero. Consumers read the last stdout line
 that parses as JSON, followed by the final verdict line.
+
+`--spec-dir` names the ancora workspace that contains `specs/`, not the
+`specs/` directory itself, and defaults to `.spec`. A workspace whose `specs/`
+child cannot be resolved is an environment failure. Gate tasks still emit a
+verdict, while report tasks keep their no-verdict error path.
 
 The semver-stable library functions are `Ancora.Parser.parse_file/2`,
 `Ancora.DecisionParser.parse_file/2`, `Ancora.check/2`, and

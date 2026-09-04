@@ -24,8 +24,10 @@ defmodule Ancora.Status do
   def build(root, opts \\ []) when is_binary(root) and is_list(opts) do
     root = Path.expand(root)
 
-    with :ok <- corpus(root),
-         index = Index.build(root, index_opts(opts)),
+    with {:ok, spec_dir} <- spec_dir(root, opts),
+         {:ok, _authored_dir} <- Index.detect_authored_dir(root, spec_dir),
+         :ok <- corpus(root, spec_dir),
+         {:ok, index} <- build_index(root, index_opts(opts)),
          subject_ids = Enum.map(index["subjects"], &subject_id/1),
          config = Config.load(root, known_subjects: subject_ids),
          {:ok, project} <- ProjectInfo.load(root, project_opts(config)),
@@ -39,27 +41,21 @@ defmodule Ancora.Status do
     end
   end
 
-  defp corpus(root) do
-    if File.dir?(Path.join(root, ".spec")) do
-      files =
-        Path.wildcard(Path.join([root, ".spec", "specs", "**", "*.spec.md"])) ++
-          Path.wildcard(Path.join([root, ".spec", "decisions", "**", "*.md"]))
+  defp corpus(root, spec_dir) do
+    files =
+      Path.wildcard(Path.join([root, spec_dir, "specs", "**", "*.spec.md"])) ++
+        Path.wildcard(Path.join([root, spec_dir, "decisions", "**", "*.md"]))
 
-      Enum.reduce_while(files, :ok, fn path, :ok ->
-        case File.read(path) do
-          {:ok, _source} ->
-            {:cont, :ok}
+    Enum.reduce_while(files, :ok, fn path, :ok ->
+      case File.read(path) do
+        {:ok, _source} ->
+          {:cont, :ok}
 
-          {:error, reason} ->
-            message =
-              "cannot read #{Path.relative_to(path, root)}: #{:file.format_error(reason)}"
-
-            {:halt, {:env, message}}
-        end
-      end)
-    else
-      {:env, "no .spec/ directory in #{root}; run mix spec.init"}
-    end
+        {:error, reason} ->
+          message = "cannot read #{Path.relative_to(path, root)}: #{:file.format_error(reason)}"
+          {:halt, {:env, message}}
+      end
+    end)
   end
 
   @spec thin_threshold() :: pos_integer()
@@ -205,6 +201,20 @@ defmodule Ancora.Status do
     case Keyword.get(opts, :spec_dir) do
       nil -> []
       spec_dir -> [spec_dir: spec_dir]
+    end
+  end
+
+  defp spec_dir(root, opts) do
+    case Keyword.fetch(opts, :spec_dir) do
+      {:ok, spec_dir} -> {:ok, spec_dir}
+      :error -> Index.detect_spec_dir(root)
+    end
+  end
+
+  defp build_index(root, opts) do
+    case Index.build(root, opts) do
+      {:error, message} -> {:env, message}
+      index -> {:ok, index}
     end
   end
 end

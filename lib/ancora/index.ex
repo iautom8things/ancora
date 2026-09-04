@@ -53,58 +53,61 @@ defmodule Ancora.Index do
   ADR under the decisions directory. Does not scan test tags and does not
   take realization inputs.
   """
+  @spec build(Path.t(), keyword()) :: map() | {:error, String.t()}
   def build(root, opts \\ []) do
-    spec_dir = opts[:spec_dir] || detect_spec_dir(root)
-    authored_dir = opts[:authored_dir] || detect_authored_dir(root, spec_dir)
-    decision_dir = opts[:decision_dir] || detect_decision_dir(root, spec_dir)
+    with {:ok, spec_dir} <- resolve_spec_dir(root, opts),
+         {:ok, authored_dir} <- resolve_authored_dir(root, spec_dir, opts) do
+      decision_dir = opts[:decision_dir] || detect_decision_dir(root, spec_dir)
 
-    spec_files =
-      authored_dir
-      |> expand_path(root)
-      |> Path.join("**/*.spec.md")
-      |> Path.wildcard()
-      |> Enum.sort()
-
-    decision_files =
-      if decision_dir && File.dir?(expand_path(decision_dir, root)) do
-        decision_dir
+      spec_files =
+        authored_dir
         |> expand_path(root)
-        |> Path.join("**/*.md")
+        |> Path.join("**/*.spec.md")
         |> Path.wildcard()
-        |> Enum.reject(&(Path.basename(&1) == "README.md"))
         |> Enum.sort()
-      else
-        []
-      end
 
-    subjects = Enum.map(spec_files, &Parser.parse_file(&1, root))
-    decisions = Enum.map(decision_files, &DecisionParser.parse_file(&1, root))
+      decision_files =
+        if decision_dir && File.dir?(expand_path(decision_dir, root)) do
+          decision_dir
+          |> expand_path(root)
+          |> Path.join("**/*.md")
+          |> Path.wildcard()
+          |> Enum.reject(&(Path.basename(&1) == "README.md"))
+          |> Enum.sort()
+        else
+          []
+        end
 
-    validated =
-      DecisionParser.validate_affects(
-        decisions,
-        %{"subjects" => subjects, "decisions" => decisions},
-        opts
-      )
+      subjects = Enum.map(spec_files, &Parser.parse_file(&1, root))
+      decisions = Enum.map(decision_files, &DecisionParser.parse_file(&1, root))
 
-    %{
-      "version" => 1,
-      "generated_at" => DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
-      "spec_dir" => spec_dir,
-      "authored_dir" => authored_dir,
-      "decision_dir" => decision_dir,
-      "subjects" => subjects,
-      "decisions" => validated,
-      "findings" => collect_findings(subjects, validated),
-      "summary" => summary(subjects, validated)
-    }
+      validated =
+        DecisionParser.validate_affects(
+          decisions,
+          %{"subjects" => subjects, "decisions" => decisions},
+          opts
+        )
+
+      %{
+        "version" => 1,
+        "generated_at" =>
+          DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
+        "spec_dir" => spec_dir,
+        "authored_dir" => authored_dir,
+        "decision_dir" => decision_dir,
+        "subjects" => subjects,
+        "decisions" => validated,
+        "findings" => collect_findings(subjects, validated),
+        "summary" => summary(subjects, validated)
+      }
+    end
   end
 
   def detect_spec_dir(root) do
     if File.dir?(Path.join(root, ".spec")) do
-      ".spec"
+      {:ok, ".spec"}
     else
-      raise ".spec directory not found in #{root}."
+      {:error, "no .spec/ directory in #{root}; run mix spec.init"}
     end
   end
 
@@ -112,14 +115,30 @@ defmodule Ancora.Index do
     authored = join_dir(spec_dir, "specs")
 
     if File.dir?(expand_path(authored, root)) do
-      authored
+      {:ok, authored}
     else
-      raise "#{authored} directory not found in #{root}."
+      {:error,
+       "--spec-dir selects the ancora workspace directory; " <>
+         "#{authored} directory not found in #{root}."}
     end
   end
 
   def detect_decision_dir(_root, spec_dir) do
     join_dir(spec_dir, "decisions")
+  end
+
+  defp resolve_spec_dir(root, opts) do
+    case Keyword.fetch(opts, :spec_dir) do
+      {:ok, spec_dir} -> {:ok, spec_dir}
+      :error -> detect_spec_dir(root)
+    end
+  end
+
+  defp resolve_authored_dir(root, spec_dir, opts) do
+    case Keyword.fetch(opts, :authored_dir) do
+      {:ok, authored_dir} -> {:ok, authored_dir}
+      :error -> detect_authored_dir(root, spec_dir)
+    end
   end
 
   defp collect_findings(subjects, decisions) do

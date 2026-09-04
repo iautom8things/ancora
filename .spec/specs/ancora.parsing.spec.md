@@ -76,7 +76,9 @@ decisions:
     the rejected field. Ancora.Index shall read known fields from validated
     atom-keyed schema structs and raw string-keyed maps without creating atoms
     from input, and shall return only a non-empty binary or nil for a subject
-    id. Every corpus-reading Mix task shall handle that malformed subject
+    id. Index assembly shall return a missing authored `specs/` directory as
+    error data that names the requested workspace and directory. Every
+    corpus-reading Mix task shall handle that malformed subject or directory
     without raising.
   priority: must
   stability: stable

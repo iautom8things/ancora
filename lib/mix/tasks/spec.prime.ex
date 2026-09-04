@@ -13,7 +13,7 @@ defmodule Mix.Tasks.Spec.Prime do
     * `--base REF` selects the git base. Defaults to configured `default_base`.
     * `--since REF` selects the starting revision. Defaults to unset.
     * `--root DIR` selects the target project. Defaults to the current directory.
-    * `--spec-dir DIR` selects the subject directory. Defaults to `.spec/specs`.
+    * `--spec-dir DIR` selects the ancora workspace directory. Defaults to `.spec`.
   """
 
   alias Ancora.Output

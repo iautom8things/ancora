@@ -107,7 +107,9 @@ decisions:
     wrote <path> (<bytes> bytes)` followed by one indented line `base=<ref>
     head=<ref> affected_subjects=<N> findings=<N>`, byte-compatible with the
     line the shared CI workflow greps today. A usage failure shall raise
-    without printing any `result=` line.
+    without printing any `result=` line. An invalid `--spec-dir` workspace
+    shall print the environment message and exit 1 without a verdict or stack
+    trace.
   priority: must
   stability: stable
 - id: ancora.review.prism_carried

@@ -112,11 +112,11 @@ defmodule Ancora.Gate do
   defp assemble(ctx, preflight, change_set, base_root, opts) do
     prepare_base_dirs(base_root, preflight.root, Keyword.get(opts, :spec_dir) || ".spec")
     index_opts = index_opts(opts)
-    current = Index.build(preflight.root, index_opts)
-    prior = Index.build(base_root, index_opts)
-    preflight = %{preflight | config: validate_override_subjects(preflight.config, current)}
 
-    with {:ok, locator, pipeline_findings} <- build_locator(preflight.project, change_set),
+    with {:ok, current} <- build_index(preflight.root, index_opts),
+         {:ok, prior} <- build_index(base_root, index_opts),
+         preflight = %{preflight | config: validate_override_subjects(preflight.config, current)},
+         {:ok, locator, pipeline_findings} <- build_locator(preflight.project, change_set),
          {:ok, head_tags} <- scan_tags(preflight.root, preflight.config.test_paths),
          {:ok, base_tags} <- scan_tags(base_root, preflight.config.test_paths),
          {:ok, head_sets, base_sets} <-
@@ -454,6 +454,8 @@ defmodule Ancora.Gate do
     {:env, "cannot read #{path}: #{:file.format_error(reason)}"}
   end
 
+  defp gate_error({:spec_dir, message}), do: {:env, message}
+
   defp gate_error(reason)
        when reason in [:git_executable_not_found, :cat_file_batch_timeout, :port_poisoned] do
     {:env, run_context_error(reason)}
@@ -590,6 +592,13 @@ defmodule Ancora.Gate do
     case Keyword.get(opts, :spec_dir) do
       nil -> []
       spec_dir -> [spec_dir: spec_dir]
+    end
+  end
+
+  defp build_index(root, opts) do
+    case Index.build(root, opts) do
+      {:error, message} -> {:error, {:spec_dir, message}}
+      index -> {:ok, index}
     end
   end
 end
