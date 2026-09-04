@@ -1,4 +1,5 @@
 Code.require_file("../support/ancora_case.exs", __DIR__)
+Code.require_file("../support/tmp_git_repo.exs", __DIR__)
 
 defmodule Ancora.GateTest do
   use Ancora.TestCase, async: false
@@ -8,6 +9,7 @@ defmodule Ancora.GateTest do
   alias Ancora.ChangeAnalysis
   alias Ancora.Derive.ChangeSet
   alias Ancora.Git
+  alias Ancora.TmpGitRepo
 
   @tag spec: "ancora.gate.preflight_hard_fails"
   test "preflight rejects a directory outside git", %{root: root} do
@@ -64,6 +66,57 @@ defmodule Ancora.GateTest do
     write_config(root, "lib_paths:\n  - src\n")
     assert {:ok, overridden} = Preflight.run(root, base: "HEAD")
     assert overridden.project.lib_paths == ["src"]
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  @tag spec: "ancora.derive.change_set_union"
+  test "preflight rejects a shallow boundary inside base..HEAD", %{root: root} do
+    init_git_repo(root)
+    write_project(root)
+    commit_all(root, "base")
+    base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+    write_files(root, %{"README.md" => "changed\n"})
+    commit_all(root, "head")
+
+    shallow = TmpGitRepo.shallow_clone!(root)
+    on_exit(fn -> TmpGitRepo.cleanup!(shallow) end)
+    TmpGitRepo.git!(shallow, ["fetch", "--depth=1", "origin", base])
+
+    traced = self()
+    :erlang.trace(traced, true, [:call])
+    :erlang.trace_pattern({ChangeSet, :compute, 1}, true, [])
+
+    try do
+      assert {:env, message} = Gate.check(shallow, base: base)
+      assert message =~ "base..HEAD history is incomplete"
+      assert message =~ "git fetch --unshallow"
+      assert message =~ "fetch-depth: 0"
+
+      delivery_ref = :erlang.trace_delivered(traced)
+      assert_receive {:trace_delivered, ^traced, ^delivery_ref}
+      refute_received {:trace, ^traced, :call, {ChangeSet, :compute, [_ctx]}}
+    after
+      :erlang.trace_pattern({ChangeSet, :compute, 1}, false, [])
+      :erlang.trace(traced, false, [:call])
+    end
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "preflight accepts a shallow clone when it contains the whole range", %{root: root} do
+    init_git_repo(root)
+    write_project(root)
+    commit_all(root, "older")
+    write_files(root, %{"README.md" => "base\n"})
+    commit_all(root, "base")
+    base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+    write_files(root, %{"README.md" => "head\n"})
+    commit_all(root, "head")
+
+    shallow = TmpGitRepo.shallow_clone!(root, depth: 2)
+    on_exit(fn -> TmpGitRepo.cleanup!(shallow) end)
+
+    assert {:ok, preflight} = Preflight.run(shallow, base: base)
+    assert preflight.base == base
   end
 
   @tag spec: "ancora.gate.default_base_no_fallback"

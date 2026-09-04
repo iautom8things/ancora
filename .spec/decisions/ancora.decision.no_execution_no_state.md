@@ -15,6 +15,8 @@ affects:
   - ancora.gate.strict_verdict
   - ancora.gate.only_git_is_spawned
   - ancora.gate.no_derived_state
+  - ancora.findings
+  - ancora.findings.info_visibility
   - ancora.tasks
   - ancora.tasks.exactly_eight
   - ancora.tasks.single_stdout_writer
@@ -115,6 +117,9 @@ names all three as charter constraints.
 - Missing corpus, missing git, unreadable working-tree inputs, and failed git
   batch reads are environment failures represented as data. A failed batch
   fetch closes its port so no later request can consume stale bytes.
+- A shallow clone is accepted only when no shallow boundary falls inside the
+  requested `base..HEAD` range. An incomplete range is an environment failure
+  that names `git fetch --unshallow` and CI `fetch-depth: 0` as remedies.
 - `Ancora.Output` is the only stdout writer and `Output.Verdict.emit/2` the
   only `result=` producer; every gate path funnels through `gated/2`. The
   one verdict-less exit is an internal exception, and that absence is

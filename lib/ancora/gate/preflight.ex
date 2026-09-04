@@ -24,7 +24,8 @@ defmodule Ancora.Gate.Preflight do
     with :ok <- git_repo(root),
          :ok <- corpus(root),
          {:ok, project} <- ProjectInfo.load(root, project_opts(config)),
-         {:ok, base} <- resolve_base(root, Keyword.get(opts, :base), config.default_base) do
+         {:ok, base} <- resolve_base(root, Keyword.get(opts, :base), config.default_base),
+         :ok <- complete_range(root, base) do
       {:ok, %{root: root, base: base, config: config, project: project}}
     end
   end
@@ -91,6 +92,52 @@ defmodule Ancora.Gate.Preflight do
       {:ok, oid} -> {:ok, String.trim(oid)}
       {:error, reason} -> {:env, base_failure_message(default_base, reason)}
     end
+  end
+
+  defp complete_range(root, base) do
+    case Git.run(root, ["rev-parse", "--is-shallow-repository"]) do
+      {:ok, output} ->
+        if String.trim(output) == "true", do: shallow_range(root, base), else: :ok
+
+      {:error, reason} ->
+        {:env, range_inspection_failure(reason)}
+    end
+  end
+
+  defp shallow_range(root, base) do
+    with {:ok, shallow_path} <- Git.run(root, ["rev-parse", "--git-path", "shallow"]),
+         {:ok, shallow} <- File.read(git_path(root, shallow_path)),
+         {:ok, range} <- Git.run(root, ["rev-list", "#{base}..HEAD"]) do
+      boundaries = shallow |> String.split() |> MapSet.new()
+      commits = range |> String.split() |> MapSet.new()
+
+      if MapSet.disjoint?(boundaries, commits) do
+        :ok
+      else
+        {:env,
+         "base..HEAD history is incomplete in this shallow clone; run git fetch --unshallow " <>
+           "or set fetch-depth: 0 in CI"}
+      end
+    else
+      {:error, reason} -> {:env, range_inspection_failure(reason)}
+    end
+  end
+
+  defp git_path(root, output) do
+    path = String.trim(output)
+    if Path.type(path) == :absolute, do: path, else: Path.join(root, path)
+  end
+
+  defp range_inspection_failure({:git, _args, output, status}) do
+    git_failure("cannot inspect base..HEAD history", status, output)
+  end
+
+  defp range_inspection_failure(:git_executable_not_found) do
+    "git executable not found; install git and make it available on PATH"
+  end
+
+  defp range_inspection_failure(reason) do
+    "cannot inspect base..HEAD history: #{:file.format_error(reason)}"
   end
 
   defp missing_base_message(base) do

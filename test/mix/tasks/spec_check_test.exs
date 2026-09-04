@@ -1,7 +1,10 @@
 Code.require_file("../../support/ancora_case.exs", __DIR__)
+Code.require_file("../../support/tmp_git_repo.exs", __DIR__)
 
 defmodule Mix.Tasks.Spec.CheckTest do
   use Ancora.TestCase
+
+  alias Ancora.TmpGitRepo
 
   @tag spec: "ancora.tasks.gated_emission_paths"
   @tag spec: "ancora.tasks.verdict_grammar"
@@ -56,6 +59,40 @@ defmodule Mix.Tasks.Spec.CheckTest do
              "spec.check result=fail tier=env errors=0 warnings=0"
 
     refute result.stderr =~ "RuntimeError"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  @tag spec: "ancora.findings.info_visibility"
+  test "an incomplete shallow range fails before trailer resolution", %{root: root} do
+    create_project(root)
+    write_anchored_subject(root)
+    commit_all(root, "anchored subject")
+    base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    commit_all(root, "change value\n\nSpec-Ack: derived/drift=info")
+
+    full = run_mix_subprocess(["spec.check", "--root", root, "--base", base])
+    assert full.status == 0
+    assert List.last(lines(full.stdout)) == "spec.check result=pass"
+
+    shallow = TmpGitRepo.shallow_clone!(root)
+    on_exit(fn -> TmpGitRepo.cleanup!(shallow) end)
+    TmpGitRepo.git!(shallow, ["fetch", "--depth=1", "origin", base])
+
+    result = run_mix_subprocess(["spec.check", "--root", shallow, "--base", base, "--json"])
+
+    assert result.status == 1
+    assert last_parseable_json(result.stdout)["all_findings"] == []
+    assert result.stdout =~ "base..HEAD history is incomplete"
+    assert result.stdout =~ "git fetch --unshallow"
+    assert result.stdout =~ "fetch-depth: 0"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
   end
 
   if match?({"0\n", 0}, System.cmd("id", ["-u"])) do

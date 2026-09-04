@@ -19,9 +19,10 @@ Ancora version.
 5. Set `default_base`, `test_paths`, and `lib_paths` for the repository. Treat
    `default_base` as a local-development convenience. Copy severity choices
    through the code map below. Every subject override needs a reason.
-6. Replace the old CI command with `mix spec.check --base origin/main`, using
-   the repository's actual trunk ref when it differs. CI must always pass
-   `--base` explicitly.
+6. Configure CI checkout with `fetch-depth: 0`, then replace the old CI command
+   with `mix spec.check --base origin/main`, using the repository's actual trunk
+   ref when it differs. CI must always pass `--base` explicitly. For an existing
+   shallow clone, run `git fetch --unshallow` before the gate.
 7. Run `mix spec.check --base HEAD` once to fix corpus and tag errors. Then run
    against the trunk base and review every drift, growth, shrink, and uncovered
    file finding.

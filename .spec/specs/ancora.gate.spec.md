@@ -36,7 +36,8 @@ decisions:
     When the target has no `.spec/` corpus, the git executable is missing,
     the target root is not inside a git repository, the base ref (explicit
     `--base` or the configured default) does not resolve, the git batch port
-    exits or times out, or the target is an umbrella root, `mix spec.check` shall exit non-zero with
+    exits or times out, the requested `base..HEAD` range crosses a shallow-clone
+    boundary, or the target is an umbrella root, `mix spec.check` shall exit non-zero with
     verdict `result=fail tier=env` and a message naming the remedy. These
     conditions shall never be emitted as findings and shall not be
     configurable off. No preflight check shall inspect `_build` or any
@@ -217,6 +218,27 @@ decisions:
     - it returns an environment failure that names git and `PATH`
     - the batch port returns `{:error, :git_executable_not_found}` as data
     - no exception escapes from `Ancora.Git.run/3`
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.incomplete_shallow_range
+  given:
+    - a shallow clone whose requested `base..HEAD` range crosses a shallow boundary
+    - "a full clone of the same commit where a `Spec-Ack:` trailer makes the gate pass"
+  when:
+    - `mix spec.check` runs against the same base in both clones
+  then:
+    - the full clone passes
+    - the shallow clone exits non-zero with verdict `result=fail tier=env`
+    - "the message names `git fetch --unshallow` and `fetch-depth: 0`"
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.complete_shallow_range
+  given:
+    - a shallow repository that contains every commit in the requested `base..HEAD` range
+  when:
+    - preflight runs
+  then:
+    - preflight accepts the range
   covers:
     - ancora.gate.preflight_hard_fails
 - id: ancora.gate.scenario.poisoned_batch_port

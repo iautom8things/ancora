@@ -42,7 +42,9 @@ decisions:
     <base>` and `git status --porcelain --untracked-files=all`, as computed
     by Ancora.Derive.ChangeSet. A file inside a new untracked directory shall
     appear individually; a `git mv` followed by an edit shall appear as a
-    delete plus an add with both paths prefetched.
+    delete plus an add with both paths prefetched. The gate shall compute no
+    change set until preflight confirms the requested `base..HEAD` range does
+    not cross a shallow-clone boundary.
   priority: must
   stability: stable
 - id: ancora.derive.base_reads_batched
@@ -268,6 +270,15 @@ decisions:
   covers:
     - ancora.derive.change_set_union
     - ancora.derive.base_reads_batched
+- id: ancora.derive.scenario.incomplete_range_stops_before_change_set
+  given:
+    - a shallow clone whose requested `base..HEAD` range crosses a shallow boundary
+  when:
+    - the gate runs
+  then:
+    - the gate returns an environment failure before Ancora.Derive.ChangeSet computes
+  covers:
+    - ancora.derive.change_set_union
 - id: ancora.derive.scenario.batch_port_frames
   given:
     - a captured `git cat-file --batch` byte stream containing three blobs, one of size zero
