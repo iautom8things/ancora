@@ -54,11 +54,15 @@
     {
       "text": "REBASED\nSession: 41r2-r2-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-41r.2/codex-41r2-r2-adec463e/log\n\nBase: 84e85b18b624e012cbe0cc5a850d810498433558\nOld head: 99f1c726650f0e7f9b4acb7fd5706b29fa174dc7\nNew head: 13f858820514f4c89b774ce40ef289358f8447f6\nCommit count: 2 before, 2 after\nRebased commits:\n- 6f7a289 fix: reject specs without metadata\n- 13f8588 fix: align validate subject counts\n\nConflict: .spec/specs/ancora.parsing.spec.md. Kept the ticket's rejected-marker and absent-metadata clauses, followed by the epic's missing-directory clause, then combined the closing Mix-task sentence exactly as ordered.\nAuto-merges inspected: .spec/specs/ancora.gate.spec.md, lib/ancora/gate.ex, and test/ancora/index_test.exs. The accepted-subject count, build_index/2 helper, and gate_error spec-directory clause all survive without contradiction.\n\nVerification:\n- mix compile --warnings-as-errors: pass\n- mix test test/ancora_test.exs test/ancora/gate_test.exs test/ancora/parser_test.exs test/ancora/verifier_test.exs test/ancora/index_test.exs test/mix/tasks/spec_check_test.exs: 81 tests, 0 failures\n- mix spec.check --base 84e85b1: spec.check result=pass\n- mix format --check-formatted lib/ancora.ex lib/ancora/gate.ex lib/ancora/parser.ex lib/ancora/verifier.ex test/ancora/index_test.exs: pass\nFinal-tier runs: 1\n\nProof: git status --porcelain was empty; git's rebase-merge path was not a directory; git log --oneline 84e85b1..HEAD showed exactly the two commits above. I checked every epic lesson against the rebase diff. The only manual edit was the ordered conflict resolution, and no contract, code, test, or commit message was added, dropped, weakened, or reordered.",
       "timestamp": "2026-09-04T12:27:51Z"
+    },
+    {
+      "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-04 08:44 EDT, from the clock)\ngit range-diff e18fa05..99f1c72 84e85b1..13f8588: commit 2 marked = (byte-identical); commit 1 marked ! because of the ordered conflict resolution. Confirmed the ! is confined to .spec/specs/ancora.parsing.spec.md: the patches of 50370bf and 6f7a289 restricted to lib/, test/, .spec/decisions and ancora.gate.spec.md differ only in hunk line offsets and the commit id. The resolved structural_references paragraph matches the rebase order sentence for sentence (rejected marker, only-finding, absent-block, atom-free Index read, missing-directory error data, the combined closing sentence). Rebase worker's checks on 84e85b1: compile clean, 81 tests green across six files, format clean, spec.check --base 84e85b1 result=pass; commit count 2 before and after; no rebase state left behind. The worker was reaped by the harness after posting its record; harmless.\nFast-forwarded ancora-41r/pre-release-fixes 84e85b1 -\u003e 13f8588. Gate 4 running.",
+      "timestamp": "2026-09-04T12:44:16Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "A spec file with no spec-meta block passes the gate with zero findings",
   "type": "bug",
-  "updated_at": "2026-09-04T12:27:51Z"
+  "updated_at": "2026-09-04T12:44:16Z"
 }
