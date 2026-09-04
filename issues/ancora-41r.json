@@ -17,11 +17,15 @@
     {
       "text": "WAVE ONE ADMITTED (orchestrator, 2026-09-04 07:22 EDT). All six children spawned together on base e18fa05, Codex profile team, one worktree each: 41r.1 /Users/mz/src/ancora-41r.1 (git path handling, session 41r1-i1), 41r.2 .2 (absent spec-meta, 41r2-i1), 41r.3 .3 (trailer precedence, 41r3-i1), 41r.4 .4 (--spec-dir flag, 41r4-i1), 41r.5 .5 (override key docs, 41r5-i1), 41r.6 .6 (artifact verdict chip, 41r6-i1). Each brief carries the ticket contract as the whole work order, the parent epic's 20 lessons, the dev-loop spec.check cadence, the prove-both-ways rule, and the no-rebase instruction. Watchers armed on each decisions.log. Every child is labeled critical, so every completion goes to a cold verifier; a critic is added wherever assertional tests change (all six order new behavior tests, so expect six).",
       "timestamp": "2026-09-04T11:19:28Z"
+    },
+    {
+      "text": "FIRST CHILD CLOSED (orchestrator, 2026-09-04 07:46 EDT). ancora-41r.6 merged: fast-forward e18fa05 -\u003e d96d42f. Verifier reproduced F8 at both ends on the epic base 7511407 (gate pass, chip pass; pre-fix derivation restored renders chip fail on the identical run) and built the error side independently; three mutations each failed one distinct assertion; the chip now comes from the same Verdict.pass? call spec.check uses. Selective audit auto-approved. Gate 1 on d96d42f: 408 tests, 3 properties, 0 failures; format, unused-deps and spec.check --base 7511407 pass. Worktree and branch removed, board synced.\n\nAll six children implemented within twenty minutes of admission; five remain in grading. Critic results so far: 41r.2 PASS, 41r.5 PASS, 41r.6 PASS, 41r.3 FAIL (a second Enum.reverse in the below-tip fold has no fixture that discriminates it; mutation handed to the verifier), 41r.1 and 41r.4 pending. Every remaining child now needs a rebase onto d96d42f before its gate; spec files overlap (gate.spec is touched by 41r.1, .2, .3, .4), so some rebases will carry real hunks. console_triggers=3 console_redeploys=3. Console: https://claude.ai/code/artifact/47c7ca0b-520f-456c-b981-c97a4fe90f1a",
+      "timestamp": "2026-09-04T11:41:14Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T11:19:28Z"
+  "updated_at": "2026-09-04T11:41:14Z"
 }
