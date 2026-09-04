@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T01:38:52Z",
+  "description": "Advances: ancora.gate. Four observations from the ancora-xla.7 audit on 2026-09-03, measured by execution, none fixable in that test-only ticket: gate.ex:74-75 is unreachable from Gate.check; batch_port.ex:68-70 rescue is race-only; the cat_file_batch_timeout and port_poisoned atoms are live but untestable because Gate.check plumbs no timeout or batch option into RunContext.start; gate.ex:474-475 messages name no remedy where preflight_hard_fails requires one. Full body follows in an update.",
+  "id": "ancora-f1w",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Gate env-arm hygiene: unreachable run-context branch, remedy-free messages, untestable timeout path",
+  "type": "task",
+  "updated_at": "2026-09-04T01:38:52Z"
+}
