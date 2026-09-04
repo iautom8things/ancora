@@ -77,11 +77,15 @@
     {
       "text": "DECISION (Manuel, 2026-09-04 02:3xZ): option 1 for the set-aside child. Land ancora-xla on main first, then rebase ancora-gg8/field-friction onto origin/main and orchestrate ancora-gg8.7 on the rebased branch. The PR for this epic waits until gg8.7 is merged too. Current state: every ancora-xla child is closed, its branch tip e18fa05 is not yet on main (origin/main = 7511407); the orchestrator is watching origin/main for that merge.",
       "timestamp": "2026-09-04T12:41:43Z"
+    },
+    {
+      "text": "BRANCH RESTORED (orchestrator, 2026-09-04). ancora-gg8/field-friction in /Users/mz/src/ancora had been moved to d9a39d7 (an ancora-xla.1 commit) by a stray `git reset --hard` from the ancora-xla session's verifier at 22:46 EDT. Checked before acting: working tree clean, no commits on d9a39d7..HEAD, 6e0f24e intact in the reflog and still the tip of ancora-gg8.6/disclosure-codes. Moved the branch back with `git checkout -B ancora-gg8/field-friction 6e0f24e`; HEAD is 6e0f24e, tree clean. Nothing lost. The ancora-xla work is PR #3 (release 1.1.0, feat/ancora-xla-post-ship-hardening at 3340e27, open and mergeable); the watcher on origin/main still stands for the option-1 sequence.",
+      "timestamp": "2026-09-04T13:53:29Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-04T12:41:43Z"
+  "updated_at": "2026-09-04T13:53:29Z"
 }
