@@ -733,6 +733,61 @@ defmodule Ancora.GateTest do
              :erlang.trace_info({Ancora.Derive.Extract, :parse, 2}, :call_count)
   end
 
+  @tag spec: "ancora.derive.memo_is_run_scoped"
+  test "gate reuses the module locator AST when building definition indexes", %{root: root} do
+    init_git_repo(root)
+    write_anchored_subject(root, "The sample shall return the current value.")
+    commit_all(root, "base")
+
+    source = "defmodule Sample do\n  def value, do: :current\nend\n"
+    Code.ensure_loaded!(Code)
+    traced = self()
+    tracer = start_trace_forwarder(traced)
+    :erlang.trace(traced, true, [:call, :set_on_spawn, {:tracer, tracer}])
+    :erlang.trace_pattern({Code, :string_to_quoted, 2}, true, [])
+
+    on_exit(fn ->
+      :erlang.trace_pattern({Code, :string_to_quoted, 2}, false, [])
+      send(tracer, :stop)
+    end)
+
+    assert {:ok, _report} = Gate.check(root, base: "HEAD")
+    sync_traces(traced, tracer)
+
+    assert count_source_parses(source, 0) == 1,
+           "Would fail if the DefIndex leg read and parsed a lib file after ModuleLocator had already parsed it"
+  end
+
+  @tag spec: "ancora.derive.parse_degrades_to_finding"
+  test "parallel parsing preserves complete finding order across runs", %{root: root} do
+    create_clean_repo(root)
+
+    slow_error =
+      "defmodule SlowErrorTest do\n" <>
+        String.duplicate("  @tag :padding\n", 20_000) <>
+        "  test(\nend\n"
+
+    write_files(root, %{
+      "test/a_slow_error_test.exs" => slow_error,
+      "test/z_fast_error_test.exs" => "defmodule FastErrorTest do\n  test(\nend\n"
+    })
+
+    finding_lists =
+      for _run <- 1..5 do
+        assert {:ok, report} = Gate.check(root, base: "HEAD")
+        report.all_findings
+      end
+
+    assert Enum.all?(tl(finding_lists), &(&1 == hd(finding_lists)))
+
+    assert finding_lists
+           |> hd()
+           |> Enum.filter(&(&1.code == "tags/parse_error"))
+           |> Enum.map(& &1.file) ==
+             ["test/a_slow_error_test.exs", "test/z_fast_error_test.exs"],
+           "Would fail if parallel parse results were collected in task completion order"
+  end
+
   @tag spec: "ancora.derive.resolver_is_pure"
   @tag spec: "ancora.gate.no_derived_state"
   test "gate removes its materialized base when an assembly callback raises", %{root: root} do
@@ -1563,6 +1618,18 @@ defmodule Ancora.GateTest do
         collect_ets_calls([{fun, args} | calls])
     after
       0 -> Enum.reverse(calls)
+    end
+  end
+
+  defp count_source_parses(source, count) do
+    receive do
+      {:forwarded_trace, {:trace, _pid, :call, {Code, :string_to_quoted, [^source, _options]}}} ->
+        count_source_parses(source, count + 1)
+
+      {:forwarded_trace, _message} ->
+        count_source_parses(source, count)
+    after
+      0 -> count
     end
   end
 

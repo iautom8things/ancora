@@ -89,6 +89,10 @@ decisions:
     maps once across all subjects and pass them to Ancora.Derive.Compare as
     plain function arguments. Extraction reuse shall not use an in-process
     memo, registry, cache, or new process, and shall not persist to disk.
+    Ancora.Derive.ModuleLocator shall parse path-sorted library files
+    concurrently with ordered collection and pass its per-side AST maps to
+    Ancora.Derive.DefIndex, so that leg parses each file once per side and the
+    first parse error remains the first one in path order.
     Ancora.Derive.RunContext shall contain only the run root, base, and batch
     port state; starting or stopping it shall not create or delete an ETS table.
   priority: must

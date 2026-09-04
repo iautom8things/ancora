@@ -21,12 +21,16 @@ defmodule Ancora.Derive.DefIndex do
         }
 
   @doc "Builds an index from source without evaluating it."
-  @spec build(binary(), Path.t()) :: {:ok, t()} | {:error, term()}
+  @spec build(binary() | Macro.t(), Path.t()) :: {:ok, t()} | {:error, term()}
   def build(source, path) when is_binary(source) and is_binary(path) do
     case Code.string_to_quoted(source, file: path, emit_warnings: false) do
       {:ok, ast} -> {:ok, collect(ast, [], %__MODULE__{})}
       {:error, reason} -> {:error, {:unparseable_source, path, reason}}
     end
+  end
+
+  def build(ast, path) when is_binary(path) do
+    {:ok, collect(ast, [], %__MODULE__{})}
   end
 
   @doc "True when the module has a public definition at the given name and arity."

@@ -58,15 +58,25 @@ defmodule Ancora.TagScanner do
       |> Enum.sort()
 
     {tag_map, parse_errors, dynamics} =
-      Enum.reduce(test_files, {%{}, [], []}, fn path, {tm, pes, dyns} ->
-        case scan_file(path, include_dynamic: true) do
-          {:ok, tags, dynamic} ->
-            tm2 = merge_tags(tm, tags)
-            {tm2, pes, dyns ++ dynamic}
+      test_files
+      |> Task.async_stream(
+        fn path -> {path, scan_file(path, include_dynamic: true)} end,
+        ordered: true,
+        timeout: :infinity
+      )
+      |> Enum.reduce({%{}, [], []}, fn
+        {:ok, {path, result}}, {tm, pes, dyns} ->
+          case result do
+            {:ok, tags, dynamic} ->
+              tm2 = merge_tags(tm, tags)
+              {tm2, pes, dyns ++ dynamic}
 
-          {:error, reason} ->
-            {tm, [%{file: path, reason: reason} | pes], dyns}
-        end
+            {:error, reason} ->
+              {tm, [%{file: path, reason: reason} | pes], dyns}
+          end
+
+        {:exit, reason}, _acc ->
+          exit(reason)
       end)
 
     {:ok, tag_map, Enum.reverse(parse_errors), dynamics}

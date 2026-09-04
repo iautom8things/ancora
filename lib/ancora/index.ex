@@ -80,7 +80,11 @@ defmodule Ancora.Index do
           []
         end
 
-      subjects = Enum.map(spec_files, &Parser.parse_file(&1, root))
+      subjects =
+        spec_files
+        |> Task.async_stream(&Parser.parse_file(&1, root), ordered: true, timeout: :infinity)
+        |> Enum.map(&task_value!/1)
+
       decisions = Enum.map(decision_files, &DecisionParser.parse_file(&1, root))
       current_index = %{"subjects" => subjects, "decisions" => decisions}
       resolvable_ids = Affects.resolvable_ids(current_index)
@@ -137,6 +141,9 @@ defmodule Ancora.Index do
       :error -> detect_spec_dir(root)
     end
   end
+
+  defp task_value!({:ok, value}), do: value
+  defp task_value!({:exit, reason}), do: exit(reason)
 
   defp resolve_authored_dir(root, spec_dir, opts) do
     case Keyword.fetch(opts, :authored_dir) do

@@ -321,8 +321,8 @@ defmodule Ancora.Gate do
       base: ModuleLocator.modules(locator, :base)
     }
 
-    with {:ok, head_indexes} <- def_indexes(locator.head, preflight.root),
-         {:ok, base_indexes} <- def_indexes(locator.base, base_root),
+    with {:ok, head_indexes} <- def_indexes(locator.head, locator.head_asts),
+         {:ok, base_indexes} <- def_indexes(locator.base, locator.base_asts),
          {:ok, head_ctx} <- derive_context(opts, membership, :head, head_indexes),
          {:ok, base_ctx} <- derive_context(opts, membership, :base, base_indexes),
          {:ok, head_sources} <- source_map(preflight.root, head_tags.files),
@@ -409,23 +409,32 @@ defmodule Ancora.Gate do
     end)
   end
 
-  defp def_indexes(module_paths, root) do
+  defp def_indexes(module_paths, parsed_sources) do
     module_paths
     |> Enum.group_by(fn {_module, path} -> path end, fn {module, _path} -> module end)
-    |> Enum.reduce_while({:ok, %{}}, fn {path, modules}, {:ok, indexes} ->
-      case File.read(Path.join(root, path)) do
-        {:ok, source} ->
-          case DefIndex.build(source, path) do
-            {:ok, index} ->
-              {:cont, {:ok, Enum.reduce(modules, indexes, &Map.put(&2, &1, index))}}
+    |> Enum.sort_by(fn {path, _modules} -> path end)
+    |> Task.async_stream(
+      fn {path, modules} ->
+        with {:ok, ast} <- Map.fetch(parsed_sources, path),
+             {:ok, index} <- DefIndex.build(ast, path) do
+          {:ok, modules, index}
+        else
+          :error -> {:error, {:parsed_source_missing, path}}
+          {:error, _reason} = error -> error
+        end
+      end,
+      ordered: true,
+      timeout: :infinity
+    )
+    |> Enum.reduce_while({:ok, %{}}, fn
+      {:ok, {:ok, modules, index}}, {:ok, indexes} ->
+        {:cont, {:ok, Enum.reduce(modules, indexes, &Map.put(&2, &1, index))}}
 
-            {:error, reason} ->
-              {:halt, {:error, reason}}
-          end
+      {:ok, {:error, reason}}, _acc ->
+        {:halt, {:error, reason}}
 
-        {:error, reason} ->
-          {:halt, {:error, {:source_read, path, reason}}}
-      end
+      {:exit, reason}, _acc ->
+        {:halt, {:error, {:def_index_exit, reason}}}
     end)
   end
 
