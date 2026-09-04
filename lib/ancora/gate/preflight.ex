@@ -142,6 +142,7 @@ defmodule Ancora.Gate.Preflight do
     with {:ok, object} <- Git.run(root, ["cat-file", "-p", boundary]) do
       object
       |> String.split("\n")
+      |> Enum.take_while(&(&1 != ""))
       |> Enum.filter(&String.starts_with?(&1, "parent "))
       |> Enum.reduce_while({:ok, false}, fn "parent " <> parent, {:ok, false} ->
         case Git.run(root, ["cat-file", "-e", "#{parent}^{commit}"]) do

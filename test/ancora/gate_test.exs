@@ -86,8 +86,12 @@ defmodule Ancora.GateTest do
     on_exit(fn -> TmpGitRepo.cleanup!(shallow) end)
     TmpGitRepo.git!(shallow, ["fetch", "--depth=1", "origin", base])
 
-    assert {:error, {:git, _args, _output, _status}} =
-             Ancora.Git.run(shallow, ["cat-file", "-e", "#{missing_parent}^{commit}"])
+    {_output, status} =
+      System.cmd("git", ["-C", shallow, "cat-file", "-e", "#{missing_parent}^{commit}"],
+        stderr_to_stdout: true
+      )
+
+    assert status != 0
 
     assert {:env, message} = Gate.check(shallow, base: base)
     assert message =~ "base..HEAD history is incomplete"
@@ -144,6 +148,33 @@ defmodule Ancora.GateTest do
 
     assert TmpGitRepo.git!(shallow, ["rev-parse", "--is-shallow-repository"]) |> String.trim() ==
              "true"
+
+    assert {:ok, preflight} = Preflight.run(shallow, base: base)
+    assert preflight.base == base
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "preflight reads parents from the commit header, not the message body", %{root: root} do
+    init_git_repo(root)
+    write_project(root)
+    commit_all(root, "base")
+    base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+    write_files(root, %{"README.md" => "head\n"})
+
+    commit_all(
+      root,
+      "head\n\nparent 0000000000000000000000000000000000000000\nparent pom bumped\n"
+    )
+
+    shallow = TmpGitRepo.shallow_clone!(root)
+    on_exit(fn -> TmpGitRepo.cleanup!(shallow) end)
+    TmpGitRepo.git!(shallow, ["fetch", "--depth=1", "origin", base])
+
+    assert TmpGitRepo.git!(shallow, ["rev-parse", "--is-shallow-repository"]) |> String.trim() ==
+             "true"
+
+    assert TmpGitRepo.git!(shallow, ["show", "-s", "--format=%B", "HEAD"]) =~
+             "parent 0000000000000000000000000000000000000000"
 
     assert {:ok, preflight} = Preflight.run(shallow, base: base)
     assert preflight.base == base
