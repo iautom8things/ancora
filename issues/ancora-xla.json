@@ -215,11 +215,15 @@
     {
       "text": "ELEVENTH CHILD CLOSED (orchestrator, 2026-09-03 21:34 local). ancora-xla.9 merged at 4d0adee. Gate 10: 379 tests, 3 properties, 0 failures, 28.3s; format, deps.unlock and spec.check --base 7511407 pass. Count 380 to 379, the deleted memo API taking its tests with it and two ETS guards arriving. Worktree and branch removed.\n\nIts delta re-verifier ran the reintroduced-table mutation at four seeds (32 tests, exactly the two ordered failures under the mutation, zero reverted) and proved the delete-side trace pattern separately. Selective audit gate met; auto-approved.\n\nRemaining in wave three: 11w retry running under the decided shallow rule; xla.7 in audit. Wave four (sfu, xla.1, xla.6) held until both land: sfu shares trailer.ex and gate.spec with 11w, xla.1 and xla.6 share test files with xla.7 and gate.ex with 11w.\n\nConsole redeployed for the close and the gate. console_redeploys=14.",
       "timestamp": "2026-09-04T01:33:38Z"
+    },
+    {
+      "text": "ROUTE (orchestrator, 2026-09-03 21:38 local). ancora-xla.7 audit returned BOUNCE → implementer, bounce 1 of 2, mechanical-remedy 1/2.\n\nAll three gaps upheld. The auditor settled the one disputed point by running it: on OTP 27, port_command from a non-connected Task returns true and the reply lands with the owner, so the critic's proposed seam produces a timeout rather than the rescue; Port.command raises only on an already-closed port, which the guard above it intercepts first. The verifier was right that no deterministic seam exists. Remedy for both compiled-clause tests is deletion under the ticket's own rule, with the unreachable clauses recorded rather than a renamed static guard; the one added scenario with no execution behind it goes with them. The exactly-eight filter moves to the Elixir.Mix.Tasks. prefix, probed both ways (exactly the eight Spec modules today, no false positive). The remedy-message note stays a Note: the messages predate the ticket and the scenario codifying them is being deleted anyway.\n\nFour production observations the auditor recorded for me to weigh, none of which this ticket may fix: gate.ex:74-75 is unreachable from Gate.check (RunContext.start's only failure is the missing-git one, which preflight already returns earlier); batch_port.ex:68-70's rescue is race-only; the batch-timeout and poisoned-port atoms are live through ChangeSet.compute and BaseView.materialize but untestable because Gate.check plumbs no timeout or batch option into RunContext.start; and gate.ex:474-475's two messages name no remedy where the must requires one. I will file these as one standalone follow-up rather than grow the epic; adopting it is Manuel's call.\n\nRetry spawned cold as xla7-i2-adec463e on the team profile with the audit verbatim, told to prove the filter fix both ways with the auditor's exact ninth-task mutation.\n\nStill out: 11w retry.",
+      "timestamp": "2026-09-04T01:38:38Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T01:33:38Z"
+  "updated_at": "2026-09-04T01:38:38Z"
 }
