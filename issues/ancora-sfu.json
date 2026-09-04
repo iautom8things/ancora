@@ -9,7 +9,7 @@
   "id": "ancora-sfu",
   "labels": [
     "critical",
-    "phase:implementing"
+    "phase:verifying"
   ],
   "parent": "ancora-xla",
   "comments": [
@@ -30,5 +30,5 @@
   "status": "in_progress",
   "title": "Spec-Ack acknowledgments do not survive a squash merge",
   "type": "task",
-  "updated_at": "2026-09-04T02:22:50Z"
+  "updated_at": "2026-09-04T02:24:24Z"
 }
