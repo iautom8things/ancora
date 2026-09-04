@@ -34,11 +34,15 @@
     {
       "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-04 08:02 EDT)\ngit range-diff e18fa05..0344f5f d96d42f..f818d73: the single commit is marked = (byte-identical patch). No conflict hunks, so no fresh cold agent. Rebase worker's checks on the new base: compile clean, 72 tests green across the five diff-touched files, format clean, spec.check --base d96d42f result=pass.\nFast-forwarded ancora-41r/pre-release-fixes d96d42f -\u003e f818d73. Gate 2 running.",
       "timestamp": "2026-09-04T11:52:15Z"
+    },
+    {
+      "text": "APPROVED (merge record, orchestrator, 2026-09-04 08:05 EDT)\nFast-forwarded ancora-41r/pre-release-fixes d96d42f -\u003e f818d73 (one commit after rebase).\nGate 2 on f818d73: mix compile --warnings-as-errors clean; 3 properties, 414 tests, 0 failures; format clean; no unused deps; mix spec.check --base 7511407 result=pass. Log: scratchpad/gate41r-2.log.\nClosing. Worktree /Users/mz/src/ancora-41r.4 and branch ancora-41r.4/spec-dir-flag removed after close.\nAdvisories carried to the fast-follow epic: Ancora.validate/2 FunctionClauseError on a bad spec_dir: passed directly by a library caller; review env-tier test missing the flag-meaning clause; RuntimeError-specific stack-trace refute.",
+      "timestamp": "2026-09-04T11:53:17Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "The documented --spec-dir default does not exist and passing it raises with no verdict",
   "type": "bug",
-  "updated_at": "2026-09-04T11:52:15Z"
+  "updated_at": "2026-09-04T11:53:17Z"
 }
