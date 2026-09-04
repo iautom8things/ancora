@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Manuel Zubieta",
   "blocked_by": [],
   "blocks": [],
   "created": "2026-09-04T11:03:32Z",
@@ -10,8 +10,8 @@
   ],
   "parent": "ancora-41r",
   "priority": 1,
-  "status": "open",
+  "status": "in_progress",
   "title": "The documented --spec-dir default does not exist and passing it raises with no verdict",
   "type": "bug",
-  "updated_at": "2026-09-04T11:03:32Z"
+  "updated_at": "2026-09-04T11:17:54Z"
 }
