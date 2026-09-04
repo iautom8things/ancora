@@ -45,11 +45,15 @@
     {
       "text": "RUNTIME FAILURE + ROUTE (orchestrator, 2026-09-04 08:25 EDT, read from the clock). Root cause of the ancora-41r.1 worker kill: the Codex `team` profile is exhausted (5-hour window 100 percent with 3h54m left, monthly extra credits 500.95 of 500). Every worker spawned on it after about 12:05Z produced no log at all, went idle, failed the harness nudge and was killed with exit 124: the 41r.1 resumed retry (killed 12:15Z), the 41r.2 rebase worker (killed 12:22Z with nothing done, tree clean at 99f1c72), and two still-idle panes, the 41r.3 rebase worker (nudged 12:21Z) and the 41r.1 resumed retry's second spawn (nudged 12:22Z), which the harness reaps within minutes. So the 41r.1 \"worker error\" recorded at 08:36 was the runtime, not the task; its uncommitted tree from the FIRST retry worker is still intact and untouched. Profile switched to `personal` (33 percent of its weekly window used) for every remaining spawn: 41r.2 rebase respawned now under session 41r2-r2; 41r.3 rebase and the 41r.1 resume respawn as soon as their idle panes are reaped, to avoid two workers in one worktree. Worker-failure count 1 (the runtime episode counts once); bounce counts unchanged. Small clock note: my stamps between 08:15 and 08:38 ran up to fifteen minutes ahead of the clock; from here every stamp is read from `date`.",
       "timestamp": "2026-09-04T12:24:40Z"
+    },
+    {
+      "text": "FOURTH CHILD CLOSED (orchestrator, 2026-09-04 08:47 EDT). ancora-41r.2 merged: implementer rebase onto 84e85b1 resolved the one parsing-spec paragraph exactly as ordered; range-diff shows commit 2 = and commit 1 ! confined to that hunk (lib, test, ADR and gate-spec patches differ only in line offsets); fast-forward 84e85b1 -\u003e 13f8588. Gate 4 on 13f8588: 420 tests, 3 properties, 0 failures; format, unused-deps and spec.check --base 7511407 pass. Worktree and branch removed, board synced.\n\nStanding: 4 of 6 closed. 41r.3 approved, rebasing on the personal profile under its order (durable_acknowledgments ADR paragraph). 41r.1 retry (resumed from the killed worker's tree; all six items with both-ways proofs, including the honest repointing of behavior 1 to the parser test) under delta verification with a critic. All three personal-profile workers confirmed writing logs. console_triggers=6 console_redeploys=6. Console: https://claude.ai/code/artifact/47c7ca0b-520f-456c-b981-c97a4fe90f1a",
+      "timestamp": "2026-09-04T12:46:22Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T12:24:40Z"
+  "updated_at": "2026-09-04T12:46:22Z"
 }
