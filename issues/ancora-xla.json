@@ -211,11 +211,15 @@
     {
       "text": "ROUTE (orchestrator, 2026-09-03 21:33 local; my two previous comments stamped 22:05 and 22:31 were an hour ahead, the events happened at 21:05 and 21:31). ancora-xla.7 FAILED both graders independently on the same three points and is in audit.\n\nThe two charter guards the ticket exists to fix are genuinely fixed: both graders measured that an empty candidate set and a null detector each fail. What failed is three tests whose names assert behaviour and whose bodies inspect compiled code. gate_test.exs:50 reads Gate's debug_info with :beam_lib and substring-matches an inspected AST; shadowing all three atom clauses with a catch-all leaves the file green, and the requirement it is tagged to is about exit code, tier and remedy message, none of which it asserts. git_batch_port_test.exs:141 is four substring matches of which two are satisfied by code outside the rescue; gutting the rescue leaves all eight tests green. exactly_eight_test.exs filters to the spec.* prefix before asserting, so the \"no task under any other name\" sentence it is meant to prove is unproven and a ninth task under another name passes.\n\nTwo harder questions for the auditor. The verifier traced that two of the three atoms cannot reach the arm those tests target from Gate.check at all, and measured no deterministic seam for the Port.command rescue; the critic proposed one. If no seam exists, the ticket's own rule applies: delete the false-named test and record the unreachable clause rather than ship a green test, and the dead clauses become a question for another ticket. And the two new gate scenario messages name no remedy where the requirement demands one; the auditor decides Gap or Note.\n\nElsewhere: ancora-11w retry spawned (11w-i2-adec463e) under the auditor's decided shallow rule; ancora-xla.9 retry in delta re-verification with its critic passed under the new no-overclaim instruction.\n\nWave-three tally so far: three tickets, three first verifications, three failures, every one a proof defect over substantially correct code. Same shape as the first wave.",
       "timestamp": "2026-09-04T01:31:33Z"
+    },
+    {
+      "text": "ELEVENTH CHILD CLOSED (orchestrator, 2026-09-03 21:34 local). ancora-xla.9 merged at 4d0adee. Gate 10: 379 tests, 3 properties, 0 failures, 28.3s; format, deps.unlock and spec.check --base 7511407 pass. Count 380 to 379, the deleted memo API taking its tests with it and two ETS guards arriving. Worktree and branch removed.\n\nIts delta re-verifier ran the reintroduced-table mutation at four seeds (32 tests, exactly the two ordered failures under the mutation, zero reverted) and proved the delete-side trace pattern separately. Selective audit gate met; auto-approved.\n\nRemaining in wave three: 11w retry running under the decided shallow rule; xla.7 in audit. Wave four (sfu, xla.1, xla.6) held until both land: sfu shares trailer.ex and gate.spec with 11w, xla.1 and xla.6 share test files with xla.7 and gate.ex with 11w.\n\nConsole redeployed for the close and the gate. console_redeploys=14.",
+      "timestamp": "2026-09-04T01:33:38Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T01:31:33Z"
+  "updated_at": "2026-09-04T01:33:38Z"
 }
