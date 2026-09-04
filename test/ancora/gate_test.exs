@@ -413,11 +413,95 @@ defmodule Ancora.GateTest do
 
     assert {:ok, report} = Gate.check(root, base: "HEAD")
 
+    assert finding =
+             Enum.find(report.all_findings, fn finding ->
+               finding.code == "tags/tag_borrowed" and
+                 finding.file == "test/sample_test.exs" and
+                 finding.requirement == "sample.subject.works" and finding.severity == :info
+             end)
+
+    assert finding.message =~ "test/sample_test.exs"
+    assert finding.message =~ "sample.subject.works"
+  end
+
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
+  @tag spec: "ancora.gate.diff_scoped_versus_repo_state"
+  test "a second tag in the same file is the only borrowed tag", %{root: root} do
+    init_git_repo(root)
+    write_anchored_subject(root, "The sample shall return the current value.")
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() in [:current, :changed])
+
+        @tag spec: "sample.subject.works"
+        test "works twice", do: assert(Sample.value() in [:current, :changed])
+      end
+      """
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert [%{file: "test/sample_test.exs"}] =
+             Enum.filter(report.all_findings, &(&1.code == "tags/tag_borrowed"))
+  end
+
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
+  @tag spec: "ancora.gate.statement_change_disclosed"
+  @tag spec: "ancora.gate.diff_scoped_versus_repo_state"
+  test "an empty diff emits neither disclosure", %{root: root} do
+    init_git_repo(root)
+    write_anchored_subject(root, "The sample shall return the current value.")
+    commit_all(root, "base")
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    refute Enum.any?(report.all_findings, &(&1.code == "tags/tag_borrowed"))
+    refute Enum.any?(report.all_findings, &(&1.code == "append/statement_changed"))
+  end
+
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
+  @tag spec: "ancora.gate.statement_change_disclosed"
+  test "a whitespace-only statement edit keeps a new tag borrowed", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" => subject_spec("The sample shall work."),
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      ".spec/specs/sample.spec.md" => subject_spec("The sample  shall work."),
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
     assert Enum.any?(report.all_findings, fn finding ->
              finding.code == "tags/tag_borrowed" and
-               finding.file == "test/sample_test.exs" and
-               finding.requirement == "sample.subject.works" and finding.severity == :info
+               finding.requirement == "sample.subject.works"
            end)
+
+    refute Enum.any?(report.all_findings, &(&1.code == "append/statement_changed"))
   end
 
   @tag spec: "ancora.gate.acknowledgment_clears"

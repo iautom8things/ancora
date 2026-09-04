@@ -158,6 +158,7 @@ defmodule Ancora.AppendOnlyTest do
 
       assert finding.requirement == "alpha.requirement"
       assert finding.severity == :info
+      assert finding.message =~ "alpha.requirement"
     end
 
     @tag spec: "ancora.gate.statement_change_disclosed"
