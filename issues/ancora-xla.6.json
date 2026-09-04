@@ -52,11 +52,15 @@
     {
       "text": "REBASED\nSession: rebase-xla6\nOld base: 849dbf9  Old head: 53add71\nNew base: 9e22e1e  New head: c010b8f\nConflicts: none\nCompile: clean\nTests: 90 tests, 0 failures (seven diff-touched files)\nFormat: clean\nspec.check --base 9e22e1e: spec.check result=pass",
       "timestamp": "2026-09-04T03:27:03Z"
+    },
+    {
+      "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-04 00:34 local)\ngit range-diff 849dbf9..53add71 9e22e1e..c010b8f: both commits marked = (byte-identical patches; c6c9fa3 -\u003e 26e43be, 53add71 -\u003e c010b8f). No conflict hunks, so no fresh cold agent. Rebase worker's checks on the new base: compile clean, 90 tests green across the seven diff-touched files, format clean, spec.check --base 9e22e1e result=pass.\nFast-forwarded ancora-xla/post-ship-hardening 9e22e1e -\u003e c010b8f. Gate 15 running; it is the last one.",
+      "timestamp": "2026-09-04T03:29:56Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Delete the dead paths and finish the half-wired substitutions",
   "type": "task",
-  "updated_at": "2026-09-04T03:27:03Z"
+  "updated_at": "2026-09-04T03:29:56Z"
 }
