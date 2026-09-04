@@ -16,11 +16,15 @@
     {
       "text": "RULING (Manuel, 2026-09-03): Option A, scoped to the range. At preflight, if the base..HEAD range is not fully present locally (check the actual range, not only git rev-parse --is-shallow-repository), end the run at tier=env with a remedy naming git fetch --unshallow and fetch-depth: 0. A shallow repository that still holds the whole range passes. Widen ancora.gate.preflight_hard_fails substantively. No named finding, no continue-with-warning. Lands on top of ancora-xla.2's env-tier plumbing. Pairs with the ancora-sfu ruling (acknowledgments promoted to config).",
       "timestamp": "2026-09-03T16:41:02Z"
+    },
+    {
+      "text": "IMPLEMENTED\nSession: 11w-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-11w/codex-11w-i1-adec463e/log\n\nCommit: 6c50fabc00a367ae1ba6c036417e88c4eb8fd229\nFiles touched: .spec/decisions/ancora.decision.no_execution_no_state.md, .spec/specs/ancora.derive.spec.md, .spec/specs/ancora.findings.spec.md, .spec/specs/ancora.gate.spec.md, README.md, docs/migration.md, lib/ancora/gate/preflight.ex, test/ancora/gate_test.exs, test/mix/tasks/spec_check_test.exs, test/support/tmp_git_repo.exs\nTests added: Ancora.GateTest \"preflight rejects a shallow boundary inside base..HEAD\"; Ancora.GateTest \"preflight accepts a shallow clone when it contains the whole range\"; Mix.Tasks.Spec.CheckTest \"an incomplete shallow range fails before trailer resolution\"\nSpec acknowledgment: .spec/specs/ancora.gate.spec.md substantively widens preflight_hard_fails; .spec/specs/ancora.derive.spec.md records and proves that an incomplete range stops before ChangeSet.compute/1; .spec/specs/ancora.findings.spec.md records and proves that the JSON environment failure has no findings; ancora.decision.no_execution_no_state was updated with the range rule and affected findings contract. No Spec-Ack trailer used.\nVerification tier: change-scoped — mix compile --warnings-as-errors; mix test test/ancora/gate_test.exs test/mix/tasks/spec_check_test.exs (42 tests); mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base c330458; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 2\n\nSummary: Preflight now rejects only when a shallow boundary falls inside the requested base..HEAD range, returns tier=env, and names git fetch --unshallow and fetch-depth: 0. A complete shallow range still passes, while the subprocess proof shows the full clone resolves its acknowledgment and the incomplete shallow clone stops before derivation with an empty findings list. I checked every current epic lesson against this diff; no must requirement, scenario, or success criterion was deferred.",
+      "timestamp": "2026-09-04T01:03:11Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Gate silently resolves a different verdict on a shallow clone",
   "type": "task",
-  "updated_at": "2026-09-04T00:52:48Z"
+  "updated_at": "2026-09-04T01:03:11Z"
 }
