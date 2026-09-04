@@ -56,11 +56,15 @@
     {
       "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-04 00:34 local)\ngit range-diff 849dbf9..53add71 9e22e1e..c010b8f: both commits marked = (byte-identical patches; c6c9fa3 -\u003e 26e43be, 53add71 -\u003e c010b8f). No conflict hunks, so no fresh cold agent. Rebase worker's checks on the new base: compile clean, 90 tests green across the seven diff-touched files, format clean, spec.check --base 9e22e1e result=pass.\nFast-forwarded ancora-xla/post-ship-hardening 9e22e1e -\u003e c010b8f. Gate 15 running; it is the last one.",
       "timestamp": "2026-09-04T03:29:56Z"
+    },
+    {
+      "text": "INTEGRATION_REGRESSION\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl\n\nGate 15 on c010b8f (epic tip after this ticket's fast-forward): 3 properties, 407 tests, 1 failure. Deterministic, not a flake.\n\n  1) test no direct IO writer exists outside Ancora.Output (Ancora.Static.ForbiddenWriterTest)\n     test/ancora/static/forbidden_writer_test.exs:13\n     IO writers outside lib/ancora/output.ex and lib/ancora/output/:\n     lib/ancora/gate.ex:515 IO.puts/2\n\nCause, established by blame and diff. This ticket widened the static guard from stdout-only to every direct IO write (removed the :stderr exemption, retagged onto ancora.tasks.stderr_pinning) after routing Config, Severity and Trailer diagnostics through Output.config_diagnostic/1. ancora-sfu, merged at 45ff9e9 after this branch was cut from 849dbf9, added a direct IO.puts(:stderr, \"[CONFIG] Spec-Ack: ... lost by a squash merge ...\") in Ancora.Gate.warn_non_tip_acknowledgments/2 (blame 135d741). Each ticket was green on its own base; the rebase onto 9e22e1e applied without textual conflict; the combination is red. The full merge diff is 849dbf9..c010b8f; the two hunks that matter are test/ancora/static/forbidden_writer_test.exs (this ticket) and lib/ancora/gate.ex:512-519 (ancora-sfu).\n\nResponsible implementer: this ticket, whose guard now states the rule for the whole tree. Remedy: replace the direct IO.puts at gate.ex:515 with Output.config_diagnostic(\"Spec-Ack: #{code}=#{severity} resolved from a non-tip commit and will be lost by a squash merge; promote it to .spec/config.yml before merging\"). config_diagnostic/1 prefixes \"[CONFIG] \" itself and sanitizes only \"result=\", which the message does not contain, so the stderr bytes ancora-sfu's tests assert are unchanged. Scope grant for that one emission site is added to the Allowed list with this timestamp. Ticket stays open; implementer respawned with this record. Bounce 2 of 2, mechanical-remedy 1 of 2.",
+      "timestamp": "2026-09-04T03:32:14Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Delete the dead paths and finish the half-wired substitutions",
   "type": "task",
-  "updated_at": "2026-09-04T03:29:56Z"
+  "updated_at": "2026-09-04T03:32:14Z"
 }
