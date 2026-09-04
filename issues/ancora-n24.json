@@ -64,11 +64,15 @@
     {
       "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-03 20:02). The rebase implementer posted IMPLEMENTED at d50f859, two commits over 884588f, worktree clean, no rebase state, change-scoped tests 35/0, spec.check --base 884588f result=pass.\n\nInstead of the delta-scoped cold re-verify I announced, I used `git range-diff 670dd4d..6d5f1df 884588f..d50f859`, which is a stricter and deterministic check for a two-line conflict resolution. Result: commit 2 (the bounding test) is byte-identical (\"=\"). Commit 1 differs only in context lines: in both .spec/specs/ancora.gate.spec.md and .spec/specs/ancora.parsing.spec.md the epic's `- ancora.decision.cli_json_contract` entry now appears as context above this branch's `- ancora.decision.retirement_vocabulary` addition. No other hunk changed. The verified content is exactly what was approved, resolved in the ordered order. Proceeding to fast-forward merge and the full gate.",
       "timestamp": "2026-09-03T23:59:20Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-xla/post-ship-hardening. Closing per orchestrator sign-off.\n\nFast-forward to d50f859. Merge gate 6 on the epic branch: compile clean, 367 tests and 3 properties with 0 failures in 44.3s under a host load of 75, format pass, deps.unlock pass, mix spec.check --base 7511407 result=pass. Test count moved 357 to 367, matching the ten tests this ticket adds. Gate log: /private/tmp/claude-501/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5/scratchpad/gate6.log",
+      "timestamp": "2026-09-04T00:00:51Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Retirement vocabulary for ADR affects: (subject-pruning catch-22)",
   "type": "task",
-  "updated_at": "2026-09-03T23:59:26Z"
+  "updated_at": "2026-09-04T00:00:51Z"
 }
