@@ -223,11 +223,15 @@
     {
       "text": "FOLLOW-UP FILED (orchestrator, 2026-09-03 21:41 local): [ancora-f1w](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-f1w.json), P3, standalone. Carries the four env-arm observations from the xla.7 audit: the unreachable run-context branch at gate.ex:74-75, the race-only rescue in batch_port.ex, the live-but-untestable batch-timeout and poisoned-port atoms (no timeout option plumbed into RunContext.start), and the two remedy-free messages under a must that requires a remedy. Not adopted into this epic; Manuel's call. Tonight's standalone follow-ups are now ancora-kzw (P0 security), ancora-90t, ancora-f1w, ancora-tth, ancora-li7, plus the older ancora-ufm and ancora-i19.",
       "timestamp": "2026-09-04T01:39:33Z"
+    },
+    {
+      "text": "ROUTE + LESSON (orchestrator, 2026-09-03 21:51 local). ancora-11w's retry parked itself at the run cap with the seven-item order done and uncommitted; the second final-tier run was green on 45 touched-file tests and 386 stale tests, then spec.check raised ancora.tasks derived/growth because spec_check_test.exs now calls Ancora.Git.run/2 to check that the acknowledgment commit is absent from the shallow fixture. That is fixture inspection through a production function, and the honest fix is to stop doing it (System.cmd or a non-bang support helper), not to acknowledge a binding the tasks subject never observes. Ruling posted, cap reset for one run, same pane resumed.\n\nancora-xla.7's retry posted IMPLEMENTED: four files, 6 insertions, 80 deletions, filter moved to the Elixir.Mix.Tasks. prefix and proven both ways with the auditor's ninth-task mutation (2 failures with it, 0 without). One :beam_lib call remains in git_batch_port_test.exs:144; the delta verifier has been told to establish whether it predates the ticket or is a leftover of the deleted helper. Verifier and critic spawned.\n\nLESSONS\n- [other] Test fixtures must not call production functions to set up or inspect state. Under file-scoped derivation a single Ancora.Git.run in a tasks-tagged test binds Git.run to ancora.tasks and raises derived/growth that only a hollow acknowledgment could clear. Use test/support helpers or System.cmd for fixture work. (from ancora-11w)",
+      "timestamp": "2026-09-04T01:46:52Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T01:39:33Z"
+  "updated_at": "2026-09-04T01:46:52Z"
 }
