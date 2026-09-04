@@ -77,11 +77,15 @@
     {
       "text": "Squash-merged to main inside PR #3 as f977c9a (release 1.1.0) at 13:52:34Z. No deploy or publish workflow exists in this repo; the post-merge run being watched is CI on main. Delivery follows once that run is green.",
       "timestamp": "2026-09-04T13:53:27Z"
+    },
+    {
+      "text": "Post-merge CI on main green for f977c9a (run 33880501175). Epic worktree /Users/mz/src/ancora-41r and branch removed after the verified merge. Handing to /deliver.",
+      "timestamp": "2026-09-04T13:55:28Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T13:53:27Z"
+  "updated_at": "2026-09-04T13:55:28Z"
 }
