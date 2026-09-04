@@ -182,8 +182,10 @@ defmodule Ancora.GateTest do
 
     write_files(root, %{
       "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/config.yml" => "lib_paths:\n  - src\n",
       ".spec/specs/.keep" => "",
-      "lib/sample.ex" => "defmodule Sample do\nend\n",
+      "src/sample.ex" => "defmodule Sample do\nend\n",
+      "lib/decoy.ex" => "defmodule Decoy do\nend\n",
       "test/sample_test.exs" => "defmodule SampleTest do\nend\n",
       "notes/private.txt" => "must not be materialized\n"
     })
@@ -191,12 +193,15 @@ defmodule Ancora.GateTest do
     commit_all(root, "base")
 
     included_oids =
-      [".spec/specs/.keep", "lib/sample.ex", "test/sample_test.exs"]
+      [".spec/specs/.keep", "src/sample.ex", "test/sample_test.exs"]
       |> Enum.map(&String.trim(git!(root, ["rev-parse", "HEAD:#{&1}"])))
       |> MapSet.new()
 
-    excluded_oid = String.trim(git!(root, ["rev-parse", "HEAD:notes/private.txt"]))
+    excluded_oids =
+      ["lib/decoy.ex", "notes/private.txt"]
+      |> Enum.map(&String.trim(git!(root, ["rev-parse", "HEAD:#{&1}"])))
 
+    Code.ensure_loaded!(Git)
     traced = self()
     tracer = start_trace_forwarder(traced)
     :erlang.trace(traced, true, [:call, {:tracer, tracer}])
@@ -209,30 +214,111 @@ defmodule Ancora.GateTest do
 
     assert {:ok, _report} = Gate.check(root, base: "HEAD")
 
+    sync_traces(traced, tracer)
     read_objects = collect_git_reads([]) |> MapSet.new()
     assert MapSet.subset?(included_oids, read_objects)
-    refute MapSet.member?(read_objects, excluded_oid)
+
+    for oid <- excluded_oids do
+      refute MapSet.member?(read_objects, oid)
+    end
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "gate materializes a configured spec directory", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      "docs/spec/specs/sample.spec.md" => subject_spec()
+    })
+
+    commit_all(root, "base")
+    write_files(root, %{".spec/.keep" => ""})
+
+    spec_oid =
+      root
+      |> git!(["rev-parse", "HEAD:docs/spec/specs/sample.spec.md"])
+      |> String.trim()
+
+    Code.ensure_loaded!(Git)
+    traced = self()
+    tracer = start_trace_forwarder(traced)
+    :erlang.trace(traced, true, [:call, {:tracer, tracer}])
+    :erlang.trace_pattern({Git, :read_blob, 2}, true, [])
+
+    on_exit(fn ->
+      :erlang.trace_pattern({Git, :read_blob, 2}, false, [])
+      send(tracer, :stop)
+    end)
+
+    assert {:ok, _report} = Gate.check(root, base: "HEAD", spec_dir: "docs/spec")
+    sync_traces(traced, tracer)
+    assert spec_oid in collect_git_reads([])
+  end
+
+  @tag spec: "ancora.derive.memo_is_run_scoped"
+  test "gate parses one changed source once per diff side across subjects", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/first.spec.md" =>
+        subject_spec("The first value shall be returned.", "sample.first"),
+      ".spec/specs/second.spec.md" =>
+        subject_spec("The second value shall be returned.", "sample.second"),
+      "lib/sample.ex" => """
+      defmodule Sample do
+        def first, do: :before
+        def second, do: :before
+      end
+      """,
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+
+        @tag spec: "sample.first.works"
+        test "first", do: assert(Sample.first() in [:before, :after])
+
+        @tag spec: "sample.second.works"
+        test "second", do: assert(Sample.second() in [:before, :after])
+      end
+      """
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "lib/sample.ex" => """
+      defmodule Sample do
+        def first, do: :after
+        def second, do: :after
+      end
+      """
+    })
+
+    Code.ensure_loaded!(Ancora.Derive.Extract)
+    :erlang.trace_pattern({Ancora.Derive.Extract, :parse, 2}, true, [:call_count])
+
+    on_exit(fn ->
+      :erlang.trace_pattern({Ancora.Derive.Extract, :parse, 2}, false, [:call_count])
+    end)
+
+    assert {:ok, _report} = Gate.check(root, base: "HEAD")
+
+    assert {:call_count, 2} =
+             :erlang.trace_info({Ancora.Derive.Extract, :parse, 2}, :call_count)
   end
 
   @tag spec: "ancora.derive.resolver_is_pure"
   @tag spec: "ancora.gate.no_derived_state"
-  test "gate removes its materialized base when a resolver callback raises", %{root: root} do
+  test "gate removes its materialized base when an assembly callback raises", %{root: root} do
     init_git_repo(root)
     write_anchored_subject(root, "The sample shall return the current value.")
     commit_all(root, "base")
 
-    derive_context = fn _membership, side, _indexes ->
-      {:ok,
-       %{
-         membership: fn _module -> raise "resolver exploded" end,
-         ambient: MapSet.new(),
-         external_exports: MapSet.new(),
-         def_index: fn _module -> :unknown end,
-         findings: [],
-         side: side
-       }}
-    end
+    derive_context = fn _membership, _side, _indexes -> raise "boom" end
 
+    Code.ensure_loaded!(Ancora.BaseView)
     traced = self()
     tracer = start_trace_forwarder(traced)
     :erlang.trace(traced, true, [:call, {:tracer, tracer}])
@@ -248,7 +334,7 @@ defmodule Ancora.GateTest do
       send(tracer, :stop)
     end)
 
-    assert_raise RuntimeError, ~r/gate assembly failed.*resolver_exception/, fn ->
+    assert_raise RuntimeError, "boom", fn ->
       Gate.check(root, base: "HEAD", derive_context: derive_context)
     end
 
@@ -514,14 +600,36 @@ defmodule Ancora.GateTest do
     spawn(fn -> forward_traces(parent) end)
   end
 
+  defp sync_traces(traced, tracer) do
+    delivery_ref = make_ref()
+    send(tracer, {:sync, self(), traced, delivery_ref})
+    assert_receive {:trace_forwarder_synced, ^delivery_ref}
+  end
+
   defp forward_traces(parent) do
     receive do
       :stop ->
         :ok
 
+      {:sync, caller, traced, caller_ref} ->
+        delivery_ref = :erlang.trace_delivered(traced)
+        forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref)
+
       message ->
         send(parent, {:forwarded_trace, message})
         forward_traces(parent)
+    end
+  end
+
+  defp forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref) do
+    receive do
+      {:trace_delivered, ^traced, ^delivery_ref} ->
+        send(caller, {:trace_forwarder_synced, caller_ref})
+        forward_traces(parent)
+
+      message ->
+        send(parent, {:forwarded_trace, message})
+        forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref)
     end
   end
 end

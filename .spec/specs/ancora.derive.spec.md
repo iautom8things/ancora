@@ -64,8 +64,8 @@ decisions:
     returned blob bytes.
     Ancora.BaseView shall read the blob OID returned by `ls-tree`, not rebuild
     `<base>:<path>`, and shall create each materialized parent directory once.
-    The gate's base view shall contain only `.spec`, configured `test_paths`,
-    and project `lib_paths`.
+    The gate's base view shall contain only the configured spec directory,
+    configured `test_paths`, and project `lib_paths`.
   priority: must
   stability: stable
 - id: ancora.derive.memo_is_run_scoped
@@ -307,7 +307,7 @@ decisions:
     - ancora.derive.memo_is_run_scoped
 - id: ancora.derive.scenario.narrowed_base_materialization
   given:
-    - a base tree containing files under `.spec`, configured test and library paths, and an unrelated directory
+    - a base tree containing files under the configured spec directory, configured test and library paths, and an unrelated directory
   when:
     - the gate materializes its base view
   then:

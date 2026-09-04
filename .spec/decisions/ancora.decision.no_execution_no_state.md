@@ -122,6 +122,8 @@ Positive: the gate is pure-source plus git, byte-identical across machines,
 trustworthy when it is green, and honest when it cannot answer. Diff-scoped
 findings need no baseline file to compare against.
 
-Negative: AST work repeats across separate gate invocations. Adopters with no
+Negative: AST work outside extraction still repeats within a gate run, and all
+AST work repeats across separate invocations. The deferred on-disk OID cache
+remains a possible re-entry after post-merge measurement. Adopters with no
 remote must learn `--base HEAD` or set `default_base` on day one; the scaffold
 teaches both.

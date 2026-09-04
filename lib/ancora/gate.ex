@@ -85,10 +85,12 @@ defmodule Ancora.Gate do
   end
 
   defp run(ctx, preflight, opts) do
+    spec_dir = Keyword.get(opts, :spec_dir) || ".spec"
+
     with {:ok, change_set} <- ChangeSet.compute(ctx),
          {:ok, base_root} <-
            BaseView.materialize(ctx, nil,
-             pathspecs: [".spec" | preflight.config.test_paths ++ preflight.project.lib_paths]
+             pathspecs: [spec_dir | preflight.config.test_paths ++ preflight.project.lib_paths]
            ) do
       result =
         try do
@@ -107,7 +109,7 @@ defmodule Ancora.Gate do
   end
 
   defp assemble(ctx, preflight, change_set, base_root, opts) do
-    prepare_base_dirs(base_root, preflight.root)
+    prepare_base_dirs(base_root, preflight.root, Keyword.get(opts, :spec_dir) || ".spec")
     index_opts = index_opts(opts)
     current = Index.build(preflight.root, index_opts)
     prior = Index.build(base_root, index_opts)
@@ -526,11 +528,11 @@ defmodule Ancora.Gate do
     if Keyword.get(opts, :json, false), do: json_report(report), else: report
   end
 
-  defp prepare_base_dirs(base_root, head_root) do
-    File.mkdir_p!(Path.join(base_root, ".spec/specs"))
+  defp prepare_base_dirs(base_root, head_root, spec_dir) do
+    File.mkdir_p!(Path.join([base_root, spec_dir, "specs"]))
 
-    if File.dir?(Path.join(head_root, ".spec/decisions")) do
-      File.mkdir_p!(Path.join(base_root, ".spec/decisions"))
+    if File.dir?(Path.join([head_root, spec_dir, "decisions"])) do
+      File.mkdir_p!(Path.join([base_root, spec_dir, "decisions"]))
     end
   end
 
