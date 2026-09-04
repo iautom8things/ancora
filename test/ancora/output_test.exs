@@ -342,6 +342,17 @@ defmodule Ancora.OutputTest do
   describe "json" do
     @tag spec: "ancora.tasks.verdict_grammar"
     test "json payload precedes the verdict on stdout" do
+      # Would fail if Output.json_payload/1 encoded through Jason directly.
+      Code.ensure_loaded!(Ancora.Json)
+      :erlang.trace_pattern({Ancora.Json, :encode!, 1}, true, [:call_count])
+
+      {:call_count, calls_before} =
+        :erlang.trace_info({Ancora.Json, :encode!, 1}, :call_count)
+
+      on_exit(fn ->
+        :erlang.trace_pattern({Ancora.Json, :encode!, 1}, false, [:call_count])
+      end)
+
       report = %{
         json: true,
         findings: [finding(severity: :warning, message: "growth")],
@@ -360,6 +371,11 @@ defmodule Ancora.OutputTest do
       assert {:ok, decoded} = Jason.decode(json)
       assert is_list(decoded["findings"])
       assert List.last(lines) == "spec.check result=fail tier=branch errors=0 warnings=1"
+
+      {:call_count, calls_after} =
+        :erlang.trace_info({Ancora.Json, :encode!, 1}, :call_count)
+
+      assert calls_after - calls_before == 1
     end
   end
 

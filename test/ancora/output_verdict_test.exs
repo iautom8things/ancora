@@ -35,6 +35,24 @@ defmodule Ancora.Output.VerdictTest do
     assert String.trim(stdout) == "spec.validate result=pass"
   end
 
+  test "pass predicate honors explicit outcomes before finding counts" do
+    # Would fail if Verdict changed the explicit-outcome precedence or ignored finding counts.
+    error = finding("derived/drift", :error)
+
+    refute Verdict.pass?(%{fail: true})
+    assert Verdict.pass?(%{pass: true, findings: [error]})
+    assert Verdict.pass?(%{findings: []})
+    refute Verdict.pass?(%{findings: [error]})
+  end
+
+  test "gated output delegates to the verdict pass predicate" do
+    # Would fail if Output restored its deleted local predicate.
+    source = File.read!(Path.expand("lib/ancora/output.ex"))
+
+    assert source =~ "Verdict.pass?(report)"
+    refute source =~ "defp passed?"
+  end
+
   test "spec.check fail includes tier and counts" do
     report = %{
       fail: true,

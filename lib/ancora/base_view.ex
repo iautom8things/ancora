@@ -8,6 +8,7 @@ defmodule Ancora.BaseView do
 
   alias Ancora.Derive.RunContext
   alias Ancora.Git
+  alias Ancora.TempName
 
   @doc """
   Reads every blob under `base` (optionally narrowed by `:pathspecs`) into a
@@ -49,19 +50,26 @@ defmodule Ancora.BaseView do
   def materialize(source, base \\ nil, opts \\ []) do
     with {:ok, files} <- blobs(source, base, opts) do
       temp_root = unique_temp()
-      File.mkdir_p!(temp_root)
 
-      files
-      |> Enum.group_by(fn {path, _content} -> temp_root |> Path.join(path) |> Path.dirname() end)
-      |> Enum.each(fn {directory, directory_files} ->
-        File.mkdir_p!(directory)
+      case File.mkdir(temp_root) do
+        :ok ->
+          files
+          |> Enum.group_by(fn {path, _content} ->
+            temp_root |> Path.join(path) |> Path.dirname()
+          end)
+          |> Enum.each(fn {directory, directory_files} ->
+            File.mkdir_p!(directory)
 
-        Enum.each(directory_files, fn {path, content} ->
-          File.write!(Path.join(temp_root, path), content)
-        end)
-      end)
+            Enum.each(directory_files, fn {path, content} ->
+              File.write!(Path.join(temp_root, path), content)
+            end)
+          end)
 
-      {:ok, temp_root}
+          {:ok, temp_root}
+
+        {:error, reason} ->
+          {:error, {:temp_directory, reason}}
+      end
     end
   end
 
@@ -84,9 +92,6 @@ defmodule Ancora.BaseView do
   end
 
   defp unique_temp do
-    Path.join(
-      System.tmp_dir!(),
-      "ancora_base_view_#{System.pid()}_#{System.unique_integer([:positive])}"
-    )
+    Path.join(System.tmp_dir!(), "ancora_base_view_#{TempName.cross_vm_suffix()}")
   end
 end

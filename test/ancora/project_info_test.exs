@@ -1,9 +1,10 @@
 Code.require_file("../support/ancora_case.exs", __DIR__)
 
 defmodule Ancora.ProjectInfoTest do
-  use Ancora.TestCase
+  use Ancora.TestCase, async: false
 
   alias Ancora.ProjectInfo
+  alias Ancora.Gate.Preflight
 
   @tag spec: "ancora.derive.project_info_from_root"
   test "reads literal app and elixirc paths from the target root", %{root: root} do
@@ -72,6 +73,35 @@ defmodule Ancora.ProjectInfoTest do
 
     assert {:ok, info} = ProjectInfo.load(root)
     assert info.lib_paths == ["src", "generated"]
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "preflight loads config once when lib_paths is absent", %{root: root} do
+    init_git_repo(root)
+
+    write_mix(root, """
+    [
+      app: :sample,
+      elixirc_paths: ["lib", "extra"]
+    ]
+    """)
+
+    write_files(root, %{".spec/specs/.keep" => ""})
+    commit_all(root, "base")
+
+    Code.ensure_loaded!(Ancora.Config)
+    :erlang.trace_pattern({Ancora.Config, :load, 1}, true, [:call_count])
+    {:call_count, calls_before} = :erlang.trace_info({Ancora.Config, :load, 1}, :call_count)
+
+    on_exit(fn ->
+      :erlang.trace_pattern({Ancora.Config, :load, 1}, false, [:call_count])
+    end)
+
+    # Would fail if ProjectInfo re-read config after Preflight had loaded it.
+    assert {:ok, preflight} = Preflight.run(root, base: "HEAD")
+    assert preflight.project.lib_paths == ["lib", "extra"]
+    {:call_count, calls_after} = :erlang.trace_info({Ancora.Config, :load, 1}, :call_count)
+    assert calls_after - calls_before == 1
   end
 
   @tag spec: "ancora.derive.project_info_from_root"

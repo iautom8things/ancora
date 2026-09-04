@@ -13,7 +13,7 @@ defmodule Ancora.Output do
   but the encoded line cannot match the verdict grammar.
   """
 
-  alias Ancora.Finding
+  alias Ancora.{Finding, Json}
   alias Ancora.Output.Verdict
 
   @read_protocol "The verdict is the last stdout line: `spec.check result=…`. A non-zero exit with no verdict line means the run crashed before the gate finished — treat it as failure."
@@ -51,7 +51,7 @@ defmodule Ancora.Output do
 
         if gate?(task_name) do
           Verdict.emit(task_name, report)
-          unless passed?(report), do: Mix.raise("#{task_name} failed")
+          unless Verdict.pass?(report), do: Mix.raise("#{task_name} failed")
         end
 
         :ok
@@ -204,7 +204,7 @@ defmodule Ancora.Output do
     report
     |> Map.delete(:json)
     |> json_safe()
-    |> Jason.encode!()
+    |> Json.encode!()
   end
 
   defp fail_path(task_name, msg, tier, opts) do
@@ -290,20 +290,6 @@ defmodule Ancora.Output do
     |> Map.get(:lines, [])
     |> List.wrap()
     |> Enum.each(&puts/1)
-  end
-
-  defp passed?(report) do
-    cond do
-      Map.get(report, :fail) == true ->
-        false
-
-      Map.get(report, :pass) == true ->
-        true
-
-      true ->
-        {errors, warnings} = Verdict.counts(report)
-        errors == 0 and warnings == 0
-    end
   end
 
   defp gate?(task_name), do: MapSet.member?(@gate_tasks, task_name)

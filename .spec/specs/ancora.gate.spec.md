@@ -44,7 +44,9 @@ decisions:
     conditions shall never be emitted as findings and shall not be
     configurable off. No preflight check shall inspect `_build` or any
     `.app` file. Preflight shall load `.spec/config.yml` once and thread the
-    resulting config through project identity and gate assembly. The config
+    resulting config through project identity and gate assembly. It shall pass
+    the resolved `lib_paths` value, including nil, into project identity so
+    that path does not read the config again. The config
     `lib_paths:` key shall override project identity only when present in
     `.spec/config.yml`; literal `elixirc_paths:` shall be honored otherwise.
     In `--json` mode, a preflight environment failure shall be returned as a
@@ -167,7 +169,9 @@ decisions:
     raises. During a gate run, the gate shall hold no per-run in-memory memo,
     registry, or ETS table; the run context it starts shall carry only the run
     root, base, and batch-port state, and stopping it shall leave no table or
-    process behind.
+    process behind. The temporary base-view root shall use
+    `Ancora.TempName.cross_vm_suffix/0` and a non-recursive `File.mkdir/1`, so
+    an already-present path fails instead of accepting a symlink.
   priority: must
   stability: stable
 ```

@@ -49,7 +49,10 @@ decisions:
 - id: ancora.tasks.verdict_grammar
   statement: >-
     `Ancora.Output.Verdict.emit/2` shall be the only producer of the string
-    `result=`. The grammar shall be exactly `spec.check result=pass`,
+    `result=`. `Ancora.Output.Verdict.pass?/1` shall be the only pass
+    predicate used by both the emitter and gated exit path, with explicit
+    `fail` taking precedence over explicit `pass`, then finding counts. The
+    grammar shall be exactly `spec.check result=pass`,
     `spec.check result=fail tier=<usage|env|validate|branch> errors=<E>
     warnings=<W>`, `spec.validate result=pass`, and `spec.validate
     result=fail tier=<usage|env|validate> errors=<E> warnings=<W>`. Only
@@ -86,7 +89,9 @@ decisions:
 - id: ancora.tasks.stderr_pinning
   statement: >-
     `[CONFIG]` diagnostics and Logger output shall go to stderr, never
-    stdout. Subprocess tests shall capture the two streams separately and
+    stdout. Config, severity, and trailer diagnostics shall call
+    `Ancora.Output.config_diagnostic/1`, and the static writer test shall reject
+    direct stdout or stderr writes outside the Output modules. Subprocess tests shall capture the two streams separately and
     assert the verdict is the last stdout line while diagnostics appear only
     on stderr.
   priority: must
@@ -137,6 +142,7 @@ decisions:
     `guidance`, `message`, `errors`, `warnings`, `tier`, and `fail`;
     `checked`, `branch`, and `guidance` shall always be maps with the same
     nested keys, while unavailable values shall be null, empty lists, or zero.
+    `Ancora.Output.json_payload/1` shall encode through `Ancora.Json.encode!/1`.
     Consumers shall select the last stdout line that parses as JSON. The
     verdict shall follow it as the final stdout line.
   priority: must
@@ -185,7 +191,9 @@ decisions:
     `mix spec.prime --base HEAD` shall print a header, the status body, the
     next body, and loop bullets ending with the check command and the
     exact `Ancora.Output.read_protocol/0` sentence, and shall be the documented
-    session-start idiom.
+    session-start idiom. Prime shall build status once and pass that report to
+    `Ancora.Next.build/2`; Next shall use the supplied status option instead of
+    deriving it again.
   priority: must
   stability: evolving
 - id: ancora.tasks.mix_bootstrap_posture

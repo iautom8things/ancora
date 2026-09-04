@@ -65,6 +65,17 @@ defmodule Ancora.NextTest do
     assert report.reconciliation == "needs decision update"
   end
 
+  @tag spec: "ancora.tasks.next_labels_verbatim"
+  test "uses a supplied status instead of rebuilding it", %{root: root} do
+    # Would fail if Next ignored the supplied status and derived the real subject list.
+    create_anchored_project(root)
+    commit_all(root, "base")
+    write_files(root, %{"lib/sample.ex" => sample_module(":changed")})
+
+    assert {:ok, report} = Next.build(root, base: "HEAD", status: %{subjects: []})
+    assert report.classification == "uncovered frontier change"
+  end
+
   defp create_anchored_project(root) do
     init_git_repo(root)
 

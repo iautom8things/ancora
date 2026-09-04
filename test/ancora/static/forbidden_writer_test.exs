@@ -1,7 +1,7 @@
 defmodule Ancora.Static.ForbiddenWriterTest do
   use ExUnit.Case, async: true
 
-  @moduletag spec: "ancora.tasks.single_stdout_writer"
+  @moduletag spec: ["ancora.tasks.single_stdout_writer", "ancora.tasks.stderr_pinning"]
 
   @lib Path.expand("../../../lib", __DIR__)
   @allowed_prefixes [
@@ -9,9 +9,8 @@ defmodule Ancora.Static.ForbiddenWriterTest do
     Path.join(@lib, "ancora/output")
   ]
 
-  # Would fail if a lib/ module other than Output grew an IO.puts/1,
-  # Mix.shell(), or other stdout write — the emission path nobody enumerated.
-  test "no stdout writer exists outside Ancora.Output" do
+  # Would fail if a lib/ module other than Output wrote directly to stdout or stderr.
+  test "no direct IO writer exists outside Ancora.Output" do
     candidates = list_elixir_files(@lib)
     assert candidates != []
 
@@ -26,7 +25,7 @@ defmodule Ancora.Static.ForbiddenWriterTest do
       |> Enum.map(&format_violation/1)
 
     assert violations == [], """
-    stdout writers outside lib/ancora/output.ex and lib/ancora/output/:
+    IO writers outside lib/ancora/output.ex and lib/ancora/output/:
 
     #{Enum.join(violations, "\n")}
     """
@@ -67,11 +66,7 @@ defmodule Ancora.Static.ForbiddenWriterTest do
         case node do
           {{:., meta, [{:__aliases__, _, [:IO]}, fun]}, _, args}
           when fun in [:puts, :write, :inspect] ->
-            if stdout_call?(args) do
-              {node, [{"IO.#{fun}/#{length(args)}", meta[:line] || 0} | acc]}
-            else
-              {node, acc}
-            end
+            {node, [{"IO.#{fun}/#{length(args)}", meta[:line] || 0} | acc]}
 
           {{:., meta, [{:__aliases__, _, [:Mix]}, :shell]}, _, _args} ->
             {node, [{"Mix.shell/0", meta[:line] || 0} | acc]}
@@ -90,11 +85,4 @@ defmodule Ancora.Static.ForbiddenWriterTest do
 
     Enum.reverse(acc)
   end
-
-  # Literal :stderr / :standard_error is a diagnostic, not a stdout write.
-  # Config, Severity, and Trailer emit [CONFIG] this way until Mix tasks
-  # (L9) call Output.config_diagnostic/1 on those paths too.
-  defp stdout_call?([:stderr | _]), do: false
-  defp stdout_call?([:standard_error | _]), do: false
-  defp stdout_call?(_args), do: true
 end

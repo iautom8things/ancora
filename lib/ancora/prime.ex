@@ -10,7 +10,7 @@ defmodule Ancora.Prime do
   @spec build(Path.t(), keyword()) :: {:ok, map()} | {:env, String.t()}
   def build(root, opts \\ []) when is_binary(root) and is_list(opts) do
     with {:ok, status} <- Status.build(root, opts),
-         {:ok, next} <- Next.build(root, opts) do
+         {:ok, next} <- Next.build(root, Keyword.put(opts, :status, status)) do
       lines =
         ["Spec Led Prime", "", "Status"] ++
           drop_header(status.lines) ++

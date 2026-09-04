@@ -67,6 +67,9 @@ decisions:
     returned blob bytes.
     Ancora.BaseView shall read the blob OID returned by `ls-tree`, not rebuild
     `<base>:<path>`, and shall create each materialized parent directory once.
+    Its root directory name shall use `Ancora.TempName.cross_vm_suffix/0`, and
+    it shall create that root with non-recursive `File.mkdir/1` so a pre-existing
+    path, including a symlink, returns an error before any blob write.
     The gate's base view shall contain only the configured spec directory,
     configured `test_paths`, and project `lib_paths`.
   priority: must
@@ -90,7 +93,9 @@ decisions:
     expressions, its last expression shall be read as the return value and
     must be a literal keyword list. A dynamic `elixirc_paths` shall degrade
     to `["lib"]`, overridable by the `lib_paths:` config key; an `apps_path:`
-    key shall hard-fail as an umbrella root; a non-literal `app:` shall
+    key shall hard-fail as an umbrella root. Preflight shall pass its resolved
+    `lib_paths` value, including nil, into ProjectInfo so ProjectInfo does not
+    read `.spec/config.yml` again on that path. A non-literal `app:` shall
     hard-fail with a message. No module downstream of preflight shall read
     `Mix.Project` state.
   priority: must

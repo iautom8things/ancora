@@ -10,8 +10,7 @@ defmodule Ancora.Parser do
   The `"exceptions"` key and `spec-exceptions` block are deprecated. Ancora
   1.x continues to parse and return them. Ancora 2.0 will remove them.
 
-  README documentation of this commitment lands at publish (L12); the
-  commitment is recorded here.
+  The commitment is also documented in the README.
   """
 
   alias Ancora.Finding

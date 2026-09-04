@@ -45,7 +45,10 @@ decisions:
     base ref and return `{:ok, view}`. For each affected subject, the view
     shall combine its contract, tagged test files, changed-file diffs, and
     gate findings so newly called functions appear in `added_bindings` and
-    changed watched functions appear as drift or acknowledged cards.
+    changed watched functions appear as drift or acknowledged cards. The
+    builder shall pass its already-parsed base and HEAD subjects to
+    `Ancora.Review.SpecDiff.compute/2`; no root-reading `compute/3` entry point
+    shall exist.
   priority: must
   stability: evolving
 - id: ancora.review.code_pivot_grouping
@@ -82,7 +85,8 @@ decisions:
     and the change verdict shall be clean only when that list is empty. The
     builder shall compute repo-state findings once against the base corpus
     materialized by Ancora.BaseView and once against HEAD. No evidence store
-    or persisted snapshot shall be read or written.
+    or persisted snapshot shall be read or written. FindingsDelta shall expose
+    no root-reading `compute/3` function or binary-root `classify/3` clause.
   priority: must
   stability: stable
 - id: ancora.review.markdown_transform

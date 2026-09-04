@@ -24,6 +24,7 @@ defmodule Ancora.Trailer do
 
   alias Ancora.Finding
   alias Ancora.Git
+  alias Ancora.Output
   alias Ancora.Severity
 
   @trailer_prefix "Spec-Ack:"
@@ -139,7 +140,7 @@ defmodule Ancora.Trailer do
 
   defp warn(%{warnings: warnings} = acc, msg) do
     line = "[CONFIG] Spec-Ack: #{msg}"
-    IO.puts(:stderr, line)
+    Output.config_diagnostic("Spec-Ack: #{msg}")
     %{acc | warnings: [line | warnings]}
   end
 

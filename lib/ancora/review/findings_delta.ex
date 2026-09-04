@@ -1,14 +1,7 @@
 defmodule Ancora.Review.FindingsDelta do
   @moduledoc "Computes repo-state findings on both sides and classifies the change."
 
-  alias Ancora.{Index, Overlap, Verifier}
-
-  @spec compute(Path.t(), Path.t(), [Ancora.Finding.t()]) :: map()
-  def compute(base_root, head_root, diff_findings \\ []) do
-    base = base_root |> Index.build() |> repo_findings()
-    head = head_root |> Index.build() |> repo_findings()
-    classify(base, head, diff_findings)
-  end
+  alias Ancora.{Overlap, Verifier}
 
   @spec repo_findings(map()) :: [Ancora.Finding.t()]
   def repo_findings(index) do
@@ -18,11 +11,6 @@ defmodule Ancora.Review.FindingsDelta do
 
   @spec classify([Ancora.Finding.t()], [Ancora.Finding.t()], [Ancora.Finding.t()]) :: map()
   def classify(base, head, diff_findings \\ [])
-
-  def classify(base_root, head_root, diff_findings)
-      when is_binary(base_root) and is_binary(head_root) do
-    compute(base_root, head_root, diff_findings)
-  end
 
   def classify(base, head, diff_findings) when is_list(base) and is_list(head) do
     base_signatures = MapSet.new(base, &signature/1)

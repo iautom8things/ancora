@@ -26,7 +26,7 @@ defmodule Ancora.Config do
   forward-compatible.
   """
 
-  alias Ancora.Finding
+  alias Ancora.{Finding, Output}
   alias Ancora.Severity
 
   defmodule Override do
@@ -501,7 +501,7 @@ defmodule Ancora.Config do
   end
 
   defp emit_config(message) do
-    IO.puts(:stderr, "[CONFIG] #{message}")
+    Output.config_diagnostic(message)
   end
 
   defp format_yaml_error(error) when is_binary(error), do: error

@@ -113,6 +113,7 @@ defmodule Ancora.ProjectInfo do
 
   defp lib_paths(root, project, opts) do
     case Keyword.fetch(opts, :lib_paths) do
+      {:ok, nil} -> literal_elixirc_paths(project)
       {:ok, paths} -> validate_lib_paths(paths)
       :error -> project_lib_paths(root, project)
     end

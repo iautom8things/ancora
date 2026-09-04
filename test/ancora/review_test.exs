@@ -122,6 +122,21 @@ defmodule Ancora.ReviewTest do
     assert stable_delta.change_verdict.clean?
   end
 
+  @tag spec: "ancora.review.findings_delta_without_store"
+  test "removed root-reading review entry points stay absent" do
+    # Would fail if review restored either path-based compatibility entry point.
+    head = %{"requirements" => [], "scenarios" => []}
+    spec_diff = Ancora.Review.SpecDiff.compute(head, nil)
+    assert spec_diff.base_existed? == false
+
+    refute function_exported?(Ancora.Review.SpecDiff, :compute, 3)
+    refute function_exported?(FindingsDelta, :compute, 3)
+
+    assert_raise FunctionClauseError, fn ->
+      FindingsDelta.classify("base-root", "head-root", [])
+    end
+  end
+
   @tag spec: "ancora.review.code_pivot_grouping"
   @tag spec: "ancora.review.view_model_builder"
   test "production builder lists a newly called binding under test changes", %{root: root} do

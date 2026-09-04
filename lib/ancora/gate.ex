@@ -121,7 +121,6 @@ defmodule Ancora.Gate do
          {:ok, head_sets, base_sets} <-
            derive_sets(
              preflight,
-             change_set,
              locator,
              head_tags,
              base_tags,
@@ -181,16 +180,16 @@ defmodule Ancora.Gate do
              head = Map.get(head_sets, subject_id, empty_set(subject_id, :head))
              base = Map.get(base_sets, subject_id, empty_set(subject_id, :base))
 
+             findings =
+               Compare.compare(subject_id, base, head,
+                 locator: locator,
+                 change_set: change_set,
+                 root: preflight.root,
+                 parsed_sources: parsed_sources
+               )
+
              case acknowledged?(subject_id, current, prior, preflight.root, base_root) do
                {:ok, acknowledged?} ->
-                 findings =
-                   Compare.compare(subject_id, base, head,
-                     locator: locator,
-                     change_set: change_set,
-                     root: preflight.root,
-                     parsed_sources: parsed_sources
-                   )
-
                  findings =
                    if acknowledged? do
                      Enum.reject(
@@ -278,7 +277,6 @@ defmodule Ancora.Gate do
 
   defp derive_sets(
          preflight,
-         change_set,
          locator,
          head_tags,
          base_tags,
@@ -309,7 +307,6 @@ defmodule Ancora.Gate do
              context: base_ctx,
              sources: base_sources
            ) do
-      _ = change_set
       {:ok, head_sets, base_sets}
     end
   end

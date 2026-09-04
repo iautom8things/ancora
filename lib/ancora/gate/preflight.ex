@@ -197,9 +197,7 @@ defmodule Ancora.Gate.Preflight do
       else: "#{prefix}; git exited #{status}: #{detail}"
   end
 
-  # Config.load/1 is the sole YAML parse in preflight. ProjectInfo receives an
-  # override only when the config key was present, so literal elixirc_paths
-  # remain authoritative otherwise.
-  defp project_opts(%Config{lib_paths: nil}), do: []
+  # ProjectInfo receives the resolved value, including nil, so preflight never
+  # asks it to read `.spec/config.yml` a second time.
   defp project_opts(%Config{lib_paths: paths}), do: [lib_paths: paths]
 end

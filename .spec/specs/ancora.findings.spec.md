@@ -136,6 +136,16 @@ decisions:
     is configured in the same PR that bumps the dependency.
   priority: should
   stability: stable
+- id: ancora.findings.modal_classifier
+  statement: >-
+    Ancora.ModalClass shall classify the positive, negative, and weak modal
+    phrases listed by its public modal type, including contracted negative
+    forms after punctuation normalization. Its phrase regexes shall be fixed
+    module attributes. Its moduledoc shall state that the active append-only
+    gate compares parsed priority fields directly and does not call the
+    classifier.
+  priority: must
+  stability: stable
 ```
 
 ## Scenarios
@@ -294,6 +304,16 @@ decisions:
     - it mentions `mix.lock` and configuring a new code in the same PR as the dependency bump
   covers:
     - ancora.findings.config_coversioned_note
+- id: ancora.findings.scenario.modal_classifier_is_standalone
+  given:
+    - a requirement statement containing a positive, negative, weak, or contracted negative modal
+  when:
+    - Ancora.ModalClass.classify/1 classifies it
+  then:
+    - the matching modal atom is returned
+    - the module documentation does not claim the append-only gate calls the classifier
+  covers:
+    - ancora.findings.modal_classifier
 ```
 
 ## Verification
@@ -310,4 +330,5 @@ decisions:
     - ancora.findings.config_schema
     - ancora.findings.per_subject_overrides
     - ancora.findings.config_coversioned_note
+    - ancora.findings.modal_classifier
 ```

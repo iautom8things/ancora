@@ -1,9 +1,6 @@
 defmodule Ancora.Review.SpecDiff do
   @moduledoc false
 
-  alias Ancora.BaseView
-  alias Ancora.Parser
-
   @spec compute(map(), map() | nil) :: map()
   def compute(head, base) when is_map(head) do
     %{
@@ -12,33 +9,6 @@ defmodule Ancora.Review.SpecDiff do
       requirements: changes(head["requirements"] || [], field(base, "requirements")),
       scenarios: changes(head["scenarios"] || [], field(base, "scenarios"))
     }
-  end
-
-  @spec compute(Path.t(), String.t(), map()) :: map()
-  def compute(root, base_ref, head)
-      when is_binary(root) and is_binary(base_ref) and is_map(head) do
-    file = Map.get(head, "file")
-
-    base =
-      case BaseView.blobs(root, base_ref, pathspecs: [file]) do
-        {:ok, %{^file => source}} -> parse_source(source)
-        _ -> nil
-      end
-
-    compute(head, base)
-  end
-
-  defp parse_source(source) do
-    root = Path.join(System.tmp_dir!(), "ancora_spec_diff_#{System.unique_integer([:positive])}")
-    path = Path.join(root, "subject.spec.md")
-    File.mkdir_p!(root)
-    File.write!(path, source)
-
-    try do
-      Parser.parse_file(path, root)
-    after
-      File.rm_rf(root)
-    end
   end
 
   defp changes(head, base) do

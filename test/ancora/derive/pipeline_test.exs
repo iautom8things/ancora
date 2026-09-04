@@ -158,14 +158,9 @@ defmodule Ancora.Derive.PipelineTest do
 
   @tag spec: "ancora.gate.preflight_hard_fails"
   test "a raising resolver returns an error without exiting its caller" do
-    ctx = %{
-      membership: fn _module -> raise "resolver exploded" end,
-      ambient: MapSet.new(),
-      external_exports: MapSet.new(),
-      def_index: fn _module -> :unknown end,
-      findings: [],
-      side: :head
-    }
+    membership = %Membership{head: MapSet.new(), base: MapSet.new()}
+    {:ok, ctx} = Derive.context({:ok, membership}, :head, %{})
+    ctx = %{ctx | membership: fn _module -> raise "resolver exploded" end}
 
     source = "defmodule SampleTest do\n  test \"call\", do: Sample.run()\nend\n"
 
@@ -175,8 +170,6 @@ defmodule Ancora.Derive.PipelineTest do
                context: ctx,
                sources: %{"test/sample_test.exs" => source}
              )
-
-    assert Process.alive?(self())
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
