@@ -7,7 +7,7 @@
   "id": "ancora-41r.4",
   "labels": [
     "critical",
-    "phase:verifying"
+    "phase:merging"
   ],
   "parent": "ancora-41r",
   "comments": [
@@ -32,5 +32,5 @@
   "status": "in_progress",
   "title": "The documented --spec-dir default does not exist and passing it raises with no verdict",
   "type": "bug",
-  "updated_at": "2026-09-04T11:48:40Z"
+  "updated_at": "2026-09-04T11:48:49Z"
 }
