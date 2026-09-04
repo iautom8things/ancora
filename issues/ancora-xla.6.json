@@ -9,7 +9,7 @@
   "id": "ancora-xla.6",
   "labels": [
     "critical",
-    "phase:auditing"
+    "phase:implementing"
   ],
   "parent": "ancora-xla",
   "comments": [
@@ -34,5 +34,5 @@
   "status": "in_progress",
   "title": "Delete the dead paths and finish the half-wired substitutions",
   "type": "task",
-  "updated_at": "2026-09-04T02:58:05Z"
+  "updated_at": "2026-09-04T02:59:11Z"
 }
