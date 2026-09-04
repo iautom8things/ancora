@@ -73,11 +73,15 @@
     {
       "text": "PR opened: https://github.com/iautom8things/ancora/pull/3 (release 1.1.0). This epic's six fixes ship inside it from ancora-xla/post-ship-hardening; the epic stays in progress through CI and closes at delivery after merge and a healthy deploy. Babysitting CI.",
       "timestamp": "2026-09-04T13:40:54Z"
+    },
+    {
+      "text": "Squash-merged to main inside PR #3 as f977c9a (release 1.1.0) at 13:52:34Z. No deploy or publish workflow exists in this repo; the post-merge run being watched is CI on main. Delivery follows once that run is green.",
+      "timestamp": "2026-09-04T13:53:27Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T13:52:53Z"
+  "updated_at": "2026-09-04T13:53:27Z"
 }
