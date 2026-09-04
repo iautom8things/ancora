@@ -319,7 +319,7 @@ defmodule Ancora.GateTest do
       current = governed_index(affected_id)
 
       refute Enum.any?(
-               ChangeAnalysis.findings(change_set, %{}, current, current, []),
+               ChangeAnalysis.findings(change_set, %{}, current, current, %{head: %{}, base: %{}}),
                &(&1.code == "change/missing_decision")
              )
     end
@@ -335,7 +335,7 @@ defmodule Ancora.GateTest do
                %{},
                %{"subjects" => []},
                %{"subjects" => []},
-               []
+               %{head: %{}, base: %{}}
              )
   end
 
@@ -349,6 +349,8 @@ defmodule Ancora.GateTest do
 
   @tag spec: "ancora.gate.acknowledgment_clears"
   @tag spec: "ancora.findings.severity_precedence"
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
+  @tag spec: "ancora.gate.statement_change_disclosed"
   test "a substantive spec edit retains production drift as an acknowledged info", %{root: root} do
     init_git_repo(root)
     write_anchored_subject(root, "The sample shall return the current value.")
@@ -356,7 +358,14 @@ defmodule Ancora.GateTest do
 
     write_files(root, %{
       "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n",
-      ".spec/specs/sample.spec.md" => subject_spec("The sample shall return the changed value.")
+      ".spec/specs/sample.spec.md" => subject_spec("The sample shall return the changed value."),
+      "test/second_sample_test.exs" => """
+      defmodule SecondSampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "second binding", do: assert(Sample.value() == :changed)
+      end
+      """
     })
 
     assert {:ok, report} = Gate.check(root, base: "HEAD")
@@ -364,6 +373,50 @@ defmodule Ancora.GateTest do
     assert Enum.any?(report.all_findings, fn finding ->
              finding.code == "derived/drift" and finding.severity == :info and
                finding.severity_source == :ack
+           end)
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "append/statement_changed" and
+               finding.requirement == "sample.subject.works"
+           end)
+
+    refute Enum.any?(report.all_findings, &(&1.code == "tags/tag_borrowed"))
+  end
+
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
+  test "a new tag on an unchanged existing requirement is disclosed", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" => subject_spec(),
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "tags/tag_borrowed" and
+               finding.file == "test/sample_test.exs" and
+               finding.requirement == "sample.subject.works" and finding.severity == :info
            end)
   end
 
@@ -462,6 +515,7 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.new_subject_self_clears"
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
   test "a new subject acknowledges its own growth", %{root: root} do
     create_clean_repo(root)
     write_anchored_subject(root, "The sample shall return the current value.")
@@ -472,6 +526,8 @@ defmodule Ancora.GateTest do
              finding.code == "derived/growth" and finding.severity == :info and
                finding.severity_source == :ack
            end)
+
+    refute Enum.any?(report.all_findings, &(&1.code == "tags/tag_borrowed"))
   end
 
   @tag spec: "ancora.derive.growth_and_shrink"

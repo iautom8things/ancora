@@ -23,12 +23,14 @@ tagged tests.
 | change | `change/uncovered_file` | warning |
 | change | `change/missing_decision` | warning |
 | tags | `tags/new_requirement_untagged` | warning |
+| tags | `tags/tag_borrowed` | info |
 | tags | `tags/parse_error` | error |
 | tags | `tags/dynamic_value` | info |
 | tags | `tags/requirement_untagged` | info |
 | tags | `tags/unknown_requirement` | warning |
 | append | `append/requirement_deleted` | error |
 | append | `append/must_downgraded` | error |
+| append | `append/statement_changed` | info |
 | format | `format/retired_construct` | warning |
 | spec | `spec/parse_error` | error |
 | spec | `spec/duplicate_id` | error |

@@ -14,12 +14,14 @@ defmodule Ancora.FindingTest do
     "change/uncovered_file",
     "change/missing_decision",
     "tags/new_requirement_untagged",
+    "tags/tag_borrowed",
     "tags/parse_error",
     "tags/dynamic_value",
     "tags/requirement_untagged",
     "tags/unknown_requirement",
     "append/requirement_deleted",
     "append/must_downgraded",
+    "append/statement_changed",
     "format/retired_construct",
     "spec/parse_error",
     "spec/duplicate_id",
@@ -48,12 +50,14 @@ defmodule Ancora.FindingTest do
     "change/uncovered_file" => :warning,
     "change/missing_decision" => :warning,
     "tags/new_requirement_untagged" => :warning,
+    "tags/tag_borrowed" => :info,
     "tags/parse_error" => :error,
     "tags/dynamic_value" => :info,
     "tags/requirement_untagged" => :info,
     "tags/unknown_requirement" => :warning,
     "append/requirement_deleted" => :error,
     "append/must_downgraded" => :error,
+    "append/statement_changed" => :info,
     "format/retired_construct" => :warning,
     "spec/parse_error" => :error,
     "spec/duplicate_id" => :error,
@@ -73,12 +77,12 @@ defmodule Ancora.FindingTest do
 
   describe "registry closure" do
     @tag spec: "ancora.findings.registry_closed"
-    test "owns exactly the 31 enumerated codes, each with family, default, and message" do
+    test "owns exactly the 33 enumerated codes, each with family, default, and message" do
       registry = Finding.registry()
       codes = Finding.codes()
 
-      assert length(codes) == 31
-      assert length(Enum.uniq(codes)) == 31
+      assert length(codes) == 33
+      assert length(Enum.uniq(codes)) == 33
       assert codes == @expected_codes
       assert Map.keys(registry) -- @expected_codes == []
       assert @expected_codes -- Map.keys(registry) == []
@@ -118,7 +122,7 @@ defmodule Ancora.FindingTest do
   describe "registry defaults" do
     @tag spec: "ancora.findings.registry_defaults"
     test "each code's default matches the spec table" do
-      assert map_size(@expected_defaults) == 31
+      assert map_size(@expected_defaults) == 33
 
       for {code, expected} <- @expected_defaults do
         assert Finding.default_severity(code) == expected,

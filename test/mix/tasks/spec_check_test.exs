@@ -126,7 +126,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert result.status == 0
 
     assert result.stdout =~
-             "branch base=HEAD~1 changed_files=3 findings=6 (error=0 warning=0 info=6 hidden: default=2 trailer=1 ack=3)"
+             "branch base=HEAD~1 changed_files=3 findings=7 (error=0 warning=0 info=7 hidden: default=3 trailer=1 ack=3)"
   end
 
   @tag spec: "ancora.tasks.check_flags"

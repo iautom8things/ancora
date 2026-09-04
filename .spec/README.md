@@ -22,7 +22,7 @@ every file is authored.
 | `ancora.parsing` | spec and ADR grammar, retired-construct tolerance, structural checks, tag discovery |
 | `ancora.derive` | change set, membership, resolver, extraction, canonical compare, acknowledgment |
 | `ancora.gate` | spec.check orchestration, hard fails, diff scoping, the two append guards |
-| `ancora.findings` | the 31-code registry, severity precedence, Spec-Ack trailer, config schema |
+| `ancora.findings` | the 33-code registry, severity precedence, Spec-Ack trailer, config schema |
 | `ancora.tasks` | the eight tasks, single-writer stdout, verdict grammar, emission paths |
 | `ancora.review` | spec.review artifact, Code grouping, markdown transform, meta line |
 | `ancora.scaffold` | spec.init templates, decision.new, README commitments, migration doc |

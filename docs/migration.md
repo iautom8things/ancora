@@ -56,7 +56,7 @@ end
 
 ## Finding code map
 
-Ancora has 31 finding codes. The right column is the closed registry. Several
+Ancora has 33 finding codes. The right column is the closed registry. Several
 old checks converge on one current code, while some current codes have no
 direct predecessor.
 
@@ -72,12 +72,14 @@ direct predecessor.
 | `branch_guard_unmapped_change` | `change/uncovered_file` |
 | `branch_guard_missing_decision_update` | `change/missing_decision` |
 | `branch_guard_requirement_without_test_tag` | `tags/new_requirement_untagged` |
+| no direct predecessor | `tags/tag_borrowed` |
 | `tag_scan_parse_error` | `tags/parse_error` |
 | `tag_dynamic_value_skipped` | `tags/dynamic_value` |
 | `requirement_without_test_tag` | `tags/requirement_untagged` |
 | `verification_cover_untagged` | `tags/unknown_requirement` |
 | `append_only/requirement_deleted` | `append/requirement_deleted` |
 | `append_only/must_downgraded` | `append/must_downgraded` |
+| no direct predecessor | `append/statement_changed` |
 | `verification_kind_invalid`, `verification_unknown_kind` | `format/retired_construct` |
 | `verification_command_*`, `tagged_tests_cover_not_executed` | `spec/parse_error` |
 | `duplicate_requirement_id`, `duplicate_scenario_id`, `duplicate_subject_id`, `duplicate_exception_id`, `duplicate_decision_id` | `spec/duplicate_id` |

@@ -1,6 +1,6 @@
 defmodule Ancora.Finding do
   @moduledoc """
-  Closed 31-code finding registry: the single source every other module reads.
+  Closed 33-code finding registry: the single source every other module reads.
 
   Each code has a family, a default severity, and a message function whose
   text names the subject or file and the action that clears the finding.
@@ -40,7 +40,7 @@ defmodule Ancora.Finding do
 
   @non_tunable MapSet.new(["config/unknown_key", "config/invalid_value"])
 
-  # {code, default}. Family is the prefix before `/`. Count is 31.
+  # {code, default}. Family is the prefix before `/`. Count is 33.
   @entries [
     {"derived/drift", :error},
     {"derived/drift_transitive", :info},
@@ -52,12 +52,14 @@ defmodule Ancora.Finding do
     {"change/uncovered_file", :warning},
     {"change/missing_decision", :warning},
     {"tags/new_requirement_untagged", :warning},
+    {"tags/tag_borrowed", :info},
     {"tags/parse_error", :error},
     {"tags/dynamic_value", :info},
     {"tags/requirement_untagged", :info},
     {"tags/unknown_requirement", :warning},
     {"append/requirement_deleted", :error},
     {"append/must_downgraded", :error},
+    {"append/statement_changed", :info},
     {"format/retired_construct", :warning},
     {"spec/parse_error", :error},
     {"spec/duplicate_id", :error},
@@ -221,6 +223,11 @@ defmodule Ancora.Finding do
     "#{s(ctx)}.#{req(ctx)}: added without a tagged test; tag a test with this requirement id"
   end
 
+  defp render("tags/tag_borrowed", ctx) do
+    "#{f(ctx)}: new test binds to unchanged requirement #{req(ctx)}; " <>
+      "confirm the test exercises it"
+  end
+
   defp render("tags/parse_error", ctx) do
     "#{f(ctx)}: test file failed tag scan (#{d(ctx, "parse error")}); fix the test file"
   end
@@ -246,6 +253,10 @@ defmodule Ancora.Finding do
   defp render("append/must_downgraded", ctx) do
     "#{s(ctx)}.#{req(ctx)}: must → should; no authorizing ADR names it — " <>
       "add an accepted ADR whose affects: names the requirement or its subject"
+  end
+
+  defp render("append/statement_changed", ctx) do
+    "#{s(ctx)}.#{req(ctx)}: requirement statement changed; review the revised contract"
   end
 
   defp render("format/retired_construct", ctx) do

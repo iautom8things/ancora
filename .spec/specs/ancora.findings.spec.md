@@ -1,6 +1,6 @@
 # Finding Registry, Severity, Trailer, and Config
 
-The closed 31-code registry, per-finding severity resolution, the `Spec-Ack:`
+The closed 33-code registry, per-finding severity resolution, the `Spec-Ack:`
 trailer, and the `.spec/config.yml` schema with per-subject overrides.
 
 ## Intent
@@ -11,8 +11,8 @@ the review artifact all read. Adding a code is a spec change in this corpus.
 
 Count note: the planning documents say 26 codes. Enumerating the registry
 table after the `spec/prose_too_short` cut gave 30; the 26 was a carried
-miscount. The primary/transitive drift split adds the 31st code. The
-enumerated list below is authoritative.
+miscount. The primary/transitive drift split and two disclosure codes bring
+the registry to 33. The enumerated list below is authoritative.
 Severity has one precedence chain, silence lives in the repo where review
 can see it, and the trailer can only lower.
 
@@ -23,7 +23,7 @@ Modules: `Ancora.Finding`, `Ancora.Severity`, `Ancora.Trailer`,
 id: ancora.findings
 kind: module
 status: active
-summary: Closed 31-code finding registry, severity precedence, Spec-Ack trailer grammar, and config.yml schema with per-subject overrides.
+summary: Closed 33-code finding registry, severity precedence, Spec-Ack trailer grammar, and config.yml schema with per-subject overrides.
 decisions:
   - ancora.decision.field_friction_response
   - ancora.decision.slimmed_governance
@@ -34,16 +34,18 @@ decisions:
 ```yaml spec-requirements
 - id: ancora.findings.registry_closed
   statement: >-
-    Ancora.Finding shall own exactly 31 codes, each with a family, a default
+    Ancora.Finding shall own exactly 33 codes, each with a family, a default
     severity, and a message function, and shall be the single source every
     other module reads. The codes are `derived/drift`,
     `derived/drift_transitive`, `derived/growth`, `derived/shrink`,
     `derived/unresolved_calls`, `derived/unparseable_source`,
     `derived/unanchored_subject`, `change/uncovered_file`,
     `change/missing_decision`, `tags/new_requirement_untagged`,
+    `tags/tag_borrowed`,
     `tags/parse_error`, `tags/dynamic_value`, `tags/requirement_untagged`,
     `tags/unknown_requirement`, `append/requirement_deleted`,
-    `append/must_downgraded`, `format/retired_construct`, `spec/parse_error`,
+    `append/must_downgraded`, `append/statement_changed`,
+    `format/retired_construct`, `spec/parse_error`,
     `spec/duplicate_id`, `spec/invalid_id`, `spec/missing_field`,
     `spec/unknown_reference`, `spec/requirement_unverified`,
     `adr/parse_error`, `adr/missing_section`, `adr/affects_empty`,
@@ -56,7 +58,8 @@ decisions:
 - id: ancora.findings.registry_defaults
   statement: >-
     Registry defaults shall be: error for `derived/drift`,
-    `derived/unparseable_source`, `append/*`, `spec/parse_error`,
+    `derived/unparseable_source`, `append/requirement_deleted`,
+    `append/must_downgraded`, `spec/parse_error`,
     `spec/duplicate_id`, `spec/invalid_id`, `spec/missing_field`,
     `spec/unknown_reference`, `adr/parse_error`, `adr/missing_section`,
     `adr/affects_unresolved`, `overlap/*`, and `tags/parse_error`; warning
@@ -65,8 +68,9 @@ decisions:
     `tags/new_requirement_untagged`, `tags/unknown_requirement`,
     `format/retired_construct`, `adr/affects_empty`, `config/unknown_key`,
     and `config/invalid_value`; info for `derived/unresolved_calls`,
-    `tags/dynamic_value`, `tags/requirement_untagged`,
-    `spec/requirement_unverified`, and `derived/drift_transitive`.
+    `tags/dynamic_value`, `tags/requirement_untagged`, `tags/tag_borrowed`,
+    `append/statement_changed`, `spec/requirement_unverified`, and
+    `derived/drift_transitive`.
   priority: must
   stability: evolving
 - id: ancora.findings.messages_carry_remedy
@@ -149,7 +153,7 @@ decisions:
   when:
     - the closure test enumerates it
   then:
-    - exactly 31 codes exist
+    - exactly 33 codes exist
     - each has a family, a default, and a message function that returns a non-empty string
   covers:
     - ancora.findings.registry_closed

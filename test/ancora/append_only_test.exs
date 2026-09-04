@@ -143,7 +143,55 @@ defmodule Ancora.AppendOnlyTest do
     end
   end
 
-  defp spec_with_req(id, priority) do
+  describe "statement_changed" do
+    @tag spec: "ancora.gate.statement_change_disclosed"
+    test "a reworded statement is disclosed at info with its requirement id", %{root: root} do
+      write_spec(root, "alpha", spec_with_req("alpha", "must", "Alpha shall hold."))
+      prior = Index.build(root)
+
+      write_spec(root, "alpha", spec_with_req("alpha", "must", "Alpha shall remain true."))
+      current = Index.build(root)
+
+      assert [finding] =
+               AppendOnly.analyze(prior, current)
+               |> Enum.filter(&(&1.code == "append/statement_changed"))
+
+      assert finding.requirement == "alpha.requirement"
+      assert finding.severity == :info
+    end
+
+    @tag spec: "ancora.gate.statement_change_disclosed"
+    test "whitespace-only statement formatting is ignored", %{root: root} do
+      write_spec(root, "alpha", spec_with_req("alpha", "must", "Alpha shall hold."))
+      prior = Index.build(root)
+
+      write_spec(root, "alpha", spec_with_req("alpha", "must", "  Alpha   shall\n    hold.  "))
+      current = Index.build(root)
+
+      refute Enum.any?(
+               AppendOnly.analyze(prior, current),
+               &(&1.code == "append/statement_changed")
+             )
+    end
+
+    @tag spec: "ancora.gate.statement_change_disclosed"
+    test "a priority-only change is not a statement change", %{root: root} do
+      write_spec(root, "alpha", spec_with_req("alpha", "should"))
+      prior = Index.build(root)
+
+      write_spec(root, "alpha", spec_with_req("alpha", "must"))
+      current = Index.build(root)
+
+      refute Enum.any?(
+               AppendOnly.analyze(prior, current),
+               &(&1.code == "append/statement_changed")
+             )
+    end
+  end
+
+  defp spec_with_req(id, priority, statement \\ nil) do
+    statement = statement || "#{id} shall hold."
+
     """
     # #{id}
 
@@ -155,7 +203,7 @@ defmodule Ancora.AppendOnlyTest do
 
     ```yaml spec-requirements
     - id: #{id}.requirement
-      statement: #{id} shall hold.
+      statement: #{statement}
       priority: #{priority}
     ```
     """

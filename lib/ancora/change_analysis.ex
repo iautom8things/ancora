@@ -7,14 +7,17 @@ defmodule Ancora.ChangeAnalysis do
   alias Ancora.Finding
   alias Ancora.PolicyFiles
 
-  @spec findings(ChangeSet.t(), map(), map(), map(), [String.t()]) :: [Finding.t()]
-  def findings(%ChangeSet{} = change_set, footprints, prior, current, tagged_ids)
-      when is_map(footprints) and is_map(prior) and is_map(current) and is_list(tagged_ids) do
+  @spec findings(ChangeSet.t(), map(), map(), map(), %{head: map(), base: map()}) :: [Finding.t()]
+  def findings(%ChangeSet{} = change_set, footprints, prior, current, tag_maps)
+      when is_map(footprints) and is_map(prior) and is_map(current) and is_map(tag_maps) do
     paths = ChangeSet.paths(change_set)
+    head_tags = Map.fetch!(tag_maps, :head)
+    base_tags = Map.fetch!(tag_maps, :base)
 
     uncovered_findings(paths, footprints) ++
       missing_decision_findings(paths, current) ++
-      new_requirement_findings(prior, current, tagged_ids)
+      new_requirement_findings(prior, current, Map.keys(head_tags)) ++
+      borrowed_tag_findings(prior, current, head_tags, base_tags)
   end
 
   defp uncovered_findings(paths, footprints) do
@@ -139,6 +142,51 @@ defmodule Ancora.ChangeAnalysis do
     |> Enum.reject(&is_nil/1)
     |> MapSet.new()
   end
+
+  defp borrowed_tag_findings(prior, current, head_tags, base_tags) do
+    prior_requirements = requirements_by_id(prior)
+    current_requirements = requirements_by_id(current)
+
+    Enum.flat_map(head_tags, fn {id, head_entries} ->
+      with {:ok, prior_requirement} <- Map.fetch(prior_requirements, id),
+           {:ok, current_requirement} <- Map.fetch(current_requirements, id),
+           true <- prior_requirement.statement == current_requirement.statement do
+        base_entries = base_tags |> Map.get(id, []) |> MapSet.new(&tag_identity/1)
+
+        head_entries
+        |> Enum.reject(&MapSet.member?(base_entries, tag_identity(&1)))
+        |> Enum.map(fn entry ->
+          Finding.new(code: "tags/tag_borrowed", file: entry.file, requirement: id)
+        end)
+      else
+        _ -> []
+      end
+    end)
+  end
+
+  defp requirements_by_id(index) do
+    index
+    |> subjects()
+    |> Enum.flat_map(fn subject ->
+      subject
+      |> Map.get("requirements", [])
+      |> Enum.map(fn requirement ->
+        {Map.get(requirement, :id),
+         %{statement: normalize_statement(Map.get(requirement, :statement))}}
+      end)
+    end)
+    |> Map.new()
+  end
+
+  defp normalize_statement(statement) when is_binary(statement) do
+    statement
+    |> String.split()
+    |> Enum.join(" ")
+  end
+
+  defp normalize_statement(_statement), do: ""
+
+  defp tag_identity(entry), do: {entry.file, entry.test_name}
 
   defp subjects(index), do: Map.get(index, "subjects", [])
 end

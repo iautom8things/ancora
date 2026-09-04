@@ -104,6 +104,7 @@ defmodule Ancora.Gate do
           current,
           prior,
           head_tags,
+          base_tags,
           head_sets,
           base_sets,
           base_root,
@@ -124,6 +125,7 @@ defmodule Ancora.Gate do
          current,
          prior,
          head_tags,
+         base_tags,
          head_sets,
          base_sets,
          base_root,
@@ -154,8 +156,6 @@ defmodule Ancora.Gate do
       |> SubjectFiles.build(locator)
       |> Map.put(:__lib_paths__, preflight.project.lib_paths)
 
-    tag_ids = Map.keys(head_tags.tag_map)
-
     (pipeline_findings ++
        preflight.config.findings ++
        current["findings"] ++
@@ -170,7 +170,10 @@ defmodule Ancora.Gate do
        AppendOnly.analyze(prior, current) ++
        compare ++
        set_visibility_findings(head_sets) ++
-       ChangeAnalysis.findings(change_set, footprints, prior, current, tag_ids))
+       ChangeAnalysis.findings(change_set, footprints, prior, current, %{
+         head: head_tags.tag_map,
+         base: base_tags.tag_map
+       }))
     |> resolve_findings(preflight, ctx)
   end
 
