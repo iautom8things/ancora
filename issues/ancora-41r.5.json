@@ -50,11 +50,15 @@
     {
       "text": "REBASED\nSession: rebase-41r5\nOld base: e18fa05  Old head: 1523912\nNew base: f818d73  New head: 84e85b18b624e012cbe0cc5a850d810498433558\nConflicts: none\nCompile: clean\nTests: 43 tests, 0 failures (three diff-touched files)\nFormat: clean\nspec.check --base f818d73: spec.check result=pass",
       "timestamp": "2026-09-04T12:09:53Z"
+    },
+    {
+      "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-04 08:32 EDT)\ngit range-diff e18fa05..1523912 f818d73..84e85b1: both commits marked = (byte-identical patches; aa5e8c1 -\u003e 3acd303, 1523912 -\u003e 84e85b1). No conflict hunks, so no fresh cold agent. Rebase worker's checks on the new base: compile clean, 43 tests green across the three diff-touched files, format clean, spec.check --base f818d73 result=pass.\nFast-forwarded ancora-41r/pre-release-fixes f818d73 -\u003e 84e85b1. Gate 3 running.",
+      "timestamp": "2026-09-04T12:10:40Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "README and the migration guide promote acknowledgments with an override key Config silently drops",
   "type": "bug",
-  "updated_at": "2026-09-04T12:09:53Z"
+  "updated_at": "2026-09-04T12:10:40Z"
 }
