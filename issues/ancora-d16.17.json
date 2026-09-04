@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T11:04:30Z",
+  "description": "Advances: ancora.parsing. Calibrated severity: Medium. Findings: F25, F58. Source: ~/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-04/ancora-xla-post-ship-hardening/20260904-061300-consolidated.md (review_commit e18fa05); read the finding rows and the persona report(s) named there before starting. Tracked: wiring the schema into DecisionParser changes the error surface for every ADR in every consumer repo and needs an adr/parse_error scenario. Report row: F25/F58 (data M1, L-). Deferred from the 1.1.0 release by Manuel's decision of 2026-09-04 (Critical + High only landed on ancora-41r). Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision; reason above.",
+  "id": "ancora-d16.17",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 3,
+  "status": "open",
+  "title": "Ancora.Schema.Decision validates nothing; retires is inert; Affects keeps a dual-key accessor",
+  "type": "task",
+  "updated_at": "2026-09-04T11:04:30Z"
+}
