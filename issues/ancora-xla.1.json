@@ -9,7 +9,7 @@
   "id": "ancora-xla.1",
   "labels": [
     "critical",
-    "phase:auditing"
+    "phase:implementing"
   ],
   "parent": "ancora-xla",
   "comments": [
@@ -42,5 +42,5 @@
   "status": "in_progress",
   "title": "Pin the type of subject meta and collapse the dual-key index accessor",
   "type": "task",
-  "updated_at": "2026-09-04T03:03:25Z"
+  "updated_at": "2026-09-04T03:03:55Z"
 }
