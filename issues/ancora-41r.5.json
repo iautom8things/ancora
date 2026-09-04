@@ -46,11 +46,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl\n\nGate conditions checked against the bounce re-verification VERIFY: PASS at 1523912 (base e18fa05):\n- Verdict PASS, no gaps. The retry is test-only; lib/ancora/config.ex byte-identical to aa5e8c1. All three audit items made as written: a config test whose only unknown key is `scope` (kills the single-literal loosening at 42/1, the new test being the one failure); the `integration-only` reason assertion (kills the subject-only finding-key mutation at 42/1); a whole-file refute of `requirement:` over README.md and docs/migration.md (4/0 clean, 4/1 with F7's sentence re-added as a new paragraph). Both original mutations still fail (42/3 and 4/2).\n- Scope 0 on both glob sets; spec.check result=pass, errors=0 warnings=0; no trailer; no dep change.\n- Seams: none. Full suite not run by the verifier; the merge gate runs it after rebase.\n- TEST_CRITIC: PASS on file for the retry.\nAdvisories carried: the docs test carries two @tag spec: lines and ExUnit keeps one at runtime (source-scanned coverage unaffected; same shape pre-exists at docs_test.exs:26); the refute matches the bare literal by design; a constant key list at config.ex:403 would still satisfy every key-name assertion (the audit scoped that out deliberately).\nBounce record: 1/2 used. Next: mechanical rebase onto f818d73 (merge-tree clean), gate, close.",
       "timestamp": "2026-09-04T12:08:20Z"
+    },
+    {
+      "text": "REBASED\nSession: rebase-41r5\nOld base: e18fa05  Old head: 1523912\nNew base: f818d73  New head: 84e85b18b624e012cbe0cc5a850d810498433558\nConflicts: none\nCompile: clean\nTests: 43 tests, 0 failures (three diff-touched files)\nFormat: clean\nspec.check --base f818d73: spec.check result=pass",
+      "timestamp": "2026-09-04T12:09:53Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "README and the migration guide promote acknowledgments with an override key Config silently drops",
   "type": "bug",
-  "updated_at": "2026-09-04T12:08:32Z"
+  "updated_at": "2026-09-04T12:09:53Z"
 }
