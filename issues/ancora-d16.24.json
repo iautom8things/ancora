@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T11:04:31Z",
+  "description": "Advances: ancora.parsing. Calibrated severity: Medium. Findings: F39. Source: ~/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-04/ancora-xla-post-ship-hardening/20260904-061300-consolidated.md (review_commit e18fa05); read the finding rows and the persona report(s) named there before starting. Tracked: scoping the sentence is cheap but only meaningful with a cross-referencing fixture plus removing the unreachable subject-id branch in Verifier. Report row: F39 (spec M3). Deferred from the 1.1.0 release by Manuel's decision of 2026-09-04 (Critical + High only landed on ancora-41r). Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision; reason above.",
+  "id": "ancora-d16.24",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 4,
+  "status": "open",
+  "title": "The 'only spec/* finding' sentence is unscoped and false corpus-wide",
+  "type": "task",
+  "updated_at": "2026-09-04T11:04:31Z"
+}
