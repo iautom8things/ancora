@@ -79,11 +79,15 @@
     {
       "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-03 21:07). The rebase implementer posted IMPLEMENTED at c330458, three commits over 316798a, worktree clean, no rebase state, 60 change-scoped tests green, format pass, spec.check --base 316798a result=pass.\n\n`git range-diff 670dd4d..d821ffd 316798a..c330458`: commit 3 (the final-bounce sentence) is byte-identical; commits 1 and 2 differ only in .spec/specs/ancora.derive.spec.md and test/ancora/git_test.exs, the two files where both sides appended at the same spot. Each of the four resolutions was read and matches the order exactly: git.ex's fallback is `run(root, [\"show\", read_spec(base, path)], stderr_to_stdout: false)`; base_view.ex keeps the ancora-kzw comment verbatim above `Git.read_blob(ctx, entry.oid)`; the derive requirement carries the epic's stderr sentence first and this branch's three sentences after; git_test.exs keeps both sides' tests under async: false. Proceeding to fast-forward merge and the full gate.",
       "timestamp": "2026-09-04T00:51:06Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-xla/post-ship-hardening. Closing per orchestrator sign-off.\n\nFast-forward to c330458. Merge gate 9 on the epic branch: compile clean, 380 tests and 3 properties with 0 failures in 36.7s, format pass, deps.unlock pass, mix spec.check --base 7511407 result=pass. Test count moved 372 to 380. Gate log: /private/tmp/claude-501/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5/scratchpad/gate9.log\n\nCarried forward, not blocking: the preflight spec-dir hardcode is filed standalone as ancora-90t; prepare_base_dirs/3's spec-dir parameterization is untested by audit ruling; base_view_test.exs:149 still drains with `after 0`.",
+      "timestamp": "2026-09-04T00:52:25Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Narrow the base-tree materialization and stop the per-binding rework",
   "type": "task",
-  "updated_at": "2026-09-04T00:51:12Z"
+  "updated_at": "2026-09-04T00:52:25Z"
 }
