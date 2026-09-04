@@ -18,6 +18,7 @@ defmodule Ancora.Gate do
   alias Ancora.Gate.Preflight
   alias Ancora.Index
   alias Ancora.Overlap
+  alias Ancora.Output
   alias Ancora.Severity
   alias Ancora.SubjectFiles
   alias Ancora.TagFindings
@@ -512,9 +513,8 @@ defmodule Ancora.Gate do
     |> Enum.each(fn code ->
       severity = Map.fetch!(trailer.non_tip_overrides, code)
 
-      IO.puts(
-        :stderr,
-        "[CONFIG] Spec-Ack: #{code}=#{severity} resolved from a non-tip commit and will be " <>
+      Output.config_diagnostic(
+        "Spec-Ack: #{code}=#{severity} resolved from a non-tip commit and will be " <>
           "lost by a squash merge; promote it to .spec/config.yml before merging"
       )
     end)
