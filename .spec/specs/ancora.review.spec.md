@@ -34,7 +34,9 @@ decisions:
     shall link Overview, Decisions changed, affected subjects, Outside the
     spec system, All files, and Spec health. Each subject shall offer exactly
     three pivots: Spec, Code, and Decisions. No Coverage pivot, triangle
-    diagram, or verification-strength chrome shall render.
+    diagram, verification-strength chrome, or incomplete ARIA tab semantics
+    shall render. The document title shall include the head ref, the overview
+    shall include its generation timestamp, and long code shall wrap.
   priority: must
   stability: evolving
 - id: ancora.review.view_model_builder
@@ -43,7 +45,10 @@ decisions:
     base ref and return `{:ok, view}`. For each affected subject, the view
     shall combine its contract, tagged test files, changed-file diffs, and
     gate findings so newly called functions appear in `added_bindings` and
-    changed watched functions appear as drift or acknowledged cards.
+    changed watched functions appear as drift or acknowledged cards. The
+    builder shall pass its already-parsed base and HEAD subjects to
+    `Ancora.Review.SpecDiff.compute/2`; no root-reading `compute/3` entry point
+    shall exist.
   priority: must
   stability: evolving
 - id: ancora.review.code_pivot_grouping
@@ -53,15 +58,21 @@ decisions:
     `M.f/a`, a drift or acknowledged badge, the changed file's diff, and a
     defining-file link), supporting changes (remaining changed source-file
     diffs), and test changes (tagged-test diffs plus growth and shrink
-    bindings listed as added and removed).
+    bindings listed as added and removed). Watched badges shall use the badge
+    value as their CSS class, and each defining-file link shall target the one
+    `file-*` anchor for that file in All files. Diff code shall remain outside
+    Prism highlighting, preserve authored per-line spans, and apply review CSS
+    after Prism CSS.
   priority: must
   stability: evolving
 - id: ancora.review.findings_inline
   statement: >-
     Each subject card shall carry this change's `derived/*` findings as
     badges with expandable detail, and the page shall render a verdict chip
-    reflecting the gate outcome and a triage panel listing findings by
-    severity.
+    containing the gate verdict from the same run and a triage panel listing
+    findings by severity. Info-only findings shall leave both the gate and
+    chip passing. Each finding summary shall display its severity, file, and
+    a visible marker so colour is not the only severity indicator.
   priority: must
   stability: evolving
 - id: ancora.review.findings_delta_without_store
@@ -75,7 +86,8 @@ decisions:
     and the change verdict shall be clean only when that list is empty. The
     builder shall compute repo-state findings once against the base corpus
     materialized by Ancora.BaseView and once against HEAD. No evidence store
-    or persisted snapshot shall be read or written.
+    or persisted snapshot shall be read or written. FindingsDelta shall expose
+    no root-reading `compute/3` function or binary-root `classify/3` clause.
   priority: must
   stability: stable
 - id: ancora.review.markdown_transform
@@ -95,14 +107,19 @@ decisions:
     wrote <path> (<bytes> bytes)` followed by one indented line `base=<ref>
     head=<ref> affected_subjects=<N> findings=<N>`, byte-compatible with the
     line the shared CI workflow greps today. A usage failure shall raise
-    without printing any `result=` line.
+    without printing any `result=` line. An invalid `--spec-dir` workspace
+    shall print the environment message and exit 1 without a verdict or stack
+    trace.
   priority: must
   stability: stable
 - id: ancora.review.prism_carried
   statement: >-
     Prism.js shall ship vendored under `priv/spec_review_assets/` with its
-    MIT license header intact and a NOTICE entry, trimmed to the grammars
-    elixir, erlang, diff, yaml, markdown, json, markup, css, and javascript.
+    MIT license header intact and a NOTICE entry, and its grammar set
+    trimmed to elixir, erlang, diff, yaml, markdown, json, markup, css,
+    javascript, and clike. A standing test shall pin the SHA-256 digest of
+    all ten files and derive that grammar list from the vendored filenames,
+    so neither NOTICE nor this statement can drift from what ships.
   priority: must
   stability: stable
 - id: ancora.review.size_budget
@@ -113,6 +130,15 @@ decisions:
     exceeded, the first cuts are, in order: supporting-changes hunks degrade
     to a file-link list; findings delta degrades to HEAD-side repo-state
     findings only. The verdict chip and triage panel are not cuttable.
+  priority: must
+  stability: evolving
+- id: ancora.review.artifact_size
+  statement: >-
+    The rendered artifact shall include each changed file's diff body at most
+    twice: once under the single subject that owns the file and once in All
+    files. Every `file-*` anchor shall be unique, and every defining-file link
+    shall target that anchor. A standing 200-file fixture shall render to less
+    than 1 MB.
   priority: must
   stability: evolving
 - id: ancora.review.output_flag
@@ -139,6 +165,9 @@ decisions:
     - the verdict chip shows pass
     - the left-rail links and triage panel are present
     - the three pivots are present and no Coverage pivot exists
+    - the title names the head ref and the overview names the generation timestamp
+    - the pivot controls do not claim an incomplete ARIA tab contract
+    - long code can wrap
   covers:
     - ancora.review.views
     - ancora.review.findings_inline
@@ -151,6 +180,8 @@ decisions:
   then:
     - a card under watched interface names `Billing.next/1` with a drift badge and the hunk
     - the subject card carries a `derived/drift` badge
+    - Prism does not rewrite the authored add and delete spans in the browser
+    - only direct diff line spans render as blocks and review CSS wins over Prism CSS
   covers:
     - ancora.review.view_model_builder
     - ancora.review.code_pivot_grouping
@@ -175,6 +206,7 @@ decisions:
     - Ancora.Review.build/2 builds the view
   then:
     - watched interface contains a `Billing.next/1` card with an acknowledged badge
+    - the badge's CSS class is acknowledged rather than error
   covers:
     - ancora.review.view_model_builder
     - ancora.review.code_pivot_grouping
@@ -190,6 +222,16 @@ decisions:
     - an identity present on both sides is pre-existing and does not appear as introduced
   covers:
     - ancora.review.findings_delta_without_store
+- id: ancora.review.scenario.verdict_chip_matches_gate
+  given:
+    - a temporary repository whose only introduced finding is `spec/requirement_unverified` at info severity
+  when:
+    - `mix spec.check` and `mix spec.review` run from the same commit against the same base
+  then:
+    - the gate passes and the rendered artifact's verdict chip shows pass
+    - promoting that introduced finding to error makes the gate and rendered chip both show fail
+  covers:
+    - ancora.review.findings_inline
 - id: ancora.review.scenario.stable_findings_are_clean
   given:
     - identical repo-state finding lists for the base and HEAD sides
@@ -237,11 +279,13 @@ decisions:
     - ancora.review.meta_line_shape
 - id: ancora.review.scenario.prism_license_present
   given:
-    - the vendored Prism.js file
+    - the ten vendored Prism.js files and their reviewed SHA-256 digests
   when:
-    - its header is read
+    - their bytes, the subject requirement, and NOTICE are checked
   then:
     - the MIT license header is present and NOTICE names Prism.js
+    - every digest matches the reviewed value
+    - NOTICE and the requirement name the same grammar list, derived from the vendored filenames
   covers:
     - ancora.review.prism_carried
 - id: ancora.review.scenario.line_budget_test
@@ -253,6 +297,30 @@ decisions:
     - the total is at most 5000 and no file exceeds 2500
   covers:
     - ancora.review.size_budget
+- id: ancora.review.scenario.artifact_file_fanout
+  given:
+    - a temporary repository with three subjects whose tagged tests call one shared public function
+    - the shared function's definition changes after the base ref
+  when:
+    - Ancora.Review.build/2 builds the view and Ancora.Review.Html.render/1 renders it
+  then:
+    - the changed definition's diff body appears exactly twice, once under its owning subject and once in All files
+    - all three watched cards render with their badges and defining-file links
+    - every `file-*` id occurs exactly once
+    - all three defining-file links target that unique id
+  covers:
+    - ancora.review.artifact_size
+    - ancora.review.view_model_builder
+    - ancora.review.code_pivot_grouping
+- id: ancora.review.scenario.artifact_byte_budget
+  given:
+    - a review view containing 200 changed files with 15 short added lines each
+  when:
+    - Ancora.Review.Html.render/1 renders the view
+  then:
+    - the artifact is smaller than 1 MB
+  covers:
+    - ancora.review.artifact_size
 - id: ancora.review.scenario.output_path
   given:
     - Mix.Tasks.Spec.Review.run/1 receives `--output tmp/r.html`
@@ -278,5 +346,6 @@ decisions:
     - ancora.review.meta_line_shape
     - ancora.review.prism_carried
     - ancora.review.size_budget
+    - ancora.review.artifact_size
     - ancora.review.output_flag
 ```

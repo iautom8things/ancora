@@ -30,6 +30,7 @@ decisions:
   - ancora.decision.source_derived_membership
   - ancora.decision.generated_bindings_companion
   - ancora.decision.no_execution_no_state
+  - ancora.decision.no_run_context_memo
 ```
 
 ## Requirements
@@ -41,7 +42,11 @@ decisions:
     <base>` and `git status --porcelain --untracked-files=all`, as computed
     by Ancora.Derive.ChangeSet. A file inside a new untracked directory shall
     appear individually; a `git mv` followed by an edit shall appear as a
-    delete plus an add with both paths prefetched.
+    delete plus an add with both paths prefetched. The gate shall compute no
+    change set until preflight confirms that no shallow boundary inside the
+    requested `base..HEAD` range has a parent commit absent locally. Both git
+    outputs shall be NUL-delimited so path bytes remain unquoted, and a path
+    still wrapped in double quotes shall be rejected rather than stored.
   priority: must
   stability: stable
 - id: ancora.derive.base_reads_batched
@@ -55,15 +60,36 @@ decisions:
     a run can need shall be prefetched serially through that port before any
     parallel work begins. The port shall be spawned without
     `stderr_to_stdout` so git stderr can never interleave with blob payloads.
+    A fetch timeout, malformed frame, or port exit shall close and poison the
+    port; every later fetch through it shall return `{:error, :port_poisoned}`.
+    Ancora.BaseView shall return `{:error, :base_required}` when called with a
+    repository path and no base. Ancora.Git.run/3 shall return
+    `{:error, :git_executable_not_found}` when git is absent instead of raising.
+    The no-port `git show` fallback shall also keep stderr separate from the
+    returned blob bytes.
+    Ancora.BaseView shall read the blob OID returned by `ls-tree`, not rebuild
+    `<base>:<path>`, and shall create each materialized parent directory once.
+    Its root directory name shall use `Ancora.TempName.cross_vm_suffix/0`, and
+    it shall create that root with non-recursive `File.mkdir/1` so a pre-existing
+    path, including a symlink, returns an error before any blob write.
+    The gate's base view shall contain only the configured spec directory,
+    configured `test_paths`, and project `lib_paths`. Change-set prefetch shall
+    resolve each base path through `git ls-tree` and pass `{:oid, object_id}`
+    to `Ancora.Git.read_blob/2` rather than infer its kind from hexadecimal
+    text. Ancora.BaseView is the explicit exception: it passes the untagged
+    object id returned by `git ls-tree`. The tagged `{:path, path}` form has no
+    production caller.
   priority: must
   stability: stable
 - id: ancora.derive.memo_is_run_scoped
   statement: >-
-    Per-run memoization (parsed ASTs, DefIndex results, resolver results,
-    the module-to-file map, the ambient table) shall live in an ETS table
-    created per run and passed by reference in Ancora.Derive.RunContext, never
-    a named table, and shall not persist to disk. Stored values shall prefer
-    DefIndex and resolver results over raw ASTs.
+    Within one detector run, each changed defining source file shall be parsed
+    for extraction at most once per diff side. The gate shall build parsed AST
+    maps once across all subjects and pass them to Ancora.Derive.Compare as
+    plain function arguments. Extraction reuse shall not use an in-process
+    memo, registry, cache, or new process, and shall not persist to disk.
+    Ancora.Derive.RunContext shall contain only the run root, base, and batch
+    port state; starting or stopping it shall not create or delete an ETS table.
   priority: must
   stability: stable
 - id: ancora.derive.project_info_from_root
@@ -74,7 +100,9 @@ decisions:
     expressions, its last expression shall be read as the return value and
     must be a literal keyword list. A dynamic `elixirc_paths` shall degrade
     to `["lib"]`, overridable by the `lib_paths:` config key; an `apps_path:`
-    key shall hard-fail as an umbrella root; a non-literal `app:` shall
+    key shall hard-fail as an umbrella root. Preflight shall pass its resolved
+    `lib_paths` value, including nil, into ProjectInfo so ProjectInfo does not
+    read `.spec/config.yml` again on that path. A non-literal `app:` shall
     hard-fail with a message. No module downstream of preflight shall read
     `Mix.Project` state.
   priority: must
@@ -130,7 +158,8 @@ decisions:
     export set, and a DefIndex lookup. Ambient-table construction and
     `Code.ensure_loaded?` checks shall live in ctx construction outside the
     resolver, and under `--root` the load path shall never include the target
-    project's `_build`.
+    project's `_build`. If a resolver callback raises or throws,
+    Ancora.Derive.run/2 shall return an error and keep its caller alive.
   priority: must
   stability: stable
 - id: ancora.derive.imports_and_aliases
@@ -177,7 +206,8 @@ decisions:
     defining file is in the change set on at least one side; every other
     binding shall be skipped without parsing its module. A definition watched
     at several arities through defaults shall report at most one
-    `derived/drift` finding.
+    `derived/drift` finding. Ancora.Derive.ChangeSet shall build the changed-path
+    MapSet once in `compute/1`, and every comparison shall reuse that set.
   priority: must
   stability: stable
 - id: ancora.derive.growth_and_shrink
@@ -252,6 +282,28 @@ decisions:
   covers:
     - ancora.derive.change_set_union
     - ancora.derive.base_reads_batched
+- id: ancora.derive.scenario.git_paths_round_trip
+  given:
+    - changed tracked library files whose names contain UTF-8 bytes or spaces
+    - an untracked file whose name contains a space
+  when:
+    - the gate computes and prefetches the change set
+  then:
+    - every path remains byte-identical to the name supplied by git
+    - committed paths resolve to object ids before blob reads
+    - a hexadecimal path tagged as a path is never treated as an object id
+  covers:
+    - ancora.derive.change_set_union
+    - ancora.derive.base_reads_batched
+- id: ancora.derive.scenario.incomplete_range_stops_before_change_set
+  given:
+    - a shallow clone with a boundary inside `base..HEAD` whose parent is absent locally
+  when:
+    - the gate runs
+  then:
+    - the gate returns an environment failure before Ancora.Derive.ChangeSet computes
+  covers:
+    - ancora.derive.change_set_union
 - id: ancora.derive.scenario.batch_port_frames
   given:
     - a captured `git cat-file --batch` byte stream containing three blobs, one of size zero
@@ -262,14 +314,55 @@ decisions:
     - framing is `<oid> <type> <size>\n<payload>\n`
   covers:
     - ancora.derive.base_reads_batched
+- id: ancora.derive.scenario.batch_port_timeout_poison
+  given:
+    - a batch fetch that receives no complete frame before its timeout
+  when:
+    - another fetch is attempted through the same port
+  then:
+    - the port is closed
+    - the later fetch returns `{:error, :port_poisoned}` instead of stale bytes
+  covers:
+    - ancora.derive.base_reads_batched
+- id: ancora.derive.scenario.no_port_stderr_isolated
+  given:
+    - a run without a batch port whose successful `git show` emits a warning on stderr
+  when:
+    - Ancora.Git.read_blob/2 reads a committed blob
+  then:
+    - the returned payload contains only the committed blob bytes
+    - the warning remains on stderr
+  covers:
+    - ancora.derive.base_reads_batched
 - id: ancora.derive.scenario.two_concurrent_runs_do_not_collide
   given:
     - two detector runs started concurrently in the same VM against different roots
   when:
     - both complete
   then:
-    - neither run observes the other's memo entries
-    - each run's memo table is unnamed and its batch port is unregistered
+    - neither run observes the other's parsed-source arguments
+    - each run's parsed-source maps are plain data and its batch port is unregistered
+  covers:
+    - ancora.derive.memo_is_run_scoped
+- id: ancora.derive.scenario.narrowed_base_materialization
+  given:
+    - a base tree containing files under the configured spec directory, configured test and library paths, and an unrelated directory
+  when:
+    - the gate materializes its base view
+  then:
+    - only the spec, test, and library files exist in the materialized tree
+    - each blob is read by its `ls-tree` OID
+    - each shared parent directory is created once
+  covers:
+    - ancora.derive.base_reads_batched
+- id: ancora.derive.scenario.extraction_parses_once_per_side
+  given:
+    - two subjects watching several definitions in one changed source file
+  when:
+    - the gate compares both subjects
+  then:
+    - the source file is parsed for extraction once at base and once at HEAD
+    - both comparisons receive the same parsed-source maps as arguments
   covers:
     - ancora.derive.memo_is_run_scoped
 - id: ancora.derive.scenario.dynamic_elixirc_paths_degrade
@@ -364,6 +457,16 @@ decisions:
   then:
     - no file, port, or `Code.ensure_loaded?` call occurs inside the resolver
     - "the resolver test module is `async: true`"
+  covers:
+    - ancora.derive.resolver_is_pure
+- id: ancora.derive.scenario.resolver_callback_raises
+  given:
+    - a resolver context whose membership callback raises
+  when:
+    - Ancora.Derive.run/2 resolves a file that calls a member module
+  then:
+    - the run returns `{:error, {:resolver_exception, path, message}}`
+    - the caller remains alive
   covers:
     - ancora.derive.resolver_is_pure
 - id: ancora.derive.scenario.unparseable_base_file

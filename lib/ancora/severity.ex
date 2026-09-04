@@ -24,6 +24,7 @@ defmodule Ancora.Severity do
 
   alias Ancora.Config
   alias Ancora.Finding
+  alias Ancora.Output
 
   @known [:off, :info, :warning, :error]
   @rank %{error: 3, warning: 2, info: 1, off: 0}
@@ -177,9 +178,8 @@ defmodule Ancora.Severity do
   defp raise?(trailer, current), do: Map.fetch!(@rank, trailer) > Map.fetch!(@rank, current)
 
   defp emit_raise(code, trailer, current) do
-    IO.puts(
-      :stderr,
-      "[CONFIG] Spec-Ack: #{code}=#{trailer} raises above #{current}; ignored (downgrade only)"
+    Output.config_diagnostic(
+      "Spec-Ack: #{code}=#{trailer} raises above #{current}; ignored (downgrade only)"
     )
   end
 
@@ -204,9 +204,8 @@ defmodule Ancora.Severity do
         value
 
       bad ->
-        IO.puts(
-          :stderr,
-          "[CONFIG] ignoring unknown severity #{inspect(bad)} for #{code} from #{source}"
+        Output.config_diagnostic(
+          "ignoring unknown severity #{inspect(bad)} for #{code} from #{source}"
         )
 
         nil

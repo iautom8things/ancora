@@ -8,6 +8,7 @@ defmodule Ancora.BaseView do
 
   alias Ancora.Derive.RunContext
   alias Ancora.Git
+  alias Ancora.TempName
 
   @doc """
   Reads every blob under `base` (optionally narrowed by `:pathspecs`) into a
@@ -27,6 +28,8 @@ defmodule Ancora.BaseView do
     read_tree_blobs(ctx, pathspecs)
   end
 
+  def blobs(root, nil, _opts) when is_binary(root), do: {:error, :base_required}
+
   def blobs(root, base, opts) when is_binary(root) and is_binary(base) do
     with {:ok, ctx} <- RunContext.start(root, base, batch: false) do
       try do
@@ -40,22 +43,34 @@ defmodule Ancora.BaseView do
   @doc """
   Writes `blobs/3` into an isolated temp workspace and returns its path.
 
-  The caller owns cleanup.
+  The caller owns cleanup. `:temp_root` overrides the generated root for
+  controlled collision checks.
   """
   @spec materialize(RunContext.t() | Path.t(), String.t() | nil, keyword()) ::
           {:ok, Path.t()} | {:error, term()}
   def materialize(source, base \\ nil, opts \\ []) do
     with {:ok, files} <- blobs(source, base, opts) do
-      temp_root = unique_temp()
-      File.mkdir_p!(temp_root)
+      temp_root = Keyword.get(opts, :temp_root) || unique_temp()
 
-      Enum.each(files, fn {path, content} ->
-        destination = Path.join(temp_root, path)
-        File.mkdir_p!(Path.dirname(destination))
-        File.write!(destination, content)
-      end)
+      case File.mkdir(temp_root) do
+        :ok ->
+          files
+          |> Enum.group_by(fn {path, _content} ->
+            temp_root |> Path.join(path) |> Path.dirname()
+          end)
+          |> Enum.each(fn {directory, directory_files} ->
+            File.mkdir_p!(directory)
 
-      {:ok, temp_root}
+            Enum.each(directory_files, fn {path, content} ->
+              File.write!(Path.join(temp_root, path), content)
+            end)
+          end)
+
+          {:ok, temp_root}
+
+        {:error, reason} ->
+          {:error, {:temp_directory, reason}}
+      end
     end
   end
 
@@ -64,7 +79,9 @@ defmodule Ancora.BaseView do
       entries
       |> Enum.filter(&(&1.type == "blob"))
       |> Enum.reduce_while({:ok, %{}}, fn entry, {:ok, acc} ->
-        case Git.read_blob(ctx, entry.path) do
+        # Entry paths come from Git verbatim and are not validated here.
+        # A tree entry named `..` can escape the materialization root; tracked as ancora-kzw.
+        case Git.read_blob(ctx, entry.oid) do
           {:ok, payload} ->
             {:cont, {:ok, Map.put(acc, entry.path, payload)}}
 
@@ -76,9 +93,6 @@ defmodule Ancora.BaseView do
   end
 
   defp unique_temp do
-    Path.join(
-      System.tmp_dir!(),
-      "ancora_base_view_#{System.pid()}_#{System.unique_integer([:positive])}"
-    )
+    Path.join(System.tmp_dir!(), "ancora_base_view_#{TempName.cross_vm_suffix()}")
   end
 end

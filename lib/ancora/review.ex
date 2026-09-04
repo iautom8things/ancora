@@ -2,15 +2,21 @@ defmodule Ancora.Review do
   @moduledoc "Builds the data model for the self-contained spec review artifact."
 
   alias Ancora.BaseView
+  alias Ancora.Derive
   alias Ancora.Derive.ChangeSet
+  alias Ancora.Derive.DefIndex
+  alias Ancora.Derive.Membership
+  alias Ancora.Derive.ModuleLocator
   alias Ancora.Derive.RunContext
   alias Ancora.Gate
   alias Ancora.Gate.Preflight
   alias Ancora.Git
   alias Ancora.Index
+  alias Ancora.Output.Verdict
   alias Ancora.Review.FileDiff
   alias Ancora.Review.FindingsDelta
   alias Ancora.Review.SpecDiff
+  alias Ancora.SubjectFiles
   alias Ancora.TagScanner
 
   @diff_families ~w(derived change append)
@@ -82,6 +88,8 @@ defmodule Ancora.Review do
       )
 
     tags = tagged_test_files(preflight)
+    {subject_sets, footprints} = derive_subjects(preflight, change_set, tags)
+    file_owners = file_owners(footprints)
 
     subjects =
       subjects(
@@ -91,6 +99,9 @@ defmodule Ancora.Review do
         changed_files,
         diffs,
         tags,
+        subject_sets,
+        footprints,
+        file_owners,
         all_findings
       )
 
@@ -104,7 +115,7 @@ defmodule Ancora.Review do
         affected_subjects: length(subjects),
         findings: length(all_findings)
       },
-      verdict: if(findings_delta.change_verdict.clean?, do: :pass, else: :fail),
+      verdict: if(Verdict.pass?(gate_report), do: :pass, else: :fail),
       findings_delta: findings_delta,
       triage: Enum.group_by(findings_delta.introduced, &(&1.severity || :info)),
       subjects: subjects,
@@ -115,10 +126,22 @@ defmodule Ancora.Review do
     }
   end
 
-  defp subjects(head_index, base_index, root, changed_files, diffs, tags, findings) do
+  defp subjects(
+         head_index,
+         base_index,
+         root,
+         changed_files,
+         diffs,
+         tags,
+         subject_sets,
+         footprints,
+         file_owners,
+         findings
+       ) do
     base_by_id = Map.new(base_index["subjects"] || [], &{subject_id(&1), &1})
 
     head_index["subjects"]
+    |> Enum.filter(&is_binary(subject_id(&1)))
     |> Enum.map(fn subject ->
       id = subject_id(subject)
       subject_findings = Enum.filter(findings, &(&1.subject == id))
@@ -126,20 +149,32 @@ defmodule Ancora.Review do
       test_files = Map.get(tags, id, [])
       drift_cards = drift_cards(subject_findings, diffs)
 
+      called =
+        subject_sets
+        |> Map.get(id, %{})
+        |> Derive.all_bindings()
+        |> Enum.map(&review_binding/1)
+        |> MapSet.new()
+
       acknowledged_cards =
-        acknowledged_cards(root, test_files, changed_files, diffs, drift_cards)
+        acknowledged_cards(root, called, changed_files, diffs, drift_cards)
 
       watched_cards = drift_cards ++ acknowledged_cards
       watched_files = watched_cards |> Enum.map(& &1.file) |> MapSet.new()
 
-      changed_tests = Enum.filter(test_files, &(&1 in changed_files))
+      changed_tests =
+        Enum.filter(test_files, &(&1 in changed_files and Map.get(file_owners, &1) == id))
 
       supporting =
-        changed_files
+        footprints
+        |> Map.get(id, MapSet.new())
+        |> MapSet.intersection(MapSet.new(changed_files))
+        |> Enum.filter(&(Map.get(file_owners, &1) == id))
         |> Enum.reject(
           &(&1 == spec_file or &1 in changed_tests or MapSet.member?(watched_files, &1))
         )
         |> Enum.filter(&source_file?/1)
+        |> Enum.sort()
 
       %{
         id: id,
@@ -162,6 +197,35 @@ defmodule Ancora.Review do
     end)
     |> Enum.filter(&affected?(&1, changed_files))
     |> Enum.sort_by(& &1.id)
+    |> scope_watched_diffs(file_owners)
+  end
+
+  defp scope_watched_diffs(subjects, file_owners) do
+    watched_owners = watched_file_owners(subjects, file_owners)
+
+    subjects
+    |> Enum.map_reduce(MapSet.new(), fn subject, carried_files ->
+      {watched_interface, carried_files} =
+        Enum.map_reduce(subject.code.watched_interface, carried_files, fn card, carried_files ->
+          if Map.fetch!(watched_owners, card.file) == subject.id and
+               not MapSet.member?(carried_files, card.file) do
+            {card, MapSet.put(carried_files, card.file)}
+          else
+            {%{card | lines: []}, carried_files}
+          end
+        end)
+
+      {%{subject | code: %{subject.code | watched_interface: watched_interface}}, carried_files}
+    end)
+    |> elem(0)
+  end
+
+  defp watched_file_owners(subjects, file_owners) do
+    Enum.reduce(subjects, %{}, fn subject, watched_owners ->
+      Enum.reduce(subject.code.watched_interface, watched_owners, fn card, watched_owners ->
+        Map.put_new(watched_owners, card.file, Map.get(file_owners, card.file, subject.id))
+      end)
+    end)
   end
 
   defp affected?(subject, changed_files) do
@@ -183,9 +247,8 @@ defmodule Ancora.Review do
     end)
   end
 
-  defp acknowledged_cards(root, test_files, changed_files, diffs, drift_cards) do
+  defp acknowledged_cards(root, called, changed_files, diffs, drift_cards) do
     watched = MapSet.new(drift_cards, & &1.binding)
-    called = called_bindings(root, test_files)
 
     changed_files
     |> Enum.filter(&String.starts_with?(&1, "lib/"))
@@ -209,21 +272,50 @@ defmodule Ancora.Review do
     |> Enum.uniq_by(& &1.binding)
   end
 
-  defp called_bindings(root, test_files) do
-    test_files
-    |> Enum.flat_map(fn file ->
-      case File.read(Path.join(root, file)) do
-        {:ok, source} -> remote_calls(source)
-        {:error, _reason} -> []
-      end
-    end)
-    |> MapSet.new()
+  defp derive_subjects(preflight, change_set, tags) do
+    with {:ok, locator} <- ModuleLocator.build(preflight.project, change_set),
+         {:ok, indexes} <- definition_indexes(preflight.root, locator),
+         membership = %Membership{head: ModuleLocator.modules(locator, :head)},
+         {:ok, context} <- Derive.context({:ok, membership}, :head, indexes),
+         {:ok, sets} <-
+           Derive.run(tags,
+             side: :head,
+             context: context,
+             sources: &File.read(Path.join(preflight.root, &1))
+           ) do
+      {sets, SubjectFiles.build(sets, locator)}
+    else
+      _error -> {%{}, %{}}
+    end
   end
 
-  defp remote_calls(source) do
-    ~r/\b([A-Z][A-Za-z0-9_.]*)\.([a-zA-Z_][a-zA-Z0-9_!?]*)\(([^)]*)\)/
-    |> Regex.scan(source, capture: :all_but_first)
-    |> Enum.map(fn [module, name, arguments] -> {module, name, argument_count(arguments)} end)
+  defp definition_indexes(root, locator) do
+    locator.head
+    |> Map.values()
+    |> Enum.uniq()
+    |> Enum.reduce_while({:ok, %{}}, fn path, {:ok, indexes} ->
+      with {:ok, source} <- File.read(Path.join(root, path)),
+           {:ok, index} <- DefIndex.build(source, path) do
+        {:cont, {:ok, Map.put(indexes, path, index)}}
+      else
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+    |> case do
+      {:ok, by_path} ->
+        {:ok, Map.new(locator.head, fn {module, path} -> {module, Map.fetch!(by_path, path)} end)}
+
+      {:error, _reason} = error ->
+        error
+    end
+  end
+
+  defp file_owners(footprints) do
+    footprints
+    |> Enum.sort_by(&elem(&1, 0))
+    |> Enum.reduce(%{}, fn {subject_id, files}, owners ->
+      Enum.reduce(files, owners, &Map.put_new(&2, &1, subject_id))
+    end)
   end
 
   defp source_module(root, file) do
@@ -263,6 +355,11 @@ defmodule Ancora.Review do
   end
 
   defp format_binding({module, name, arity}), do: "#{module}.#{name}/#{arity}"
+
+  defp review_binding({module, name, arity}) do
+    module = module |> Atom.to_string() |> String.trim_leading("Elixir.")
+    {module, Atom.to_string(name), arity}
+  end
 
   defp binding_from_message(message) do
     case Regex.run(~r/([A-Z][A-Za-z0-9_.]*\.[a-zA-Z_!?][a-zA-Z0-9_!?]*\/\d+)/, message || "",
@@ -332,7 +429,7 @@ defmodule Ancora.Review do
 
   defp source_file?(path), do: String.starts_with?(path, ["lib/", "test/"])
 
-  defp subject_id(subject), do: subject |> Map.fetch!("meta") |> Map.fetch!(:id)
+  defp subject_id(subject), do: Index.subject_id(subject)
 
   defp meta_field(subject, key, default) do
     case subject["meta"] do

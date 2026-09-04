@@ -16,6 +16,8 @@ defmodule Ancora.ReviewTest do
     html = view |> Html.render() |> IO.iodata_to_binary()
 
     assert html =~ "class=\"chip pass\""
+    assert html =~ "<title>Spec review abc123</title>"
+    assert html =~ "generated_at=2026-09-03T18:00:00Z"
     assert html =~ "disableWorkerMessageHandler"
     assert html =~ "code[class*=language-]"
     assert html =~ "Overview"
@@ -28,9 +30,48 @@ defmodule Ancora.ReviewTest do
     assert html =~ ">Decisions</button>"
     assert html =~ "derived/drift"
     assert html =~ "Triage"
+    refute html =~ "role=\"tablist\""
     refute html =~ "Coverage"
     refute html =~ "triangle"
     refute html =~ "strength"
+  end
+
+  @tag spec: "ancora.review.code_pivot_grouping"
+  test "keeps authored diff spans outside Prism and lets review CSS win" do
+    html = view(:pass, finding("derived/drift", "billing", "lib/billing.ex", "changed"))
+    html = html |> Html.render() |> IO.iodata_to_binary()
+
+    assert html =~ "<pre class=\"diff\"><code><span class=\"add\">+def next(value)</span>"
+    refute html =~ "class=\"language-diff\""
+    assert html =~ ".diff > code > span{display:block}"
+    assert html =~ "code{overflow-wrap:anywhere}"
+
+    {prism_css_position, _length} = :binary.match(html, "pre[class*=language-]")
+    {review_css_position, _length} = :binary.match(html, ":root{color-scheme:light dark")
+    assert prism_css_position < review_css_position
+  end
+
+  @tag spec: "ancora.review.findings_inline"
+  test "finding summaries name severity and file with a non-colour marker" do
+    findings = [
+      finding("derived/drift", "billing", "lib/error.ex", "error", :error),
+      finding("derived/growth", "billing", "test/warning.exs", "warning", :warning),
+      finding("derived/shrink", "billing", nil, "info", :info)
+    ]
+
+    view = view(:fail, hd(findings))
+    [subject] = view.subjects
+    html = %{view | subjects: [%{subject | findings: findings}]} |> Html.render()
+    html = IO.iodata_to_binary(html)
+
+    assert html =~
+             "<span class=\"severity-marker\" aria-hidden=\"true\">!</span><span class=\"severity-label\">error</span> <code>lib/error.ex</code>"
+
+    assert html =~
+             "<span class=\"severity-marker\" aria-hidden=\"true\">~</span><span class=\"severity-label\">warning</span> <code>test/warning.exs</code>"
+
+    assert html =~
+             "<span class=\"severity-marker\" aria-hidden=\"true\">i</span><span class=\"severity-label\">info</span> <code>unknown file</code>"
   end
 
   @tag spec: "ancora.review.code_pivot_grouping"
@@ -42,15 +83,85 @@ defmodule Ancora.ReviewTest do
     view = view(:fail, finding)
     html = view |> Html.render() |> IO.iodata_to_binary()
 
+    [_before, watched_and_later] = String.split(html, "<h3>Watched interface</h3>", parts: 2)
+
+    [watched_interface, supporting_and_later] =
+      String.split(watched_and_later, "<h3>Supporting changes</h3>", parts: 2)
+
+    [_supporting_changes, test_changes] =
+      String.split(supporting_and_later, "<h3>Test changes</h3>", parts: 2)
+
     assert html =~ "class=\"chip fail\""
-    assert html =~ "Watched interface"
-    assert html =~ "Billing.next/1"
-    assert html =~ "drift"
-    assert html =~ "lib/billing.ex"
-    assert html =~ "+def next(value)"
-    assert html =~ "Supporting changes"
-    assert html =~ "Test changes"
-    assert html =~ "Billing.void/2"
+    assert html =~ ".fail,.error,.drift{color:var(--bad)}"
+    assert watched_interface =~ "Billing.next/1"
+    assert watched_interface =~ "drift"
+    assert watched_interface =~ "lib/billing.ex"
+    assert watched_interface =~ "+def next(value)"
+    refute watched_interface =~ "Billing.void/2"
+    assert test_changes =~ "Billing.void/2"
+  end
+
+  @tag spec: "ancora.review.findings_inline"
+  test "production review command renders the gate verdict for info and error findings", %{
+    root: root
+  } do
+    write_project(root)
+    write_verdict_fixture_config(root, :info)
+    commit_all(root, "base")
+
+    spec_path = Path.join(root, ".spec/specs/billing.spec.md")
+
+    updated_spec =
+      spec_path
+      |> File.read!()
+      |> String.replace(
+        "  priority: must\n```",
+        "  priority: must\n- id: billing.unverified\n  statement: Billing shall expose an unverified operation.\n  priority: must\n```"
+      )
+
+    write_files(root, %{".spec/specs/billing.spec.md" => updated_spec})
+
+    info_check = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+    assert info_check.status == 0, info_check.stdout <> info_check.stderr
+    assert List.last(output_lines(info_check.stdout)) == "spec.check result=pass"
+
+    info_review =
+      run_mix_subprocess([
+        "spec.review",
+        "--root",
+        root,
+        "--base",
+        "HEAD",
+        "--output",
+        "tmp/info.html"
+      ])
+
+    assert info_review.status == 0, info_review.stdout <> info_review.stderr
+    info_html = File.read!(Path.join(root, "tmp/info.html"))
+    assert info_html =~ "spec/requirement_unverified"
+    assert info_html =~ "class=\"chip pass\""
+
+    write_verdict_fixture_config(root, :error)
+
+    error_check = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+    assert error_check.status == 1, error_check.stdout <> error_check.stderr
+    assert List.last(output_lines(error_check.stdout)) =~ "spec.check result=fail"
+
+    error_review =
+      run_mix_subprocess([
+        "spec.review",
+        "--root",
+        root,
+        "--base",
+        "HEAD",
+        "--output",
+        "tmp/error.html"
+      ])
+
+    assert error_review.status == 0, error_review.stdout <> error_review.stderr
+    error_html = File.read!(Path.join(root, "tmp/error.html"))
+    assert error_html =~ "spec/requirement_unverified"
+    assert error_html =~ "class=\"chip fail\""
   end
 
   @tag spec: "ancora.review.findings_delta_without_store"
@@ -73,6 +184,23 @@ defmodule Ancora.ReviewTest do
     refute shared in delta.introduced
     assert stable_delta.pre_existing == [shared]
     assert stable_delta.change_verdict.clean?
+  end
+
+  @tag spec: "ancora.review.findings_delta_without_store"
+  test "removed root-reading review entry points stay absent" do
+    # Would fail if review restored either path-based compatibility entry point.
+    head = %{"requirements" => [], "scenarios" => []}
+    spec_diff = Ancora.Review.SpecDiff.compute(head, nil)
+    assert spec_diff.base_existed? == false
+
+    Code.ensure_loaded!(Ancora.Review.SpecDiff)
+    Code.ensure_loaded!(FindingsDelta)
+    refute function_exported?(Ancora.Review.SpecDiff, :compute, 3)
+    refute function_exported?(FindingsDelta, :compute, 3)
+
+    assert_raise FunctionClauseError, fn ->
+      FindingsDelta.classify("base-root", "head-root", [])
+    end
   end
 
   @tag spec: "ancora.review.code_pivot_grouping"
@@ -147,6 +275,62 @@ defmodule Ancora.ReviewTest do
 
     assert [%{binding: "Billing.next/1", badge: :acknowledged}] =
              subject.code.watched_interface
+
+    html = built |> Html.render() |> IO.iodata_to_binary()
+    assert html =~ "class=\"badge acknowledged\">acknowledged</span>"
+  end
+
+  @tag spec: "ancora.review.artifact_size"
+  @tag spec: "ancora.review.view_model_builder"
+  @tag spec: "ancora.review.code_pivot_grouping"
+  test "production builder renders one shared definition diff for three watched subjects", %{
+    root: root
+  } do
+    write_three_subject_project(root)
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "lib/fixture/shared.ex" => "defmodule Fixture.Shared do\n  def value, do: :changed\nend\n",
+      "lib/fixture/helper.ex" =>
+        "defmodule Fixture.Helper do\n  @note :changed\n  def bump(value), do: value + 1\nend\n",
+      "test/joint_test.exs" => """
+      defmodule Fixture.JointTest do
+        use ExUnit.Case
+
+        @tag spec: "alpha.next"
+        @tag spec: "beta.next"
+        test "joint" do
+          assert Fixture.Shared.value() in [:shared, :changed]
+          assert true
+        end
+      end
+      """
+    })
+
+    assert {:ok, built} = Review.build(root, base: "HEAD")
+
+    cards =
+      built.subjects
+      |> Enum.flat_map(& &1.code.watched_interface)
+      |> Enum.filter(&(&1.binding == "Fixture.Shared.value/0"))
+
+    assert length(cards) == 3
+    assert Enum.all?(cards, &(&1.badge == :drift))
+    assert Enum.count(cards, &(&1.lines != [])) == 1
+
+    html = built |> Html.render() |> IO.iodata_to_binary()
+    anchor = "file-lib-fixture-shared-ex"
+    watched_card = "<article class=\"watched\"><header><code>Fixture.Shared.value/0"
+
+    assert count_occurrences(html, "+  def value, do: :changed") == 2
+    assert count_occurrences(html, "id=\"#{anchor}\"") == 1
+    assert count_occurrences(html, "href=\"##{anchor}\"") == 3
+    assert count_occurrences(html, watched_card) == 3
+    assert count_occurrences(html, "class=\"badge drift\">drift</span>") == 3
+    assert count_occurrences(html, "+  @note :changed") == 2
+    assert count_occurrences(html, "+    assert true") == 2
+    assert count_occurrences(html, "id=\"file-lib-fixture-helper-ex\"") == 1
+    assert count_occurrences(html, "<pre class=\"diff\">") == 6
   end
 
   defp view(verdict, finding) do
@@ -179,7 +363,13 @@ defmodule Ancora.ReviewTest do
     delta = FindingsDelta.classify([], [finding])
 
     %{
-      meta: %{base_ref: "main", head_ref: "abc123", affected_subjects: 1, findings: 1},
+      meta: %{
+        base_ref: "main",
+        head_ref: "abc123",
+        generated_at: ~U[2026-09-03 18:00:00Z],
+        affected_subjects: 1,
+        findings: 1
+      },
       verdict: verdict,
       findings_delta: delta,
       triage: %{error: [finding]},
@@ -191,15 +381,24 @@ defmodule Ancora.ReviewTest do
     }
   end
 
-  defp finding(code, subject, file, message) do
+  defp finding(code, subject, file, message, severity \\ :error) do
     %Finding{
       code: code,
       subject: subject,
       file: file,
       message: message,
-      severity: :error,
+      severity: severity,
       severity_source: :default
     }
+  end
+
+  defp write_verdict_fixture_config(root, requirement_severity) do
+    write_config(root, """
+    severities:
+      change/missing_decision: off
+      tags/new_requirement_untagged: off
+      spec/requirement_unverified: #{requirement_severity}
+    """)
   end
 
   defp write_project(root) do
@@ -249,5 +448,103 @@ defmodule Ancora.ReviewTest do
       end
       """
     })
+  end
+
+  defp write_three_subject_project(root) do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => """
+      defmodule Fixture.MixProject do
+        use Mix.Project
+        def project, do: [app: :fixture]
+      end
+      """,
+      ".spec/specs/alpha.spec.md" => subject_spec("alpha", "alpha value"),
+      ".spec/specs/beta.spec.md" => subject_spec("beta", "beta value"),
+      ".spec/specs/gamma.spec.md" => subject_spec("gamma", "gamma value"),
+      "lib/fixture/shared.ex" => "defmodule Fixture.Shared do\n  def value, do: :shared\nend\n",
+      "lib/fixture/helper.ex" =>
+        "defmodule Fixture.Helper do\n  def bump(value), do: value + 1\nend\n",
+      "test/joint_test.exs" => """
+      defmodule Fixture.JointTest do
+        use ExUnit.Case
+
+        @tag spec: "alpha.next"
+        @tag spec: "beta.next"
+        test "joint" do
+          assert Fixture.Shared.value() in [:shared, :changed]
+        end
+      end
+      """,
+      "test/alpha_test.exs" => """
+      defmodule Fixture.AlphaTest do
+        use ExUnit.Case
+
+        @tag spec: "alpha.next"
+        test "next" do
+          assert Fixture.Shared.value() in [:shared, :changed]
+          assert Fixture.Helper.bump(1) > 0
+        end
+      end
+      """,
+      "test/beta_test.exs" => """
+      defmodule Fixture.BetaTest do
+        use ExUnit.Case
+
+        @tag spec: "beta.next"
+        test "next" do
+          assert Fixture.Shared.value() in [:shared, :changed]
+          assert Fixture.Helper.bump(1) > 0
+        end
+      end
+      """,
+      "test/gamma_test.exs" => """
+      defmodule Fixture.GammaTest do
+        use ExUnit.Case
+
+        @tag spec: "gamma.next"
+        test "next" do
+          assert Fixture.Shared.value() in [:shared, :changed]
+          assert Fixture.Helper.bump(1) > 0
+        end
+      end
+      """
+    })
+  end
+
+  defp subject_spec(id, behavior) do
+    """
+    # #{String.capitalize(id)}
+
+    ```yaml spec-meta
+    id: #{id}
+    kind: module
+    status: draft
+    summary: #{String.capitalize(id)} behavior.
+    ```
+
+    ```yaml spec-requirements
+    - id: #{id}.next
+      statement: #{String.capitalize(id)} shall return the #{behavior}.
+      priority: must
+    ```
+
+    ```yaml spec-scenarios
+    []
+    ```
+
+    ```yaml spec-verification
+    - kind: tagged_tests
+      covers:
+        - #{id}.next
+    ```
+    """
+  end
+
+  defp count_occurrences(haystack, needle) do
+    haystack
+    |> :binary.matches(needle)
+    |> length()
   end
 end

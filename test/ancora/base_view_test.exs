@@ -1,7 +1,7 @@
 Code.require_file("../support/tmp_git_repo.exs", __DIR__)
 
 defmodule Ancora.BaseViewTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Ancora.BaseView
   alias Ancora.Derive.RunContext
@@ -20,7 +20,7 @@ defmodule Ancora.BaseViewTest do
     source = File.read!(Path.expand("lib/ancora/base_view.ex"))
     {:ok, ast} = Code.string_to_quoted(source)
     {_, calls} = blob_read_calls(ast)
-    assert :read_blob in calls
+    assert {:read_blob, "entry.oid"} in calls
     assert :batch_false in calls
     refute Enum.any?(calls, &match?({:batch_port, _}, &1))
 
@@ -70,6 +70,50 @@ defmodule Ancora.BaseViewTest do
   end
 
   @tag spec: "ancora.derive.base_reads_batched"
+  test "materialize uses a cross-VM name and a non-recursive root mkdir" do
+    # Would fail if BaseView restored its VM-local suffix or recursive root creation.
+    source = File.read!(Path.expand("lib/ancora/base_view.ex"))
+    {:ok, ast} = Code.string_to_quoted(source)
+
+    {_ast, calls} =
+      Macro.prewalk(ast, [], fn
+        {{:., _, [{:__aliases__, _, [:TempName]}, :cross_vm_suffix]}, _, []} = node, acc ->
+          {node, [:cross_vm_suffix | acc]}
+
+        {{:., _, [{:__aliases__, _, [:File]}, :mkdir]}, _, [_path]} = node, acc ->
+          {node, [:mkdir | acc]}
+
+        other, acc ->
+          {other, acc}
+      end)
+
+    assert :cross_vm_suffix in calls
+    assert Enum.count(calls, &(&1 == :mkdir)) == 1
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "materialize rejects a symlink root before writing", %{root: root} do
+    # Would fail if BaseView accepted an existing symlink and redirected blob writes.
+    TmpGitRepo.write!(root, %{"lib/a.ex" => "blocked\n"})
+    TmpGitRepo.commit!(root, "initial")
+
+    target = Path.join(System.tmp_dir!(), "ancora-base-view-target-#{System.unique_integer()}")
+    link = target <> "-link"
+    File.mkdir!(target)
+    File.ln_s!(target, link)
+
+    on_exit(fn ->
+      File.rm(link)
+      File.rm_rf(target)
+    end)
+
+    result = BaseView.materialize(root, "HEAD", temp_root: link)
+
+    assert {result, File.ls!(target)} ==
+             {{:error, {:temp_directory, :eexist}}, []}
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
   test "blobs can be narrowed by pathspecs", %{root: root} do
     TmpGitRepo.write!(root, %{"lib/a.ex" => "A\n", "test/a_test.exs" => "T\n"})
     TmpGitRepo.commit!(root, "initial")
@@ -78,10 +122,52 @@ defmodule Ancora.BaseViewTest do
     assert Map.keys(files) == ["lib/a.ex"]
   end
 
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "materialize writes only requested paths and creates each directory once", %{root: root} do
+    TmpGitRepo.write!(root, %{
+      ".spec/specs/s.spec.md" => "spec\n",
+      "lib/a.ex" => "A\n",
+      "lib/b.ex" => "B\n",
+      "notes/private.txt" => "skip\n"
+    })
+
+    TmpGitRepo.commit!(root, "initial")
+    traced = self()
+    tracer = start_trace_forwarder(traced)
+    :erlang.trace(traced, true, [:call, {:tracer, tracer}])
+    :erlang.trace_pattern({File, :mkdir_p!, 1}, true, [])
+
+    on_exit(fn ->
+      :erlang.trace_pattern({File, :mkdir_p!, 1}, false, [])
+      send(tracer, :stop)
+    end)
+
+    assert {:ok, temp} = BaseView.materialize(root, "HEAD", pathspecs: [".spec", "lib"])
+    on_exit(fn -> File.rm_rf(temp) end)
+
+    files =
+      temp
+      |> Path.join("**/*")
+      |> Path.wildcard(match_dot: true)
+      |> Enum.filter(&File.regular?/1)
+      |> Enum.map(&Path.relative_to(&1, temp))
+      |> Enum.sort()
+
+    assert files == [".spec/specs/s.spec.md", "lib/a.ex", "lib/b.ex"]
+
+    mkdir_calls = collect_calls(File, :mkdir_p!, [])
+    assert Enum.count(mkdir_calls, &(&1 == [Path.join(temp, "lib")])) == 1
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a repository path requires an explicit base", %{root: root} do
+    assert {:error, :base_required} = BaseView.blobs(root)
+  end
+
   defp blob_read_calls(ast) do
     Macro.prewalk(ast, [], fn
-      {{:., _, [{:__aliases__, _, [:Git]}, :read_blob]}, _, _} = node, acc ->
-        {node, [:read_blob | acc]}
+      {{:., _, [{:__aliases__, _, [:Git]}, :read_blob]}, _, [_ctx, blob]} = node, acc ->
+        {node, [{:read_blob, Macro.to_string(blob)} | acc]}
 
       {{:., _, [{:__aliases__, _, [:RunContext]}, :start]}, _, args} = node, acc ->
         extra =
@@ -102,5 +188,29 @@ defmodule Ancora.BaseViewTest do
       other, acc ->
         {other, acc}
     end)
+  end
+
+  defp collect_calls(module, function, calls) do
+    receive do
+      {:forwarded_trace, {:trace, _pid, :call, {^module, ^function, arguments}}} ->
+        collect_calls(module, function, [arguments | calls])
+    after
+      0 -> Enum.reverse(calls)
+    end
+  end
+
+  defp start_trace_forwarder(parent) do
+    spawn(fn -> forward_traces(parent) end)
+  end
+
+  defp forward_traces(parent) do
+    receive do
+      :stop ->
+        :ok
+
+      message ->
+        send(parent, {:forwarded_trace, message})
+        forward_traces(parent)
+    end
   end
 end

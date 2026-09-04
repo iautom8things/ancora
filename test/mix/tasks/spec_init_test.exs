@@ -42,4 +42,17 @@ defmodule Mix.Tasks.Spec.InitTest do
     assert wrote =~ "wrote #{agents_path}"
     assert File.read!(agents_path) =~ "# Ancora agent guide"
   end
+
+  @tag spec: "ancora.tasks.gated_emission_paths"
+  test "routes invalid arguments through the gated report path" do
+    output =
+      capture_io(fn ->
+        assert_raise Mix.Error, ~r/Invalid arguments for spec.init/, fn ->
+          Mix.Tasks.Spec.Init.run(["--json"])
+        end
+      end)
+
+    assert output == "Invalid arguments for spec.init: --json\n"
+    refute output =~ "result="
+  end
 end

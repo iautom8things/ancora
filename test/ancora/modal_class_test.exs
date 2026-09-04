@@ -3,6 +3,8 @@ defmodule Ancora.ModalClassTest do
 
   alias Ancora.ModalClass
 
+  @moduletag spec: "ancora.findings.modal_classifier"
+
   describe "classify/1" do
     test "classifies strong positive modals" do
       assert ModalClass.classify("The system MUST reject invalid input.") == :must
@@ -12,6 +14,8 @@ defmodule Ancora.ModalClassTest do
     test "classifies strong negative modals" do
       assert ModalClass.classify("The system MUST NOT accept unsigned tokens.") == :must_not
       assert ModalClass.classify("The system SHALL NOT expose raw IDs.") == :shall_not
+      assert ModalClass.classify("The system mustn't accept unsigned tokens.") == :must_not
+      assert ModalClass.classify("The system shan't expose raw IDs.") == :shall_not
     end
 
     test "classifies weak modals" do
@@ -33,6 +37,16 @@ defmodule Ancora.ModalClassTest do
     test "negative forms take precedence over positive forms" do
       assert ModalClass.classify("The system MUST NOT do X but must log.") == :must_not
     end
+  end
+
+  test "documents the classifier as separate from the append-only gate" do
+    # Would fail if the stale claim that the gate consumes this module returned.
+    {:docs_v1, _, _, _, %{"en" => moduledoc}, _, _} = Code.fetch_docs(ModalClass)
+    source = File.read!(Path.expand("lib/ancora/modal_class.ex"))
+
+    assert moduledoc =~ "does not call this classifier"
+    assert source =~ "@modal_patterns"
+    refute source =~ "Regex.escape"
   end
 
   describe "downgrade?/2" do

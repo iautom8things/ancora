@@ -37,6 +37,8 @@ defmodule Ancora.Derive.ChangeSetTest do
 
     paths = ChangeSet.paths(set)
     assert "test/billing/void_test.exs" in paths
+    assert set.path_set == MapSet.new(paths)
+    assert ChangeSet.changed_path?(set, "test/billing/void_test.exs")
     refute "test/billing/" in paths
     assert %{path: "test/billing/void_test.exs", status: :untracked} in set.entries
     assert set.prefetched["test/billing/void_test.exs"] == :missing

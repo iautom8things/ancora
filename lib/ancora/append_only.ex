@@ -7,16 +7,17 @@ defmodule Ancora.AppendOnly do
     * `append/must_downgraded` — a requirement's `priority` moves from
       `must` to `should`
 
-  Either finding is suppressed only by an ADR with `status: accepted`
-  whose `affects:` names the requirement id or its subject id. There is
-  no weakening-class enum and no `change_type` requirement.
+  An accepted ADR's `affects:` authorizes either change only when it names
+  the requirement id. For deletion, `retires:` may instead name the exact
+  requirement or its subject. Retirement does not authorize a downgrade.
+  There is no weakening-class enum and no `change_type` requirement.
 
   `analyze/2` is a total function over `(prior_index, current_index)`.
   Both arguments are index-shaped maps (`"subjects"`, `"decisions"`).
   The module has no Git I/O.
   """
 
-  alias Ancora.Finding
+  alias Ancora.{Finding, Index}
 
   @doc """
   Diffs `prior` against `current` and returns the two append-only
@@ -38,7 +39,7 @@ defmodule Ancora.AppendOnly do
       if Map.has_key?(current_reqs, id) do
         []
       else
-        if authorized?(decisions, id, prior.subject_id) do
+        if deletion_authorized?(decisions, id, prior.subject_id) do
           []
         else
           [requirement_deleted_finding(id, prior)]
@@ -51,8 +52,7 @@ defmodule Ancora.AppendOnly do
     Enum.flat_map(prior_reqs, fn {id, prior} ->
       case Map.fetch(current_reqs, id) do
         {:ok, current} ->
-          if must_to_should?(prior, current) and
-               not authorized?(decisions, id, current.subject_id || prior.subject_id) do
+          if must_to_should?(prior, current) and not change_authorized?(decisions, id) do
             [must_downgraded_finding(id, prior)]
           else
             []
@@ -68,18 +68,32 @@ defmodule Ancora.AppendOnly do
     prior.priority == "must" and current.priority == "should"
   end
 
-  defp authorized?(decisions, requirement_id, subject_id) do
+  defp deletion_authorized?(decisions, requirement_id, subject_id) do
     Enum.any?(decisions, fn decision ->
-      meta = fetch(decision, "meta")
-      accepted?(meta) and names_target?(meta, requirement_id, subject_id)
+      meta = Index.field(decision, "meta")
+
+      accepted?(meta) and
+        (names_requirement?(meta, "affects", requirement_id) or
+           names_retirement?(meta, requirement_id, subject_id))
     end)
   end
 
-  defp accepted?(meta), do: fetch(meta, "status") == "accepted"
+  defp change_authorized?(decisions, requirement_id) do
+    Enum.any?(decisions, fn decision ->
+      meta = Index.field(decision, "meta")
+      accepted?(meta) and names_requirement?(meta, "affects", requirement_id)
+    end)
+  end
 
-  defp names_target?(meta, requirement_id, subject_id) do
-    affects = List.wrap(fetch(meta, "affects") || [])
-    requirement_id in affects or (is_binary(subject_id) and subject_id in affects)
+  defp accepted?(meta), do: Index.field(meta, "status") == "accepted"
+
+  defp names_requirement?(meta, field, requirement_id) do
+    requirement_id in List.wrap(Index.field(meta, field) || [])
+  end
+
+  defp names_retirement?(meta, requirement_id, subject_id) do
+    retires = List.wrap(Index.field(meta, "retires") || [])
+    requirement_id in retires or subject_id in retires
   end
 
   defp requirement_deleted_finding(id, prior) do
@@ -120,7 +134,7 @@ defmodule Ancora.AppendOnly do
                %{
                  id: id,
                  subject_id: subject_id,
-                 priority: fetch(req, "priority")
+                 priority: Index.field(req, "priority")
                }}
             ]
         end
@@ -129,35 +143,16 @@ defmodule Ancora.AppendOnly do
     |> Map.new()
   end
 
-  defp subject_id(subject) do
-    meta = fetch(subject, "meta")
-    id = fetch(meta, "id") || fetch(subject, "id")
-    if is_binary(id) and id != "", do: id, else: nil
-  end
+  defp subject_id(subject), do: Index.subject_id(subject)
 
   defp list_field(map, key) do
-    case fetch(map, key) do
+    case Index.field(map, key) do
       list when is_list(list) -> list
       _ -> []
     end
   end
 
-  defp id_of(item), do: fetch(item, "id")
-
-  defp fetch(nil, _key), do: nil
-
-  defp fetch(map, key) when is_map(map) and is_binary(key) do
-    atom_key =
-      try do
-        String.to_existing_atom(key)
-      rescue
-        ArgumentError -> nil
-      end
-
-    Map.get(map, key, if(atom_key, do: Map.get(map, atom_key)))
-  end
-
-  defp fetch(_, _), do: nil
+  defp id_of(item), do: Index.field(item, "id")
 
   defp sort_findings(findings) do
     Enum.sort_by(findings, fn f ->

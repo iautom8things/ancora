@@ -3,8 +3,6 @@ Code.require_file("../../support/ancora_case.exs", __DIR__)
 defmodule Mix.Tasks.Spec.StatusTest do
   use Ancora.TestCase
 
-  @moduletag :tmp_dir
-
   @tag spec: "ancora.tasks.report_task_flags"
   @tag spec: "ancora.tasks.status_derived_report"
   test "status exits zero for an unanchored corpus and reports the derived set", %{root: root} do
@@ -45,6 +43,65 @@ defmodule Mix.Tasks.Spec.StatusTest do
     assert result.status == 1
     assert result.stdout =~ "must define app: as a literal atom"
     refute result.stdout =~ "result="
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  @tag spec: "ancora.tasks.status_derived_report"
+  test "status reports a missing corpus without changing its exit contract", %{root: root} do
+    write_files(root, %{
+      "mix.exs" => """
+      defmodule Fixture.MixProject do
+        use Mix.Project
+        def project, do: [app: :fixture]
+      end
+      """
+    })
+
+    result = run_mix_subprocess(["spec.status", "--root", root])
+    assert result.status == 1
+    assert result.stdout =~ "no .spec/ directory"
+    assert result.stdout =~ "mix spec.init"
+    refute result.stdout =~ "result="
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  @tag spec: "ancora.tasks.gated_emission_paths"
+  test "status routes an invalid workspace without a stack trace", %{root: root} do
+    create_project(root)
+
+    status = run_mix_subprocess(["spec.status", "--root", root, "--spec-dir", "nope"])
+    assert status.status == 1
+    assert status.stdout =~ "--spec-dir selects the ancora workspace directory"
+    assert status.stdout =~ "nope/specs directory not found"
+    refute status.stdout =~ "result="
+    refute status.stderr =~ "** (RuntimeError)"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  @tag spec: "ancora.tasks.gated_emission_paths"
+  test "validate routes an invalid workspace without a stack trace", %{root: root} do
+    create_project(root)
+
+    validate = run_mix_subprocess(["spec.validate", "--root", root, "--spec-dir", "nope"])
+    assert validate.status == 1
+    assert validate.stdout =~ "--spec-dir selects the ancora workspace directory"
+    assert validate.stdout =~ "nope/specs directory not found"
+
+    assert List.last(output_lines(validate.stdout)) ==
+             "spec.validate result=fail tier=env errors=0 warnings=0"
+
+    refute validate.stderr =~ "** (RuntimeError)"
+  end
+
+  @tag spec: "ancora.review.meta_line_shape"
+  test "review routes an invalid workspace without a stack trace", %{root: root} do
+    create_project(root)
+
+    review = run_mix_subprocess(["spec.review", "--root", root, "--spec-dir", "nope"])
+    assert review.status == 1
+    assert review.stdout =~ "nope/specs directory not found"
+    refute review.stdout =~ "result="
+    refute review.stderr =~ "** (RuntimeError)"
   end
 
   @tag spec: "ancora.tasks.report_task_flags"

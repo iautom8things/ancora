@@ -12,6 +12,8 @@ defmodule Ancora.DecisionParser.Affects do
   @doc """
   Runs `affects:` emptiness and resolution against `decision`.
 
+  An id repeated in `retires:` may be absent from the current index.
+
   Other specled_ex cross-field rules are not ported.
   """
   @spec validate(map(), map()) :: [diagnostic()]
@@ -51,7 +53,10 @@ defmodule Ancora.DecisionParser.Affects do
     if affects == [] do
       errors
     else
-      resolvable = resolvable_ids(current_index)
+      resolvable =
+        current_index
+        |> resolvable_ids()
+        |> MapSet.union(MapSet.new(list_field(meta, "retires")))
 
       case Enum.find(affects, fn id -> not MapSet.member?(resolvable, id) end) do
         nil ->

@@ -29,14 +29,16 @@ stable within the 1.x series.
 
 ## Public API
 
-Ancora's semver-stable public API has two functions:
+Ancora's semver-stable public API has four functions:
 
 - `Ancora.Parser.parse_file/2`
 - `Ancora.DecisionParser.parse_file/2`
+- [Ancora.check/2](https://hexdocs.pm/ancora/Ancora.html#check/2)
+- [Ancora.validate/2](https://hexdocs.pm/ancora/Ancora.html#validate/2)
 
-Mix tasks are the supported command-line interface. Their `--root` option is
-an internal affordance for tooling and tests and is outside the semver
-commitment.
+Every other module and function is internal. Mix tasks are the supported
+command-line interface. Their `--root` option is an internal affordance for
+tooling and tests and is outside the semver commitment.
 
 ## How checks work
 
@@ -50,7 +52,25 @@ those functions or calls change, edit the subject's requirements or scenarios
 in the same diff. Mechanical rewrites such as `mix format --migrate` still
 need an explicit acknowledgment when they change the derived call set.
 
+`Spec-Ack:` trailers are temporary development acknowledgments. Ancora warns
+when an applied trailer exists only below the branch tip because a squash merge
+will discard it. Before merging, copy that severity into `.spec/config.yml`
+under `severities:` or a subject override, add the reason for an override, and
+commit the config change. Overrides in Ancora 1.x are scoped to one subject and
+one finding code. The warning clears once config supplies the same severity. It
+remains when config is more severe because removing the trailer would still
+change the gate result.
+
+## Deprecated 1.x grammar
+
+`Ancora.Parser.parse_file/2` keeps returning its `"exceptions"` key and keeps
+parsing `spec-exceptions` blocks throughout the 1.x series. Both are deprecated
+and will be removed in Ancora 2.0.
+
 ## CI
+
+CI must pass `--base` explicitly. The `default_base` setting is a
+local-development convenience and must not decide a CI comparison.
 
 Run the gate against the target branch after fetching its remote ref:
 
@@ -58,10 +78,17 @@ Run the gate against the target branch after fetching its remote ref:
 spec:
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@v4
+    - {uses: actions/checkout@v4, with: {fetch-depth: 0}}
     - uses: erlef/setup-beam@v1
     - run: mix deps.get && mix spec.check --base origin/main
 ```
+
+Ancora rejects a shallow `base..HEAD` range when a boundary inside it has a
+parent commit absent locally. Use `fetch-depth: 0` in CI, or run
+`git fetch --unshallow` before the gate.
+
+With `--json`, read the last stdout line that parses as JSON. The verdict line
+follows the JSON report and remains the final stdout line.
 
 ## Migration
 

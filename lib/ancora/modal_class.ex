@@ -3,14 +3,23 @@ defmodule Ancora.ModalClass do
   Pure classifier for the normative strength of a requirement statement.
 
   Classifies a statement as one of `:must`, `:shall`, `:must_not`, `:shall_not`,
-  `:should`, `:may`, or `:none`. Consumed by the `append/must_downgraded`
-  guard at diff time. The classifier is pure and runs only when asked.
+  `:should`, `:may`, or `:none`. The current append-only gate compares parsed
+  priority fields directly and does not call this classifier.
   """
 
   @type modal ::
           :must | :shall | :must_not | :shall_not | :should | :may | :none
 
   @modals [:must, :shall, :must_not, :shall_not, :should, :may, :none]
+
+  @modal_patterns [
+    {:must_not, ~r/\b(?:must not|mustn t)\b/},
+    {:shall_not, ~r/\b(?:shall not|shan t)\b/},
+    {:must, ~r/\bmust\b/},
+    {:shall, ~r/\bshall\b/},
+    {:should, ~r/\bshould\b/},
+    {:may, ~r/\bmay\b/}
+  ]
 
   @doc """
   Classifies a statement string into a modal atom.
@@ -26,15 +35,9 @@ defmodule Ancora.ModalClass do
       |> String.downcase()
       |> strip_punctuation()
 
-    cond do
-      match_modal?(normalized, ["must not", "mustn t"]) -> :must_not
-      match_modal?(normalized, ["shall not", "shan t"]) -> :shall_not
-      match_modal?(normalized, ["must"]) -> :must
-      match_modal?(normalized, ["shall"]) -> :shall
-      match_modal?(normalized, ["should"]) -> :should
-      match_modal?(normalized, ["may"]) -> :may
-      true -> :none
-    end
+    Enum.find_value(@modal_patterns, :none, fn {modal, pattern} ->
+      if Regex.match?(pattern, normalized), do: modal
+    end)
   end
 
   @doc """
@@ -84,12 +87,6 @@ defmodule Ancora.ModalClass do
   defp rank(:should), do: 3
   defp rank(:may), do: 2
   defp rank(:none), do: 0
-
-  defp match_modal?(normalized, phrases) do
-    Enum.any?(phrases, fn phrase ->
-      Regex.match?(~r/\b#{Regex.escape(phrase)}\b/, normalized)
-    end)
-  end
 
   defp strip_punctuation(statement) do
     statement

@@ -9,6 +9,11 @@ defmodule Mix.Tasks.Spec.Status do
   A cold checkout may print dependency compilation lines before ancora output.
   Thin means fewer than three derived bindings. This threshold is fixed and
   cannot be configured. Corpus findings do not make this report task fail.
+
+  ## Options
+
+    * `--root DIR` selects the target project. Defaults to the current directory.
+    * `--spec-dir DIR` selects the ancora workspace directory. Defaults to `.spec`.
   """
 
   alias Ancora.Output

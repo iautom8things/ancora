@@ -24,6 +24,9 @@ summary: spec.check orchestration, hard-fail preflight, diff scoping, acknowledg
 decisions:
   - ancora.decision.no_execution_no_state
   - ancora.decision.slimmed_governance
+  - ancora.decision.cli_json_contract
+  - ancora.decision.retirement_vocabulary
+  - ancora.decision.durable_acknowledgments
 ```
 
 ## Requirements
@@ -31,19 +34,37 @@ decisions:
 ```yaml spec-requirements
 - id: ancora.gate.preflight_hard_fails
   statement: >-
-    When the target root is not inside a git repository, when the base ref
-    (explicit `--base` or the configured default) does not resolve, or when
-    the target is an umbrella root, `mix spec.check` shall exit non-zero with
+    When the target has no `.spec/` corpus, the git executable is missing,
+    the requested spec workspace cannot resolve its `specs/` directory, the
+    target root is not inside a git repository, a malformed `git cat-file
+    --batch` frame is received, a Git change-set path is quoted, a NUL
+    terminator is missing, a name-status or porcelain record is invalid, the
+    base ref (explicit
+    `--base` or the configured default) does not resolve, the git batch port
+    exits or times out, a shallow boundary inside the requested `base..HEAD`
+    range has at least one parent commit absent locally, or the target is an
+    umbrella root, `mix spec.check` shall exit non-zero with
     verdict `result=fail tier=env` and a message naming the remedy. These
     conditions shall never be emitted as findings and shall not be
-    configurable off. No preflight check shall inspect `_build` or any
+    configurable off. An unresolvable spec workspace shall name the directory
+    that was checked and explain that `--spec-dir` selects the workspace, then
+    end with the environment-tier verdict. No preflight check shall inspect `_build` or any
     `.app` file. Preflight shall load `.spec/config.yml` once and thread the
-    resulting config through project identity and gate assembly. The config
+    resulting config through project identity and gate assembly. It shall pass
+    the resolved `lib_paths` value, including nil, into project identity so
+    that path does not read the config again. The config
     `lib_paths:` key shall override project identity only when present in
     `.spec/config.yml`; literal `elixirc_paths:` shall be honored otherwise.
     In `--json` mode, a preflight environment failure shall be returned as a
-    JSON report with an empty `all_findings` list and the error message before
-    the failing environment-tier verdict.
+    version 1 JSON report with the fixed `ancora.tasks.json_report` shape, an
+    empty `all_findings` list, and the error message before the failing
+    environment-tier verdict. An unreadable working-tree source,
+    test, or subject file shall also be an environment failure, while parse
+    errors in readable files remain findings. A failed batch fetch shall close
+    and poison its port so later fetches return `{:error, :port_poisoned}`.
+    When a gate path reads a committed base blob without a batch port, it shall
+    receive only the committed bytes; git warnings on stderr shall not enter
+    the payload or produce a finding.
   priority: must
   stability: stable
 - id: ancora.gate.default_base_no_fallback
@@ -74,7 +95,15 @@ decisions:
     the diff, the gate shall suppress that subject's `derived/drift`,
     `derived/growth`, and `derived/shrink` findings. A `Spec-Ack:` trailer in
     the `base..HEAD` range shall downgrade the named code toward `info` or
-    `warning` but never suppress it and never raise it.
+    `warning` but never suppress it and never raise it. The durable
+    acknowledgment record shall be `.spec/config.yml` through `severities:` or
+    a per-subject override; trailers are a development convenience. When a
+    finding resolves through a trailer that exists only in a non-tip commit,
+    the gate shall warn on stderr that a squash merge will lose it only when
+    removing that trailer would change the finding's resolved severity, and
+    shall name `.spec/config.yml` as the promotion target. A legal trailer
+    downgrade shall win over an equal or more severe config value while the
+    trailer is present; after its removal, the config value shall apply.
   priority: must
   stability: stable
 - id: ancora.gate.new_subject_self_clears
@@ -90,10 +119,14 @@ decisions:
     The gate shall enforce exactly two append-only guards, implemented
     by Ancora.AppendOnly: `append/requirement_deleted` when a requirement
     id present at base is absent on HEAD, and `append/must_downgraded`
-    when a requirement's priority moves from `must` to `should`. Either
-    is authorized, and the finding suppressed, only by an ADR with
-    `status: accepted` whose `affects:` names the requirement id or its
-    subject id. No other spec-weakening shall be guarded.
+    when a requirement's priority moves from `must` to `should`. An accepted
+    ADR whose `affects:` names the exact requirement id shall authorize either
+    change. For deletion only, `retires:` may instead name the exact
+    requirement id or its subject id. A subject id in `affects:` shall not
+    authorize either change, and `retires:` shall not authorize a downgrade.
+    See `ancora.parsing.append_authorization_is_requirement_scoped` and
+    `ancora.parsing.retirement_vocabulary` for the shared authorization rules.
+    No other spec weakening shall be guarded.
   priority: must
   stability: stable
 - id: ancora.gate.unanchored_subject
@@ -119,7 +152,8 @@ decisions:
     `mix spec.check` shall fail on any finding at `error` or `warning`
     severity and never on `info`. `mix spec.validate` shall fail on `error`
     and, with `--strict`, on `warning` too. A run with zero subjects shall be
-    a true pass with a `subjects=0` summary.
+    a true pass with a `subjects=0` summary. The `checked subjects=` count
+    shall include only spec files with an accepted, non-empty subject id.
   priority: must
   stability: stable
 - id: ancora.gate.only_git_is_spawned
@@ -136,7 +170,15 @@ decisions:
     No task shall write derived state to the repository: there shall be no
     `state.json`, no hash baseline, and no `--output` flag on `spec.check` or
     `spec.validate`. Every gate input shall be the working tree plus git
-    objects reachable from `--base`.
+    objects reachable from `--base`. The temporary base view shall contain
+    only the configured spec directory, configured test paths, and project
+    library paths, and the gate shall remove it after assembly returns or
+    raises. During a gate run, the gate shall hold no per-run in-memory memo,
+    registry, or ETS table; the run context it starts shall carry only the run
+    root, base, and batch-port state, and stopping it shall leave no table or
+    process behind. The temporary base-view root shall use
+    `Ancora.TempName.cross_vm_suffix/0` and a non-recursive `File.mkdir/1`, so
+    an already-present path fails instead of accepting a symlink.
   priority: must
   stability: stable
 ```
@@ -177,6 +219,81 @@ decisions:
     - no finding line is printed
   covers:
     - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.missing_corpus
+  given:
+    - a git project whose root has no `.spec/` directory
+  when:
+    - `mix spec.check --base HEAD` runs
+  then:
+    - the message names `mix spec.init`
+    - the last stdout line is `spec.check result=fail tier=env`
+    - no exception is written to stderr
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.missing_git
+  given:
+    - a project with a corpus and no git executable on `PATH`
+  when:
+    - preflight or `Ancora.Git.BatchPort.open/1` runs
+  then:
+    - it returns an environment failure that names git and `PATH`
+    - the batch port returns `{:error, :git_executable_not_found}` as data
+    - no exception escapes from `Ancora.Git.run/3`
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.incomplete_shallow_range
+  given:
+    - a shallow clone with a boundary inside `base..HEAD` whose parent is absent locally
+    - "a full clone of the same commit where a `Spec-Ack:` trailer makes the gate pass"
+  when:
+    - `mix spec.check` runs against the same base in both clones
+  then:
+    - the full clone passes
+    - the shallow clone exits non-zero with verdict `result=fail tier=env`
+    - "the message names `git fetch --unshallow` and `fetch-depth: 0`"
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.complete_shallow_range
+  given:
+    - a shallow repository with a boundary inside `base..HEAD`
+    - every parent of that boundary is present locally
+  when:
+    - preflight runs
+  then:
+    - preflight accepts the range
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.poisoned_batch_port
+  given:
+    - a git batch fetch that times out
+  when:
+    - another fetch is attempted through the same port
+  then:
+    - the second fetch returns `{:error, :port_poisoned}`
+    - no response from the timed out request is returned
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.malformed_batch_frame
+  given:
+    - a git batch port that returns a malformed frame during gate assembly
+  when:
+    - `mix spec.check` runs
+  then:
+    - the command exits non-zero without a runtime exception
+    - the last stdout line is `spec.check result=fail tier=env errors=0 warnings=0`
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.unreadable_working_tree_input
+  given:
+    - a tagged test file or library source in the working tree cannot be read
+  when:
+    - `mix spec.check --base HEAD` runs
+  then:
+    - stdout names the unreadable file
+    - the last stdout line is `spec.check result=fail tier=env errors=0 warnings=0`
+    - no runtime exception escapes on stderr
+  covers:
+    - ancora.gate.preflight_hard_fails
 - id: ancora.gate.scenario.json_target_read_failure
   given:
     - a target whose `mix.exs` has a non-literal `app:` value
@@ -184,18 +301,20 @@ decisions:
     - `mix spec.check --json` runs
   then:
     - stdout contains one JSON report followed by the environment-tier verdict
-    - the report has an empty `all_findings` list and names the target-read error
+    - the version 1 report has the fixed JSON shape, an empty `all_findings` list, and the target-read error
     - no plain error message appears on stdout
   covers:
     - ancora.gate.preflight_hard_fails
 - id: ancora.gate.scenario.drift_cleared_by_spec_edit
   given:
     - a watched function body changed in the diff
+    - one tagged call was added and another tagged call was removed
     - the subject's spec file has one requirement statement reworded in the same diff
   when:
     - the gate runs
   then:
     - no `derived/drift` fires for the subject
+    - no `derived/growth` or `derived/shrink` fires for the subject
   covers:
     - ancora.gate.acknowledgment_clears
 - id: ancora.gate.scenario.trailer_downgrades_not_silences
@@ -207,6 +326,46 @@ decisions:
   then:
     - "the finding is present at severity `info` with `severity_source: :trailer`"
     - the verdict is `result=pass` if no other warning or error exists
+  covers:
+    - ancora.gate.acknowledgment_clears
+- id: ancora.gate.scenario.trailer_never_raises
+  given:
+    - a drift finding configured at `info`
+    - "a commit in `base..HEAD` with trailer `Spec-Ack: derived/drift=warning`"
+  when:
+    - the gate runs
+  then:
+    - "the finding remains at `info` with `severity_source: :config`"
+    - the verdict is `result=pass` if no other warning or error exists
+  covers:
+    - ancora.gate.acknowledgment_clears
+- id: ancora.gate.scenario.nearest_commit_acknowledgment_wins
+  given:
+    - a drift finding
+    - "an older commit with `Spec-Ack: derived/drift=info`"
+    - "the tip commit with `Spec-Ack: derived/drift=warning`"
+  when:
+    - the gate runs across both commits
+  then:
+    - "the finding resolves to `warning` with `severity_source: :trailer`"
+    - the verdict is `result=fail`
+    - stderr has no squash-loss warning because the winning acknowledgment is on the tip
+  covers:
+    - ancora.gate.acknowledgment_clears
+- id: ancora.gate.scenario.non_tip_trailer_warns_before_squash
+  given:
+    - a finding downgraded by a `Spec-Ack:` trailer below the branch tip
+    - no trailer for that code on the tip commit
+  when:
+    - the gate runs before a squash merge
+  then:
+    - stderr names the applied code and severity
+    - stderr says the acknowledgment will be lost by a squash merge
+    - stderr names `.spec/config.yml` as the promotion target
+    - a non-tip trailer that resolves no finding produces no loss warning
+    - config at the trailer's severity makes the promoted branch silent
+    - config more severe than the trailer keeps the loss warning because removing the trailer changes the resolved severity
+    - after the trailer is removed, the config severity applies
   covers:
     - ancora.gate.acknowledgment_clears
 - id: ancora.gate.scenario.new_subject_clears_itself
@@ -221,17 +380,36 @@ decisions:
 - id: ancora.gate.scenario.deleted_requirement_without_adr
   given:
     - a requirement present at base and removed on HEAD
-    - no ADR in the corpus names it or its subject
+    - no accepted ADR names its exact id in `affects:` or names its exact id or subject in `retires:`
   when:
     - the gate runs
   then:
     - `append/requirement_deleted` fires at severity `error`
   covers:
     - ancora.gate.two_append_guards
+- id: ancora.gate.scenario.subject_retirement_authorizes_deletion
+  given:
+    - a subject with multiple requirements at base
+    - "an accepted ADR whose `retires:` names the subject id"
+  when:
+    - the subject is absent on HEAD
+  then:
+    - no `append/requirement_deleted` finding fires
+  covers:
+    - ancora.gate.two_append_guards
+- id: ancora.gate.scenario.retirement_does_not_authorize_downgrade
+  given:
+    - "an accepted ADR whose `retires:` names a subject id but whose `affects:` does not name the requirement id"
+  when:
+    - a requirement in the subject moves from `must` to `should`
+  then:
+    - `append/must_downgraded` fires
+  covers:
+    - ancora.gate.two_append_guards
 - id: ancora.gate.scenario.downgrade_authorized_by_adr
   given:
     - a requirement moved from `must` to `should` on HEAD
-    - "an ADR with `status: accepted` whose `affects:` names the subject id"
+    - "an ADR with `status: accepted` whose `affects:` names the requirement id"
   when:
     - the gate runs
   then:
@@ -280,9 +458,11 @@ decisions:
   given:
     - a corpus whose only finding is one warning
   when:
-    - `mix spec.check` and `mix spec.validate` both run
+    - `mix spec.check`, `Ancora.validate/2`, and `mix spec.validate` run
   then:
     - spec.check exits non-zero with `result=fail`
+    - "direct non-strict validation returns `fail: false` with one checked warning and no errors"
+    - "direct strict validation returns `fail: true` with the same checked counts"
     - spec.validate exits zero with `result=pass`
     - spec.validate --strict exits non-zero
   covers:
@@ -299,11 +479,23 @@ decisions:
     - ancora.gate.strict_verdict
 - id: ancora.gate.scenario.forbidden_spawner_test
   given:
-    - every file under `lib/` parsed to AST
+    - a non-empty compile-time-rooted list of every file under `lib/` parsed to AST
+    - the allowed git layer contains a known subprocess call
   when:
     - the static spawner test walks each AST
   then:
+    - the detector finds the known call before applying the allowlist
     - no `System.cmd`, `System.shell`, `Port.open`, or `:os.cmd` call exists outside `lib/ancora/git.ex` and `lib/ancora/git/`
+  covers:
+    - ancora.gate.only_git_is_spawned
+- id: ancora.gate.scenario.mix_tasks_load_only_dependencies
+  given:
+    - the package application module list contains exactly eight `spec.*` Mix tasks
+  when:
+    - the static task test reads each task's compiled attributes
+  then:
+    - every task declares exactly `deps.loadpaths` as its requirement
+    - changing one task to a compiling requirement fails the test
   covers:
     - ancora.gate.only_git_is_spawned
 - id: ancora.gate.scenario.no_output_flag_on_gate_tasks
@@ -314,6 +506,15 @@ decisions:
   then:
     - the run fails as a usage error
     - no file is written
+  covers:
+    - ancora.gate.no_derived_state
+- id: ancora.gate.scenario.base_view_cleanup_on_resolver_raise
+  given:
+    - a gate run whose resolver membership callback raises during derivation
+  when:
+    - gate assembly exits through the resolver exception path
+  then:
+    - the exact temporary base-view directory returned by materialization no longer exists
   covers:
     - ancora.gate.no_derived_state
 ```

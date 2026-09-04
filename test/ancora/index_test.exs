@@ -10,6 +10,13 @@ defmodule Ancora.IndexTest do
   @fixtures Path.expand("../fixtures/specs", __DIR__)
 
   describe "build" do
+    @tag spec: "ancora.gate.preflight_hard_fails"
+    test "returns the requested workspace lookup failure as data", %{root: root} do
+      assert {:error, message} = Index.build(root, spec_dir: ".spec/specs")
+      assert message =~ "--spec-dir selects the ancora workspace directory"
+      assert message =~ ".spec/specs/specs directory not found"
+    end
+
     @tag spec: "ancora.parsing.block_grammar_unchanged"
     test "indexes authored specs and decisions and exposes Ancora.index/2", %{root: root} do
       write_spec(root, "alpha", """
@@ -135,6 +142,199 @@ defmodule Ancora.IndexTest do
                  finding.message =~ "ancora.ghost.requirement"
              end)
     end
+
+    @tag spec: "ancora.parsing.structural_references"
+    @tag spec: "ancora.parsing.stable_public_api"
+    test "schema-rejected metadata reports the exact error and every reader handles it", %{
+      root: root
+    } do
+      init_git_repo(root)
+
+      write_files(root, %{
+        "mix.exs" => """
+        defmodule Fixture.MixProject do
+          use Mix.Project
+          def project, do: [app: :fixture, version: "0.1.0"]
+        end
+        """,
+        "lib/sample.ex" => "defmodule Sample do\nend\n"
+      })
+
+      fixtures = [
+        {"missing status",
+         """
+         id: broken.subject
+         kind: module
+         """, "status"},
+        {"malformed id",
+         """
+         id: Bad Subject!
+         kind: module
+         status: active
+         """, "id"}
+      ]
+
+      for {name, meta, rejected_field} <- fixtures do
+        write_spec(root, "broken", """
+        # Broken
+
+        ```yaml spec-meta
+        #{meta}```
+        """)
+
+        commit_all(root, name)
+
+        spec = root |> Path.join(".spec/specs/broken.spec.md") |> Parser.parse_file(root)
+
+        assert spec["meta"] == :rejected
+        assert Enum.map(spec["findings"], & &1.code) == ["spec/parse_error"]
+        assert hd(spec["findings"]).subject == nil
+        assert hd(spec["findings"]).message =~ "field: #{rejected_field}"
+
+        assert Map.keys(spec) |> Enum.sort() ==
+                 ~w(exceptions file findings meta parse_errors requirements scenarios title verification)
+
+        check = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+        assert check.status == 1
+        assert spec_finding_codes(check.stdout) == ["spec/parse_error"]
+        assert_rejected_meta_line(check.stdout, rejected_field)
+        assert List.last(output_lines(check.stdout)) =~ "spec.check result=fail tier=branch"
+
+        validate = run_mix_subprocess(["spec.validate", "--root", root])
+        assert validate.status == 1
+        assert spec_finding_codes(validate.stdout) == ["spec/parse_error"]
+        assert_rejected_meta_line(validate.stdout, rejected_field)
+
+        assert List.last(output_lines(validate.stdout)) =~
+                 "spec.validate result=fail tier=validate"
+
+        for {args, opts, heading} <- [
+              {["spec.status", "--root", root], [], "Spec Led Status"},
+              {[
+                 "run",
+                 "-e",
+                 "File.cd!(#{inspect(root)}, fn -> Mix.Tasks.Spec.Next.run([\"--base\", \"HEAD\"]) end)"
+               ], [], "Spec Led Next"},
+              {["spec.prime", "--root", root, "--base", "HEAD"], [], "Spec Led Prime"}
+            ] do
+          result = run_mix_subprocess(args, opts)
+          assert result.status == 0, result.stdout <> result.stderr
+          assert result.stdout =~ heading
+          refute result.stderr =~ "** ("
+        end
+
+        review = run_mix_subprocess(["spec.review", "--root", root, "--base", "HEAD"])
+        assert review.status == 0, review.stdout <> review.stderr
+        assert review.stdout =~ "spec.review wrote"
+
+        html = File.read!(Path.join(root, "_build/spec_review.html"))
+        assert html =~ "spec/parse_error"
+        assert html =~ "field: #{rejected_field}"
+        refute html =~ ~s(<a href="#"></a>)
+        refute html =~ ~s(<section class="subject" id="">)
+        refute review.stderr =~ "** ("
+      end
+    end
+
+    @tag spec: "ancora.parsing.structural_references"
+    @tag spec: "ancora.gate.strict_verdict"
+    test "a spec without metadata blocks both corpus gates and is not counted", %{root: root} do
+      init_git_repo(root)
+
+      write_files(root, %{
+        "mix.exs" => """
+        defmodule Fixture.MixProject do
+          use Mix.Project
+          def project, do: [app: :fixture, version: "0.1.0"]
+        end
+        """
+      })
+
+      write_spec(root, "missing-meta", """
+      # Missing metadata
+
+      ```yaml spec-requirements
+      - id: missing.meta.requirement
+        statement: This requirement has no subject metadata.
+        priority: must
+      ```
+      """)
+
+      commit_all(root, "missing metadata")
+
+      check = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+      assert check.status == 1
+      assert spec_finding_codes(check.stdout) == ["spec/missing_field"]
+      assert check.stdout =~ "errors=1 warnings=0"
+
+      assert check.stdout =~
+               "[ERROR] .spec/specs/missing-meta.spec.md spec/missing_field .spec/specs/missing-meta.spec.md :: .spec/specs/missing-meta.spec.md: missing field spec-meta; add the required field"
+
+      assert check.stdout =~ "checked subjects=0 requirements="
+      assert List.last(output_lines(check.stdout)) =~ "spec.check result=fail tier=branch"
+
+      validate = run_mix_subprocess(["spec.validate", "--root", root])
+      assert validate.status == 1
+      assert spec_finding_codes(validate.stdout) == ["spec/missing_field"]
+      assert validate.stdout =~ "errors=1 warnings=0"
+
+      assert validate.stdout =~
+               "[ERROR] .spec/specs/missing-meta.spec.md spec/missing_field .spec/specs/missing-meta.spec.md :: .spec/specs/missing-meta.spec.md: missing field spec-meta; add the required field"
+
+      assert validate.stdout =~ "checked subjects=0 requirements="
+      assert List.last(output_lines(validate.stdout)) =~ "spec.validate result=fail tier=validate"
+
+      for {args, heading} <- [
+            {["spec.status", "--root", root], "Spec Led Status"},
+            {[
+               "run",
+               "-e",
+               "File.cd!(#{inspect(root)}, fn -> Mix.Tasks.Spec.Next.run([\"--base\", \"HEAD\"]) end)"
+             ], "Spec Led Next"},
+            {["spec.prime", "--root", root, "--base", "HEAD"], "Spec Led Prime"}
+          ] do
+        result = run_mix_subprocess(args)
+        assert result.status == 0, result.stdout <> result.stderr
+        assert result.stdout =~ heading
+        refute result.stderr =~ "** ("
+      end
+
+      review = run_mix_subprocess(["spec.review", "--root", root, "--base", "HEAD"])
+      assert review.status == 0, review.stdout <> review.stderr
+      assert review.stdout =~ "spec.review wrote"
+      refute review.stderr =~ "** ("
+
+      write_spec(root, "missing-meta", """
+      # Identified subject
+
+      ```yaml spec-meta
+      id: identified.subject
+      kind: module
+      status: active
+      ```
+      """)
+
+      identified = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+      assert identified.stdout =~ "checked subjects=1 requirements="
+    end
+  end
+
+  describe "field access" do
+    @tag spec: "ancora.parsing.structural_references"
+    test "reads schema structs and YAML maps without creating atoms" do
+      meta = %Meta{id: "atom.subject", kind: "module", status: "active"}
+
+      assert Index.field(meta, "id") == "atom.subject"
+      assert Index.field(%{"id" => "string.subject"}, :id) == "string.subject"
+      assert Index.subject_id(%{"meta" => meta}) == "atom.subject"
+      assert Index.subject_id(%{"meta" => %{"id" => "string.subject"}}) == "string.subject"
+      assert Index.subject_id(%{"meta" => nil}) == nil
+
+      unknown = "unknown_#{System.unique_integer([:positive])}"
+      assert_raise ArgumentError, fn -> String.to_existing_atom(unknown) end
+      assert Index.field(%{nil => :wrong}, unknown) == nil
+      assert_raise ArgumentError, fn -> String.to_existing_atom(unknown) end
+    end
   end
 
   describe "consumer fixtures" do
@@ -162,5 +362,20 @@ defmodule Ancora.IndexTest do
         assert spec["meta"]
       end
     end
+  end
+
+  defp spec_finding_codes(output) do
+    ~r/(?:^|\s)(spec\/[a-z_]+)(?=\s)/
+    |> Regex.scan(output, capture: :all_but_first)
+    |> List.flatten()
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp assert_rejected_meta_line(output, field) do
+    assert Enum.any?(output_lines(output), fn line ->
+             line =~ "[ERROR] - spec/parse_error .spec/specs/broken.spec.md ::" and
+               line =~ "field: #{field}"
+           end)
   end
 end

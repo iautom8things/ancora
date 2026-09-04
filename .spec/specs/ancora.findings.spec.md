@@ -25,6 +25,7 @@ status: active
 summary: Closed 30-code finding registry, severity precedence, Spec-Ack trailer grammar, and config.yml schema with per-subject overrides.
 decisions:
   - ancora.decision.slimmed_governance
+  - ancora.decision.durable_acknowledgments
 ```
 
 ## Requirements
@@ -90,17 +91,22 @@ decisions:
     `ANCORA_SHOW_INFO=1` is set, and shall never affect exit status. The
     branch summary shall report the hidden count. A preflight environment
     failure represented as JSON shall keep `all_findings` empty rather than
-    fabricate a finding for the target-read error.
+    fabricate a finding for the environment error, including a shallow
+    boundary inside `base..HEAD` whose parent is absent locally.
   priority: must
   stability: stable
 - id: ancora.findings.trailer_grammar
   statement: >-
     Ancora.Trailer shall parse `Spec-Ack: <code>=<info|warning>` from
-    `git log <base>..HEAD --format=%B`, accept only registry codes, apply
-    downgrade only (never `error`, never `off`, never higher than the
-    resolved config severity), and support no presets. An unknown code or
-    severity shall emit a `[CONFIG]` warning on stderr and be ignored, never
-    silently dropped.
+    commits in `git log <base>..HEAD`, accept only registry codes, apply
+    downgrade only (never `error`, never `off`, never higher than the resolved
+    config severity), and support no presets. When more than one commit in the
+    range acknowledges the same code, the commit nearest `HEAD` shall win. The
+    read result shall identify the nearest valid value below the tip when the
+    tip omits that code or supplies a different severity, separately from the
+    winning union of all overrides. It shall omit that below-tip value only
+    when the tip repeats the same severity. An unknown code or severity shall
+    emit a `[CONFIG]` warning on stderr and be ignored, never silently dropped.
   priority: must
   stability: stable
 - id: ancora.findings.config_schema
@@ -112,16 +118,20 @@ decisions:
     `config/unknown_key`; a bad severity value shall produce
     `config/invalid_value`; both codes shall be non-tunable. Malformed YAML
     shall degrade to defaults with a `[CONFIG]` diagnostic on stderr.
+    Gate preflight shall load configuration once before checking corpus, git,
+    project, and base conditions, then pass that value into gate assembly.
     `ANCORA_SHOW_INFO` shall be the only environment variable read.
   priority: must
   stability: stable
 - id: ancora.findings.per_subject_overrides
   statement: >-
-    Each `overrides:` entry shall carry `subject`, `code`, `severity`, and a
-    required non-empty `reason`. An override shall apply only to findings of
-    that code attributed to that subject. An entry naming an unknown subject
-    or code, or missing `reason`, shall produce `config/invalid_value` and be
-    ignored. `spec.status` shall label overridden subjects `acknowledged`.
+    Each `overrides:` entry shall accept exactly `subject`, `code`, `severity`,
+    and a required non-empty `reason`. An override shall apply only to findings
+    of that code attributed to that subject. Any other entry key shall produce
+    `config/unknown_key` naming the key and entry, and the entry shall be
+    ignored. An entry naming an unknown subject or code, or missing `reason`,
+    shall produce `config/invalid_value` and be ignored. `spec.status` shall
+    label overridden subjects `acknowledged`.
   priority: must
   stability: evolving
 - id: ancora.findings.config_coversioned_note
@@ -130,6 +140,16 @@ decisions:
     ancora version in `mix.lock` travel together in git, and that a new code
     is configured in the same PR that bumps the dependency.
   priority: should
+  stability: stable
+- id: ancora.findings.modal_classifier
+  statement: >-
+    Ancora.ModalClass shall classify the positive, negative, and weak modal
+    phrases listed by its public modal type, including contracted negative
+    forms after punctuation normalization. Its phrase regexes shall be fixed
+    module attributes. Its moduledoc shall state that the active append-only
+    gate compares parsed priority fields directly and does not call the
+    classifier.
+  priority: must
   stability: stable
 ```
 
@@ -197,6 +217,19 @@ decisions:
     - no severity changes
   covers:
     - ancora.findings.trailer_grammar
+- id: ancora.findings.scenario.non_tip_override_is_identified
+  given:
+    - a valid trailer for one code below the branch tip
+    - no trailer for that code on the tip commit
+  when:
+    - the trailer range is read
+  then:
+    - the code and severity appear in the union of overrides
+    - the same code and severity appear in the non-tip-only overrides
+    - repeating the code on the tip removes it from the non-tip-only overrides
+    - naming the code at a different severity on the tip keeps the nearest below-tip value in the non-tip-only overrides
+  covers:
+    - ancora.findings.trailer_grammar
 - id: ancora.findings.scenario.info_hidden_by_default
   given:
     - a corpus with one `info` finding and nothing else
@@ -206,6 +239,16 @@ decisions:
     - no finding line is printed
     - the summary reports one hidden info finding
     - the verdict is `result=pass`
+  covers:
+    - ancora.findings.info_visibility
+- id: ancora.findings.scenario.shallow_range_env_has_no_findings
+  given:
+    - a shallow clone with a boundary inside `base..HEAD` whose parent is absent locally
+  when:
+    - `mix spec.check --json` runs
+  then:
+    - the version 1 report has an empty `all_findings` list
+    - the run ends with an environment-tier verdict rather than a finding
   covers:
     - ancora.findings.info_visibility
 - id: ancora.findings.scenario.unknown_config_key
@@ -247,6 +290,16 @@ decisions:
     - the override is not applied
   covers:
     - ancora.findings.per_subject_overrides
+- id: ancora.findings.scenario.override_unknown_key
+  given:
+    - an `overrides:` entry with a `requirement:` key in addition to the four accepted keys
+  when:
+    - the real `mix spec.check` task loads config during preflight
+  then:
+    - `config/unknown_key` fires naming `requirement` and the entry
+    - the override is not applied
+  covers:
+    - ancora.findings.per_subject_overrides
 - id: ancora.findings.scenario.override_scoped_to_subject
   given:
     - an override for subject A on `derived/unanchored_subject` at `info`
@@ -267,6 +320,16 @@ decisions:
     - it mentions `mix.lock` and configuring a new code in the same PR as the dependency bump
   covers:
     - ancora.findings.config_coversioned_note
+- id: ancora.findings.scenario.modal_classifier_is_standalone
+  given:
+    - a requirement statement containing a positive, negative, weak, or contracted negative modal
+  when:
+    - Ancora.ModalClass.classify/1 classifies it
+  then:
+    - the matching modal atom is returned
+    - the module documentation does not claim the append-only gate calls the classifier
+  covers:
+    - ancora.findings.modal_classifier
 ```
 
 ## Verification
@@ -283,4 +346,5 @@ decisions:
     - ancora.findings.config_schema
     - ancora.findings.per_subject_overrides
     - ancora.findings.config_coversioned_note
+    - ancora.findings.modal_classifier
 ```

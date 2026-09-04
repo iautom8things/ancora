@@ -1,7 +1,8 @@
 Code.require_file("../support/tmp_git_repo.exs", __DIR__)
+Code.require_file("../support/ancora_case.exs", __DIR__)
 
 defmodule Ancora.GitTest do
-  use ExUnit.Case, async: true
+  use Ancora.TestCase, async: false
 
   alias Ancora.Derive.RunContext
   alias Ancora.Git
@@ -11,6 +12,38 @@ defmodule Ancora.GitTest do
     root = TmpGitRepo.create!()
     on_exit(fn -> TmpGitRepo.cleanup!(root) end)
     {:ok, root: root}
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "run returns data when git is absent from PATH", %{root: root} do
+    original_path = System.get_env("PATH")
+    on_exit(fn -> System.put_env("PATH", original_path) end)
+    System.put_env("PATH", Path.join(root, "no-executables"))
+
+    assert {:error, :git_executable_not_found} = Git.run(root, ["status"])
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "preflight names the remedy when git is absent from PATH", %{root: root} do
+    TmpGitRepo.write!(root, %{
+      "mix.exs" => """
+      defmodule Fixture.MixProject do
+        use Mix.Project
+        def project, do: [app: :fixture]
+      end
+      """,
+      ".spec/specs/.keep" => ""
+    })
+
+    TmpGitRepo.commit!(root, "initial")
+
+    original_path = System.get_env("PATH")
+    on_exit(fn -> System.put_env("PATH", original_path) end)
+    System.put_env("PATH", Path.join(root, "no-executables"))
+
+    assert {:env, message} = Ancora.Gate.Preflight.run(root, base: "HEAD")
+    assert message =~ "git executable not found"
+    assert message =~ "PATH"
   end
 
   @tag spec: "ancora.derive.base_reads_batched"
@@ -55,7 +88,7 @@ defmodule Ancora.GitTest do
 
     isolated = %{ctx | root: decoy}
 
-    assert {:ok, "defmodule A do\nend\n"} = Git.read_blob(isolated, "lib/a.ex")
+    assert {:ok, "defmodule A do\nend\n"} = Git.read_blob(isolated, {:path, "lib/a.ex"})
   end
 
   @tag spec: "ancora.derive.base_reads_batched"
@@ -69,115 +102,137 @@ defmodule Ancora.GitTest do
     on_exit(fn -> RunContext.stop(ctx) end)
     assert ctx.batch_port == nil
 
-    assert {:ok, "show-me\n"} = Git.read_blob(ctx, "lib/a.ex")
+    assert {:ok, "show-me\n"} = Git.read_blob(ctx, {:path, "lib/a.ex"})
   end
 
-  @tag spec: "ancora.derive.memo_is_run_scoped"
-  test "memo table is unnamed, public, and gone after stop", %{root: root} do
-    TmpGitRepo.write!(root, %{"README.md" => "x\n"})
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "read_blob keeps successful git show stderr out of blob bytes", %{root: root} do
+    TmpGitRepo.write!(root, %{"lib/a.ex" => "blob-only\n"})
     TmpGitRepo.commit!(root, "initial")
 
-    assert {:ok, ctx} = RunContext.start(root, "HEAD")
-    assert :ets.info(ctx.memo, :named_table) == false
-    assert :ets.info(ctx.memo, :protection) == :public
-    assert Port.info(ctx.batch_port.port, :registered_name) == {:registered_name, []}
+    alternates = Path.join(root, ".git/objects/info/alternates")
+    File.mkdir_p!(Path.dirname(alternates))
+    File.write!(alternates, "/definitely/missing/objects\n")
 
-    :ok = RunContext.memo_put(ctx, :k, :v, :ast)
-    assert {:ok, :v, :ast} = RunContext.memo_get(ctx, :k)
+    script = """
+    alias Ancora.Derive.RunContext
+    alias Ancora.Git
+    {:ok, ctx} = RunContext.start(#{inspect(root)}, "HEAD", batch: false)
 
-    tid = ctx.memo
-    port = ctx.batch_port.port
-    :ok = RunContext.stop(ctx)
+    try do
+      {:ok, payload} = Git.read_blob(ctx, {:path, "lib/a.ex"})
+      IO.binwrite(payload)
+    after
+      RunContext.stop(ctx)
+    end
+    """
 
-    assert :ets.info(tid) == :undefined
-    assert Port.info(port) == nil
+    result = run_mix_subprocess(["run", "-e", script])
+    assert result.status == 0
+    assert result.stdout == "blob-only\n"
+    assert result.stderr =~ "unable to normalize alternate object path"
   end
 
-  @tag spec: "ancora.derive.memo_is_run_scoped"
-  test "memo prefers DefIndex and resolver results over a raw AST", %{root: root} do
-    TmpGitRepo.write!(root, %{"README.md" => "x\n"})
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "read_blob accepts a resolved blob oid in the git show fallback", %{root: root} do
+    TmpGitRepo.write!(root, %{"lib/a.ex" => "show-by-oid\n"})
     TmpGitRepo.commit!(root, "initial")
+    oid = TmpGitRepo.git!(root, ["rev-parse", "HEAD:lib/a.ex"])
+
+    assert {:ok, ctx} = RunContext.start(root, "HEAD", batch: false)
+    on_exit(fn -> RunContext.stop(ctx) end)
+
+    assert {:ok, "show-by-oid\n"} = Git.read_blob(ctx, {:oid, String.trim(oid)})
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "read_blob treats a tagged 40-hex path as a path", %{root: root} do
+    hex_path = String.duplicate("a", 40)
+    TmpGitRepo.write!(root, %{hex_path => "path-not-object\n"})
+    TmpGitRepo.commit!(root, "initial")
+
     assert {:ok, ctx} = RunContext.start(root, "HEAD")
     on_exit(fn -> RunContext.stop(ctx) end)
 
-    :ok = RunContext.memo_put(ctx, :file, :quoted, :ast)
-    :ok = RunContext.memo_put(ctx, :file, :index, :def_index)
-    assert {:ok, :index, :def_index} = RunContext.memo_get(ctx, :file)
-
-    :ok = RunContext.memo_put(ctx, :file, :quoted_again, :ast)
-    assert {:ok, :index, :def_index} = RunContext.memo_get(ctx, :file)
-
-    :ok = RunContext.memo_put(ctx, :calls, :set, :resolver)
-    :ok = RunContext.memo_put(ctx, :calls, :quoted, :ast)
-    assert {:ok, :set, :resolver} = RunContext.memo_get(ctx, :calls)
+    assert {:ok, "path-not-object\n"} = Git.read_blob(ctx, {:path, hex_path})
   end
 
   @tag spec: "ancora.derive.memo_is_run_scoped"
-  test "two concurrent runs do not collide", %{root: root} do
-    # Would fail if both runs shared one ETS memo: after the barrier, A would
-    # observe B's :only_b and B would observe A's :only_a.
-    TmpGitRepo.write!(root, %{"README.md" => "a\n"})
-    TmpGitRepo.commit!(root, "a")
+  test "run context carries only batch-port state and closes the port", %{root: root} do
+    # Would fail if RunContext retained the ETS allocation, deletion, public
+    # memo API, or struct field while claiming to own only the batch port.
+    TmpGitRepo.write!(root, %{"README.md" => "x\n"})
+    TmpGitRepo.commit!(root, "initial")
 
-    root_b = TmpGitRepo.create!()
-    on_exit(fn -> TmpGitRepo.cleanup!(root_b) end)
-    TmpGitRepo.write!(root_b, %{"README.md" => "b\n"})
-    TmpGitRepo.commit!(root_b, "b")
+    traced = self()
+    tracer = start_trace_forwarder(traced)
+    :erlang.trace(traced, true, [:call, {:tracer, tracer}])
+    :erlang.trace_pattern({:ets, :new, 2}, true, [])
+    :erlang.trace_pattern({:ets, :delete, 1}, true, [])
 
-    parent = self()
+    on_exit(fn ->
+      :erlang.trace_pattern({:ets, :new, 2}, false, [])
+      :erlang.trace_pattern({:ets, :delete, 1}, false, [])
+      send(tracer, :stop)
+    end)
 
-    task_a =
-      Task.async(fn ->
-        {:ok, ctx} = RunContext.start(root, "HEAD")
-        :ok = RunContext.memo_put(ctx, :only_a, :from_a, :blob)
-        send(parent, {:ready, :a})
+    assert {:ok, ctx} = RunContext.start(root, "HEAD")
+    assert Map.keys(ctx) |> Enum.sort() == [:__struct__, :base, :batch_port, :root]
+    refute function_exported?(RunContext, :memo_put, 4)
+    refute function_exported?(RunContext, :memo_get, 2)
+    assert Port.info(ctx.batch_port.port, :registered_name) == {:registered_name, []}
 
-        receive do
-          :cross ->
-            own = RunContext.memo_get(ctx, :only_a)
-            other = RunContext.memo_get(ctx, :only_b)
-            named? = :ets.info(ctx.memo, :named_table)
-            registered = Port.info(ctx.batch_port.port, :registered_name)
-            tid = ctx.memo
-            port = ctx.batch_port.port
-            :ok = RunContext.stop(ctx)
-            {own, other, named?, registered, tid, port}
-        end
-      end)
+    port = ctx.batch_port.port
+    :ok = RunContext.stop(ctx)
 
-    task_b =
-      Task.async(fn ->
-        {:ok, ctx} = RunContext.start(root_b, "HEAD")
-        :ok = RunContext.memo_put(ctx, :only_b, :from_b, :blob)
-        send(parent, {:ready, :b})
+    assert Port.info(port) == nil
+    sync_traces(traced, tracer)
+    assert collect_ets_calls([]) == []
+  end
 
-        receive do
-          :cross ->
-            own = RunContext.memo_get(ctx, :only_b)
-            other = RunContext.memo_get(ctx, :only_a)
-            named? = :ets.info(ctx.memo, :named_table)
-            registered = Port.info(ctx.batch_port.port, :registered_name)
-            tid = ctx.memo
-            port = ctx.batch_port.port
-            :ok = RunContext.stop(ctx)
-            {own, other, named?, registered, tid, port}
-        end
-      end)
+  defp collect_ets_calls(calls) do
+    receive do
+      {:forwarded_trace, {:trace, _pid, :call, {:ets, fun, args}}} ->
+        collect_ets_calls([{fun, args} | calls])
+    after
+      0 -> Enum.reverse(calls)
+    end
+  end
 
-    assert_receive {:ready, :a}, 5_000
-    assert_receive {:ready, :b}, 5_000
-    send(task_a.pid, :cross)
-    send(task_b.pid, :cross)
+  defp start_trace_forwarder(parent) do
+    spawn(fn -> forward_traces(parent) end)
+  end
 
-    assert {{:ok, :from_a, :blob}, :error, false, {:registered_name, []}, tid_a, port_a} =
-             Task.await(task_a)
+  defp sync_traces(traced, tracer) do
+    delivery_ref = make_ref()
+    send(tracer, {:sync, self(), traced, delivery_ref})
+    assert_receive {:trace_forwarder_synced, ^delivery_ref}
+  end
 
-    assert {{:ok, :from_b, :blob}, :error, false, {:registered_name, []}, tid_b, port_b} =
-             Task.await(task_b)
+  defp forward_traces(parent) do
+    receive do
+      :stop ->
+        :ok
 
-    assert :ets.info(tid_a) == :undefined
-    assert :ets.info(tid_b) == :undefined
-    assert Port.info(port_a) == nil
-    assert Port.info(port_b) == nil
+      {:sync, caller, traced, caller_ref} ->
+        delivery_ref = :erlang.trace_delivered(traced)
+        forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref)
+
+      message ->
+        send(parent, {:forwarded_trace, message})
+        forward_traces(parent)
+    end
+  end
+
+  defp forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref) do
+    receive do
+      {:trace_delivered, ^traced, ^delivery_ref} ->
+        send(caller, {:trace_forwarder_synced, caller_ref})
+        forward_traces(parent)
+
+      message ->
+        send(parent, {:forwarded_trace, message})
+        forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref)
+    end
   end
 end

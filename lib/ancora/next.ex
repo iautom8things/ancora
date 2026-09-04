@@ -19,8 +19,15 @@ defmodule Ancora.Next do
 
     with {:ok, preflight} <- Preflight.run(root, base: base),
          {:ok, change_set} <- change_set(preflight.root, preflight.base),
-         {:ok, status} <- Status.build(root, opts) do
+         {:ok, status} <- status(root, opts) do
       {:ok, report(preflight.base, change_set, status.subjects, opts)}
+    end
+  end
+
+  defp status(root, opts) do
+    case Keyword.fetch(opts, :status) do
+      {:ok, status} when is_map(status) -> {:ok, status}
+      :error -> Status.build(root, opts)
     end
   end
 

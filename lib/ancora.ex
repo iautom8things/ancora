@@ -1,6 +1,10 @@
 defmodule Ancora do
   @moduledoc """
   Spec-anchored traceability and drift detection for Elixir.
+
+  The semver-stable library API is `check/2`, `validate/2`,
+  `Ancora.Parser.parse_file/2`, and `Ancora.DecisionParser.parse_file/2`.
+  Other callable modules and functions are internal.
   """
 
   alias Ancora.Gate
@@ -12,24 +16,19 @@ defmodule Ancora do
   alias Ancora.TagScanner
   alias Ancora.Verifier
 
-  @doc """
-  Builds the in-memory corpus index for `root`.
-
-  Delegates to `Ancora.Index.build/2`. The semver-stable parse API is
-  `Ancora.Parser.parse_file/2` and `Ancora.DecisionParser.parse_file/2`.
-  """
+  @doc false
   @spec index(String.t(), keyword()) :: map()
   def index(root \\ File.cwd!(), opts \\ []) when is_binary(root) and is_list(opts) do
     Index.build(root, opts)
   end
 
-  @doc "Runs the assembled diff gate."
+  @doc "Runs the assembled diff gate. This function is semver-stable."
   @spec check(String.t(), keyword()) :: {:ok, map()} | {:env, String.t()}
   def check(root \\ File.cwd!(), opts \\ []) when is_binary(root) and is_list(opts) do
     Gate.check(root, opts)
   end
 
-  @doc "Validates the current corpus without diff analysis or target compilation."
+  @doc "Validates the current corpus without diff analysis or target compilation. This function is semver-stable."
   @spec validate(String.t(), keyword()) :: {:ok, map()}
   def validate(root \\ File.cwd!(), opts \\ []) when is_binary(root) and is_list(opts) do
     root = Path.expand(root)
@@ -54,7 +53,7 @@ defmodule Ancora do
      %{
        findings: summary.visible,
        checked: %{
-         subjects: length(index["subjects"]),
+         subjects: Enum.count(index["subjects"], &Index.subject_id/1),
          requirements: index["summary"]["requirements"],
          errors: summary.errors,
          warnings: summary.warnings

@@ -1,36 +1,42 @@
 defmodule Ancora.Static.ForbiddenSpawnerTest do
   use ExUnit.Case, async: true
 
+  @lib Path.expand("../../../lib", __DIR__)
+
   @tag spec: "ancora.gate.only_git_is_spawned"
   test "no subprocess spawn exists outside Ancora.Git" do
     # Would fail if a module outside lib/ancora/git.ex and lib/ancora/git/
     # called System.cmd, System.shell, Port.open, or :os.cmd, so the gate
     # could run something other than git.
-    lib_root = Path.expand("lib")
-
-    offenders =
-      lib_root
+    candidates =
+      @lib
       |> Path.join("**/*.ex")
       |> Path.wildcard()
       |> Enum.sort()
-      |> Enum.flat_map(fn path ->
-        if git_layer?(lib_root, path) do
-          []
-        else
-          path
-          |> File.read!()
-          |> Code.string_to_quoted!()
-          |> spawn_calls()
-          |> Enum.map(fn {kind, line} -> {Path.relative_to(path, lib_root), kind, line} end)
-        end
-      end)
+
+    assert candidates != []
+
+    detected = Enum.flat_map(candidates, &file_spawn_calls/1)
+
+    assert Enum.any?(detected, fn {path, _kind, _line} -> git_layer?(path) end),
+           "spawn detector did not find the known subprocess call in Ancora.Git"
+
+    offenders = Enum.reject(detected, fn {path, _kind, _line} -> git_layer?(path) end)
 
     assert offenders == []
   end
 
-  defp git_layer?(lib_root, path) do
-    rel = Path.relative_to(path, lib_root)
+  defp git_layer?(path) do
+    rel = Path.relative_to(path, @lib)
     rel == "ancora/git.ex" or String.starts_with?(rel, "ancora/git/")
+  end
+
+  defp file_spawn_calls(path) do
+    path
+    |> File.read!()
+    |> Code.string_to_quoted!()
+    |> spawn_calls()
+    |> Enum.map(fn {kind, line} -> {path, kind, line} end)
   end
 
   defp spawn_calls(ast) do

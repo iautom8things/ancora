@@ -30,10 +30,15 @@ defmodule Mix.Tasks.Spec.Decision.NewTest do
 
     File.write!(path, "edited\n")
 
-    assert_raise Mix.Error, ~r/Decision already exists/, fn ->
-      Mix.Tasks.Spec.Decision.New.run([id, "--root", root])
-    end
+    error_output =
+      capture_io(fn ->
+        assert_raise Mix.Error, ~r/Decision already exists/, fn ->
+          Mix.Tasks.Spec.Decision.New.run([id, "--root", root])
+        end
+      end)
 
+    assert error_output == "Decision already exists: #{path}\n"
+    refute error_output =~ "result="
     assert File.read!(path) == "edited\n"
 
     capture_io(fn ->
@@ -57,5 +62,18 @@ defmodule Mix.Tasks.Spec.Decision.NewTest do
            }
 
     assert decision["title"] == "Example"
+  end
+
+  @tag spec: "ancora.tasks.gated_emission_paths"
+  test "routes invalid arguments through the gated report path" do
+    output =
+      capture_io(fn ->
+        assert_raise Mix.Error, ~r/requires exactly one DECISION_ID/, fn ->
+          Mix.Tasks.Spec.Decision.New.run([])
+        end
+      end)
+
+    assert output == "spec.decision.new requires exactly one DECISION_ID argument\n"
+    refute output =~ "result="
   end
 end

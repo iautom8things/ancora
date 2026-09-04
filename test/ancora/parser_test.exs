@@ -395,6 +395,12 @@ defmodule Ancora.ParserTest do
 
       assert is_binary(parse_doc)
       assert parse_doc =~ "semver-stable"
+      assert moduledoc =~ ~s[`"exceptions"` key]
+      assert moduledoc =~ "`spec-exceptions` block are deprecated"
+      assert moduledoc =~ "Ancora 2.0 will remove them"
+      assert parse_doc =~ ~s[`"exceptions"` return key]
+      assert parse_doc =~ "deprecated"
+      assert parse_doc =~ "Ancora 2.0"
     end
 
     @tag spec: "ancora.parsing.stable_public_api"
@@ -402,10 +408,12 @@ defmodule Ancora.ParserTest do
       path = write_spec(root, "shape", @specled_017)
       spec = Parser.parse_file(path, root)
 
-      for key <- ~w(file meta parse_errors requirements scenarios verification title) do
+      for key <-
+            ~w(exceptions file findings meta parse_errors requirements scenarios verification title) do
         assert Map.has_key?(spec, key), "missing #{key}"
       end
 
+      assert spec["exceptions"] == []
       assert is_list(spec["findings"])
       assert [%Requirement{} | _] = spec["requirements"]
       assert [%Scenario{} | _] = spec["scenarios"]

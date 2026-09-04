@@ -1,5 +1,5 @@
 defmodule Ancora.Derive.CompareTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Ancora.Derive.ChangeSet
   alias Ancora.Derive.Compare
@@ -65,7 +65,7 @@ defmodule Ancora.Derive.CompareTest do
     assert [] =
              Compare.compare("shape", set(:base, [binding]), set(:head, [binding]),
                locator: locator,
-               change_set: %ChangeSet{entries: [%{path: "lib/circle.ex", status: :modified}]},
+               change_set: change_set(["lib/circle.ex"]),
                source_reader: fn _side, _path -> raise "protocol source was parsed" end
              )
   end
@@ -123,7 +123,7 @@ defmodule Ancora.Derive.CompareTest do
       head: %{"MyApp.Schema" => "lib/schema.ex"}
     }
 
-    change_set = %ChangeSet{entries: [%{path: "lib/schema.ex", status: :modified}]}
+    change_set = change_set(["lib/schema.ex"])
 
     assert [%{code: "derived/drift"}] =
              Compare.compare("users", set(:base, [companion]), set(:head, [companion]),
@@ -142,7 +142,7 @@ defmodule Ancora.Derive.CompareTest do
                set(:base, [], [binding]),
                set(:head, [], [binding]),
                locator: locator(),
-               change_set: %ChangeSet{entries: [%{path: "lib/billing.ex", status: :modified}]}
+               change_set: change_set(["lib/billing.ex"])
              )
   end
 
@@ -180,7 +180,7 @@ defmodule Ancora.Derive.CompareTest do
                set(:base, [binding]),
                set(:head, [], [binding]),
                locator: locator(),
-               change_set: %ChangeSet{entries: [%{path: "lib/billing.ex", status: :modified}]}
+               change_set: change_set(["lib/billing.ex"])
              )
 
     assert message =~ "definition moved into or out of macro-generated code"
@@ -209,7 +209,7 @@ defmodule Ancora.Derive.CompareTest do
                set(:base, bindings),
                set(:head, [], bindings),
                locator: locator(),
-               change_set: %ChangeSet{entries: [%{path: "lib/billing.ex", status: :modified}]}
+               change_set: change_set(["lib/billing.ex"])
              )
 
     assert message =~ "definition moved into or out of macro-generated code"
@@ -227,10 +227,86 @@ defmodule Ancora.Derive.CompareTest do
              )
   end
 
+  @tag spec: "ancora.derive.memo_is_run_scoped"
+  test "each changed source is parsed once per side and shared across subjects" do
+    bindings = [{Billing, :next, 1}, {Billing, :total, 1}]
+    base = "defmodule Billing do\n  def next(x), do: x\n  def total(x), do: x\nend\n"
+    head = "defmodule Billing do\n  def next(x), do: x + 1\n  def total(x), do: x + 1\nend\n"
+    set_base = set(:base, bindings)
+    set_head = set(:head, bindings)
+    change_set = change_set(["lib/billing.ex"])
+
+    opts = [
+      locator: locator(),
+      change_set: change_set,
+      sources: %{
+        base: %{"lib/billing.ex" => base},
+        head: %{"lib/billing.ex" => head}
+      }
+    ]
+
+    traced = self()
+    tracer = start_trace_forwarder(traced)
+    :erlang.trace(traced, true, [:call, {:tracer, tracer}])
+    :erlang.trace_pattern({Ancora.Derive.Extract, :parse, 2}, true, [])
+
+    on_exit(fn ->
+      :erlang.trace_pattern({Ancora.Derive.Extract, :parse, 2}, false, [])
+      send(tracer, :stop)
+    end)
+
+    parsed_sources =
+      Compare.prepare_sources(
+        [{set_base, set_head}, {set_base, set_head}],
+        locator(),
+        change_set,
+        opts
+      )
+
+    for subject <- ["billing.one", "billing.two"] do
+      assert [%{code: "derived/drift"}, %{code: "derived/drift"}] =
+               Compare.compare(subject, set_base, set_head,
+                 locator: locator(),
+                 change_set: change_set,
+                 parsed_sources: parsed_sources
+               )
+    end
+
+    assert_receive {:forwarded_trace,
+                    {:trace, _pid, :call, {Ancora.Derive.Extract, :parse, [^base, _opts]}}}
+
+    assert_receive {:forwarded_trace,
+                    {:trace, _pid, :call, {Ancora.Derive.Extract, :parse, [^head, _opts]}}}
+
+    refute_receive {:forwarded_trace,
+                    {:trace, _pid, :call, {Ancora.Derive.Extract, :parse, _args}}}
+  end
+
+  test "comparison uses the precomputed changed-path set" do
+    binding = {Billing, :next, 1}
+    base = "defmodule Billing do\n  def next(x), do: x\nend\n"
+    head = "defmodule Billing do\n  def next(x), do: x + 1\nend\n"
+
+    change_set = %ChangeSet{
+      entries: [%{path: "lib/not-billing.ex", status: :modified}],
+      path_set: MapSet.new(["lib/billing.ex"])
+    }
+
+    assert [%{code: "derived/drift"}] =
+             Compare.compare("billing", set(:base, [binding]), set(:head, [binding]),
+               locator: locator(),
+               change_set: change_set,
+               sources: %{
+                 base: %{"lib/billing.ex" => base},
+                 head: %{"lib/billing.ex" => head}
+               }
+             )
+  end
+
   defp compare(base_bindings, head_bindings, base_source, head_source) do
     Compare.compare("billing", set(:base, base_bindings), set(:head, head_bindings),
       locator: locator(),
-      change_set: %ChangeSet{entries: [%{path: "lib/billing.ex", status: :modified}]},
+      change_set: change_set(["lib/billing.ex"]),
       sources: %{
         base: %{"lib/billing.ex" => base_source},
         head: %{"lib/billing.ex" => head_source}
@@ -249,6 +325,28 @@ defmodule Ancora.Derive.CompareTest do
       findings: [],
       test_files: []
     }
+  end
+
+  defp change_set(paths) do
+    %ChangeSet{
+      entries: Enum.map(paths, &%{path: &1, status: :modified}),
+      path_set: MapSet.new(paths)
+    }
+  end
+
+  defp start_trace_forwarder(parent) do
+    spawn(fn -> forward_traces(parent) end)
+  end
+
+  defp forward_traces(parent) do
+    receive do
+      :stop ->
+        :ok
+
+      message ->
+        send(parent, {:forwarded_trace, message})
+        forward_traces(parent)
+    end
   end
 
   defp locator do

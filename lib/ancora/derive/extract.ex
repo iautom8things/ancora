@@ -10,13 +10,22 @@ defmodule Ancora.Derive.Extract do
 
   @type binding :: Ancora.Derive.binding()
 
+  @doc "Parses source for later clause extraction."
+  @spec parse(binary(), Path.t()) :: {:ok, Macro.t()} | {:error, term()}
+  def parse(source, path) when is_binary(source) and is_binary(path) do
+    case Code.string_to_quoted(source, file: path, emit_warnings: false) do
+      {:ok, ast} -> {:ok, ast}
+      {:error, reason} -> {:error, {:unparseable_source, path, reason}}
+    end
+  end
+
   @doc "Parses source and extracts every clause for `binding`."
   @spec clauses(binary(), Path.t(), binding()) :: {:ok, [Macro.t()]} | {:error, term()}
   def clauses(source, path, {_module, name, arity} = binding)
       when is_binary(source) and is_binary(path) and is_atom(name) and is_integer(arity) do
-    case Code.string_to_quoted(source, file: path, emit_warnings: false) do
+    case parse(source, path) do
       {:ok, ast} -> {:ok, clauses(ast, binding)}
-      {:error, reason} -> {:error, {:unparseable_source, path, reason}}
+      {:error, _reason} = error -> error
     end
   end
 
