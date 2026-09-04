@@ -81,11 +81,15 @@
     {
       "text": "BRANCH RESTORED (orchestrator, 2026-09-04). ancora-gg8/field-friction in /Users/mz/src/ancora had been moved to d9a39d7 (an ancora-xla.1 commit) by a stray `git reset --hard` from the ancora-xla session's verifier at 22:46 EDT. Checked before acting: working tree clean, no commits on d9a39d7..HEAD, 6e0f24e intact in the reflog and still the tip of ancora-gg8.6/disclosure-codes. Moved the branch back with `git checkout -B ancora-gg8/field-friction 6e0f24e`; HEAD is 6e0f24e, tree clean. Nothing lost. The ancora-xla work is PR #3 (release 1.1.0, feat/ancora-xla-post-ship-hardening at 3340e27, open and mergeable); the watcher on origin/main still stands for the option-1 sequence.",
       "timestamp": "2026-09-04T13:53:29Z"
+    },
+    {
+      "text": "REMOTE MISMATCH, needs a human. origin has refs/heads/ancora-gg8/field-friction at d9a39d7 (the stray reset state; it holds only ancora-xla.1 content, none of this epic's seven merged children). The local branch is back at 6e0f24e. The orchestrator does not push the epic branch, so this stays until Manuel either deletes the remote ref or overwrites it: `git push --force-with-lease=refs/heads/ancora-gg8/field-friction:d9a39d7747ff7f8c9ed4230632b1aba84e66d349 origin 6e0f24e:refs/heads/ancora-gg8/field-friction` (run in /Users/mz/src/ancora). Until then the remote branch misrepresents the epic.",
+      "timestamp": "2026-09-04T13:54:00Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-04T13:53:29Z"
+  "updated_at": "2026-09-04T13:54:00Z"
 }
