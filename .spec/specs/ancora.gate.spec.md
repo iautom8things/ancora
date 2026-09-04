@@ -151,8 +151,9 @@ decisions:
     `state.json`, no hash baseline, and no `--output` flag on `spec.check` or
     `spec.validate`. Every gate input shall be the working tree plus git
     objects reachable from `--base`. The temporary base view shall contain
-    only `.spec`, configured test paths, and project library paths, and the
-    gate shall remove it after assembly returns or raises.
+    only the configured spec directory, configured test paths, and project
+    library paths, and the gate shall remove it after assembly returns or
+    raises.
   priority: must
   stability: stable
 ```
