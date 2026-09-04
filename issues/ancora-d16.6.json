@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T11:04:27Z",
+  "description": "Advances: ancora.review. Calibrated severity: Medium. Findings: F17. Source: ~/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-04/ancora-xla-post-ship-hardening/20260904-061300-consolidated.md (review_commit e18fa05); read the finding rows and the persona report(s) named there before starting. Deferred by release scope; the shared Derive.side_sets extraction is a two-subject abstraction change; the error-naming half is small and could land first. Report row: F17 (simplicity M4, idioms L6). Deferred from the 1.1.0 release by Manuel's decision of 2026-09-04 (Critical + High only landed on ancora-41r). Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision; reason above.",
+  "id": "ancora-d16.6",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 3,
+  "status": "open",
+  "title": "Review discards every derivation error with a bare wildcard",
+  "type": "bug",
+  "updated_at": "2026-09-04T11:04:27Z"
+}
