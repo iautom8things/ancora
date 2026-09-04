@@ -37,11 +37,15 @@
     {
       "text": "THIRD CHILD CLOSED (orchestrator, 2026-09-04 08:15 EDT). ancora-41r.5 merged: rebase onto f818d73 byte-identical by range-diff (both commits =), fast-forward f818d73 -\u003e 84e85b1. Delta verifier measured all three retry items killing their mutations (non-requirement unknown key at 42/1 with the new test the only failure; reason-string assertion at 42/1; whole-file refute at 4/1 with F7's sentence re-added as a new paragraph) and both original mutations still failing; lib/ancora/config.ex byte-identical to the first pass. Selective audit auto-approved; critic PASS. Gate 3 on 84e85b1: 419 tests, 3 properties, 0 failures; format, unused-deps and spec.check --base 7511407 pass. Worktree and branch removed, board synced.\n\nStanding: 3 of 6 closed. 41r.2 approved and rebasing under an implementer order (parsing.spec paragraph; the tip has since moved to 84e85b1, so one more mechanical hop follows). 41r.3 retry: critic PASS, verifier running. 41r.1 retry: worker running on six items. console_triggers=5 console_redeploys=5. Console: https://claude.ai/code/artifact/47c7ca0b-520f-456c-b981-c97a4fe90f1a",
       "timestamp": "2026-09-04T12:12:38Z"
+    },
+    {
+      "text": "ROUTE (orchestrator, 2026-09-04 08:38 EDT). ancora-41r.1's bounce-1 retry worker was killed by the harness (went quiet at 12:09Z with six files uncommitted, did not recover from the nudge, exit 124 at 12:15Z, no IMPLEMENTED record). The uncommitted tree carries drafts of all six audit items (110 insertions across the ADR, derive and gate specs, gate.ex, gate_test.exs and spec_check_test.exs) and the log shows the worker mid-way through mutation proofs. Per exception-routing, one retry with a fresh worker resuming from that tree: check each item against the audit, finish the proofs, commit once, post IMPLEMENTED even if a proof is imperfect. Bounce count unchanged at 1 of 2; worker failures on this epic: 1. Elsewhere: 41r.3 approved after its delta verification (critic's fold mutation now killed at stderr; doc-only change proven by identical BEAM md5) and rebasing under an implementer order for the durable_acknowledgments ADR paragraph both it and 41r.5 edited; 41r.2 still rebasing under its order. Standing: 3 of 6 closed, 2 approved and rebasing, 1 retry running.",
+      "timestamp": "2026-09-04T12:16:58Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T12:12:38Z"
+  "updated_at": "2026-09-04T12:16:58Z"
 }
