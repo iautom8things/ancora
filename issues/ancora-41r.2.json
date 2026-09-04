@@ -10,9 +10,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-41r",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: 41r2-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-41r.2/codex-41r2-i1-adec463e/log\n\nCommit: 50370bf34117c4c4f3227dd0f4d56eaaedd966d5\nFiles touched: .spec/decisions/ancora.decision.invalid_spec_meta.md, .spec/specs/ancora.gate.spec.md, .spec/specs/ancora.parsing.spec.md, lib/ancora/gate.ex, lib/ancora/parser.ex, lib/ancora/verifier.ex, test/ancora/index_test.exs\nTests added: Ancora.IndexTest / a spec without metadata blocks both corpus gates and is not counted\nSpec acknowledgment: ancora.parsing and ancora.gate edited substantively in-diff with ancora.decision.invalid_spec_meta; no Spec-Ack trailer used\nVerification tier: change-scoped — mix compile --warnings-as-errors; test/ancora/parser_test.exs, test/ancora/verifier_test.exs, test/ancora/index_test.exs, test/ancora/gate_test.exs, test/mix/tasks/spec_check_test.exs; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base e18fa05; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Parser now marks rejected metadata separately, while the verifier emits one blocking missing-field finding for an absent spec-meta block and the gate counts only identified subjects. The nil-suppression mutation made the absent test fail 1 of 1, the absence-keyed suppression mutation made the rejected test fail 1 of 1, and the file-count mutation made the count test fail 1 of 1; each test passed 1 of 1 after restoration. I checked every current epic lesson against the diff; fixtures use test helpers and real CLI subprocesses, no contract item was deferred, and the working tree was clean after mutation restoration.",
+      "timestamp": "2026-09-04T11:26:00Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "A spec file with no spec-meta block passes the gate with zero findings",
   "type": "bug",
-  "updated_at": "2026-09-04T11:17:41Z"
+  "updated_at": "2026-09-04T11:26:00Z"
 }
