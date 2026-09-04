@@ -92,12 +92,76 @@ defmodule Ancora.ReviewTest do
       String.split(supporting_and_later, "<h3>Test changes</h3>", parts: 2)
 
     assert html =~ "class=\"chip fail\""
+    assert html =~ ".fail,.error,.drift{color:var(--bad)}"
     assert watched_interface =~ "Billing.next/1"
     assert watched_interface =~ "drift"
     assert watched_interface =~ "lib/billing.ex"
     assert watched_interface =~ "+def next(value)"
     refute watched_interface =~ "Billing.void/2"
     assert test_changes =~ "Billing.void/2"
+  end
+
+  @tag spec: "ancora.review.findings_inline"
+  test "production review command renders the gate verdict for info and error findings", %{
+    root: root
+  } do
+    write_project(root)
+    write_verdict_fixture_config(root, :info)
+    commit_all(root, "base")
+
+    spec_path = Path.join(root, ".spec/specs/billing.spec.md")
+
+    updated_spec =
+      spec_path
+      |> File.read!()
+      |> String.replace(
+        "  priority: must\n```",
+        "  priority: must\n- id: billing.unverified\n  statement: Billing shall expose an unverified operation.\n  priority: must\n```"
+      )
+
+    write_files(root, %{".spec/specs/billing.spec.md" => updated_spec})
+
+    info_check = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+    assert info_check.status == 0, info_check.stdout <> info_check.stderr
+    assert List.last(output_lines(info_check.stdout)) == "spec.check result=pass"
+
+    info_review =
+      run_mix_subprocess([
+        "spec.review",
+        "--root",
+        root,
+        "--base",
+        "HEAD",
+        "--output",
+        "tmp/info.html"
+      ])
+
+    assert info_review.status == 0, info_review.stdout <> info_review.stderr
+    info_html = File.read!(Path.join(root, "tmp/info.html"))
+    assert info_html =~ "spec/requirement_unverified"
+    assert info_html =~ "class=\"chip pass\""
+
+    write_verdict_fixture_config(root, :error)
+
+    error_check = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+    assert error_check.status == 1, error_check.stdout <> error_check.stderr
+    assert List.last(output_lines(error_check.stdout)) =~ "spec.check result=fail"
+
+    error_review =
+      run_mix_subprocess([
+        "spec.review",
+        "--root",
+        root,
+        "--base",
+        "HEAD",
+        "--output",
+        "tmp/error.html"
+      ])
+
+    assert error_review.status == 0, error_review.stdout <> error_review.stderr
+    error_html = File.read!(Path.join(root, "tmp/error.html"))
+    assert error_html =~ "spec/requirement_unverified"
+    assert error_html =~ "class=\"chip fail\""
   end
 
   @tag spec: "ancora.review.findings_delta_without_store"
@@ -326,6 +390,15 @@ defmodule Ancora.ReviewTest do
       severity: severity,
       severity_source: :default
     }
+  end
+
+  defp write_verdict_fixture_config(root, requirement_severity) do
+    write_config(root, """
+    severities:
+      change/missing_decision: off
+      tags/new_requirement_untagged: off
+      spec/requirement_unverified: #{requirement_severity}
+    """)
   end
 
   defp write_project(root) do

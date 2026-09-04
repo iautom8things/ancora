@@ -12,6 +12,7 @@ defmodule Ancora.Review do
   alias Ancora.Gate.Preflight
   alias Ancora.Git
   alias Ancora.Index
+  alias Ancora.Output.Verdict
   alias Ancora.Review.FileDiff
   alias Ancora.Review.FindingsDelta
   alias Ancora.Review.SpecDiff
@@ -114,7 +115,7 @@ defmodule Ancora.Review do
         affected_subjects: length(subjects),
         findings: length(all_findings)
       },
-      verdict: if(findings_delta.change_verdict.clean?, do: :pass, else: :fail),
+      verdict: if(Verdict.pass?(gate_report), do: :pass, else: :fail),
       findings_delta: findings_delta,
       triage: Enum.group_by(findings_delta.introduced, &(&1.severity || :info)),
       subjects: subjects,

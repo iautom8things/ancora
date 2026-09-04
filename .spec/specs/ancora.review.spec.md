@@ -69,9 +69,10 @@ decisions:
   statement: >-
     Each subject card shall carry this change's `derived/*` findings as
     badges with expandable detail, and the page shall render a verdict chip
-    reflecting the gate outcome and a triage panel listing findings by
-    severity. Each finding summary shall display its severity, file, and a
-    visible marker so colour is not the only severity indicator.
+    containing the gate verdict from the same run and a triage panel listing
+    findings by severity. Info-only findings shall leave both the gate and
+    chip passing. Each finding summary shall display its severity, file, and
+    a visible marker so colour is not the only severity indicator.
   priority: must
   stability: evolving
 - id: ancora.review.findings_delta_without_store
@@ -219,6 +220,16 @@ decisions:
     - an identity present on both sides is pre-existing and does not appear as introduced
   covers:
     - ancora.review.findings_delta_without_store
+- id: ancora.review.scenario.verdict_chip_matches_gate
+  given:
+    - a temporary repository whose only introduced finding is `spec/requirement_unverified` at info severity
+  when:
+    - `mix spec.check` and `mix spec.review` run from the same commit against the same base
+  then:
+    - the gate passes and the rendered artifact's verdict chip shows pass
+    - promoting that introduced finding to error makes the gate and rendered chip both show fail
+  covers:
+    - ancora.review.findings_inline
 - id: ancora.review.scenario.stable_findings_are_clean
   given:
     - identical repo-state finding lists for the base and HEAD sides

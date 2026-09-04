@@ -36,6 +36,9 @@ The contract follows the boundaries in the shipped implementation.
 `Ancora.Markdown.render/1` and `render/2` transform prose,
 `Ancora.Review.Html.render/1` returns the self-contained document, and
 `Mix.Tasks.Spec.Review.run/1` writes that document and prints the CI metadata.
+The verdict chip uses the gate report from that same build, so info-only
+findings leave both the gate and artifact passing while errors or warnings make
+both fail.
 The Code pivot describes full changed-file diffs for watched cards and the
 remaining changed files in each subject's derived footprint as supporting
 changes. Each changed file's diff body appears at most once under its
