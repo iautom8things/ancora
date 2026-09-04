@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T11:04:28Z",
+  "description": "Advances: ancora.review, ancora.derive. Calibrated severity: Medium. Findings: F36, F51. Source: ~/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-04/ancora-xla-post-ship-hardening/20260904-061300-consolidated.md (review_commit e18fa05); read the finding rows and the persona report(s) named there before starting. Deferred by release scope; Review's lifecycle change should follow Gate.run's shape and needs a cleanup scenario. Report row: F36/F51 (distributed M1, L1). Deferred from the 1.1.0 release by Manuel's decision of 2026-09-04 (Critical + High only landed on ancora-41r). Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision; reason above.",
+  "id": "ancora-d16.12",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 3,
+  "status": "open",
+  "title": "Review materializes its base view inside a with chain; a raising write leaves a partial root",
+  "type": "bug",
+  "updated_at": "2026-09-04T11:04:28Z"
+}
