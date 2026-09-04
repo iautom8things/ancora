@@ -138,7 +138,7 @@ defmodule Ancora.IndexTest do
 
     @tag spec: "ancora.parsing.structural_references"
     @tag spec: "ancora.parsing.stable_public_api"
-    test "invalid spec metadata stays nil and every corpus-reading task handles it", %{
+    test "schema-rejected metadata reports the exact error and every reader handles it", %{
       root: root
     } do
       init_git_repo(root)
@@ -150,57 +150,83 @@ defmodule Ancora.IndexTest do
           def project, do: [app: :fixture, version: "0.1.0"]
         end
         """,
-        "lib/sample.ex" => "defmodule Sample do\nend\n",
-        ".spec/specs/broken.spec.md" => """
+        "lib/sample.ex" => "defmodule Sample do\nend\n"
+      })
+
+      fixtures = [
+        {"missing status",
+         """
+         id: broken.subject
+         kind: module
+         """, "status"},
+        {"malformed id",
+         """
+         id: Bad Subject!
+         kind: module
+         status: active
+         """, "id"}
+      ]
+
+      for {name, meta, rejected_field} <- fixtures do
+        write_spec(root, "broken", """
         # Broken
 
         ```yaml spec-meta
-        id: broken.subject
-        kind: module
-        ```
-        """
-      })
+        #{meta}```
+        """)
 
-      commit_all(root, "malformed corpus")
+        commit_all(root, name)
 
-      spec = root |> Path.join(".spec/specs/broken.spec.md") |> Parser.parse_file(root)
+        spec = root |> Path.join(".spec/specs/broken.spec.md") |> Parser.parse_file(root)
 
-      assert spec["meta"] == nil
-      assert Enum.any?(spec["findings"], &(&1.code == "spec/parse_error"))
+        assert spec["meta"] == nil
+        assert Enum.map(spec["findings"], & &1.code) == ["spec/parse_error"]
+        assert hd(spec["findings"]).subject == nil
+        assert hd(spec["findings"]).message =~ "field: #{rejected_field}"
 
-      assert Map.keys(spec) |> Enum.sort() ==
-               ~w(exceptions file findings meta parse_errors requirements scenarios title verification)
+        assert Map.keys(spec) |> Enum.sort() ==
+                 ~w(exceptions file findings meta parse_errors requirements scenarios title verification)
 
-      check = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
-      assert check.status == 1
-      assert check.stdout =~ "spec/parse_error"
-      assert List.last(output_lines(check.stdout)) =~ "spec.check result=fail tier=branch"
+        check = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+        assert check.status == 1
+        assert spec_finding_codes(check.stdout) == ["spec/parse_error"]
+        assert_rejected_meta_line(check.stdout, rejected_field)
+        assert List.last(output_lines(check.stdout)) =~ "spec.check result=fail tier=branch"
 
-      validate = run_mix_subprocess(["spec.validate", "--root", root])
-      assert validate.status == 1
-      assert validate.stdout =~ "spec/parse_error"
-      assert List.last(output_lines(validate.stdout)) =~ "spec.validate result=fail tier=validate"
+        validate = run_mix_subprocess(["spec.validate", "--root", root])
+        assert validate.status == 1
+        assert spec_finding_codes(validate.stdout) == ["spec/parse_error"]
+        assert_rejected_meta_line(validate.stdout, rejected_field)
 
-      for {args, opts, heading} <- [
-            {["spec.status", "--root", root], [], "Spec Led Status"},
-            {[
-               "run",
-               "-e",
-               "File.cd!(#{inspect(root)}, fn -> Mix.Tasks.Spec.Next.run([\"--base\", \"HEAD\"]) end)"
-             ], [], "Spec Led Next"},
-            {["spec.prime", "--root", root, "--base", "HEAD"], [], "Spec Led Prime"}
-          ] do
-        result = run_mix_subprocess(args, opts)
-        assert result.status == 0, result.stdout <> result.stderr
-        assert result.stdout =~ heading
-        refute result.stderr =~ "** ("
+        assert List.last(output_lines(validate.stdout)) =~
+                 "spec.validate result=fail tier=validate"
+
+        for {args, opts, heading} <- [
+              {["spec.status", "--root", root], [], "Spec Led Status"},
+              {[
+                 "run",
+                 "-e",
+                 "File.cd!(#{inspect(root)}, fn -> Mix.Tasks.Spec.Next.run([\"--base\", \"HEAD\"]) end)"
+               ], [], "Spec Led Next"},
+              {["spec.prime", "--root", root, "--base", "HEAD"], [], "Spec Led Prime"}
+            ] do
+          result = run_mix_subprocess(args, opts)
+          assert result.status == 0, result.stdout <> result.stderr
+          assert result.stdout =~ heading
+          refute result.stderr =~ "** ("
+        end
+
+        review = run_mix_subprocess(["spec.review", "--root", root, "--base", "HEAD"])
+        assert review.status == 0, review.stdout <> review.stderr
+        assert review.stdout =~ "spec.review wrote"
+
+        html = File.read!(Path.join(root, "_build/spec_review.html"))
+        assert html =~ "spec/parse_error"
+        assert html =~ "field: #{rejected_field}"
+        refute html =~ ~s(<a href="#"></a>)
+        refute html =~ ~s(<section class="subject" id="">)
+        refute review.stderr =~ "** ("
       end
-
-      review = run_mix_subprocess(["spec.review", "--root", root, "--base", "HEAD"])
-      assert review.status == 0, review.stdout <> review.stderr
-      assert review.stdout =~ "spec.review wrote"
-      assert File.read!(Path.join(root, "_build/spec_review.html")) =~ "spec/parse_error"
-      refute review.stderr =~ "** ("
     end
   end
 
@@ -247,5 +273,20 @@ defmodule Ancora.IndexTest do
         assert spec["meta"]
       end
     end
+  end
+
+  defp spec_finding_codes(output) do
+    ~r/(?:^|\s)(spec\/[a-z_]+)(?=\s)/
+    |> Regex.scan(output, capture: :all_but_first)
+    |> List.flatten()
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp assert_rejected_meta_line(output, field) do
+    assert Enum.any?(output_lines(output), fn line ->
+             line =~ "[ERROR] - spec/parse_error .spec/specs/broken.spec.md ::" and
+               line =~ "field: #{field}"
+           end)
   end
 end

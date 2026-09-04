@@ -21,6 +21,7 @@ defmodule Ancora.Parser do
 
   @block_pattern ~r/```([^\n`]*)\n(.*?)\n```/ms
   @spec_tags ~w(spec-meta spec-requirements spec-scenarios spec-verification spec-exceptions)
+  @meta_required_fields ~w(id kind status)
   @seen_blocks_key "__seen_blocks__"
 
   @doc """
@@ -88,7 +89,7 @@ defmodule Ancora.Parser do
             {:error, message} ->
               push_parse_error(
                 Map.put(spec, "meta", nil),
-                contextualize(message, spec)
+                contextualize_meta_error(message, meta, spec)
               )
           end
 
@@ -236,6 +237,30 @@ defmodule Ancora.Parser do
     do: "#{message} (in #{file})"
 
   defp contextualize(message, _), do: message
+
+  defp contextualize_meta_error(message, meta, spec) do
+    fields =
+      @meta_required_fields
+      |> Enum.reject(&Map.has_key?(meta, &1))
+      |> maybe_add_invalid_id_field(message)
+
+    detail =
+      case fields do
+        [] -> message
+        [field] -> "#{message} (field: #{field})"
+        fields -> "#{message} (fields: #{Enum.join(fields, ", ")})"
+      end
+
+    contextualize(detail, spec)
+  end
+
+  defp maybe_add_invalid_id_field(fields, message) do
+    if String.contains?(message, "invalid id format") do
+      Enum.uniq(["id" | fields])
+    else
+      fields
+    end
+  end
 
   defp decode_yaml(raw) do
     case YamlElixir.read_from_string(raw) do

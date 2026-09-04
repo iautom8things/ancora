@@ -66,15 +66,18 @@ decisions:
     `covers:` entry, a verification `covers:` entry, or a spec-meta
     `decisions:` entry that names an id not present in the corpus;
     `spec/duplicate_id` for any subject, requirement, scenario, or decision id
-    declared twice across the corpus; `spec/invalid_id` for an id that does
-    not match the dotted-identifier format; and `spec/missing_field` for a
-    spec-meta, requirement, or scenario entry missing a required field. When
-    spec-meta fails schema validation, Ancora.Parser shall store nil under
-    `"meta"` and emit `spec/parse_error`. Ancora.Index shall read known fields
-    from validated atom-keyed schema structs and raw string-keyed maps without
-    creating atoms from input, and shall return only a non-empty binary or nil
-    for a subject id. Every corpus-reading Mix task shall handle that malformed
-    subject without raising.
+    declared twice across the corpus; `spec/invalid_id` for a requirement,
+    scenario, decision, or reference id that does not match the
+    dotted-identifier format; and `spec/missing_field` for a requirement or
+    scenario entry missing a required field. When spec-meta fails schema
+    validation, Ancora.Parser shall store nil under `"meta"` and emit
+    `spec/parse_error`. For a malformed subject id or an omitted required
+    field, that shall be the only `spec/*` finding and its detail shall name
+    the rejected field. Ancora.Index shall read known fields from validated
+    atom-keyed schema structs and raw string-keyed maps without creating atoms
+    from input, and shall return only a non-empty binary or nil for a subject
+    id. Every corpus-reading Mix task shall handle that malformed subject
+    without raising.
   priority: must
   stability: stable
 - id: ancora.parsing.requirement_unverified
@@ -230,12 +233,15 @@ decisions:
     - ancora.parsing.structural_references
 - id: ancora.parsing.scenario.invalid_spec_meta
   given:
-    - a spec-meta block missing a required field
+    - one spec-meta block with a malformed subject id and every required field present
+    - one spec-meta block with a valid subject id and status omitted
   when:
     - each corpus-reading Mix task reads the corpus
   then:
     - the parsed subject keeps the string-keyed outer index shape and stores nil under `"meta"`
-    - `spec/parse_error` is retained and no task raises
+    - `spec/parse_error` is the only `spec/*` finding and names the rejected id or status field
+    - the rejected subject has no accepted subject-id attribution
+    - no task raises and review renders no subject section for the rejected subject
     - field lookup does not create an atom for an unknown input key
   covers:
     - ancora.parsing.structural_references

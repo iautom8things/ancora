@@ -19,10 +19,18 @@ they could report the parser's finding.
 ## Decision
 
 Ancora.Parser stores nil under `"meta"` when spec-meta fails schema validation
-and retains the parser finding. Ancora.Index owns field access for both schema
-structs and YAML maps through a fixed compile-time key map. It never converts
-an input string to an atom. Subject id lookup returns a non-empty binary or nil,
-and derivation excludes nil ids before comparison.
+and retains the parser finding. For a malformed subject id or an omitted
+required field, that finding names the rejected field. The structural verifier
+does not derive missing-field findings from nil metadata because nil means the
+whole block was rejected, not that every field was absent. Rejected subject ids
+therefore remain unattributed and use `spec/parse_error`; invalid ids in
+accepted requirement, scenario, decision, and reference entries still use
+`spec/invalid_id`.
+
+Ancora.Index owns field access for both schema structs and YAML maps through a
+fixed compile-time key map. It never converts an input string to an atom.
+Subject id lookup returns a non-empty binary or nil, and derivation excludes
+nil ids before comparison.
 
 The parser's outer string-keyed map and its keys do not change.
 
