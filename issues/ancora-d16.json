@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T10:58:02Z",
+  "description": "Advances: ancora.gate, ancora.derive, ancora.findings, ancora.parsing, ancora.tasks, ancora.review, ancora.scaffold. Carries the Medium and Low fix-now rows and the tracked rows from the consolidated critical review of ancora-xla/post-ship-hardening at e18fa05 that Manuel chose not to land before 1.1.0. Backlog epic: open, never started here. Children carry title, calibrated severity and a report pointer, not full contracts; run /investigate or /implement per child.",
+  "id": "ancora-d16",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Fast-follow: critical-review findings deferred from the 1.1.0 release",
+  "type": "epic",
+  "updated_at": "2026-09-04T10:58:02Z"
+}
