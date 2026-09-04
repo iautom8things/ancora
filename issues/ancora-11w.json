@@ -72,11 +72,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl\n\nGate conditions checked against the final-bounce VERIFY: PASS at 253babd (base 849dbf9):\n- Verdict PASS, no gaps. Delta-scoped per the bounce; the range-diff against the pre-rebase head shows one byte-identical commit and one with context-only differences, both traced to the new base.\n- Scope: 10 files touched, 0 outside Allowed, 0 in Out of Scope. No trailer on any of the three commits.\n- Spec gate: spec.check result=pass (7 info findings, all derived/unresolved_calls).\n- Musts: preflight_hard_fails, change_set_union (new clause), info_visibility (new clause) each covered by named tests with a \"Would fail if\" that the verifier built and measured (take_while deletion, range check moved after ChangeSet.compute, permissive parent acceptance). The header-vs-body cut is load-bearing on the exact depth-1-plus-parent CI shape bounce 1 protected.\n- Seams: one trace forwarder process for observation only; fixtures use System.cmd, no production function calls (the bounce-2 cause).\n- Full suite not run by the verifier; the merge gate runs it now.\n- TEST_CRITIC: PASS on file for the assertional test edits.\nBounce record: 2/2 used; this pass closes the cap without a third.",
       "timestamp": "2026-09-04T02:39:30Z"
+    },
+    {
+      "text": "APPROVED (merge record, orchestrator, 2026-09-03 22:41 local)\nFast-forwarded ancora-xla/post-ship-hardening 849dbf9 -\u003e 253babd (three commits: 7d42f61, 24fa28b, 253babd).\nGate 12 on 253babd: mix compile --warnings-as-errors clean; 3 properties, 392 tests, 0 failures; format clean; no unused deps; mix spec.check --base 7511407 result=pass (88 requirements, 98 changed files since the epic base, 7 info findings, 0 warnings). Log: scratchpad/gate12.log.\nClosing. Worktree /Users/mz/src/ancora-11w and branch ancora-11w/shallow-clone-verdict removed after close.\nStanding follow-up noted from the audit, not filed yet: README flow-style claim checked by docs_test.exs:23.",
+      "timestamp": "2026-09-04T02:40:54Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Gate silently resolves a different verdict on a shallow clone",
   "type": "task",
-  "updated_at": "2026-09-04T02:39:37Z"
+  "updated_at": "2026-09-04T02:40:54Z"
 }
