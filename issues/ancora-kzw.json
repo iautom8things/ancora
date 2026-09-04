@@ -7,6 +7,7 @@
   "id": "ancora-kzw",
   "labels": [
     "critical",
+    "phase:implementing",
     "security",
     "slug:path-traversal-a-hostile"
   ],
