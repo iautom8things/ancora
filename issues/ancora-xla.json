@@ -307,11 +307,15 @@
     {
       "text": "DELIVERED (scoped, unattended, orchestrator, 2026-09-04 01:02 local). Child triage: all 16 children closed with merge evidence on their own tickets; nothing to re-home, so no fast-follow epic. Epic kept in_progress deliberately: no PR exists yet, so there is no shipping evidence and the closure gate does not apply; phase label unchanged until the ship pipeline advances it. Plan board: no ancora entries. Worktrees: every child worktree was removed at its close; two grader scratch registrations under this session's scratchpad removed (base, detached at merged 849dbf9; mut, already gone on disk, pruned); the stale merged branch ancora-xla.4/review-artifact-rendering deleted. Left alone, surfaced only: the ancora-yzu.* and ancora-gg8.* branches belong to other epics. Agent sweep: no teammate, worker or watcher resident. Follow-ups filed standalone from the last audits, none attached to this epic: ancora-13p (status.ex still carries the lib_paths nil clause), ancora-1wi (async verdict test around a global logger swap), ancora-rup (promotion docs lead with the unconditional sentence; README docs_test:23 assertion). Final console redeployed: console_triggers=22 console_redeploys=22. Epic tip e18fa05, branch not pushed, no PR; human checkpoint.",
       "timestamp": "2026-09-04T03:52:07Z"
+    },
+    {
+      "text": "OPEN-PR PAUSED AT THE REVIEW GATE (orchestrator, 2026-09-04 01:12 local). Manuel cleared the human checkpoint (\"open the pr\"). /open-pr Phase 0: branch ancora-xla/post-ship-hardening clean at e18fa05, 34 commits ahead of origin/main 7511407, 0 behind (no rebase needed), no open PRs, no VERSION file (version lives in mix.exs @version \"1.0.0\"; CHANGELOG has an empty ## Unreleased above ## 1.0.0 - 2026-09-01; no CI check ties the two). Critical-review coverage: the latest report covers 5220686 (the 1.0 review this epic answers), so this HEAD is uncovered. Manuel chose to run /critical-review first. Release decisions already taken for the re-run: Minor, 1.1.0 (bump @version in mix.exs, head CHANGELOG with ## 1.1.0 - \u003cdate\u003e, fold the empty Unreleased heading away); branch feat/ancora-xla-post-ship-hardening. Nothing branched, committed or pushed.",
+      "timestamp": "2026-09-04T09:52:18Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T03:52:07Z"
+  "updated_at": "2026-09-04T09:52:18Z"
 }
