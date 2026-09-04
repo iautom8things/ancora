@@ -7,7 +7,7 @@
   "id": "ancora-41r.5",
   "labels": [
     "critical",
-    "phase:auditing"
+    "phase:implementing"
   ],
   "parent": "ancora-41r",
   "comments": [
@@ -36,5 +36,5 @@
   "status": "in_progress",
   "title": "README and the migration guide promote acknowledgments with an override key Config silently drops",
   "type": "bug",
-  "updated_at": "2026-09-04T11:50:46Z"
+  "updated_at": "2026-09-04T11:52:34Z"
 }
