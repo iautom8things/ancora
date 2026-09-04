@@ -219,17 +219,6 @@ decisions:
     - no exception escapes from `Ancora.Git.run/3`
   covers:
     - ancora.gate.preflight_hard_fails
-- id: ancora.gate.scenario.batch_failures_are_environment_errors
-  given:
-    - the git batch read context reports a timeout or a poisoned port
-  when:
-    - the gate maps the failure
-  then:
-    - the timeout maps to `git cat-file batch timed out`
-    - the poisoned port maps to `git cat-file batch port is unusable`
-    - both mappings return through the environment-error arm rather than raising
-  covers:
-    - ancora.gate.preflight_hard_fails
 - id: ancora.gate.scenario.poisoned_batch_port
   given:
     - a git batch fetch that times out

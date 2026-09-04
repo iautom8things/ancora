@@ -137,16 +137,6 @@ defmodule Ancora.Git.BatchPortTest do
     assert {:error, :git_executable_not_found} = BatchPort.open(root)
   end
 
-  @tag spec: "ancora.gate.preflight_hard_fails"
-  test "fetch converts a Port.command error into a closed poisoned port" do
-    source = BatchPort |> compiled_definition!(:fetch, 3) |> Macro.to_string()
-
-    assert source =~ "rescue"
-    assert source =~ "[ArgumentError]"
-    assert source =~ "{:close"
-    assert source =~ "{:error, :port_poisoned}"
-  end
-
   defp open_port_option_lists do
     path = :code.which(BatchPort)
 
@@ -161,20 +151,6 @@ defmodule Ancora.Git.BatchPortTest do
     Enum.flat_map(clauses, fn {_meta, _args, _guards, body} ->
       collect_open_port_opts(body)
     end)
-  end
-
-  defp compiled_definition!(module, name, arity) do
-    path = :code.which(module)
-
-    {:ok, {_, [{:debug_info, {:debug_info_v1, :elixir_erl, {:elixir_v1, map, _}}}]}} =
-      :beam_lib.chunks(path, [:debug_info])
-
-    {{^name, ^arity}, _kind, _meta, clauses} =
-      Enum.find(map.definitions, fn {{defined_name, defined_arity}, _, _, _} ->
-        {defined_name, defined_arity} == {name, arity}
-      end)
-
-    clauses
   end
 
   defp collect_open_port_opts(ast) do

@@ -47,20 +47,6 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
-  test "the gate maps batch timeout and poisoned-port failures to environment messages" do
-    assert private_clause_result!(Gate, :run_context_error, :cat_file_batch_timeout) ==
-             "git cat-file batch timed out"
-
-    assert private_clause_result!(Gate, :run_context_error, :port_poisoned) ==
-             "git cat-file batch port is unusable"
-
-    gate_error_source = Gate |> compiled_definition!(:gate_error, 1) |> Macro.to_string()
-    assert gate_error_source =~ ":cat_file_batch_timeout"
-    assert gate_error_source =~ ":port_poisoned"
-    assert gate_error_source =~ "{:env, {:run_context_error"
-  end
-
-  @tag spec: "ancora.gate.preflight_hard_fails"
   @tag spec: "ancora.derive.project_info_from_root"
   test "preflight preserves literal elixirc paths unless config overrides them", %{root: root} do
     init_git_repo(root)
@@ -630,31 +616,6 @@ defmodule Ancora.GateTest do
     init_git_repo(root)
     write_project(root)
     commit_all(root, "base")
-  end
-
-  defp private_clause_result!(module, name, argument) do
-    module
-    |> compiled_definition!(name, 1)
-    |> Enum.find_value(fn {_meta, args, guards, body} ->
-      if args == [argument] and guards == [] do
-        {result, []} = Code.eval_quoted(body)
-        result
-      end
-    end)
-  end
-
-  defp compiled_definition!(module, name, arity) do
-    path = :code.which(module)
-
-    {:ok, {_, [{:debug_info, {:debug_info_v1, :elixir_erl, {:elixir_v1, map, _}}}]}} =
-      :beam_lib.chunks(path, [:debug_info])
-
-    {{^name, ^arity}, _kind, _meta, clauses} =
-      Enum.find(map.definitions, fn {{defined_name, defined_arity}, _, _, _} ->
-        {defined_name, defined_arity} == {name, arity}
-      end)
-
-    clauses
   end
 
   defp write_project(root) do

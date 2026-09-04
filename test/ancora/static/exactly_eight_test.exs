@@ -8,8 +8,8 @@ defmodule Ancora.Static.ExactlyEightTest do
     task_names =
       :ancora
       |> Application.spec(:modules)
+      |> Enum.filter(&(Atom.to_string(&1) |> String.starts_with?("Elixir.Mix.Tasks.")))
       |> Enum.map(&Mix.Task.task_name/1)
-      |> Enum.filter(&String.starts_with?(&1, "spec."))
       |> Enum.sort()
 
     assert task_names == [
@@ -26,14 +26,14 @@ defmodule Ancora.Static.ExactlyEightTest do
 
   @tag spec: "ancora.gate.only_git_is_spawned"
   test "every package spec task loads dependencies without compiling the target" do
-    spec_tasks =
+    task_modules =
       :ancora
       |> Application.spec(:modules)
-      |> Enum.filter(&(Atom.to_string(&1) |> String.starts_with?("Elixir.Mix.Tasks.Spec.")))
+      |> Enum.filter(&(Atom.to_string(&1) |> String.starts_with?("Elixir.Mix.Tasks.")))
 
-    assert length(spec_tasks) == 8
+    assert length(task_modules) == 8
 
-    assert Enum.map(spec_tasks, &{&1, &1.__info__(:attributes)[:requirements]}) ==
-             Enum.map(spec_tasks, &{&1, ["deps.loadpaths"]})
+    assert Enum.map(task_modules, &{&1, &1.__info__(:attributes)[:requirements]}) ==
+             Enum.map(task_modules, &{&1, ["deps.loadpaths"]})
   end
 end
