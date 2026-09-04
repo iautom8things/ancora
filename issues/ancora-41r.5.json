@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T11:03:32Z",
+  "description": "Advances: ancora.findings, ancora.scaffold. Distilled from the consolidated critical review of ancora-xla/post-ship-hardening at e18fa05; full contract follows.",
+  "id": "ancora-41r.5",
+  "labels": [],
+  "parent": "ancora-41r",
+  "priority": 1,
+  "status": "open",
+  "title": "README and the migration guide promote acknowledgments with an override key Config silently drops",
+  "type": "bug",
+  "updated_at": "2026-09-04T11:03:32Z"
+}
