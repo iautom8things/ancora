@@ -489,19 +489,31 @@ defmodule Ancora.Gate do
         trailer_override: trailer.overrides
       )
 
-    warn_non_tip_acknowledgments(findings, trailer.non_tip_overrides)
+    warn_non_tip_acknowledgments(findings, preflight.config, trailer)
     findings
   end
 
-  defp warn_non_tip_acknowledgments(findings, non_tip_overrides) do
+  defp warn_non_tip_acknowledgments(findings, config, trailer) do
     findings
     |> Enum.filter(fn finding ->
-      finding.severity_source == :trailer and Map.has_key?(non_tip_overrides, finding.code)
+      case Map.fetch(trailer.non_tip_overrides, finding.code) do
+        {:ok, _severity} ->
+          [without_non_tip_override] =
+            Severity.resolve_all([finding],
+              config: config,
+              trailer_override: Map.drop(trailer.overrides, [finding.code])
+            )
+
+          without_non_tip_override.severity != finding.severity
+
+        :error ->
+          false
+      end
     end)
     |> Enum.map(& &1.code)
     |> Enum.uniq()
     |> Enum.each(fn code ->
-      severity = Map.fetch!(non_tip_overrides, code)
+      severity = Map.fetch!(trailer.non_tip_overrides, code)
 
       IO.puts(
         :stderr,

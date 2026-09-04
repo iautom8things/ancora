@@ -91,8 +91,11 @@ decisions:
     acknowledgment record shall be `.spec/config.yml` through `severities:` or
     a per-subject override; trailers are a development convenience. When a
     finding resolves through a trailer that exists only in a non-tip commit,
-    the gate shall warn on stderr that a squash merge will lose it and name
-    `.spec/config.yml` as the promotion target.
+    the gate shall warn on stderr that a squash merge will lose it only when
+    removing that trailer would change the finding's resolved severity, and
+    shall name `.spec/config.yml` as the promotion target. A legal trailer
+    downgrade shall win over an equal or more severe config value while the
+    trailer is present; after its removal, the config value shall apply.
   priority: must
   stability: stable
 - id: ancora.gate.new_subject_self_clears
@@ -326,6 +329,9 @@ decisions:
     - stderr says the acknowledgment will be lost by a squash merge
     - stderr names `.spec/config.yml` as the promotion target
     - a non-tip trailer that resolves no finding produces no loss warning
+    - config at the trailer's severity makes the promoted branch silent
+    - config more severe than the trailer keeps the loss warning because removing the trailer changes the resolved severity
+    - after the trailer is removed, the config severity applies
   covers:
     - ancora.gate.acknowledgment_clears
 - id: ancora.gate.scenario.new_subject_clears_itself

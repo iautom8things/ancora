@@ -393,6 +393,20 @@ defmodule Mix.Tasks.Spec.CheckTest do
 
     commit_all(root, "change value\n\nSpec-Ack: derived/drift=info")
 
+    write_files(root, %{"notes.md" => "Keep the branch acknowledgment until it is promoted.\n"})
+    commit_all(root, "document branch state")
+
+    unpromoted = run_mix_subprocess(["spec.check", "--root", root, "--base", base, "--json"])
+    unpromoted_report = last_parseable_json(unpromoted.stdout)
+
+    unpromoted_drift =
+      Enum.find(unpromoted_report["all_findings"], &(&1["code"] == "derived/drift"))
+
+    assert unpromoted.status == 0
+    assert unpromoted_drift["severity"] == "info"
+    assert unpromoted_drift["severity_source"] == "trailer"
+    assert unpromoted.stderr =~ "lost by a squash merge"
+
     write_config(root, "severities:\n  derived/drift: info\n")
 
     write_decision(root, "promote-ack", """
@@ -421,14 +435,14 @@ defmodule Mix.Tasks.Spec.CheckTest do
 
     commit_all(root, "promote acknowledgment")
 
-    branch = run_mix_subprocess(["spec.check", "--root", root, "--base", base, "--json"])
-    branch_report = last_parseable_json(branch.stdout)
-    branch_drift = Enum.find(branch_report["all_findings"], &(&1["code"] == "derived/drift"))
+    promoted = run_mix_subprocess(["spec.check", "--root", root, "--base", base, "--json"])
+    promoted_report = last_parseable_json(promoted.stdout)
+    promoted_drift = Enum.find(promoted_report["all_findings"], &(&1["code"] == "derived/drift"))
 
-    assert branch.status == 0
-    assert branch_drift["severity"] == "info"
-    assert branch_drift["severity_source"] == "trailer"
-    assert branch.stderr =~ "lost by a squash merge"
+    assert promoted.status == 0
+    assert promoted_drift["severity"] == "info"
+    assert promoted_drift["severity_source"] == "trailer"
+    refute promoted.stderr =~ "lost by a squash merge"
 
     git!(root, ["checkout", "main"])
     git!(root, ["merge", "--squash", "feature"])
@@ -439,9 +453,62 @@ defmodule Mix.Tasks.Spec.CheckTest do
     trunk_drift = Enum.find(trunk_report["all_findings"], &(&1["code"] == "derived/drift"))
 
     assert trunk.status == 0
-    assert trunk_drift["severity"] == branch_drift["severity"]
+    assert trunk_drift["severity"] == promoted_drift["severity"]
     assert trunk_drift["severity_source"] == "config"
     refute trunk.stderr =~ "lost by a squash merge"
+  end
+
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  @tag spec: "ancora.tasks.stderr_pinning"
+  test "non-tip trailer warns when config would restore a higher severity", %{root: root} do
+    create_project(root)
+    write_anchored_subject(root)
+    commit_all(root, "anchored subject")
+    base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    commit_all(root, "change value\n\nSpec-Ack: derived/drift=info")
+
+    write_config(root, "severities:\n  derived/drift: warning\n")
+
+    write_decision(root, "retain-stricter-severity", """
+    ---
+    id: sample.decision.retain_stricter_severity
+    status: accepted
+    date: 2026-09-03
+    affects:
+      - sample.subject
+    ---
+
+    # Retain the stricter severity
+
+    ## Context
+
+    The branch trailer is temporary.
+
+    ## Decision
+
+    Keep drift at warning after the trailer is removed.
+
+    ## Consequences
+
+    Losing the trailer changes the branch verdict.
+    """)
+
+    write_files(root, %{"notes.md" => "The configured severity remains stricter.\n"})
+    commit_all(root, "configure stricter severity")
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", base, "--json"])
+    report = last_parseable_json(result.stdout)
+    drift = Enum.find(report["all_findings"], &(&1["code"] == "derived/drift"))
+
+    assert result.status == 0
+    assert drift["severity"] == "info"
+    assert drift["severity_source"] == "trailer"
+    assert result.stderr =~ "lost by a squash merge"
   end
 
   @tag spec: "ancora.gate.strict_verdict"
