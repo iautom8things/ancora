@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T13:02:05Z",
+  "description": "Advances: ancora.gate, ancora.findings. Calibrated severity: Low. Carried from the 41r.3 verifier and critics: the higher-severity CLI test requests --json and never parses it; the equal-dropped half of non_tip_overrides is guarded only by the tip-repeat CLI test; ancora.decision.durable_acknowledgments keeps its 2026-09-03 date under a precedence decided 2026-09-04. Small, bundled. Filed at ancora-41r delivery (2026-09-04) from grader advisories; every item was measured or read by a cold grader and left out of the release scope on purpose. Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision by Manuel on 2026-09-04; reason above.",
+  "id": "ancora-d16.33",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 4,
+  "status": "open",
+  "title": "Trailer acknowledgment gaps left after ancora-41r.3: unparsed --json in the higher-severity test, equal-dropped half of non_tip_overrides unit-untested, stale ADR date",
+  "type": "task",
+  "updated_at": "2026-09-04T13:02:05Z"
+}
