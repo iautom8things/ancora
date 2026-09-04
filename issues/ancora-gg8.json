@@ -105,11 +105,15 @@
     {
       "text": "MINI-RETRO\nbounces: 9 (untested-clause 7, unwired-call-path 1, stale-spec 1)\nfull_suite_runs: 9\nfinals_gt1: 2\nflake_accepts: 0\nescalations: 0\nlessons_kept/retired: 11/0\nconsole_redeploys: 14/14\n\nNotes (supersedes the 02:2xZ retro, which covered the first seven children): bounces by ticket: ufm 2, gg8.1 1, gg8.2 1, gg8.3 1, gg8.5 1, gg8.6 1, gg8.8 1 (stale-spec: contract text kept verbatim from a parent that the merged tests refute), gg8.7 1 (untested-clause: determinism fixture fed one of four loops), gg8.4 0. No production-code defect was found by audit on any ticket; every bounce was about proof or contract text. finals_gt1 counts capped final-tier runs: ufm 2 and gg8.7 attempt 1 reported 2. full_suite_runs are the nine merge gates, all green outright; no rebase was needed at any gate, including gate 8, whose fast-forward took a two-parent merge commit whole. gg8.8 was added to the epic on Manuel's option-1 decision (reconcile with release 1.1.0) and is recorded as such on the epic. Two Codex launches died before doing work (team usage limit) and are not counted as runs. Console: 14 triggers (9 closes with gate verdicts, 1 set-aside, 1 orchestration-start, 1 finish, 1 decision, 1 admission), 14 redeploys, 0 publish failures.",
       "timestamp": "2026-09-04T20:04:40Z"
+    },
+    {
+      "text": "ORCHESTRATED\nChildren closed: 9\nBOUNCEs encountered: 9\nUser escalations: 0\n\nEpic tip eae6eb1 on ancora-gg8/field-friction (473 tests, nine green merge gates), containing release 1.1.0 via the gg8.8 merge commit. Not pushed; PR not opened; the remote ref ancora-gg8/field-friction still points at the stray d9a39d7 and needs Manuel's force-with-lease or deletion. Deliver sweep: both remaining stage worktrees removed after merge; the epic worktree /Users/mz/src/ancora is checked out on another session's branch (ancora-kzw); epic kept in_progress (no PR yet); no agents resident. Supersedes the 02:2xZ ORCHESTRATED, which covered seven children.",
+      "timestamp": "2026-09-04T20:04:55Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-04T20:04:40Z"
+  "updated_at": "2026-09-04T20:04:55Z"
 }
