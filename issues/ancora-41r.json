@@ -81,11 +81,15 @@
     {
       "text": "Post-merge CI on main green for f977c9a (run 33880501175). Epic worktree /Users/mz/src/ancora-41r and branch removed after the verified merge. Handing to /deliver.",
       "timestamp": "2026-09-04T13:55:28Z"
+    },
+    {
+      "text": "Closed by /deliver (2026-09-04 09:56 EDT). Shipping evidence: shipped inside PR #3, squash-merged to main as f977c9a at 13:52:34Z; post-merge CI on main green (run 33880501175). No deploy or publish workflow exists in this repo, so no health watch applies; Manuel's babysit -\u003e merge -\u003e deliver order plus those facts close the epic. All 6 children closed with merge evidence; grader advisories were filed on ancora-d16.31 through .36 at the earlier scoped delivery. Merged to main, not published.",
+      "timestamp": "2026-09-04T13:56:26Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T13:55:28Z"
+  "updated_at": "2026-09-04T13:56:26Z"
 }
