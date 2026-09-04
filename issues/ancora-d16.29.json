@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T11:04:33Z",
+  "description": "Advances: ancora.parsing, ancora.scaffold. Calibrated severity: Low. Findings: F56. Source: ~/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-04/ancora-xla-post-ship-hardening/20260904-061300-consolidated.md (review_commit e18fa05); read the finding rows and the persona report(s) named there before starting. Tracked: add a parsing-tagged assertion that parses the scaffolded seed spec, or delete the clause under an ADR. Report row: F56 (spec L5). Deferred from the 1.1.0 release by Manuel's decision of 2026-09-04 (Critical + High only landed on ancora-41r). Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision; reason above.",
+  "id": "ancora-d16.29",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 4,
+  "status": "open",
+  "title": "The parsing subject restates the scaffold contract without coverage",
+  "type": "task",
+  "updated_at": "2026-09-04T11:04:33Z"
+}
