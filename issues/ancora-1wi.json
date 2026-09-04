@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T03:50:37Z",
+  "description": "Advances: ancora.tasks. test/ancora/output_verdict_test.exs is async: true and its gated-delegation test (added by ancora-xla.6) calls into code that swaps the default logger handler; test/ancora/output_test.exs is sync for exactly that reason. Flagged by the xla.6 retry critic (2026-09-04); no flake seen in gates 15 and 16. Either mark the module async: false or isolate the handler swap so a concurrent module cannot interleave with it.",
+  "id": "ancora-1wi",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Verdict test swaps the global logger handler while async",
+  "type": "task",
+  "updated_at": "2026-09-04T03:50:37Z"
+}
