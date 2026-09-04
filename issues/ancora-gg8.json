@@ -85,11 +85,15 @@
     {
       "text": "REMOTE MISMATCH, needs a human. origin has refs/heads/ancora-gg8/field-friction at d9a39d7 (the stray reset state; it holds only ancora-xla.1 content, none of this epic's seven merged children). The local branch is back at 6e0f24e. The orchestrator does not push the epic branch, so this stays until Manuel either deletes the remote ref or overwrites it: `git push --force-with-lease=refs/heads/ancora-gg8/field-friction:d9a39d7747ff7f8c9ed4230632b1aba84e66d349 origin 6e0f24e:refs/heads/ancora-gg8/field-friction` (run in /Users/mz/src/ancora). Until then the remote branch misrepresents the epic.",
       "timestamp": "2026-09-04T13:54:00Z"
+    },
+    {
+      "text": "EPIC GREW BY ONE CHILD (orchestrator, 2026-09-04 14:01Z), on Manuel's option-1 decision. ancora-xla squash-merged to main as f977c9a (release 1.1.0) at 13:52Z. A dry-run merge of origin/main into ancora-gg8/field-friction (6e0f24e) conflicts in 21 files: six specs, docs/migration.md, gate.ex, compare.ex, index.ex, append_only.ex, config.ex, decision_parser/affects.ex, next.ex, output.ex, status.ex, and five test files. That is real code reconciliation between two epics, so it is ancora-gg8.8 (\"Reconcile field-friction with release 1.1.0\"), which now blocks ancora-gg8.7. Shape: one merge commit of main into a stage cut from 6e0f24e (not a rebase: 15 commits would replay the same conflicts up to 15 times; the PR squashes anyway), both parents survive, union proof of tests and requirement ids, full suite plus spec.check --base f977c9a, cold verify and audit as usual, then ff into the epic branch. Worker: codex-gg8.8-impl-1 on the team profile, effort high, pane w2H:p3C. gg8.7's contract will be re-read against the reconciled tip at admission; main removed the ETS memo that gg8.7's second deliverable references, so expect a contract amendment there.",
+      "timestamp": "2026-09-04T14:01:53Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-04T13:54:00Z"
+  "updated_at": "2026-09-04T14:01:53Z"
 }
