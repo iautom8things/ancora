@@ -7,7 +7,7 @@
   "id": "ancora-41r.1",
   "labels": [
     "critical",
-    "phase:auditing"
+    "phase:implementing"
   ],
   "parent": "ancora-41r",
   "comments": [
@@ -32,5 +32,5 @@
   "status": "in_progress",
   "title": "Git-supplied path names crash the gate or hide files from the change set",
   "type": "bug",
-  "updated_at": "2026-09-04T11:50:57Z"
+  "updated_at": "2026-09-04T11:52:34Z"
 }
