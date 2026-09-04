@@ -62,11 +62,15 @@
     {
       "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-04 08:58 EDT, from the clock)\nThe rebase worker performed the rebase onto 5af1707 (the branch tip at the time), stopped for a ruling on the moved base (WORKER_ERROR above), received the ruling to keep 5af1707, and its pane was gone before it could run the verification tier, so no REBASED record follows; this record stands in its place.\ngit range-diff e18fa05..41d3ff3 5af1707..1293eda: both commits marked !, both confined to .spec/specs/ancora.gate.spec.md. Content compare: d00f2f8 vs 35eb83c identical outside gate.spec after stripping hunk offsets; 41d3ff3 vs 1293eda identical except that the four refusal phrases in the preflight_hard_fails enumeration moved from the second commit into the first, because git presented the whole enumeration as one conflict there. The resolved enumeration at the tip matches the order sentence for sentence (spec-workspace clause from 41r.4 after \"git executable is missing\"; the malformed-frame, quoted-path, missing-NUL and invalid-record clauses after \"not inside a git repository\"). Worktree clean, no rebase state, 5af1707..HEAD shows exactly 35eb83c and 1293eda.\nFast-forwarded ancora-41r/pre-release-fixes 5af1707 -\u003e 1293eda. Gate 6, the last gate of the epic, is running the full suite plus format, unused-deps and spec.check --base 7511407; it subsumes the worker's change-scoped tier.",
       "timestamp": "2026-09-04T12:57:24Z"
+    },
+    {
+      "text": "APPROVED (merge record, orchestrator, 2026-09-04 08:59 EDT)\nFast-forwarded ancora-41r/pre-release-fixes 5af1707 -\u003e 1293eda (two commits after rebase).\nGate 6 on 1293eda: mix compile --warnings-as-errors clean; 3 properties, 435 tests, 0 failures; format clean; no unused deps; mix spec.check --base 7511407 result=pass. Log: scratchpad/gate41r-6.log. This gate also stands in for the rebase worker's change-scoped tier (its pane was gone after the ruling).\nClosing. Worktree /Users/mz/src/ancora-41r.1 and branch ancora-41r.1/git-path-handling removed after close.\nAdvisories carried to the fast-follow epic: the \"no production caller passes {:path, _}\" sentence goes stale when ancora-kzw lands; stderr_to_stdout on the -z calls still folds stderr into the parse (survivable, now tier=env); the drift fixtures reach the changed path through porcelain only.",
+      "timestamp": "2026-09-04T12:59:05Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Git-supplied path names crash the gate or hide files from the change set",
   "type": "bug",
-  "updated_at": "2026-09-04T12:57:24Z"
+  "updated_at": "2026-09-04T12:59:05Z"
 }
