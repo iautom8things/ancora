@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Manuel Zubieta",
   "blocked_by": [
     "ancora-p47"
   ],
@@ -22,8 +22,8 @@
     }
   ],
   "priority": 2,
-  "status": "open",
+  "status": "in_progress",
   "title": "Spec-Ack acknowledgments do not survive a squash merge",
   "type": "task",
-  "updated_at": "2026-09-04T00:33:14Z"
+  "updated_at": "2026-09-04T02:11:39Z"
 }
