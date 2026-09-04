@@ -17,11 +17,15 @@
     {
       "text": "SCOPE_EXPANSION\nSession: gg8.5-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.5/codex-gg8.5-impl-1/log\n\nThe required cheap tier cannot pass within Allowed touches. `mix test --stale` reports three new failures with no known-red waiver:\n\n- `Ancora.ReviewTest` expects acknowledged drift to remain `:acknowledged`; `lib/ancora/review.ex` currently turns every retained `derived/drift` finding into a `:drift` card without checking `severity_source: :ack`.\n- `Ancora.Scaffold.DocsTest` requires `docs/migration.md` to enumerate every registry code and state the count. The new `derived/drift_transitive` code makes the current 30-code document incomplete.\n- `Ancora.Scaffold.TemplatesTest` requires `priv/spec_init/agents/SKILL.md.eex` to contain every registry entry exactly once. The new code is absent.\n\nRequested expansion: allow `lib/ancora/review.ex`, `docs/migration.md`, and `priv/spec_init/agents/SKILL.md.eex`, plus their existing tests under the already-allowed `test/**` glob. No out-of-scope files were edited. Final tier was not started.",
       "timestamp": "2026-09-04T00:31:18Z"
+    },
+    {
+      "text": "RULING: the three files are in scope; no new ticket\n\nAdding a registry code obliges the files that enumerate the registry, so these are consequences of your deliverable, not new work. The ticket description now lists them under Allowed touches:\n1. `lib/ancora/review.ex`: only the change needed so a retained `derived/drift` finding with `severity_source: :ack` still renders as acknowledged (mark-don't-discard must not turn acknowledged drift into drift cards). If that change trips derived/drift on ancora.review, `.spec/specs/ancora.review.spec.md` is in scope for one substantive sentence stating that acknowledged drift renders as acknowledged, plus the `ancora.decision.field_friction_response` decisions: link. Do not restyle or refactor review.ex.\n2. `docs/migration.md`: the registry enumeration and its count (30 → 31) gain `derived/drift_transitive`.\n3. `priv/spec_init/agents/SKILL.md.eex`: the registry entry for the new code, once.\nUpdate the existing tests under test/** that pin those files (docs_test, templates_test, review_test) only as far as the new code and the :ack disposition require; no other test weakening. Everything else in the ruling set for wave 2 stands (governance link, transitive-drift trailer form, mutation proofs). Continue with the same session tag (gg8.5-impl-1) and log path. This consumes no attempt.",
+      "timestamp": "2026-09-04T00:32:15Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Split derived/drift primary vs transitive and make acknowledgments visible",
   "type": "task",
-  "updated_at": "2026-09-04T00:32:10Z"
+  "updated_at": "2026-09-04T00:32:15Z"
 }
