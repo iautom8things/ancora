@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T13:02:06Z",
+  "description": "Advances: ancora.review. Calibrated severity: Low. Carried from the 41r.6 critic: the decision record names warnings as a fail cause for the chip and no test introduces a warning (the shared Verdict.pass? makes it hold by construction); the drift-badge CSS assertion pins selector order so a cosmetic reorder breaks it. Filed at ancora-41r delivery (2026-09-04) from grader advisories; every item was measured or read by a cold grader and left out of the release scope on purpose. Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision by Manuel on 2026-09-04; reason above.",
+  "id": "ancora-d16.35",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 4,
+  "status": "open",
+  "title": "Review verdict chip: no fixture drives an introduced warning; CSS assertion pins selector order",
+  "type": "task",
+  "updated_at": "2026-09-04T13:02:06Z"
+}
