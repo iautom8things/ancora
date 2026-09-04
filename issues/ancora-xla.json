@@ -339,11 +339,15 @@
     {
       "text": "PR opened: https://github.com/iautom8things/ancora/pull/3 (release 1.1.0, feat/ancora-xla-post-ship-hardening at 3340e27, 45 commits over origin/main 7511407). Opened by /open-pr on 2026-09-04 09:40 EDT after Manuel chose to proceed past the stale review gate on the ten post-review commits and approved the changelog. Carries ancora-41r's six fixes. Babysitting CI.",
       "timestamp": "2026-09-04T13:40:45Z"
+    },
+    {
+      "text": "CI green on PR #3 with 0 fix commits (both matrix jobs pass: Elixir 1.19.5/OTP 28.3.1 and 1.18.4/OTP 26.2.5; merge state clean; no review comments). Ready for merge; Manuel ordered babysit -\u003e merge -\u003e deliver, proceeding to /merge-pr.",
+      "timestamp": "2026-09-04T13:51:41Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T13:40:45Z"
+  "updated_at": "2026-09-04T13:51:41Z"
 }
