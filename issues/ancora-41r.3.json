@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T11:03:31Z",
+  "description": "Advances: ancora.findings, ancora.gate. Distilled from the consolidated critical review of ancora-xla/post-ship-hardening at e18fa05; full contract follows.",
+  "id": "ancora-41r.3",
+  "labels": [],
+  "parent": "ancora-41r",
+  "priority": 1,
+  "status": "open",
+  "title": "The oldest Spec-Ack trailer beats the tip and silences the squash-loss warning",
+  "type": "bug",
+  "updated_at": "2026-09-04T11:03:31Z"
+}
