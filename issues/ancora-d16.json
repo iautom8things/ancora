@@ -3,12 +3,12 @@
   "blocked_by": [],
   "blocks": [],
   "created": "2026-09-04T10:58:02Z",
-  "description": "Advances: ancora.gate, ancora.derive, ancora.findings, ancora.parsing, ancora.tasks, ancora.review, ancora.scaffold. Carries the Medium and Low fix-now rows and the tracked rows from the consolidated critical review of ancora-xla/post-ship-hardening at e18fa05 that Manuel chose not to land before 1.1.0. Backlog epic: open, never started here. Children carry title, calibrated severity and a report pointer, not full contracts; run /investigate or /implement per child.",
+  "description": "Backlog of critical-review findings deferred from the 1.1.0 release by Manuel's decision of 2026-09-04 02:44 (Critical + High land first on ancora-41r; everything else waits). Spec dir: .spec/\nSource of record: ~/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-04/ancora-xla-post-ship-hardening/20260904-061300-consolidated.md (review_commit e18fa05). Each child names its finding ids, calibrated severity and the report row; read the row and the persona report before starting.\nRelated epics: ancora-xla (the reviewed branch), ancora-41r (the seven fixes landing before the PR), ancora-gg8 (field friction; F37 routes there).\nAlready tracked elsewhere, not duplicated here: F3 ancora-kzw, F10 ancora-90t, F37 ancora-gg8, and the pre-existing ancora-1wi, ancora-13p, ancora-rup, ancora-i19, ancora-f1w, ancora-tth, ancora-li7.\nOpen, never started here. Not a fast-follow of a closed epic; ancora-xla stays in progress until 1.1.0 ships.\nReview-bar-override: release scope decision by Manuel on 2026-09-04; each child carries the consolidator's one-line reason why it did not land on the release branch.",
   "id": "ancora-d16",
   "labels": [],
   "priority": 3,
   "status": "open",
   "title": "Fast-follow: critical-review findings deferred from the 1.1.0 release",
   "type": "epic",
-  "updated_at": "2026-09-04T10:58:02Z"
+  "updated_at": "2026-09-04T10:59:02Z"
 }
