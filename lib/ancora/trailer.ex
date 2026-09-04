@@ -12,10 +12,11 @@ defmodule Ancora.Trailer do
 
   ## Scope: `base..HEAD`
 
-  `read/2` shells `git log <base>..HEAD --format=%B%x00` and unions parsed
-  overrides across every commit in the range. It also reports overrides
-  found only below the tip so the gate can warn when an applied development
-  acknowledgment will be lost by a squash merge.
+  `read/2` shells `git log <base>..HEAD --format=%B%x00` and applies parsed
+  overrides with the commit nearest `HEAD` winning when commits name the same
+  code. It also reports the nearest value below the tip when the tip omits that
+  code or names a different severity. The gate uses that value to warn when an
+  applied development acknowledgment will be lost by a squash merge.
 
   Trailers are a cooperative self-report. `read/2` does not verify
   signatures or authorship. This is suited to single-author and small-team
@@ -55,8 +56,9 @@ defmodule Ancora.Trailer do
   end
 
   @doc """
-  Reads `git log <base>..HEAD --format=%B%x00` in `root` and returns the union
-  of parsed overrides plus those found only in commits below `HEAD`.
+  Reads `git log <base>..HEAD --format=%B%x00` in `root`, with the commit nearest
+  `HEAD` winning for each code. The result also includes the nearest value below
+  the tip unless the tip repeats that severity.
   """
   @spec read(String.t(), String.t()) :: read_result()
   def read(root, base) when is_binary(root) and is_binary(base) do
