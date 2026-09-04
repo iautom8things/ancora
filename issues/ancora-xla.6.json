@@ -72,11 +72,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl\n\nIntegration fix e18fa05 verified cold: scope 0 (the alias line is read as part of the granted routed call, and the verifier wrote that reading down); static guard 1 failure at c010b8f -\u003e 0 at e18fa05, measured in a scratch worktree; stderr line byte-identical at both commits (151 bytes, same sha256, cmp clean); spec.check --base 9e22e1e result=pass; 53 tests green across spec_check and gate files; the only direct IO writers left in lib are inside Ancora.Output. No test edits, so no critic. Full suite runs at gate 16 now. Bounce record: 2/2 used, mechanical 1/2.",
       "timestamp": "2026-09-04T03:46:09Z"
+    },
+    {
+      "text": "APPROVED (merge record, orchestrator, 2026-09-04 00:48 local)\nFast-forwarded ancora-xla/post-ship-hardening 9e22e1e -\u003e c010b8f (rebased ticket, two commits) -\u003e e18fa05 (integration fix, one commit).\nGate 15 on c010b8f: red, 1 failure (the widened static guard against ancora-sfu's direct stderr write; INTEGRATION_REGRESSION above). Gate 16 on e18fa05: mix compile --warnings-as-errors clean; 3 properties, 407 tests, 0 failures; format clean; no unused deps; mix spec.check --base 7511407 result=pass. Logs: scratchpad/gate15.log, gate16.log.\nClosing. Worktree /Users/mz/src/ancora-xla.6 and branch ancora-xla.6/dead-paths-cleanup removed after close.\nAdvisories carried to the mini-retro: output_verdict_test.exs async while swapping the global logger handler (no flake seen in gates 15 and 16); lib/ancora/status.ex:200 still carries the %Config{lib_paths: nil} clause preflight lost (out of this ticket's scope; follow-up candidate); the AST scan is the only proof materialize uses the cross-VM name helper.",
+      "timestamp": "2026-09-04T03:47:33Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Delete the dead paths and finish the half-wired substitutions",
   "type": "task",
-  "updated_at": "2026-09-04T03:46:15Z"
+  "updated_at": "2026-09-04T03:47:33Z"
 }
