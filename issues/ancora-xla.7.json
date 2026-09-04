@@ -12,9 +12,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-xla",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: xla7-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-xla.7/codex-xla7-i1-adec463e/log\n\nCommit: 62e0eb57fea5b5089faa03ce91c04cf89047af55\nFiles touched: .spec/decisions/ancora.decision.no_execution_no_state.md, .spec/specs/ancora.gate.spec.md, test/ancora_test.exs, test/ancora/derive/pipeline_test.exs, test/ancora/gate_test.exs, test/ancora/git_batch_port_test.exs, test/ancora/next_test.exs, test/ancora/prime_test.exs, test/ancora/review_test.exs, test/ancora/static/exactly_eight_test.exs, test/ancora/static/forbidden_spawner_test.exs, test/ancora/static/forbidden_writer_test.exs, test/ancora/status_test.exs, test/mix/tasks/spec_check_test.exs, test/mix/tasks/spec_next_test.exs, test/mix/tasks/spec_prime_test.exs, test/mix/tasks/spec_status_test.exs\nTests added: AncoraTest/\"validate reports warning counts and applies strict mode\"; Ancora.Derive.PipelineTest/\"a throwing resolver returns an error without exiting its caller\"; Ancora.GateTest/\"the gate maps batch timeout and poisoned-port failures to environment messages\"; Ancora.GateTest/\"a Spec-Ack trailer never raises a configured info finding\"; Ancora.Git.BatchPortTest/\"open returns data when git is absent from PATH\"; Ancora.Git.BatchPortTest/\"fetch converts a Port.command error into a closed poisoned port\"; Ancora.Static.ExactlyEightTest/\"every package spec task loads dependencies without compiling the target\"; Mix.Tasks.Spec.CheckTest/\"an unreadable test emits an environment verdict\"; Mix.Tasks.Spec.CheckTest/\"an unreadable library source emits an environment verdict\"\nSpec acknowledgment: .spec/specs/ancora.gate.spec.md adds execution-backed scenarios for the gate behaviors this ticket strengthened; .spec/decisions/ancora.decision.no_execution_no_state.md records the exact task requirement and non-vacuous static-guard controls. No Spec-Ack trailer used.\nVerification tier: change-scoped — mix compile --warnings-as-errors; all 14 modified test files; mix test --stale, which ran 3 properties and 388 tests and included new test/ancora_test.exs; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base c330458; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 2\n\nSummary: Both charter guards now use compile-time roots, reject empty candidate sets, and prove their detectors against known allowed calls before filtering. Mutation runs made both guards fail when detector output was removed and when their roots were empty; changing Mix.Tasks.Spec.Check from deps.loadpaths to compile also failed the package-scoped task guard. Direct execution covers the remaining public behavior, while the private Gate error mappings and the narrow Port.command race are checked from compiled clauses because the production modules expose no injection seam; every epic lesson was checked against the final diff.",
+      "timestamp": "2026-09-04T01:16:26Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Give the static guards and thin tests real teeth",
   "type": "task",
-  "updated_at": "2026-09-04T00:52:49Z"
+  "updated_at": "2026-09-04T01:16:26Z"
 }
