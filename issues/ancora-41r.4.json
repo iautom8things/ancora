@@ -26,11 +26,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl\n\nGate conditions checked against VERIFY: PASS at 0344f5f (base e18fa05):\n- Verdict PASS, no gaps. Scope 0 of 17 files outside Allowed; the ancora.parsing and ancora.review edits were proven forced (reverting them yields tier=branch errors=2 warnings=1 with derived/drift on index.ex and spec.review.ex) and each sentence true by execution under its own subject. gate.ex touches only the Index.build call site, one gate_error/1 clause and the new build_index/2 helper. spec.check result=pass.\n- Behaviors measured through the real tasks: the documented value now ends `spec.check result=fail tier=env errors=0 warnings=0` with exit 1 and no stack trace; validate the same; status, review and prime print the message and exit 1 with no verdict per their own must. Three mutations proved both ways against a 72-test baseline (raise restored fails five tests across five files; stale moduledoc fails the docs test; ignored explicit flag fails the non-default-workspace test), plus a value-only variant proving the docs test compares against Ancora.Index.detect_spec_dir/1, not the phrase.\n- The decoy .spec/.keep in the non-default fixture is load-bearing and minimal; the record attributes it to ancora-90t honestly.\n- Seams: none. Final-tier runs 2 (the cap). TEST_CRITIC: PASS on file.\n- Advisory carried to the fast-follow: Ancora.validate/2 dies with a FunctionClauseError in Access.get/3 if a library caller passes a bad spec_dir: directly (Index.build's error tuple is subscripted as a map); every Mix task guards the flag first, so no sentence written here is falsified. Also carried: the review env-tier test omits the flag-meaning clause and is tagged to the meta-line requirement; the stack-trace refute names RuntimeError specifically.\nBounce record: 0/2. Next: mechanical rebase onto d96d42f (merge-tree clean), gate 2, close.",
       "timestamp": "2026-09-04T11:48:40Z"
+    },
+    {
+      "text": "REBASED\nSession: rebase-41r4\nOld base: e18fa05  Old head: 0344f5f\nNew base: d96d42f  New head: f818d733db064ba25e4b04a0ccec0697183c4c2f\nConflicts: none\nCompile: clean\nTests: 72 tests, 0 failures (five diff-touched files)\nFormat: clean\nspec.check --base d96d42f: spec.check result=pass",
+      "timestamp": "2026-09-04T11:50:09Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "The documented --spec-dir default does not exist and passing it raises with no verdict",
   "type": "bug",
-  "updated_at": "2026-09-04T11:48:49Z"
+  "updated_at": "2026-09-04T11:50:09Z"
 }
