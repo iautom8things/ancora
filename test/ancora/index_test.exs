@@ -135,6 +135,91 @@ defmodule Ancora.IndexTest do
                  finding.message =~ "ancora.ghost.requirement"
              end)
     end
+
+    @tag spec: "ancora.parsing.structural_references"
+    @tag spec: "ancora.parsing.stable_public_api"
+    test "invalid spec metadata stays nil and every corpus-reading task handles it", %{
+      root: root
+    } do
+      init_git_repo(root)
+
+      write_files(root, %{
+        "mix.exs" => """
+        defmodule Fixture.MixProject do
+          use Mix.Project
+          def project, do: [app: :fixture, version: "0.1.0"]
+        end
+        """,
+        "lib/sample.ex" => "defmodule Sample do\nend\n",
+        ".spec/specs/broken.spec.md" => """
+        # Broken
+
+        ```yaml spec-meta
+        id: broken.subject
+        kind: module
+        ```
+        """
+      })
+
+      commit_all(root, "malformed corpus")
+
+      spec = root |> Path.join(".spec/specs/broken.spec.md") |> Parser.parse_file(root)
+
+      assert spec["meta"] == nil
+      assert Enum.any?(spec["findings"], &(&1.code == "spec/parse_error"))
+
+      assert Map.keys(spec) |> Enum.sort() ==
+               ~w(exceptions file findings meta parse_errors requirements scenarios title verification)
+
+      check = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+      assert check.status == 1
+      assert check.stdout =~ "spec/parse_error"
+      assert List.last(output_lines(check.stdout)) =~ "spec.check result=fail tier=branch"
+
+      validate = run_mix_subprocess(["spec.validate", "--root", root])
+      assert validate.status == 1
+      assert validate.stdout =~ "spec/parse_error"
+      assert List.last(output_lines(validate.stdout)) =~ "spec.validate result=fail tier=validate"
+
+      for {args, opts, heading} <- [
+            {["spec.status", "--root", root], [], "Spec Led Status"},
+            {[
+               "run",
+               "-e",
+               "File.cd!(#{inspect(root)}, fn -> Mix.Tasks.Spec.Next.run([\"--base\", \"HEAD\"]) end)"
+             ], [], "Spec Led Next"},
+            {["spec.prime", "--root", root, "--base", "HEAD"], [], "Spec Led Prime"}
+          ] do
+        result = run_mix_subprocess(args, opts)
+        assert result.status == 0, result.stdout <> result.stderr
+        assert result.stdout =~ heading
+        refute result.stderr =~ "** ("
+      end
+
+      review = run_mix_subprocess(["spec.review", "--root", root, "--base", "HEAD"])
+      assert review.status == 0, review.stdout <> review.stderr
+      assert review.stdout =~ "spec.review wrote"
+      assert File.read!(Path.join(root, "_build/spec_review.html")) =~ "spec/parse_error"
+      refute review.stderr =~ "** ("
+    end
+  end
+
+  describe "field access" do
+    @tag spec: "ancora.parsing.structural_references"
+    test "reads schema structs and YAML maps without creating atoms" do
+      meta = %Meta{id: "atom.subject", kind: "module", status: "active"}
+
+      assert Index.field(meta, "id") == "atom.subject"
+      assert Index.field(%{"id" => "string.subject"}, :id) == "string.subject"
+      assert Index.subject_id(%{"meta" => meta}) == "atom.subject"
+      assert Index.subject_id(%{"meta" => %{"id" => "string.subject"}}) == "string.subject"
+      assert Index.subject_id(%{"meta" => nil}) == nil
+
+      unknown = "unknown_#{System.unique_integer([:positive])}"
+      assert_raise ArgumentError, fn -> String.to_existing_atom(unknown) end
+      assert Index.field(%{nil => :wrong}, unknown) == nil
+      assert_raise ArgumentError, fn -> String.to_existing_atom(unknown) end
+    end
   end
 
   describe "consumer fixtures" do

@@ -140,6 +140,7 @@ defmodule Ancora.Review do
     base_by_id = Map.new(base_index["subjects"] || [], &{subject_id(&1), &1})
 
     head_index["subjects"]
+    |> Enum.filter(&is_binary(subject_id(&1)))
     |> Enum.map(fn subject ->
       id = subject_id(subject)
       subject_findings = Enum.filter(findings, &(&1.subject == id))
@@ -427,7 +428,7 @@ defmodule Ancora.Review do
 
   defp source_file?(path), do: String.starts_with?(path, ["lib/", "test/"])
 
-  defp subject_id(subject), do: subject |> Map.fetch!("meta") |> Map.fetch!(:id)
+  defp subject_id(subject), do: Index.subject_id(subject)
 
   defp meta_field(subject, key, default) do
     case subject["meta"] do

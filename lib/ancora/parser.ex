@@ -15,6 +15,7 @@ defmodule Ancora.Parser do
   """
 
   alias Ancora.Finding
+  alias Ancora.Index
   alias Ancora.Schema
   alias Ancora.Schema.Verification
 
@@ -86,7 +87,7 @@ defmodule Ancora.Parser do
 
             {:error, message} ->
               push_parse_error(
-                Map.put(spec, "meta", meta),
+                Map.put(spec, "meta", nil),
                 contextualize(message, spec)
               )
           end
@@ -168,7 +169,7 @@ defmodule Ancora.Parser do
   end
 
   defp maybe_realized_by(details, label, item) do
-    if present?(field(item, "realized_by")) do
+    if present?(Index.field(item, "realized_by")) do
       [label | details]
     else
       details
@@ -177,7 +178,7 @@ defmodule Ancora.Parser do
 
   defp add_requirement_realized_by(details, requirements) do
     Enum.reduce(requirements, details, fn req, acc ->
-      id = field(req, "id") || "requirement"
+      id = Index.field(req, "id") || "requirement"
       maybe_realized_by(acc, "realized_by: (#{id})", req)
     end)
   end
@@ -186,8 +187,8 @@ defmodule Ancora.Parser do
     verifications
     |> Enum.with_index()
     |> Enum.reduce(details, fn {entry, idx}, acc ->
-      kind = field(entry, "kind")
-      execute? = present?(field(entry, "execute"))
+      kind = Index.field(entry, "kind")
+      execute? = present?(Index.field(entry, "execute"))
       kind_retired? = is_binary(kind) and Verification.retired_kind?(kind)
 
       cond do
@@ -208,8 +209,8 @@ defmodule Ancora.Parser do
 
   defp add_scenario_execute(details, scenarios) do
     Enum.reduce(scenarios, details, fn scenario, acc ->
-      if present?(field(scenario, "execute")) do
-        id = field(scenario, "id") || "scenario"
+      if present?(Index.field(scenario, "execute")) do
+        id = Index.field(scenario, "id") || "scenario"
         ["execute: (#{id})" | acc]
       else
         acc
@@ -221,34 +222,12 @@ defmodule Ancora.Parser do
     Finding.new(
       code: code,
       file: spec["file"],
-      subject: subject_id(spec),
+      subject: Index.subject_id(spec),
       detail: detail,
       severity: Finding.default_severity(code),
       severity_source: :default
     )
   end
-
-  defp subject_id(spec) do
-    case field(spec["meta"], "id") do
-      id when is_binary(id) and id != "" -> id
-      _ -> nil
-    end
-  end
-
-  defp field(nil, _key), do: nil
-
-  defp field(map, key) when is_map(map) and is_binary(key) do
-    atom_key =
-      try do
-        String.to_existing_atom(key)
-      rescue
-        ArgumentError -> nil
-      end
-
-    Map.get(map, key, if(atom_key, do: Map.get(map, atom_key)))
-  end
-
-  defp field(_map, _key), do: nil
 
   defp present?(nil), do: false
   defp present?(_value), do: true

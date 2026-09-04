@@ -1,7 +1,7 @@
 defmodule Ancora.Review.Html do
   @moduledoc "Renders the review view-model as one self-contained HTML document."
 
-  alias Ancora.Markdown
+  alias Ancora.{Index, Markdown}
 
   @spec render(map()) :: iodata()
   def render(view) do
@@ -325,10 +325,7 @@ defmodule Ancora.Review.Html do
   defp file_links([]), do: "<p class=\"empty\">None</p>"
   defp file_links(files), do: ["<ul>", Enum.map(files, &["<li>", escape(&1), "</li>"]), "</ul>"]
 
-  defp field(item, key) when is_struct(item), do: Map.get(item, key) || ""
-
-  defp field(item, key) when is_map(item),
-    do: Map.get(item, key) || Map.get(item, Atom.to_string(key)) || ""
+  defp field(item, key), do: Index.field(item, key) || ""
 
   defp anchor(value),
     do: value |> to_string() |> String.replace(~r/[^a-zA-Z0-9_-]/, "-") |> escape()

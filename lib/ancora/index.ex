@@ -3,6 +3,49 @@ defmodule Ancora.Index do
 
   alias Ancora.{DecisionParser, Parser}
 
+  @atom_keys Map.new(
+               ~w(
+                 affects covers date decisions execute file given id kind meta polarity priority
+                 realized_by reason refines replaces requirements retires reverses_what scenarios
+                 stability statement status summary superseded_by supersedes surface target then
+                 verification verification_minimum_strength when
+               )a,
+               &{Atom.to_string(&1), &1}
+             )
+
+  @doc false
+  def field(nil, _key), do: nil
+
+  def field(map, key) when is_map(map) and is_binary(key) do
+    case Map.fetch(map, key) do
+      {:ok, value} ->
+        value
+
+      :error ->
+        case @atom_keys do
+          %{^key => atom_key} -> Map.get(map, atom_key)
+          %{} -> nil
+        end
+    end
+  end
+
+  def field(map, key) when is_map(map) and is_atom(key) do
+    case Map.fetch(map, key) do
+      {:ok, value} -> value
+      :error -> Map.get(map, Atom.to_string(key))
+    end
+  end
+
+  def field(_value, _key), do: nil
+
+  @doc false
+  def subject_id(subject) when is_map(subject) do
+    id = subject |> field("meta") |> field("id") || field(subject, "id")
+    if is_binary(id) and id != "", do: id, else: nil
+  end
+
+  def subject_id(_subject), do: nil
+
   @doc """
   Builds the in-memory corpus index for `root`.
 
