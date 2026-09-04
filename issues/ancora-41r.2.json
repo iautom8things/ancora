@@ -58,11 +58,15 @@
     {
       "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-04 08:44 EDT, from the clock)\ngit range-diff e18fa05..99f1c72 84e85b1..13f8588: commit 2 marked = (byte-identical); commit 1 marked ! because of the ordered conflict resolution. Confirmed the ! is confined to .spec/specs/ancora.parsing.spec.md: the patches of 50370bf and 6f7a289 restricted to lib/, test/, .spec/decisions and ancora.gate.spec.md differ only in hunk line offsets and the commit id. The resolved structural_references paragraph matches the rebase order sentence for sentence (rejected marker, only-finding, absent-block, atom-free Index read, missing-directory error data, the combined closing sentence). Rebase worker's checks on 84e85b1: compile clean, 81 tests green across six files, format clean, spec.check --base 84e85b1 result=pass; commit count 2 before and after; no rebase state left behind. The worker was reaped by the harness after posting its record; harmless.\nFast-forwarded ancora-41r/pre-release-fixes 84e85b1 -\u003e 13f8588. Gate 4 running.",
       "timestamp": "2026-09-04T12:44:16Z"
+    },
+    {
+      "text": "APPROVED (merge record, orchestrator, 2026-09-04 08:45 EDT)\nFast-forwarded ancora-41r/pre-release-fixes 84e85b1 -\u003e 13f8588 (two commits after rebase).\nGate 4 on 13f8588: mix compile --warnings-as-errors clean; 3 properties, 420 tests, 0 failures; format clean; no unused deps; mix spec.check --base 7511407 result=pass. Log: scratchpad/gate41r-4.log.\nClosing. Worktree /Users/mz/src/ancora-41r.2 and branch ancora-41r.2/absent-spec-meta removed after close.\nAdvisories carried to the fast-follow epic: spec.status and spec.prime print a subject count from a third code path that is unasserted; the non-mapping spec-meta path (a block that parses as a non-map) yields a spurious missing-field finding.",
+      "timestamp": "2026-09-04T12:45:16Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "A spec file with no spec-meta block passes the gate with zero findings",
   "type": "bug",
-  "updated_at": "2026-09-04T12:44:16Z"
+  "updated_at": "2026-09-04T12:45:16Z"
 }
