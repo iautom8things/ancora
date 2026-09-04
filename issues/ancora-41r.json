@@ -69,11 +69,15 @@
     {
       "text": "ORCHESTRATED\nChildren closed: 6\nBOUNCEs encountered: 4\nUser escalations: 0",
       "timestamp": "2026-09-04T13:02:52Z"
+    },
+    {
+      "text": "PR opened: https://github.com/iautom8things/ancora/pull/3 (release 1.1.0). This epic's six fixes ship inside it from ancora-xla/post-ship-hardening; the epic stays in progress through CI and closes at delivery after merge and a healthy deploy. Babysitting CI.",
+      "timestamp": "2026-09-04T13:40:54Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T13:40:44Z"
+  "updated_at": "2026-09-04T13:40:54Z"
 }
