@@ -44,7 +44,9 @@ decisions:
     appear individually; a `git mv` followed by an edit shall appear as a
     delete plus an add with both paths prefetched. The gate shall compute no
     change set until preflight confirms that no shallow boundary inside the
-    requested `base..HEAD` range has a parent commit absent locally.
+    requested `base..HEAD` range has a parent commit absent locally. Both git
+    outputs shall be NUL-delimited so path bytes remain unquoted, and a path
+    still wrapped in double quotes shall be rejected rather than stored.
   priority: must
   stability: stable
 - id: ancora.derive.base_reads_batched
@@ -71,7 +73,10 @@ decisions:
     it shall create that root with non-recursive `File.mkdir/1` so a pre-existing
     path, including a symlink, returns an error before any blob write.
     The gate's base view shall contain only the configured spec directory,
-    configured `test_paths`, and project `lib_paths`.
+    configured `test_paths`, and project `lib_paths`. Change-set prefetch shall
+    resolve each base path through `git ls-tree` and pass its tagged object id
+    to `Ancora.Git.read_blob/2`; callers shall tag paths and object ids rather
+    than infer their kind from hexadecimal text.
   priority: must
   stability: stable
 - id: ancora.derive.memo_is_run_scoped
@@ -272,6 +277,19 @@ decisions:
   then:
     - `lib/a.ex` appears as deleted and `lib/b.ex` as added
     - both base blobs are prefetched through the batch port
+  covers:
+    - ancora.derive.change_set_union
+    - ancora.derive.base_reads_batched
+- id: ancora.derive.scenario.git_paths_round_trip
+  given:
+    - changed tracked library files whose names contain UTF-8 bytes or spaces
+    - an untracked file whose name contains a space
+  when:
+    - the gate computes and prefetches the change set
+  then:
+    - every path remains byte-identical to the name supplied by git
+    - committed paths resolve to object ids before blob reads
+    - a hexadecimal path tagged as a path is never treated as an object id
   covers:
     - ancora.derive.change_set_union
     - ancora.derive.base_reads_batched

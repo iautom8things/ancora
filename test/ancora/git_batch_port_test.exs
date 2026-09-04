@@ -106,6 +106,21 @@ defmodule Ancora.Git.BatchPortTest do
     assert {:ok, %{payload: "keep\n"}} = BatchPort.fetch(port, "HEAD:lib/a.ex")
   end
 
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "fetch parses a missing path containing spaces from the right" do
+    root = TmpGitRepo.create!()
+    on_exit(fn -> TmpGitRepo.cleanup!(root) end)
+    TmpGitRepo.write!(root, %{"lib/a.ex" => "keep\n"})
+    TmpGitRepo.commit!(root, "initial")
+
+    assert {:ok, port} = BatchPort.open(root)
+    on_exit(fn -> BatchPort.close(port) end)
+
+    absent = "HEAD:my notes.txt"
+    assert {:error, {:missing_object, ^absent}} = BatchPort.fetch(port, absent)
+    assert {:ok, %{payload: "keep\n"}} = BatchPort.fetch(port, "HEAD:lib/a.ex")
+  end
+
   @tag spec: "ancora.gate.preflight_hard_fails"
   test "a timed out fetch poisons the port before another request can read stale data" do
     root = TmpGitRepo.create!()

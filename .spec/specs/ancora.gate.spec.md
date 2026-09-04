@@ -36,7 +36,10 @@ decisions:
   statement: >-
     When the target has no `.spec/` corpus, the git executable is missing,
     the requested spec workspace cannot resolve its `specs/` directory, the
-    target root is not inside a git repository, the base ref (explicit
+    target root is not inside a git repository, a malformed `git cat-file
+    --batch` frame is received, a Git change-set path is quoted, a NUL
+    terminator is missing, a name-status or porcelain record is invalid, the
+    base ref (explicit
     `--base` or the configured default) does not resolve, the git batch port
     exits or times out, a shallow boundary inside the requested `base..HEAD`
     range has at least one parent commit absent locally, or the target is an
@@ -268,6 +271,16 @@ decisions:
   then:
     - the second fetch returns `{:error, :port_poisoned}`
     - no response from the timed out request is returned
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.malformed_batch_frame
+  given:
+    - a git batch port that returns a malformed frame during gate assembly
+  when:
+    - `mix spec.check` runs
+  then:
+    - the command exits non-zero without a runtime exception
+    - the last stdout line is `spec.check result=fail tier=env errors=0 warnings=0`
   covers:
     - ancora.gate.preflight_hard_fails
 - id: ancora.gate.scenario.unreadable_working_tree_input

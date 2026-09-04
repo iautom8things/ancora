@@ -20,6 +20,58 @@ defmodule Mix.Tasks.Spec.CheckTest do
     refute result.stderr =~ "result="
   end
 
+  @tag spec: "ancora.derive.change_set_union"
+  test "an untracked path containing a space keeps spec.check green", %{root: root} do
+    create_project(root)
+    write_files(root, %{"my notes.txt" => "scratch\n"})
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 0
+    assert List.last(lines(result.stdout)) == "spec.check result=pass"
+    refute result.stderr =~ "RuntimeError"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a malformed cat-file frame emits an environment verdict", %{root: root} do
+    create_project(root)
+    write_files(root, %{"README.md" => "changed\n"})
+
+    real_git = System.find_executable("git")
+    wrapper_dir = Path.join(root, "fake-bin")
+    wrapper = Path.join(wrapper_dir, "git")
+    File.mkdir_p!(wrapper_dir)
+
+    File.write!(
+      wrapper,
+      """
+      #!/bin/sh
+      if [ "$3" = "cat-file" ] && [ "$4" = "--batch" ]; then
+        while IFS= read -r request; do
+          printf 'malformed frame\\n'
+        done
+      else
+        exec #{real_git} "$@"
+      fi
+      """
+    )
+
+    File.chmod!(wrapper, 0o755)
+    original_path = System.get_env("PATH")
+    on_exit(fn -> System.put_env("PATH", original_path) end)
+    System.put_env("PATH", wrapper_dir <> ":" <> original_path)
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    assert result.stdout =~ "git cat-file batch returned a malformed frame"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+
+    refute result.stderr =~ "RuntimeError"
+  end
+
   @tag spec: "ancora.tasks.gated_emission_paths"
   @tag spec: "ancora.tasks.check_flags"
   test "usage and environment failures emit their verdict last", %{root: root} do

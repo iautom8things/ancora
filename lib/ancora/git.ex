@@ -11,8 +11,6 @@ defmodule Ancora.Git do
   alias Ancora.Derive.RunContext
   alias Ancora.Git.BatchPort
 
-  @object_id ~r/\A(?:[0-9a-f]{40}|[0-9a-f]{64})\z/
-
   @type git_error ::
           {:error, :git_executable_not_found}
           | {:error, {:git, [String.t()], String.t(), non_neg_integer()}}
@@ -67,30 +65,31 @@ defmodule Ancora.Git do
   Reads one base-side blob.
 
   When the run context owns a `BatchPort`, the read goes through that port.
-  The second argument may be a repository path or an already-resolved blob OID.
+  The second argument tags either a repository path or an already-resolved blob OID.
   When the run has no port, the same function head falls back to `git show`.
   """
-  @spec read_blob(RunContext.t(), String.t()) :: {:ok, binary()} | {:error, term()}
-  def read_blob(%RunContext{batch_port: %BatchPort{} = port, base: base}, path)
-      when is_binary(path) do
-    case BatchPort.fetch(port, read_spec(base, path)) do
+  @spec read_blob(RunContext.t(), {:path, String.t()} | {:oid, String.t()} | String.t()) ::
+          {:ok, binary()} | {:error, term()}
+  def read_blob(%RunContext{batch_port: %BatchPort{} = port, base: base}, reference) do
+    case BatchPort.fetch(port, blob_reference(base, reference)) do
       {:ok, %{payload: payload}} -> {:ok, payload}
       {:error, _} = error -> error
     end
   end
 
-  def read_blob(%RunContext{batch_port: nil, root: root, base: base}, path)
-      when is_binary(path) do
-    run(root, ["show", read_spec(base, path)], stderr_to_stdout: false)
+  def read_blob(%RunContext{batch_port: nil, root: root, base: base}, reference) do
+    run(root, ["show", blob_reference(base, reference)], stderr_to_stdout: false)
   end
 
   @doc false
   @spec blob_spec(String.t(), String.t()) :: String.t()
   def blob_spec(base, path), do: "#{base}:#{path}"
 
-  defp read_spec(base, path_or_oid) do
-    if Regex.match?(@object_id, path_or_oid), do: path_or_oid, else: blob_spec(base, path_or_oid)
-  end
+  defp blob_reference(base, {:path, path}) when is_binary(path), do: blob_spec(base, path)
+  defp blob_reference(_base, {:oid, oid}) when is_binary(oid), do: oid
+
+  # BaseView already resolves tree entries to OIDs before calling this function.
+  defp blob_reference(_base, oid) when is_binary(oid), do: oid
 
   defp pathspec_args([]), do: []
   defp pathspec_args(pathspecs), do: ["--" | pathspecs]

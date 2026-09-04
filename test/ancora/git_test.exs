@@ -88,7 +88,7 @@ defmodule Ancora.GitTest do
 
     isolated = %{ctx | root: decoy}
 
-    assert {:ok, "defmodule A do\nend\n"} = Git.read_blob(isolated, "lib/a.ex")
+    assert {:ok, "defmodule A do\nend\n"} = Git.read_blob(isolated, {:path, "lib/a.ex"})
   end
 
   @tag spec: "ancora.derive.base_reads_batched"
@@ -102,7 +102,7 @@ defmodule Ancora.GitTest do
     on_exit(fn -> RunContext.stop(ctx) end)
     assert ctx.batch_port == nil
 
-    assert {:ok, "show-me\n"} = Git.read_blob(ctx, "lib/a.ex")
+    assert {:ok, "show-me\n"} = Git.read_blob(ctx, {:path, "lib/a.ex"})
   end
 
   @tag spec: "ancora.derive.base_reads_batched"
@@ -120,7 +120,7 @@ defmodule Ancora.GitTest do
     {:ok, ctx} = RunContext.start(#{inspect(root)}, "HEAD", batch: false)
 
     try do
-      {:ok, payload} = Git.read_blob(ctx, "lib/a.ex")
+      {:ok, payload} = Git.read_blob(ctx, {:path, "lib/a.ex"})
       IO.binwrite(payload)
     after
       RunContext.stop(ctx)
@@ -142,7 +142,19 @@ defmodule Ancora.GitTest do
     assert {:ok, ctx} = RunContext.start(root, "HEAD", batch: false)
     on_exit(fn -> RunContext.stop(ctx) end)
 
-    assert {:ok, "show-by-oid\n"} = Git.read_blob(ctx, String.trim(oid))
+    assert {:ok, "show-by-oid\n"} = Git.read_blob(ctx, {:oid, String.trim(oid)})
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "read_blob treats a tagged 40-hex path as a path", %{root: root} do
+    hex_path = String.duplicate("a", 40)
+    TmpGitRepo.write!(root, %{hex_path => "path-not-object\n"})
+    TmpGitRepo.commit!(root, "initial")
+
+    assert {:ok, ctx} = RunContext.start(root, "HEAD")
+    on_exit(fn -> RunContext.stop(ctx) end)
+
+    assert {:ok, "path-not-object\n"} = Git.read_blob(ctx, {:path, hex_path})
   end
 
   @tag spec: "ancora.derive.memo_is_run_scoped"

@@ -115,8 +115,11 @@ names all three as charter constraints.
   `all_findings` list and the error message. The environment-tier verdict
   remains last, and no plain error line is written to stdout.
 - Missing corpus, missing git, unreadable working-tree inputs, and failed git
-  batch reads are environment failures represented as data. A failed batch
-  fetch closes its port so no later request can consume stale bytes.
+  batch reads are environment failures represented as data. This includes a
+  malformed batch frame. A failed batch fetch closes its port so no later
+  request can consume stale bytes. Git-supplied change-set paths use NUL
+  delimiters and resolve to object ids before batch reads, so quoting and spaces
+  cannot change their identity or the batch framing.
 - A shallow clone is rejected only when a boundary inside the requested
   `base..HEAD` range has at least one parent commit absent locally. A boundary
   whose parents are present truncates nothing and is accepted. An incomplete

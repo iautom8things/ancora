@@ -167,21 +167,36 @@ defmodule Ancora.Git.BatchPort do
         :incomplete
 
       [header, rest] ->
-        case String.split(header, " ") do
-          [id, "missing"] ->
+        case missing_id(header) do
+          {:ok, id} ->
             {:missing, id, rest}
 
-          [oid, type, size] ->
-            case Integer.parse(size) do
-              {bytes, ""} -> parse_payload(oid, type, bytes, header, rest)
-              _ -> {:bad_header, header}
-            end
+          :error ->
+            case String.split(header, " ") do
+              [oid, type, size] ->
+                case Integer.parse(size) do
+                  {bytes, ""} -> parse_payload(oid, type, bytes, header, rest)
+                  _ -> {:bad_header, header}
+                end
 
-          _ ->
-            {:bad_header, header}
+              _ ->
+                {:bad_header, header}
+            end
         end
     end
   end
+
+  defp missing_id(header) when byte_size(header) > byte_size(" missing") do
+    suffix_size = byte_size(" missing")
+    id_size = byte_size(header) - suffix_size
+
+    case header do
+      <<id::binary-size(id_size), " missing">> -> {:ok, id}
+      _ -> :error
+    end
+  end
+
+  defp missing_id(_header), do: :error
 
   defp parse_payload(oid, type, bytes, header, rest) do
     case rest do

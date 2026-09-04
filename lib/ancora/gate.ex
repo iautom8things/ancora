@@ -466,6 +466,10 @@ defmodule Ancora.Gate do
     {:env, run_context_error(reason)}
   end
 
+  defp gate_error({:cat_file_batch_bad_header, _header} = reason) do
+    {:env, run_context_error(reason)}
+  end
+
   defp gate_error(reason), do: raise("gate assembly failed: #{inspect(reason)}")
 
   defp run_context_error(:git_executable_not_found) do
@@ -477,6 +481,10 @@ defmodule Ancora.Gate do
 
   defp run_context_error({:cat_file_batch_exited, status}) do
     "git cat-file batch exited with status #{status}"
+  end
+
+  defp run_context_error({:cat_file_batch_bad_header, header}) do
+    "git cat-file batch returned a malformed frame: #{inspect(header)}"
   end
 
   defp run_context_error(reason), do: "cannot start git read context: #{inspect(reason)}"

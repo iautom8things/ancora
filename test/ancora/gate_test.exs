@@ -416,6 +416,77 @@ defmodule Ancora.GateTest do
     assert spec_oid in collect_git_reads([])
   end
 
+  @tag spec: "ancora.derive.change_set_union"
+  test "gate detects drift in a UTF-8 library path", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" => subject_spec(),
+      "lib/café.ex" => "defmodule Sample do\n  def value, do: :before\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() in [:before, :after])
+      end
+      """
+    })
+
+    commit_all(root, "base")
+    base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+
+    write_files(root, %{
+      "lib/café.ex" => "defmodule Sample do\n  def value, do: :after\nend\n"
+    })
+
+    assert {:ok, report} = Gate.check(root, base: base)
+    assert "derived/drift" in findings_codes(report.all_findings)
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "change-set prefetch resolves a spaced path to its base OID", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" => subject_spec(),
+      "lib/my sample.ex" => "defmodule Sample do\n  def value, do: :before\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() in [:before, :after])
+      end
+      """
+    })
+
+    commit_all(root, "base")
+    base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+    oid = root |> git!(["rev-parse", "#{base}:lib/my sample.ex"]) |> String.trim()
+
+    write_files(root, %{
+      "lib/my sample.ex" => "defmodule Sample do\n  def value, do: :after\nend\n"
+    })
+
+    Code.ensure_loaded!(Git)
+    traced = self()
+    tracer = start_trace_forwarder(traced)
+    :erlang.trace(traced, true, [:call, {:tracer, tracer}])
+    :erlang.trace_pattern({Git, :read_blob, 2}, true, [])
+
+    on_exit(fn ->
+      :erlang.trace_pattern({Git, :read_blob, 2}, false, [])
+      send(tracer, :stop)
+    end)
+
+    assert {:ok, report} = Gate.check(root, base: base)
+    assert "derived/drift" in findings_codes(report.all_findings)
+
+    sync_traces(traced, tracer)
+    assert {:oid, oid} in collect_git_reads([])
+  end
+
   @tag spec: "ancora.derive.memo_is_run_scoped"
   test "gate parses one changed source once per diff side across subjects", %{root: root} do
     init_git_repo(root)
