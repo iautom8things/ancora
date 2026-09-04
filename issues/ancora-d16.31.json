@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T13:02:04Z",
+  "description": "Advances: ancora.tasks. Calibrated severity: Medium. Found by the ancora-41r.4 verifier: Index.build returns an error tuple that validate/2 subscripts as a map; every Mix task guards the flag first, so no documented sentence is falsified, but the semver-stable library entry point dies on a direct bad option. Also from 41r.2: spec.status and spec.prime print a subject count from a third code path that agrees today but is unasserted. Filed at ancora-41r delivery (2026-09-04) from grader advisories; every item was measured or read by a cold grader and left out of the release scope on purpose. Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision by Manuel on 2026-09-04; reason above.",
+  "id": "ancora-d16.31",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 3,
+  "status": "open",
+  "title": "Ancora.validate/2 raises FunctionClauseError when a library caller passes a bad spec_dir",
+  "type": "task",
+  "updated_at": "2026-09-04T13:02:04Z"
+}
