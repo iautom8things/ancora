@@ -297,13 +297,13 @@ defmodule Ancora.OutputTest do
       assert Output.branch_summary(%{
                base: "HEAD",
                changed_files: 1,
-               findings: 6,
+               findings: 9,
                errors: 1,
                warnings: 2,
-               info: 3,
-               hidden: %{default: 1, trailer: 1, ack: 1}
+               info: 6,
+               hidden: %{default: 3, trailer: 2, ack: 1}
              }) ==
-               "branch base=HEAD changed_files=1 findings=6 (error=1 warning=2 info=3 hidden: default=1 trailer=1 ack=1)"
+               "branch base=HEAD changed_files=1 findings=9 (error=1 warning=2 info=6 hidden: default=3 trailer=2 ack=1)"
     end
 
     @tag spec: "ancora.tasks.finding_line_format"

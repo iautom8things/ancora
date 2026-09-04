@@ -110,10 +110,23 @@ defmodule Mix.Tasks.Spec.CheckTest do
 
     assert result.status == 0
     finding_lines = Enum.filter(lines(result.stdout), &String.starts_with?(&1, "[INFO]"))
-    assert length(finding_lines) == 2
+    assert length(finding_lines) == 4
     assert Enum.all?(finding_lines, &String.contains?(&1, "derived/drift"))
     refute result.stdout =~ "derived/unresolved_calls"
     assert List.last(lines(result.stdout)) == "spec.check result=pass"
+  end
+
+  @tag spec: "ancora.findings.info_visibility"
+  @tag spec: "ancora.tasks.finding_line_format"
+  test "default branch summary reports hidden info from the production gate", %{root: root} do
+    write_ack_fixture(root)
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD~1"])
+
+    assert result.status == 0
+
+    assert result.stdout =~
+             "branch base=HEAD~1 changed_files=3 findings=6 (error=0 warning=0 info=6 hidden: default=2 trailer=1 ack=3)"
   end
 
   @tag spec: "ancora.tasks.check_flags"
@@ -378,7 +391,13 @@ defmodule Mix.Tasks.Spec.CheckTest do
 
       Alpha may cite this decision.
       """,
-      "lib/alpha.ex" => "defmodule Alpha do\n  def value, do: :current\nend\n",
+      "lib/alpha.ex" => """
+      defmodule Alpha do
+        def value, do: :current
+        def second, do: :current
+        def third, do: :current
+      end
+      """,
       "lib/beta.ex" => "defmodule Beta do\n  def value, do: :current\nend\n",
       "test/alpha_test.exs" => ack_test("alpha"),
       "test/beta_test.exs" => ack_test("beta")
@@ -388,7 +407,13 @@ defmodule Mix.Tasks.Spec.CheckTest do
 
     write_files(root, %{
       ".spec/specs/alpha.spec.md" => ack_subject_spec("alpha", "changed"),
-      "lib/alpha.ex" => "defmodule Alpha do\n  def value, do: :changed\nend\n",
+      "lib/alpha.ex" => """
+      defmodule Alpha do
+        def value, do: :changed
+        def second, do: :changed
+        def third, do: :changed
+      end
+      """,
       "lib/beta.ex" => "defmodule Beta do\n  def value, do: :changed\nend\n"
     })
 
@@ -430,12 +455,23 @@ defmodule Mix.Tasks.Spec.CheckTest do
   defp ack_test(name) do
     module = String.capitalize(name)
 
+    alpha_assertions =
+      if name == "alpha" do
+        """
+        assert Alpha.second() in [:current, :changed]
+        assert Alpha.third() in [:current, :changed]
+        """
+      else
+        ""
+      end
+
     """
     defmodule #{module}Test do
       use ExUnit.Case
       @tag spec: "sample.#{name}.works"
       test "works" do
         assert #{module}.value() in [:current, :changed]
+        #{alpha_assertions}
         assert apply(#{module}, :value, []) in [:current, :changed]
       end
     end

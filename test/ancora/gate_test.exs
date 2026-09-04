@@ -367,6 +367,40 @@ defmodule Ancora.GateTest do
            end)
   end
 
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  test "a substantive spec edit acknowledges transitive drift", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" =>
+        subject_spec("The sample shall return the current value.", "sample.subject", []),
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() in [:current, :changed])
+      end
+      """
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n",
+      ".spec/specs/sample.spec.md" =>
+        subject_spec("The sample shall return the changed value.", "sample.subject", [])
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "derived/drift_transitive" and finding.severity == :info and
+               finding.severity_source == :ack
+           end)
+  end
+
   @tag spec: "ancora.derive.drift_primary_transitive"
   @tag spec: "ancora.gate.diff_scoped_versus_repo_state"
   test "surface fan-out reports exactly K primary and N-K transitive drift", %{root: root} do
@@ -685,7 +719,13 @@ defmodule Ancora.GateTest do
     """
   end
 
-  defp subject_spec(statement \\ "The sample shall work.", subject \\ "sample.subject") do
+  defp subject_spec(
+         statement \\ "The sample shall work.",
+         subject \\ "sample.subject",
+         surface \\ nil
+       ) do
+    surface_block = if is_list(surface), do: "surface: #{inspect(surface)}\n", else: ""
+
     """
     # Sample
 
@@ -693,7 +733,7 @@ defmodule Ancora.GateTest do
     id: #{subject}
     kind: module
     status: draft
-    ```
+    #{surface_block}```
 
     ```yaml spec-requirements
     - id: #{subject}.works
