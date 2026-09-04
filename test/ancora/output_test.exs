@@ -262,7 +262,8 @@ defmodule Ancora.OutputTest do
           findings: 2,
           errors: 1,
           warnings: 1,
-          info: 0
+          info: 0,
+          hidden: %{default: 0, trailer: 0, ack: 0}
         },
         guidance: %{
           impacted_subjects: ["ancora.tasks"],
@@ -283,11 +284,26 @@ defmodule Ancora.OutputTest do
       assert Enum.at(lines, 1) =~ ~r/^\[ERROR\] /
       assert "checked subjects=1 requirements=2 errors=1 warnings=1" in lines
 
-      assert "branch base=origin/main changed_files=3 findings=2 (error=1 warning=1 info=0, info hidden)" in lines
+      assert "branch base=origin/main changed_files=3 findings=2 (error=1 warning=1 info=0 hidden: default=0 trailer=0 ack=0)" in lines
 
       assert "branch impacted_subjects=ancora.tasks" in lines
       assert "branch next=mix spec.check --base HEAD" in lines
       assert List.last(lines) == "spec.check result=fail tier=branch errors=1 warnings=1"
+    end
+
+    @tag spec: "ancora.findings.info_visibility"
+    @tag spec: "ancora.tasks.finding_line_format"
+    test "branch summary splits hidden info by severity source" do
+      assert Output.branch_summary(%{
+               base: "HEAD",
+               changed_files: 1,
+               findings: 6,
+               errors: 1,
+               warnings: 2,
+               info: 3,
+               hidden: %{default: 1, trailer: 1, ack: 1}
+             }) ==
+               "branch base=HEAD changed_files=1 findings=6 (error=1 warning=2 info=3 hidden: default=1 trailer=1 ack=1)"
     end
 
     @tag spec: "ancora.tasks.finding_line_format"

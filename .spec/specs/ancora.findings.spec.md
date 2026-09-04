@@ -1,6 +1,6 @@
 # Finding Registry, Severity, Trailer, and Config
 
-The closed 30-code registry, per-finding severity resolution, the `Spec-Ack:`
+The closed 31-code registry, per-finding severity resolution, the `Spec-Ack:`
 trailer, and the `.spec/config.yml` schema with per-subject overrides.
 
 ## Intent
@@ -10,8 +10,9 @@ triage table, owned by one module that config validation, output, docs, and
 the review artifact all read. Adding a code is a spec change in this corpus.
 
 Count note: the planning documents say 26 codes. Enumerating the registry
-table after the `spec/prose_too_short` cut gives 30; the 26 was a carried
-miscount. The enumerated list below is authoritative.
+table after the `spec/prose_too_short` cut gave 30; the 26 was a carried
+miscount. The primary/transitive drift split adds the 31st code. The
+enumerated list below is authoritative.
 Severity has one precedence chain, silence lives in the repo where review
 can see it, and the trailer can only lower.
 
@@ -22,7 +23,7 @@ Modules: `Ancora.Finding`, `Ancora.Severity`, `Ancora.Trailer`,
 id: ancora.findings
 kind: module
 status: active
-summary: Closed 30-code finding registry, severity precedence, Spec-Ack trailer grammar, and config.yml schema with per-subject overrides.
+summary: Closed 31-code finding registry, severity precedence, Spec-Ack trailer grammar, and config.yml schema with per-subject overrides.
 decisions:
   - ancora.decision.field_friction_response
   - ancora.decision.slimmed_governance
@@ -33,10 +34,11 @@ decisions:
 ```yaml spec-requirements
 - id: ancora.findings.registry_closed
   statement: >-
-    Ancora.Finding shall own exactly 30 codes, each with a family, a default
+    Ancora.Finding shall own exactly 31 codes, each with a family, a default
     severity, and a message function, and shall be the single source every
-    other module reads. The codes are `derived/drift`, `derived/growth`,
-    `derived/shrink`, `derived/unresolved_calls`, `derived/unparseable_source`,
+    other module reads. The codes are `derived/drift`,
+    `derived/drift_transitive`, `derived/growth`, `derived/shrink`,
+    `derived/unresolved_calls`, `derived/unparseable_source`,
     `derived/unanchored_subject`, `change/uncovered_file`,
     `change/missing_decision`, `tags/new_requirement_untagged`,
     `tags/parse_error`, `tags/dynamic_value`, `tags/requirement_untagged`,
@@ -63,8 +65,8 @@ decisions:
     `tags/new_requirement_untagged`, `tags/unknown_requirement`,
     `format/retired_construct`, `adr/affects_empty`, `config/unknown_key`,
     and `config/invalid_value`; info for `derived/unresolved_calls`,
-    `tags/dynamic_value`, `tags/requirement_untagged`, and
-    `spec/requirement_unverified`.
+    `tags/dynamic_value`, `tags/requirement_untagged`,
+    `spec/requirement_unverified`, and `derived/drift_transitive`.
   priority: must
   stability: evolving
 - id: ancora.findings.messages_carry_remedy
@@ -81,17 +83,19 @@ decisions:
     everything; otherwise a `Spec-Ack:` trailer downgrade applies; otherwise
     the config `severities:` value; otherwise the registry default. The
     resolved finding shall carry `severity_source` as one of `:config`,
-    `:trailer`, `:default`. A finding resolved to `off` shall not be emitted
-    or counted.
+    `:trailer`, `:ack`, `:default`. A finding suppressed by subject
+    acknowledgment shall be retained at info with `severity_source: :ack`,
+    not destroyed. A finding resolved to `off` shall not be emitted or counted.
   priority: must
   stability: stable
 - id: ancora.findings.info_visibility
   statement: >-
     Findings at `info` shall be printed only when `--verbose` is passed or
     `ANCORA_SHOW_INFO=1` is set, and shall never affect exit status. The
-    branch summary shall report the hidden count. A preflight environment
-    failure represented as JSON shall keep `all_findings` empty rather than
-    fabricate a finding for the target-read error.
+    branch summary shall report the hidden count per severity source
+    (`default`, `trailer`, and `ack`). A preflight environment failure
+    represented as JSON shall keep `all_findings` empty rather than fabricate
+    a finding for the target-read error.
   priority: must
   stability: stable
 - id: ancora.findings.trailer_grammar
@@ -145,7 +149,7 @@ decisions:
   when:
     - the closure test enumerates it
   then:
-    - exactly 30 codes exist
+    - exactly 31 codes exist
     - each has a family, a default, and a message function that returns a non-empty string
   covers:
     - ancora.findings.registry_closed

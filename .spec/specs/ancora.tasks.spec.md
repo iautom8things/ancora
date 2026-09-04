@@ -90,7 +90,8 @@ decisions:
     Every finding of every family shall print as `[SEV] <subject> <code>
     <file> :: <message>`, sorted warnings first, then info (when shown), then
     errors last, followed by `branch base=<ref> changed_files=<N>
-    findings=<N> (error=E warning=W info=I, info hidden)` and guidance lines
+    findings=<N> (error=E warning=W info=I hidden: default=D trailer=T
+    ack=A)` and guidance lines
     `branch impacted_subjects=…` and `branch next=…`. The summary line shall
     be `checked subjects=<N> requirements=<N> errors=<E> warnings=<W>`; no
     line beginning `validate status=` shall exist.
@@ -108,9 +109,11 @@ decisions:
 - id: ancora.tasks.check_flags
   statement: >-
     `mix spec.check` shall accept exactly `--base <ref>`, `--verbose`,
-    `--debug`, `--root <dir>`, `--spec-dir <dir>`, and `--json`. With
-    `--json` it shall print the full report map as JSON to stdout with the
-    verdict line still last. `--no-run-commands`, `--min-strength`,
+    `--debug`, `--root <dir>`, `--spec-dir <dir>`, `--json`, and
+    `--explain-acks`. With `--json` it shall print the full report map as JSON
+    to stdout with the verdict line still last. `--explain-acks` shall list
+    only findings whose `severity_source` is `:trailer` or `:ack`, independent
+    of `--verbose` and `ANCORA_SHOW_INFO`. `--no-run-commands`, `--min-strength`,
     `--command-timeout-ms`, `--accept-drift`, `--test-tags`, and `--output`
     shall be usage errors.
   priority: must
@@ -153,8 +156,10 @@ decisions:
     project-macro-generated and `<D>` dep-generated bindings, with an
     `acknowledged` label on subjects carrying an `overrides:` entry. `thin`
     shall be the constant 3, documented as non-configurable. Corpus findings
-    shall not make this report task fail; environment and usage errors shall
-    still exit 1 through `Ancora.Output.gated/2` without a verdict line.
+    shall not make this report task fail. `spec.status` and `spec.check` shall
+    reject an override naming an unknown requirement id with
+    `config/invalid_value` and ignore the entry. Environment and usage errors
+    shall still exit 1 through `Ancora.Output.gated/2` without a verdict line.
   priority: must
   stability: evolving
 - id: ancora.tasks.prime_loop
@@ -269,6 +274,16 @@ decisions:
   then:
     - stdout minus its last line parses as JSON containing the finding
     - the last stdout line is the verdict
+  covers:
+    - ancora.tasks.check_flags
+- id: ancora.tasks.scenario.explain_acks
+  given:
+    - one ack-sourced finding, one trailer-sourced finding, and one default-info finding
+  when:
+    - `mix spec.check --explain-acks` runs without `--verbose`
+  then:
+    - the ack- and trailer-sourced findings are listed
+    - the default-info finding is not listed
   covers:
     - ancora.tasks.check_flags
 - id: ancora.tasks.scenario.result_never_leaks

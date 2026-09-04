@@ -100,6 +100,38 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert Enum.any?(report["findings"], &(&1["code"] == "derived/growth"))
   end
 
+  @tag spec: "ancora.tasks.check_flags"
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  test "explain-acks lists ack and trailer findings but not default info", %{root: root} do
+    write_ack_fixture(root)
+
+    result =
+      run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD~1", "--explain-acks"])
+
+    assert result.status == 0
+    finding_lines = Enum.filter(lines(result.stdout), &String.starts_with?(&1, "[INFO]"))
+    assert length(finding_lines) == 2
+    assert Enum.all?(finding_lines, &String.contains?(&1, "derived/drift"))
+    refute result.stdout =~ "derived/unresolved_calls"
+    assert List.last(lines(result.stdout)) == "spec.check result=pass"
+  end
+
+  @tag spec: "ancora.tasks.check_flags"
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  test "json all_findings retains acknowledgment source", %{root: root} do
+    write_ack_fixture(root)
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD~1", "--json"])
+
+    assert result.status == 0
+    report = result.stdout |> lines() |> hd() |> Jason.decode!()
+
+    assert Enum.any?(report["all_findings"], fn finding ->
+             finding["subject"] == "sample.alpha" and finding["code"] == "derived/drift" and
+               finding["severity"] == "info" and finding["severity_source"] == "ack"
+           end)
+  end
+
   @tag spec: "ancora.gate.preflight_hard_fails"
   test "json mode reports a target-read error without plain stdout leakage", %{root: root} do
     # Would fail if a preflight target error took the text-only fail path and
@@ -309,6 +341,105 @@ defmodule Mix.Tasks.Spec.CheckTest do
       end
       """
     })
+  end
+
+  defp write_ack_fixture(root) do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => """
+      defmodule Fixture.MixProject do
+        use Mix.Project
+        def project, do: [app: :fixture]
+      end
+      """,
+      ".spec/specs/alpha.spec.md" => ack_subject_spec("alpha", "current"),
+      ".spec/specs/beta.spec.md" => ack_subject_spec("beta", "current"),
+      ".spec/decisions/change.md" => """
+      ---
+      id: sample.decision.change
+      status: accepted
+      date: 2026-09-03
+      affects:
+        - sample.alpha
+      ---
+
+      # Change
+
+      ## Context
+
+      Alpha changes need an owner.
+
+      ## Decision
+
+      This decision governs alpha changes.
+
+      ## Consequences
+
+      Alpha may cite this decision.
+      """,
+      "lib/alpha.ex" => "defmodule Alpha do\n  def value, do: :current\nend\n",
+      "lib/beta.ex" => "defmodule Beta do\n  def value, do: :current\nend\n",
+      "test/alpha_test.exs" => ack_test("alpha"),
+      "test/beta_test.exs" => ack_test("beta")
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      ".spec/specs/alpha.spec.md" => ack_subject_spec("alpha", "changed"),
+      "lib/alpha.ex" => "defmodule Alpha do\n  def value, do: :changed\nend\n",
+      "lib/beta.ex" => "defmodule Beta do\n  def value, do: :changed\nend\n"
+    })
+
+    commit_all(root, "change values\n\nSpec-Ack: derived/drift_transitive=info")
+  end
+
+  defp ack_subject_spec(name, value) do
+    surface = if name == "beta", do: "surface: []\n", else: ""
+
+    """
+    # #{name}
+
+    ```yaml spec-meta
+    id: sample.#{name}
+    kind: module
+    status: draft
+    #{surface}decisions:
+      - sample.decision.change
+    ```
+
+    ```yaml spec-requirements
+    - id: sample.#{name}.works
+      statement: The sample shall return its #{value} value.
+      priority: must
+    ```
+
+    ```yaml spec-scenarios
+    []
+    ```
+
+    ```yaml spec-verification
+    - kind: tagged_tests
+      covers:
+        - sample.#{name}.works
+    ```
+    """
+  end
+
+  defp ack_test(name) do
+    module = String.capitalize(name)
+
+    """
+    defmodule #{module}Test do
+      use ExUnit.Case
+      @tag spec: "sample.#{name}.works"
+      test "works" do
+        assert #{module}.value() in [:current, :changed]
+        assert apply(#{module}, :value, []) in [:current, :changed]
+      end
+    end
+    """
   end
 
   defp lines(output), do: String.split(output, "\n", trim: true)

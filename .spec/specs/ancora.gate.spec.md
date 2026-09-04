@@ -60,7 +60,7 @@ decisions:
   stability: stable
 - id: ancora.gate.diff_scoped_versus_repo_state
   statement: >-
-    `derived/drift`, `derived/growth`, `derived/shrink`,
+    `derived/drift`, `derived/drift_transitive`, `derived/growth`, `derived/shrink`,
     `derived/unresolved_calls`, `derived/unparseable_source`,
     `change/uncovered_file`, `change/missing_decision`,
     `tags/new_requirement_untagged`, `append/requirement_deleted`, and
@@ -72,18 +72,20 @@ decisions:
 - id: ancora.gate.acknowledgment_clears
   statement: >-
     For a subject that Ancora.Derive.Ack reports as substantively changed in
-    the diff, the gate shall suppress that subject's `derived/drift`,
-    `derived/growth`, and `derived/shrink` findings. A `Spec-Ack:` trailer in
-    the `base..HEAD` range shall downgrade the named code toward `info` or
-    `warning` but never suppress it and never raise it.
+    the diff, that subject's `derived/drift`, `derived/drift_transitive`,
+    `derived/growth`, and `derived/shrink` findings shall resolve to info with
+    `severity_source: :ack`. Acknowledged findings shall remain in
+    `all_findings` and JSON. A `Spec-Ack:` trailer in the `base..HEAD` range
+    shall downgrade the named code toward `info` or `warning` but never
+    suppress it and never raise it.
   priority: must
   stability: stable
 - id: ancora.gate.new_subject_self_clears
   statement: >-
     A subject whose spec file is added in the diff shall fire growth against
-    an empty base set and clear in the same run, because the added
-    requirement block is itself substantive; the gate shall need no special
-    case for new subjects.
+    an empty base set and resolve it to info with `severity_source: :ack` in
+    the same run, because the added requirement block is itself substantive;
+    the gate shall need no special case for new subjects.
   priority: must
   stability: stable
 - id: ancora.gate.two_append_guards
@@ -203,7 +205,8 @@ decisions:
   when:
     - the gate runs
   then:
-    - no `derived/drift` fires for the subject
+    - "the `derived/drift` finding remains in `all_findings` at info with `severity_source: :ack`"
+    - JSON output retains the acknowledged finding
   covers:
     - ancora.gate.acknowledgment_clears
 - id: ancora.gate.scenario.trailer_downgrades_not_silences
@@ -223,7 +226,7 @@ decisions:
   when:
     - the gate runs
   then:
-    - no `derived/growth` fires for the new subject
+    - "the `derived/growth` finding remains at info with `severity_source: :ack`"
   covers:
     - ancora.gate.new_subject_self_clears
 - id: ancora.gate.scenario.deleted_requirement_without_adr

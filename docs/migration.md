@@ -56,13 +56,14 @@ end
 
 ## Finding code map
 
-Ancora has 30 finding codes. The right column is the closed registry. Several
+Ancora has 31 finding codes. The right column is the closed registry. Several
 old checks converge on one current code, while some current codes have no
 direct predecessor.
 
 | specled_ex code | Ancora code |
 |---|---|
 | `branch_guard_realization_drift` | `derived/drift` |
+| no direct predecessor | `derived/drift_transitive` |
 | no direct predecessor | `derived/growth` |
 | no direct predecessor | `derived/shrink` |
 | `detector_unavailable` | `derived/unresolved_calls` |

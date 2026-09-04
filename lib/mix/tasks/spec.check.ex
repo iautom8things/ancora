@@ -20,7 +20,8 @@ defmodule Mix.Tasks.Spec.Check do
     debug: :boolean,
     root: :string,
     spec_dir: :string,
-    json: :boolean
+    json: :boolean,
+    explain_acks: :boolean
   ]
 
   @impl Mix.Task

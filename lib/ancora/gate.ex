@@ -136,19 +136,16 @@ defmodule Ancora.Gate do
         head = Map.get(head_sets, subject_id, empty_set(subject_id, :head))
         base = Map.get(base_sets, subject_id, empty_set(subject_id, :base))
 
+        compare_opts =
+          [locator: locator, change_set: change_set, root: preflight.root]
+          |> maybe_put_surface(subject_surface(subject_id, current))
+
+        findings = Compare.compare(subject_id, base, head, compare_opts)
+
         if acknowledged?(subject_id, current, prior, preflight.root, base_root) do
-          Compare.compare(subject_id, base, head,
-            locator: locator,
-            change_set: change_set,
-            root: preflight.root
-          )
-          |> Enum.reject(&(&1.code in ["derived/drift", "derived/growth", "derived/shrink"]))
+          Enum.map(findings, &mark_acknowledged/1)
         else
-          Compare.compare(subject_id, base, head,
-            locator: locator,
-            change_set: change_set,
-            root: preflight.root
-          )
+          findings
         end
       end)
 
@@ -368,6 +365,28 @@ defmodule Ancora.Gate do
     end
   end
 
+  defp subject_surface(subject_id, index) do
+    case Enum.find(index["subjects"], &(subject_id_of(&1) == subject_id)) do
+      nil -> :absent
+      subject -> Map.get(subject["meta"], :surface) || :absent
+    end
+  end
+
+  defp maybe_put_surface(opts, :absent), do: opts
+  defp maybe_put_surface(opts, surface), do: Keyword.put(opts, :surface, surface)
+
+  defp mark_acknowledged(%Finding{code: code} = finding)
+       when code in [
+              "derived/drift",
+              "derived/drift_transitive",
+              "derived/growth",
+              "derived/shrink"
+            ] do
+    %{finding | severity: :info, severity_source: :ack}
+  end
+
+  defp mark_acknowledged(finding), do: finding
+
   defp resolve_findings(findings, preflight, ctx) do
     trailer = Trailer.read(preflight.root, ctx.base)
 
@@ -380,10 +399,24 @@ defmodule Ancora.Gate do
   defp report(preflight, change_set, index, subject_sets, findings, opts) do
     {info, non_info} = Enum.split_with(findings, &(&1.severity == :info))
     show_info? = Severity.show_info?(verbose: Keyword.get(opts, :verbose, false))
-    visible = if show_info?, do: findings, else: non_info
+    explain_acks? = Keyword.get(opts, :explain_acks, false)
+
+    visible =
+      cond do
+        explain_acks? -> Enum.filter(findings, &(&1.severity_source in [:trailer, :ack]))
+        show_info? -> findings
+        true -> non_info
+      end
+
     errors = Enum.count(findings, &(&1.severity == :error))
     warnings = Enum.count(findings, &(&1.severity == :warning))
-    hidden_info = if show_info?, do: 0, else: length(info)
+    hidden_info = Enum.reject(info, &(&1 in visible))
+
+    hidden_by_source = %{
+      default: Enum.count(hidden_info, &(&1.severity_source == :default)),
+      trailer: Enum.count(hidden_info, &(&1.severity_source == :trailer)),
+      ack: Enum.count(hidden_info, &(&1.severity_source == :ack))
+    }
 
     %{
       findings: visible,
@@ -400,7 +433,8 @@ defmodule Ancora.Gate do
         findings: length(findings),
         errors: errors,
         warnings: warnings,
-        info: hidden_info
+        info: length(hidden_info),
+        hidden: hidden_by_source
       },
       guidance: %{
         impacted_subjects: Map.keys(subject_sets) |> Enum.sort(),

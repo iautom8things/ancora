@@ -14,6 +14,7 @@ tagged tests.
 | Family | Code | Default |
 |---|---|---|
 | derived | `derived/drift` | error |
+| derived | `derived/drift_transitive` | info |
 | derived | `derived/growth` | warning |
 | derived | `derived/shrink` | warning |
 | derived | `derived/unresolved_calls` | info |

@@ -348,7 +348,8 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.acknowledgment_clears"
-  test "a substantive spec edit clears production drift", %{root: root} do
+  @tag spec: "ancora.findings.severity_precedence"
+  test "a substantive spec edit retains production drift as an acknowledged info", %{root: root} do
     init_git_repo(root)
     write_anchored_subject(root, "The sample shall return the current value.")
     commit_all(root, "base")
@@ -359,7 +360,49 @@ defmodule Ancora.GateTest do
     })
 
     assert {:ok, report} = Gate.check(root, base: "HEAD")
-    refute Enum.any?(report.all_findings, &(&1.code == "derived/drift"))
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "derived/drift" and finding.severity == :info and
+               finding.severity_source == :ack
+           end)
+  end
+
+  @tag spec: "ancora.derive.drift_primary_transitive"
+  @tag spec: "ancora.gate.diff_scoped_versus_repo_state"
+  test "surface fan-out reports exactly K primary and N-K transitive drift", %{root: root} do
+    init_git_repo(root)
+
+    specs =
+      for {name, surface} <- [{"one", ["lib/shared.ex"]}, {"two", []}, {"three", []}],
+          into: %{} do
+        {".spec/specs/#{name}.spec.md", shared_subject_spec(name, surface)}
+      end
+
+    tests =
+      for name <- ["one", "two", "three"], into: %{} do
+        {"test/#{name}_test.exs", shared_test(name)}
+      end
+
+    write_files(
+      root,
+      Map.merge(specs, tests)
+      |> Map.merge(%{
+        "mix.exs" => mix_file("[app: :sample]"),
+        "lib/shared.ex" => "defmodule Shared do\n  def value, do: :base\nend\n"
+      })
+    )
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "lib/shared.ex" => "defmodule Shared do\n  def value, do: :changed\nend\n"
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+    drift = Enum.filter(report.all_findings, &String.starts_with?(&1.code, "derived/drift"))
+
+    assert Enum.count(drift, &(&1.code == "derived/drift")) == 1
+    assert Enum.count(drift, &(&1.code == "derived/drift_transitive")) == 2
   end
 
   @tag spec: "ancora.gate.acknowledgment_clears"
@@ -385,12 +428,16 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.new_subject_self_clears"
-  test "a new subject clears its own growth", %{root: root} do
+  test "a new subject acknowledges its own growth", %{root: root} do
     create_clean_repo(root)
     write_anchored_subject(root, "The sample shall return the current value.")
 
     assert {:ok, report} = Gate.check(root, base: "HEAD")
-    refute Enum.any?(report.all_findings, &(&1.code == "derived/growth"))
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "derived/growth" and finding.severity == :info and
+               finding.severity_source == :ack
+           end)
   end
 
   @tag spec: "ancora.derive.growth_and_shrink"
@@ -701,6 +748,50 @@ defmodule Ancora.GateTest do
       covers:
         - sample.subject.works
     ```
+    """
+  end
+
+  defp shared_subject_spec(name, surface) do
+    surface_lines = Enum.map_join(surface, "\n", &"  - #{&1}")
+    surface_block = if surface == [], do: "surface: []", else: "surface:\n#{surface_lines}"
+
+    """
+    # #{name}
+
+    ```yaml spec-meta
+    id: shared.#{name}
+    kind: module
+    status: draft
+    #{surface_block}
+    ```
+
+    ```yaml spec-requirements
+    - id: shared.#{name}.works
+      statement: Shared shall return a value for #{name}.
+      priority: must
+    ```
+
+    ```yaml spec-scenarios
+    []
+    ```
+
+    ```yaml spec-verification
+    - kind: tagged_tests
+      covers:
+        - shared.#{name}.works
+    ```
+    """
+  end
+
+  defp shared_test(name) do
+    module = name |> String.capitalize() |> Kernel.<>("Test")
+
+    """
+    defmodule #{module} do
+      use ExUnit.Case
+      @tag spec: "shared.#{name}.works"
+      test "shared value", do: assert(Shared.value() in [:base, :changed])
+    end
     """
   end
 

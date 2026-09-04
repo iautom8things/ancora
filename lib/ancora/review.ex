@@ -176,7 +176,7 @@ defmodule Ancora.Review do
     |> Enum.map(fn finding ->
       %{
         binding: binding_from_message(finding.message),
-        badge: :drift,
+        badge: if(finding.severity_source == :ack, do: :acknowledged, else: :drift),
         file: finding.file,
         lines: Map.get(diffs, finding.file, [])
       }

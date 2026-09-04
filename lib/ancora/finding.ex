@@ -1,6 +1,6 @@
 defmodule Ancora.Finding do
   @moduledoc """
-  Closed 30-code finding registry: the single source every other module reads.
+  Closed 31-code finding registry: the single source every other module reads.
 
   Each code has a family, a default severity, and a message function whose
   text names the subject or file and the action that clears the finding.
@@ -19,7 +19,7 @@ defmodule Ancora.Finding do
   ]
 
   @type severity :: :error | :warning | :info | :off
-  @type source :: :config | :trailer | :default
+  @type source :: :config | :trailer | :ack | :default
   @type code :: String.t()
 
   @type t :: %__MODULE__{
@@ -40,9 +40,10 @@ defmodule Ancora.Finding do
 
   @non_tunable MapSet.new(["config/unknown_key", "config/invalid_value"])
 
-  # {code, default}. Family is the prefix before `/`. Count is 30.
+  # {code, default}. Family is the prefix before `/`. Count is 31.
   @entries [
     {"derived/drift", :error},
+    {"derived/drift_transitive", :info},
     {"derived/growth", :warning},
     {"derived/shrink", :warning},
     {"derived/unresolved_calls", :info},
@@ -173,6 +174,11 @@ defmodule Ancora.Finding do
   defp render("derived/drift", ctx) do
     "#{s(ctx)}: #{d(ctx, "production code")} changed (#{f(ctx)}) but the spec did not; " <>
       "edit the spec for this subject in the same diff"
+  end
+
+  defp render("derived/drift_transitive", ctx) do
+    "#{s(ctx)}: #{d(ctx, "production code")} changed transitively (#{f(ctx)}); " <>
+      "add the defining file to this subject's surface or review the change as informational"
   end
 
   defp render("derived/growth", ctx) do

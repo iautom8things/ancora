@@ -18,8 +18,8 @@ defmodule Ancora.Severity do
   `config/unknown_key` and `config/invalid_value` are non-tunable: they stay
   at the registry default regardless of config or trailer.
 
-  Resolved findings carry `severity_source` as `:config`, `:trailer`, or
-  `:default`.
+  Resolved findings carry `severity_source` as `:config`, `:trailer`, `:ack`,
+  or `:default`.
   """
 
   alias Ancora.Config
@@ -145,8 +145,20 @@ defmodule Ancora.Severity do
     default = Finding.default_severity(finding.code)
     opts = put(opts, :subject, finding.subject)
     opts = put(opts, :requirement, finding.requirement)
-    {severity, source} = resolve_with_source(finding.code, opts, default)
+    {severity, source} = resolve_finding_source(finding, opts, default)
     %{finding | severity: severity, severity_source: source}
+  end
+
+  defp resolve_finding_source(%Finding{severity_source: :ack, code: code}, opts, _default) do
+    if config_severity(code, opts) == :off do
+      {:off, :config}
+    else
+      {:info, :ack}
+    end
+  end
+
+  defp resolve_finding_source(finding, opts, default) do
+    resolve_with_source(finding.code, opts, default)
   end
 
   defp resolve_tunable(code, opts, per_code_default) do

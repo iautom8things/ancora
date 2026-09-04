@@ -185,6 +185,15 @@ decisions:
     `derived/drift` finding.
   priority: must
   stability: stable
+- id: ancora.derive.drift_primary_transitive
+  statement: >-
+    A drifted binding whose defining file appears in the subject's authored
+    `surface:` list shall produce `derived/drift`. When the subject has a
+    `surface:` list that omits the defining file, the binding shall produce
+    `derived/drift_transitive` at info. A subject without `surface:` shall
+    keep the prior behavior and report every drift as `derived/drift`.
+  priority: must
+  stability: evolving
 - id: ancora.derive.growth_and_shrink
   statement: >-
     Per subject, `derived/growth` shall fire when the HEAD set minus the base
@@ -441,6 +450,35 @@ decisions:
     - the defining file is never parsed for extraction
   covers:
     - ancora.derive.drift_scope_and_dedupe
+- id: ancora.derive.scenario.transitive_drift_outside_surface
+  given:
+    - a shared binding drifts and a subject reaches it transitively
+    - the subject's `surface:` list omits the binding's defining file
+  when:
+    - drift is computed
+  then:
+    - `derived/drift_transitive` fires at info
+  covers:
+    - ancora.derive.drift_primary_transitive
+- id: ancora.derive.scenario.primary_drift_inside_surface
+  given:
+    - a shared binding drifts and a subject reaches it
+    - the binding's defining file appears in the subject's `surface:` list
+  when:
+    - drift is computed
+  then:
+    - `derived/drift` fires
+  covers:
+    - ancora.derive.drift_primary_transitive
+- id: ancora.derive.scenario.no_surface_keeps_primary_drift
+  given:
+    - a shared binding drifts and a subject has no `surface:` field
+  when:
+    - drift is computed
+  then:
+    - `derived/drift` fires
+  covers:
+    - ancora.derive.drift_primary_transitive
 - id: ancora.derive.scenario.macro_injected_api_drifts_via_companion
   given:
     - a member module `MyApp.Schema` whose `__using__/1` injects `changeset/2` into `MyApp.User`
@@ -531,6 +569,7 @@ decisions:
     - ancora.derive.clause_extraction
     - ancora.derive.canonical_is_metadata_strip
     - ancora.derive.drift_scope_and_dedupe
+    - ancora.derive.drift_primary_transitive
     - ancora.derive.growth_and_shrink
     - ancora.derive.generated_bindings
     - ancora.derive.acknowledgment_is_substantive

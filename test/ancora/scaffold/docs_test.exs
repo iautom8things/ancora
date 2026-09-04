@@ -25,7 +25,7 @@ defmodule Ancora.Scaffold.DocsTest do
   end
 
   @tag spec: "ancora.scaffold.migration_doc"
-  test "migration map names the complete 30-code registry" do
+  test "migration map names the complete 31-code registry" do
     content = File.read!(@migration)
 
     [_, code_map] = Regex.run(~r/## Finding code map\n\n(.*?)\n\nThe old trailer/s, content)
@@ -35,7 +35,7 @@ defmodule Ancora.Scaffold.DocsTest do
       |> Regex.scan(code_map, capture: :all_but_first)
       |> List.flatten()
 
-    assert content =~ "Ancora has 30 finding codes"
+    assert content =~ "Ancora has 31 finding codes"
     assert MapSet.new(mapped_codes) == MapSet.new(Ancora.Finding.codes())
     assert length(mapped_codes) == map_size(Ancora.Finding.registry())
 

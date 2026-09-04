@@ -9,6 +9,7 @@ affects:
   - ancora.tasks
   - ancora.scaffold
   - ancora.source_scan
+  - ancora.parsing
 ---
 
 # Field Friction Response: Disclosure Codes, Model Unification, and the Ack End-State
