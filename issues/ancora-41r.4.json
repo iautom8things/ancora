@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T11:03:32Z",
+  "description": "Advances: ancora.tasks, ancora.gate. Distilled from the consolidated critical review of ancora-xla/post-ship-hardening at e18fa05; full contract follows.",
+  "id": "ancora-41r.4",
+  "labels": [],
+  "parent": "ancora-41r",
+  "priority": 1,
+  "status": "open",
+  "title": "The documented --spec-dir default does not exist and passing it raises with no verdict",
+  "type": "bug",
+  "updated_at": "2026-09-04T11:03:32Z"
+}
