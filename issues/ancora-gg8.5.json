@@ -53,11 +53,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: e92f6de6-94f7-4814-8140-19f3f3007d0a\nLog: /Users/mz/.claude-remembers/projects/-Users-mz-src-ancora/e92f6de6-94f7-4814-8140-19f3f3007d0a.jsonl\n\nReasoning: VERIFY reported PASS with a passing spec gate and full requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS (re-run after bounce 1; the four audit-named mutations each fail a named test on the production path, with three distinct per-source counts in the real branch summary line). No auditor was spawned\nper policy for the delta re-verification; the prior audit's bounce items are closed by execution.",
       "timestamp": "2026-09-04T01:22:29Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-gg8/field-friction. Closing per orchestrator sign-off.\n\nFast-forwarded (stage based on the epic tip 8b96ac0). Merge gate 6 (epic tip 134862f): mix compile --warnings-as-errors clean; mix test 3 properties, 361 tests, 0 failures; mix format --check-formatted clean; mix deps.unlock --check-unused clean; mix spec.check --base origin/main result=pass; mix spec.check --base 8b96ac0 (per-merge delta) result=pass. ancora-gg8.6 is unblocked.",
+      "timestamp": "2026-09-04T01:23:30Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Split derived/drift primary vs transitive and make acknowledgments visible",
   "type": "task",
-  "updated_at": "2026-09-04T01:22:39Z"
+  "updated_at": "2026-09-04T01:23:30Z"
 }
