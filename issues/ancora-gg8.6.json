@@ -11,9 +11,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-gg8",
+  "comments": [
+    {
+      "text": "WORKER_ERROR\nSession: gg8.6-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.6/codex-gg8.6-impl-1/log\n\nFinal-tier run 2 failed. Per the 2-run cap, I stopped without retrying or committing.\n\nFindings:\n[WARNING] ancora.derive derived/growth - :: ancora.derive: tests now call new functions: Ancora.ChangeAnalysis.findings/6 — acknowledge them in the spec for this subject\n[WARNING] ancora.derive derived/shrink - :: ancora.derive: tests stopped calling Ancora.ChangeAnalysis.findings/5 — drop the dead contract from the spec or restore the coverage\n[WARNING] - change/missing_decision .spec/README.md :: governance file .spec/README.md changed without a decision update; add or update an ADR in the same diff\n\nspec.check result=fail tier=branch errors=0 warnings=3\n\nThe targeted touched-file tier passed 65 tests, and mix test --stale passed 365 tests and 3 properties before spec.check failed.",
+      "timestamp": "2026-09-04T01:37:01Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Disclosure codes: tags/tag_borrowed and append/statement_changed",
   "type": "task",
-  "updated_at": "2026-09-04T01:25:34Z"
+  "updated_at": "2026-09-04T01:37:01Z"
 }
