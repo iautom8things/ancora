@@ -176,6 +176,31 @@ defmodule Ancora.GateTest do
     refute File.exists?(Path.join(root, ".spec/realization_hashes.json"))
   end
 
+  @tag spec: "ancora.gate.no_derived_state"
+  test "gate creates no ETS tables during a run", %{root: root} do
+    init_git_repo(root)
+    write_anchored_subject(root, "The sample shall return the current value.")
+    commit_all(root, "base")
+
+    traced = self()
+    tracer = start_trace_forwarder(traced)
+    :erlang.trace(traced, true, [:call, :set_on_spawn, {:tracer, tracer}])
+    :erlang.trace_pattern({:ets, :new, 2}, true, [])
+    :erlang.trace_pattern({:ets, :delete, 1}, true, [])
+
+    on_exit(fn ->
+      :erlang.trace_pattern({:ets, :new, 2}, false, [])
+      :erlang.trace_pattern({:ets, :delete, 1}, false, [])
+      send(tracer, :stop)
+    end)
+
+    tables_before = length(:ets.all())
+    assert {:ok, _report} = Gate.check(root, base: "HEAD")
+    sync_traces(traced, tracer)
+    assert collect_ets_calls([]) == []
+    assert length(:ets.all()) == tables_before
+  end
+
   @tag spec: "ancora.derive.base_reads_batched"
   test "gate materializes only specs, tests, and configured library paths", %{root: root} do
     init_git_repo(root)
@@ -593,6 +618,15 @@ defmodule Ancora.GateTest do
         collect_git_reads([object | objects])
     after
       0 -> Enum.reverse(objects)
+    end
+  end
+
+  defp collect_ets_calls(calls) do
+    receive do
+      {:forwarded_trace, {:trace, _pid, :call, {:ets, fun, args}}} ->
+        collect_ets_calls([{fun, args} | calls])
+    after
+      0 -> Enum.reverse(calls)
     end
   end
 

@@ -153,13 +153,15 @@ defmodule Ancora.GitTest do
     TmpGitRepo.commit!(root, "initial")
 
     traced = self()
-    :erlang.trace(traced, true, [:call])
+    tracer = start_trace_forwarder(traced)
+    :erlang.trace(traced, true, [:call, {:tracer, tracer}])
     :erlang.trace_pattern({:ets, :new, 2}, true, [])
     :erlang.trace_pattern({:ets, :delete, 1}, true, [])
 
     on_exit(fn ->
       :erlang.trace_pattern({:ets, :new, 2}, false, [])
       :erlang.trace_pattern({:ets, :delete, 1}, false, [])
+      send(tracer, :stop)
     end)
 
     assert {:ok, ctx} = RunContext.start(root, "HEAD")
@@ -172,7 +174,53 @@ defmodule Ancora.GitTest do
     :ok = RunContext.stop(ctx)
 
     assert Port.info(port) == nil
-    refute_received {:trace, ^traced, :call, {:ets, :new, _args}}
-    refute_received {:trace, ^traced, :call, {:ets, :delete, _args}}
+    sync_traces(traced, tracer)
+    assert collect_ets_calls([]) == []
+  end
+
+  defp collect_ets_calls(calls) do
+    receive do
+      {:forwarded_trace, {:trace, _pid, :call, {:ets, fun, args}}} ->
+        collect_ets_calls([{fun, args} | calls])
+    after
+      0 -> Enum.reverse(calls)
+    end
+  end
+
+  defp start_trace_forwarder(parent) do
+    spawn(fn -> forward_traces(parent) end)
+  end
+
+  defp sync_traces(traced, tracer) do
+    delivery_ref = make_ref()
+    send(tracer, {:sync, self(), traced, delivery_ref})
+    assert_receive {:trace_forwarder_synced, ^delivery_ref}
+  end
+
+  defp forward_traces(parent) do
+    receive do
+      :stop ->
+        :ok
+
+      {:sync, caller, traced, caller_ref} ->
+        delivery_ref = :erlang.trace_delivered(traced)
+        forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref)
+
+      message ->
+        send(parent, {:forwarded_trace, message})
+        forward_traces(parent)
+    end
+  end
+
+  defp forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref) do
+    receive do
+      {:trace_delivered, ^traced, ^delivery_ref} ->
+        send(caller, {:trace_forwarder_synced, caller_ref})
+        forward_traces(parent)
+
+      message ->
+        send(parent, {:forwarded_trace, message})
+        forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref)
+    end
   end
 end
