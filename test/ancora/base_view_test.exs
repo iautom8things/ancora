@@ -71,7 +71,7 @@ defmodule Ancora.BaseViewTest do
 
   @tag spec: "ancora.derive.base_reads_batched"
   test "materialize uses a cross-VM name and a non-recursive root mkdir" do
-    # Would fail if BaseView restored its VM-local suffix or accepted an existing symlink root.
+    # Would fail if BaseView restored its VM-local suffix or recursive root creation.
     source = File.read!(Path.expand("lib/ancora/base_view.ex"))
     {:ok, ast} = Code.string_to_quoted(source)
 
@@ -89,6 +89,13 @@ defmodule Ancora.BaseViewTest do
 
     assert :cross_vm_suffix in calls
     assert Enum.count(calls, &(&1 == :mkdir)) == 1
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "materialize rejects a symlink root before writing", %{root: root} do
+    # Would fail if BaseView accepted an existing symlink and redirected blob writes.
+    TmpGitRepo.write!(root, %{"lib/a.ex" => "blocked\n"})
+    TmpGitRepo.commit!(root, "initial")
 
     target = Path.join(System.tmp_dir!(), "ancora-base-view-target-#{System.unique_integer()}")
     link = target <> "-link"
@@ -96,11 +103,14 @@ defmodule Ancora.BaseViewTest do
     File.ln_s!(target, link)
 
     on_exit(fn ->
-      File.rm_rf(target)
       File.rm(link)
+      File.rm_rf(target)
     end)
 
-    assert {:error, :eexist} = File.mkdir(link)
+    result = BaseView.materialize(root, "HEAD", temp_root: link)
+
+    assert {result, File.ls!(target)} ==
+             {{:error, {:temp_directory, :eexist}}, []}
   end
 
   @tag spec: "ancora.derive.base_reads_batched"

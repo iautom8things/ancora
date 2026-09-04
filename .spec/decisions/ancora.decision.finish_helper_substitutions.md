@@ -32,10 +32,12 @@ Production callers use the existing helpers directly. Output and exit status
 share `Ancora.Output.Verdict.pass?/1`; report JSON uses `Ancora.Json.encode!/1`;
 and config diagnostics write through `Ancora.Output.config_diagnostic/1`.
 Base views use `Ancora.TempName.cross_vm_suffix/0` and reject an existing root
-path before writing. Prime passes its status report to Next, and preflight
-passes its resolved library paths to ProjectInfo. The obsolete root-reading
-review functions are removed. ModalClass remains a standalone classifier and
-no longer claims the append-only gate calls it.
+path before writing. `BaseView.materialize/3` accepts a `:temp_root` option for
+controlled collision checks and otherwise keeps its generated default. Prime
+passes its status report to Next, and preflight passes its resolved library
+paths to ProjectInfo. The obsolete root-reading review functions are removed.
+ModalClass remains a standalone classifier and no longer claims the append-only
+gate calls it.
 
 ## Consequences
 

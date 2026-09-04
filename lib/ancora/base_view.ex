@@ -43,13 +43,14 @@ defmodule Ancora.BaseView do
   @doc """
   Writes `blobs/3` into an isolated temp workspace and returns its path.
 
-  The caller owns cleanup.
+  The caller owns cleanup. `:temp_root` overrides the generated root for
+  controlled collision checks.
   """
   @spec materialize(RunContext.t() | Path.t(), String.t() | nil, keyword()) ::
           {:ok, Path.t()} | {:error, term()}
   def materialize(source, base \\ nil, opts \\ []) do
     with {:ok, files} <- blobs(source, base, opts) do
-      temp_root = unique_temp()
+      temp_root = Keyword.get(opts, :temp_root) || unique_temp()
 
       case File.mkdir(temp_root) do
         :ok ->

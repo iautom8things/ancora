@@ -129,6 +129,8 @@ defmodule Ancora.ReviewTest do
     spec_diff = Ancora.Review.SpecDiff.compute(head, nil)
     assert spec_diff.base_existed? == false
 
+    Code.ensure_loaded!(Ancora.Review.SpecDiff)
+    Code.ensure_loaded!(FindingsDelta)
     refute function_exported?(Ancora.Review.SpecDiff, :compute, 3)
     refute function_exported?(FindingsDelta, :compute, 3)
 
