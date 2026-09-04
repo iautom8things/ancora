@@ -33,11 +33,15 @@
     {
       "text": "LESSON + ROUTE (orchestrator, 2026-09-04 08:14 EDT). ancora-41r.3 audit returned BOUNCE → implementer, bounce 1 of 2. The read-only critic was right and the cold verifier's PASS missed it: deleting only the second Enum.reverse in the below-tip fold leaves the winning severity resolving nearest while the retained below-tip value reverts to oldest-wins, the gate's equality conjunct goes false, and the squash-loss warning is silenced. The auditor built the three-commit fixture and drove it through the real CLI: branch passes with empty stderr, and after a real squash the trunk run flips to result=fail errors=1. That mutation survives the three named files and the full 410-test suite, so the merge gate would not have caught it. Three items: a CLI test with two conflicting below-tip acknowledgments and a bare tip pinning stderr by equality; a test for the severity_source == :trailer clause (dropping it prints a squash-loss warning for a code config cannot tune; a gap under the every-clause rule); two stale doc sentences in the trailer module. The by-value non-tip computation stays unit-tested by design: one call site, one reader, indistinguishable at the gate; the auditor wrote that down so no later grader reopens it. Retry spawned, profile team.\n\nLESSONS\n- [untested-clause] When a read-only critic names a specific mutation and the verifier's PASS does not show that mutation was run, the selective gate is not clean; the auditor runs it. A critic FAIL is a mutation order, not an opinion to weigh against a PASS. (from 41r.3)\n- [untested-clause] A fold direction is a contract clause; every reverse in a fold needs a fixture whose elements differ in the dimension the fold orders. Two elements that agree prove nothing about order. (from 41r.3)",
       "timestamp": "2026-09-04T11:58:16Z"
+    },
+    {
+      "text": "THIRD CHILD CLOSED (orchestrator, 2026-09-04 08:15 EDT). ancora-41r.5 merged: rebase onto f818d73 byte-identical by range-diff (both commits =), fast-forward f818d73 -\u003e 84e85b1. Delta verifier measured all three retry items killing their mutations (non-requirement unknown key at 42/1 with the new test the only failure; reason-string assertion at 42/1; whole-file refute at 4/1 with F7's sentence re-added as a new paragraph) and both original mutations still failing; lib/ancora/config.ex byte-identical to the first pass. Selective audit auto-approved; critic PASS. Gate 3 on 84e85b1: 419 tests, 3 properties, 0 failures; format, unused-deps and spec.check --base 7511407 pass. Worktree and branch removed, board synced.\n\nStanding: 3 of 6 closed. 41r.2 approved and rebasing under an implementer order (parsing.spec paragraph; the tip has since moved to 84e85b1, so one more mechanical hop follows). 41r.3 retry: critic PASS, verifier running. 41r.1 retry: worker running on six items. console_triggers=5 console_redeploys=5. Console: https://claude.ai/code/artifact/47c7ca0b-520f-456c-b981-c97a4fe90f1a",
+      "timestamp": "2026-09-04T12:12:38Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T11:58:16Z"
+  "updated_at": "2026-09-04T12:12:38Z"
 }
