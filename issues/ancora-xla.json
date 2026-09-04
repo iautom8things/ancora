@@ -283,11 +283,15 @@
     {
       "text": "FOURTEENTH CHILD CLOSED (orchestrator, 2026-09-04 00:02 local). ancora-sfu merged: rebase onto 253babd byte-identical by range-diff (both commits =), fast-forward 253babd -\u003e 45ff9e9. Delta verifier rebuilt fixtures A through D itself through the real CLI: equal-severity config silent and info/config on trunk; stricter config loud on the branch and warning/config with result=fail on trunk; no config loud and back to default on trunk; trailer at the tip silent. Restoring the old conjunction fails exactly the silent-A refute (1 of 57); the never-warn and warn-unconditionally mutations fail the ordered pair. Both documented promotion targets (severities and an overrides entry) executed and clear the warning. Selective audit auto-approved. Gate 13 on 45ff9e9: 397 tests, 3 properties, 0 failures; format, unused-deps and spec.check --base 7511407 pass. Worktree and branch removed, board synced.\n\nStanding: 14 of 16 closed. ancora-xla.6 retry (53add71, six files) under delta verification with a critic; ancora-xla.1 retry worker just posted its record, routing next. Merge forecasts for both onto 45ff9e9 to be rechecked at approval. console_triggers=18 console_redeploys=18. Manuel's restore of ancora-gg8/field-friction still pending. Console: https://claude.ai/code/artifact/8cc34715-5fb4-4d95-8599-ed924e6acec5",
       "timestamp": "2026-09-04T03:12:50Z"
+    },
+    {
+      "text": "FIFTEENTH CHILD CLOSED (orchestrator, 2026-09-04 00:31 local). ancora-xla.1 merged: rebase onto 45ff9e9 byte-identical by range-diff (both commits =), fast-forward 45ff9e9 -\u003e 9e22e1e. Delta verifier measured both fixtures across all six corpus readers: the malformed-id fixture yields one spec/parse_error naming field id with the regex, the omitted-status fixture yields one naming field status, zero spec/missing_field on either (down from four errors with two false at d9a39d7). Both bounce mutations killed in the verifier's own runs (index_test.exs:192 and :226). Requirement-id half byte-identical at 511 bytes; well-formed spec.status at 530 bytes. The rewritten invalid_id clause was judged honest: subject removed from the enumeration, replacement behavior stated affirmatively, all four remaining categories verified to fire. Selective audit auto-approved. Gate 14 on 9e22e1e: 399 tests, 3 properties, 0 failures; format, unused-deps and spec.check --base 7511407 pass. Worktree and branch removed, board synced.\n\nancora-xla.6 passed its delta re-verification with all six mutations rebuilt by the verifier and was auto-approved (record on the ticket); a rebase worker is carrying it onto 9e22e1e (merge-tree forecast clean). Gate 15 follows, then Phase 2.\n\nStanding: 15 of 16 closed. console_triggers=19 console_redeploys=19. Manuel's restore of ancora-gg8/field-friction still pending. Console: https://claude.ai/code/artifact/8cc34715-5fb4-4d95-8599-ed924e6acec5",
+      "timestamp": "2026-09-04T03:28:12Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T03:12:50Z"
+  "updated_at": "2026-09-04T03:28:12Z"
 }
