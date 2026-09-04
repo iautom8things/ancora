@@ -9,7 +9,7 @@
   "id": "ancora-xla.7",
   "labels": [
     "critical",
-    "phase:implementing"
+    "phase:verifying"
   ],
   "parent": "ancora-xla",
   "comments": [
@@ -38,5 +38,5 @@
   "status": "in_progress",
   "title": "Give the static guards and thin tests real teeth",
   "type": "task",
-  "updated_at": "2026-09-04T01:44:10Z"
+  "updated_at": "2026-09-04T01:45:15Z"
 }
