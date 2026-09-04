@@ -430,6 +430,40 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert List.last(lines(result.stdout)) =~ "spec.check result=fail tier=branch"
   end
 
+  @tag spec: "ancora.findings.per_subject_overrides"
+  test "an unknown override key is reported and the override is not applied", %{root: root} do
+    create_project(root)
+    write_unanchored_subject(root)
+
+    write_config(root, """
+    overrides:
+      - subject: sample.subject
+        requirement: sample.subject.works
+        code: derived/unanchored_subject
+        severity: info
+        reason: integration-only
+    """)
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--json"])
+    report = last_parseable_json(result.stdout)
+
+    assert result.status == 1
+
+    assert Enum.any?(report["findings"], fn finding ->
+             finding["code"] == "config/unknown_key" and
+               finding["message"] =~ ~s("requirement") and
+               finding["message"] =~ "sample.subject"
+           end)
+
+    assert Enum.any?(report["findings"], fn finding ->
+             finding["code"] == "derived/unanchored_subject" and
+               finding["subject"] == "sample.subject" and
+               finding["severity"] == "warning"
+           end)
+
+    assert List.last(lines(result.stdout)) =~ "spec.check result=fail tier=branch"
+  end
+
   @tag spec: "ancora.gate.acknowledgment_clears"
   @tag spec: "ancora.tasks.stderr_pinning"
   test "promoted acknowledgment survives a squash merge", %{root: root} do

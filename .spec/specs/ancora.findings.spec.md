@@ -122,11 +122,13 @@ decisions:
   stability: stable
 - id: ancora.findings.per_subject_overrides
   statement: >-
-    Each `overrides:` entry shall carry `subject`, `code`, `severity`, and a
-    required non-empty `reason`. An override shall apply only to findings of
-    that code attributed to that subject. An entry naming an unknown subject
-    or code, or missing `reason`, shall produce `config/invalid_value` and be
-    ignored. `spec.status` shall label overridden subjects `acknowledged`.
+    Each `overrides:` entry shall accept exactly `subject`, `code`, `severity`,
+    and a required non-empty `reason`. An override shall apply only to findings
+    of that code attributed to that subject. Any other entry key shall produce
+    `config/unknown_key` naming the key and entry, and the entry shall be
+    ignored. An entry naming an unknown subject or code, or missing `reason`,
+    shall produce `config/invalid_value` and be ignored. `spec.status` shall
+    label overridden subjects `acknowledged`.
   priority: must
   stability: evolving
 - id: ancora.findings.config_coversioned_note
@@ -281,6 +283,16 @@ decisions:
     - config is loaded
   then:
     - `config/invalid_value` fires naming the entry
+    - the override is not applied
+  covers:
+    - ancora.findings.per_subject_overrides
+- id: ancora.findings.scenario.override_unknown_key
+  given:
+    - an `overrides:` entry with a `requirement:` key in addition to the four accepted keys
+  when:
+    - the real `mix spec.check` task loads config during preflight
+  then:
+    - `config/unknown_key` fires naming `requirement` and the entry
     - the override is not applied
   covers:
     - ancora.findings.per_subject_overrides

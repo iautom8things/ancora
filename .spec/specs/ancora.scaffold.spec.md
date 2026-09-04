@@ -101,15 +101,17 @@ decisions:
     the introspection posture (the tool loads its own dependencies' bytecode
     for export lookup; this is toolchain introspection, not project
     execution), name `mix format --migrate` as an expect-acknowledgment case,
-    carry a six-line CI job snippet, and describe the tool as traceability
-    and drift detection, never as proof or verified behavior.
+    state that Ancora 1.x overrides are scoped to one subject and one finding
+    code, carry a six-line CI job snippet, and describe the tool as
+    traceability and drift detection, never as proof or verified behavior.
   priority: must
   stability: evolving
 - id: ancora.scaffold.migration_doc
   statement: >-
     `docs/migration.md` shall carry the consumer migration checklist and the
     complete specled_ex-code to ancora-code map, with the registry count
-    matching `Ancora.Finding`.
+    matching `Ancora.Finding`, and shall state that Ancora 1.x overrides are
+    scoped to one subject and one finding code.
   priority: must
   stability: evolving
 ```
@@ -207,6 +209,7 @@ decisions:
     - needle checks run
   then:
     - it names all four stable functions, says `--root` is internal, contains the introspection paragraph, mentions `mix format --migrate`, and contains no occurrence of "proof" or "verified behavior"
+    - its acknowledgment promotion text names the subject-and-code scope accepted by Ancora 1.x
   covers:
     - ancora.scaffold.readme_commitments
 - id: ancora.scaffold.scenario.migration_map_complete
@@ -217,6 +220,7 @@ decisions:
   then:
     - every ancora code it names exists in Ancora.Finding
     - the stated registry count equals the registry size
+    - its acknowledgment promotion text names the subject-and-code scope accepted by Ancora 1.x
   covers:
     - ancora.scaffold.migration_doc
 ```

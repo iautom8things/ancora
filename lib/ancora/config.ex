@@ -8,11 +8,12 @@ defmodule Ancora.Config do
   codes in `severities:` produce `config/unknown_key`. Bad values produce
   `config/invalid_value`. Both codes are non-tunable.
 
-  Each `overrides:` entry carries `subject`, `code`, `severity`, and a
+  Each `overrides:` entry accepts only `subject`, `code`, `severity`, and a
   required non-empty `reason`. An override applies only to findings of
-  that code attributed to that subject. An entry naming an unknown subject
-  or code, or missing `reason`, produces `config/invalid_value` and is
-  ignored. `spec.status` labels a subject with an applied override
+  that code attributed to that subject. An unknown key produces
+  `config/unknown_key`. An entry naming an unknown subject or code, or
+  missing `reason`, produces `config/invalid_value`. In either case, the
+  entry is ignored. `spec.status` labels a subject with an applied override
   `acknowledged` (see `subject_status/2`).
 
   Malformed YAML degrades to defaults with a `[CONFIG]` diagnostic on
@@ -43,6 +44,7 @@ defmodule Ancora.Config do
 
   @config_file Path.join([".spec", "config.yml"])
   @known_keys MapSet.new(["default_base", "test_paths", "lib_paths", "severities", "overrides"])
+  @known_override_keys MapSet.new(["subject", "code", "severity", "reason"])
 
   @severity_tokens %{
     "off" => :off,
@@ -394,8 +396,21 @@ defmodule Ancora.Config do
     code = Map.get(entry, "code")
     reason = Map.get(entry, "reason")
     token = Map.get(entry, "severity")
+    unknown_keys = Map.keys(entry) |> MapSet.new() |> MapSet.difference(@known_override_keys)
 
     cond do
+      MapSet.size(unknown_keys) > 0 ->
+        keys = unknown_keys |> Enum.sort() |> Enum.map_join(", ", &inspect/1)
+        key = "#{keys} in overrides entry #{inspect(entry)}"
+
+        {:error,
+         finding(
+           "config/unknown_key",
+           file,
+           key,
+           "overrides entry contains unknown key(s): #{keys}"
+         )}
+
       not is_binary(subject) or subject == "" ->
         {:error,
          finding(

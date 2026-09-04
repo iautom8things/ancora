@@ -162,6 +162,30 @@ defmodule Ancora.ConfigTest do
 
   describe "per-subject overrides" do
     @tag spec: "ancora.findings.per_subject_overrides"
+    test "an unknown key fires config/unknown_key and the override is not applied", %{
+      root: root
+    } do
+      write_config(root, """
+      overrides:
+        - subject: atlas.web.sessions
+          requirement: atlas.web.sessions.starts
+          code: derived/unanchored_subject
+          severity: info
+          reason: integration-only
+      """)
+
+      config = Config.load(root, known_subjects: ["atlas.web.sessions"])
+
+      assert config.overrides == []
+
+      assert Enum.any?(config.findings, fn finding ->
+               finding.code == "config/unknown_key" and
+                 finding.message =~ ~s("requirement") and
+                 finding.message =~ "atlas.web.sessions"
+             end)
+    end
+
+    @tag spec: "ancora.findings.per_subject_overrides"
     test "missing reason fires config/invalid_value and the override is not applied", %{
       root: root
     } do
