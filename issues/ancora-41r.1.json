@@ -58,11 +58,15 @@
     {
       "text": "RULING (orchestrator, 2026-09-04 08:57 EDT). Keep the rebase on 5af1707. The order named 13f8588 because that was the tip when it was written; ancora-41r.3 merged (3ce6edd, 5af1707) while you started, and `git rebase ancora-41r/pre-release-fixes` correctly took the branch's current tip. The four-commit 13f8588..HEAD log is expected; `git log --oneline 5af1707..HEAD` is the check that must show exactly your two commits (35eb83c, 1293eda), and it does. I verified the result myself: content identical to your pre-rebase commits outside .spec/specs/ancora.gate.spec.md, and the resolved preflight_hard_fails enumeration matches the order sentence for sentence. One note for the record: git presented the whole enumeration as one conflict in your first commit, so the four refusal phrases now land in 35eb83c rather than 1293eda; the tip is what merges, and the tip is right. Finish the verification tier against base 5af1707 (compile, change-scoped tests, spec.check --base 5af1707, format on touched files) and post REBASED. The orchestrator's full-suite gate 6 is running on the fast-forwarded tip concurrently.",
       "timestamp": "2026-09-04T12:56:25Z"
+    },
+    {
+      "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-04 08:58 EDT, from the clock)\nThe rebase worker performed the rebase onto 5af1707 (the branch tip at the time), stopped for a ruling on the moved base (WORKER_ERROR above), received the ruling to keep 5af1707, and its pane was gone before it could run the verification tier, so no REBASED record follows; this record stands in its place.\ngit range-diff e18fa05..41d3ff3 5af1707..1293eda: both commits marked !, both confined to .spec/specs/ancora.gate.spec.md. Content compare: d00f2f8 vs 35eb83c identical outside gate.spec after stripping hunk offsets; 41d3ff3 vs 1293eda identical except that the four refusal phrases in the preflight_hard_fails enumeration moved from the second commit into the first, because git presented the whole enumeration as one conflict there. The resolved enumeration at the tip matches the order sentence for sentence (spec-workspace clause from 41r.4 after \"git executable is missing\"; the malformed-frame, quoted-path, missing-NUL and invalid-record clauses after \"not inside a git repository\"). Worktree clean, no rebase state, 5af1707..HEAD shows exactly 35eb83c and 1293eda.\nFast-forwarded ancora-41r/pre-release-fixes 5af1707 -\u003e 1293eda. Gate 6, the last gate of the epic, is running the full suite plus format, unused-deps and spec.check --base 7511407; it subsumes the worker's change-scoped tier.",
+      "timestamp": "2026-09-04T12:57:24Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Git-supplied path names crash the gate or hide files from the change set",
   "type": "bug",
-  "updated_at": "2026-09-04T12:56:25Z"
+  "updated_at": "2026-09-04T12:57:24Z"
 }
