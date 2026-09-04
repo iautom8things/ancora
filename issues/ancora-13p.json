@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T03:50:29Z",
+  "description": "Advances: ancora.gate. lib/ancora/status.ex:200 still has defp project_opts(%Config{lib_paths: nil}), do: [] while lib/ancora/gate/preflight.ex now passes the resolved value (including nil) so ProjectInfo never re-reads .spec/config.yml. Found by the ancora-xla.6 auditor (2026-09-04); status.ex was outside that ticket Allowed list. Make status.ex match preflight and count ProjectInfo.configured_lib_paths/1 across a status run the way project_info_test.exs now does for preflight.",
+  "id": "ancora-13p",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Status still carries the lib_paths nil clause preflight dropped",
+  "type": "task",
+  "updated_at": "2026-09-04T03:50:29Z"
+}
