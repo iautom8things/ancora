@@ -441,7 +441,11 @@ defmodule Ancora.GateTest do
     })
 
     assert {:ok, report} = Gate.check(root, base: base)
-    assert "derived/drift" in findings_codes(report.all_findings)
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "derived/drift" and finding.file == "lib/café.ex" and
+               finding.subject == "sample.subject"
+           end)
   end
 
   @tag spec: "ancora.derive.base_reads_batched"
@@ -481,7 +485,11 @@ defmodule Ancora.GateTest do
     end)
 
     assert {:ok, report} = Gate.check(root, base: base)
-    assert "derived/drift" in findings_codes(report.all_findings)
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "derived/drift" and finding.file == "lib/my sample.ex" and
+               finding.subject == "sample.subject"
+           end)
 
     sync_traces(traced, tracer)
     assert {:oid, oid} in collect_git_reads([])

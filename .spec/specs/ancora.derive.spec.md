@@ -74,9 +74,11 @@ decisions:
     path, including a symlink, returns an error before any blob write.
     The gate's base view shall contain only the configured spec directory,
     configured `test_paths`, and project `lib_paths`. Change-set prefetch shall
-    resolve each base path through `git ls-tree` and pass its tagged object id
-    to `Ancora.Git.read_blob/2`; callers shall tag paths and object ids rather
-    than infer their kind from hexadecimal text.
+    resolve each base path through `git ls-tree` and pass `{:oid, object_id}`
+    to `Ancora.Git.read_blob/2` rather than infer its kind from hexadecimal
+    text. Ancora.BaseView is the explicit exception: it passes the untagged
+    object id returned by `git ls-tree`. The tagged `{:path, path}` form has no
+    production caller.
   priority: must
   stability: stable
 - id: ancora.derive.memo_is_run_scoped

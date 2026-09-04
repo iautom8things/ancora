@@ -2,7 +2,7 @@ Code.require_file("../../support/ancora_case.exs", __DIR__)
 Code.require_file("../../support/tmp_git_repo.exs", __DIR__)
 
 defmodule Mix.Tasks.Spec.CheckTest do
-  use Ancora.TestCase
+  use Ancora.TestCase, async: false
 
   alias Ancora.TmpGitRepo
 
@@ -70,6 +70,55 @@ defmodule Mix.Tasks.Spec.CheckTest do
              "spec.check result=fail tier=env errors=0 warnings=0"
 
     refute result.stderr =~ "RuntimeError"
+  end
+
+  for {name, command, output, message} <- [
+        {"quoted Git path", "diff", ~S|printf 'M\0"lib/sample.ex"\0'|,
+         "git returned a quoted change-set path"},
+        {"missing name-status NUL terminator", "diff", ~S|printf 'M\0lib/sample.ex'|,
+         "git diff --name-status -z output was not NUL-terminated"},
+        {"invalid name-status record", "diff", ~S|printf 'M\0'|,
+         "git diff --name-status -z returned malformed records"},
+        {"invalid porcelain record", "status", ~S|printf 'invalid\0'|,
+         "git status --porcelain -z returned malformed records"}
+      ] do
+    @tag spec: "ancora.gate.preflight_hard_fails"
+    @tag change_set_refusal: true
+    test "#{name} emits an environment verdict", %{root: root} do
+      create_project(root)
+
+      real_git = System.find_executable("git")
+      wrapper_dir = Path.join(root, "fake-bin")
+      wrapper = Path.join(wrapper_dir, "git")
+      File.mkdir_p!(wrapper_dir)
+
+      File.write!(
+        wrapper,
+        """
+        #!/bin/sh
+        if [ "$3" = "#{unquote(command)}" ]; then
+          #{unquote(output)}
+        else
+          exec "#{real_git}" "$@"
+        fi
+        """
+      )
+
+      File.chmod!(wrapper, 0o755)
+      original_path = System.get_env("PATH")
+      on_exit(fn -> System.put_env("PATH", original_path) end)
+      System.put_env("PATH", wrapper_dir <> ":" <> original_path)
+
+      result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+      assert result.status == 1
+      assert result.stdout =~ unquote(message)
+
+      assert List.last(lines(result.stdout)) ==
+               "spec.check result=fail tier=env errors=0 warnings=0"
+
+      refute result.stderr =~ "RuntimeError"
+    end
   end
 
   @tag spec: "ancora.tasks.gated_emission_paths"

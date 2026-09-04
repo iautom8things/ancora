@@ -470,6 +470,22 @@ defmodule Ancora.Gate do
     {:env, run_context_error(reason)}
   end
 
+  defp gate_error({:quoted_git_path, _path} = reason) do
+    {:env, run_context_error(reason)}
+  end
+
+  defp gate_error({:missing_nul_terminator, _source} = reason) do
+    {:env, run_context_error(reason)}
+  end
+
+  defp gate_error({:invalid_name_status, _records} = reason) do
+    {:env, run_context_error(reason)}
+  end
+
+  defp gate_error({:invalid_porcelain_status, _records} = reason) do
+    {:env, run_context_error(reason)}
+  end
+
   defp gate_error(reason), do: raise("gate assembly failed: #{inspect(reason)}")
 
   defp run_context_error(:git_executable_not_found) do
@@ -485,6 +501,26 @@ defmodule Ancora.Gate do
 
   defp run_context_error({:cat_file_batch_bad_header, header}) do
     "git cat-file batch returned a malformed frame: #{inspect(header)}"
+  end
+
+  defp run_context_error({:quoted_git_path, path}) do
+    "git returned a quoted change-set path: #{inspect(path)}"
+  end
+
+  defp run_context_error({:missing_nul_terminator, :name_status}) do
+    "git diff --name-status -z output was not NUL-terminated"
+  end
+
+  defp run_context_error({:missing_nul_terminator, :porcelain_status}) do
+    "git status --porcelain -z output was not NUL-terminated"
+  end
+
+  defp run_context_error({:invalid_name_status, records}) do
+    "git diff --name-status -z returned malformed records: #{inspect(records)}"
+  end
+
+  defp run_context_error({:invalid_porcelain_status, records}) do
+    "git status --porcelain -z returned malformed records: #{inspect(records)}"
   end
 
   defp run_context_error(reason), do: "cannot start git read context: #{inspect(reason)}"

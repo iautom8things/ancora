@@ -1,8 +1,8 @@
 defmodule Ancora.Derive.ChangeSet do
   @moduledoc """
-  Diff-scoped change set: `git diff --name-status --no-renames <base>` union
-  `git status --porcelain --untracked-files=all`, with serial base-blob prefetch
-  through the run's batch port.
+  Diff-scoped change set: `git diff --name-status --no-renames -z <base>` union
+  `git status --porcelain -z --untracked-files=all`. Base paths resolve to object
+  ids before serial blob prefetch through the run's batch port.
   """
 
   alias Ancora.Derive.RunContext

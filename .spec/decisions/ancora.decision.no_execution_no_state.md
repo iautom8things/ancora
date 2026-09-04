@@ -118,8 +118,12 @@ names all three as charter constraints.
   batch reads are environment failures represented as data. This includes a
   malformed batch frame. A failed batch fetch closes its port so no later
   request can consume stale bytes. Git-supplied change-set paths use NUL
-  delimiters and resolve to object ids before batch reads, so quoting and spaces
-  cannot change their identity or the batch framing.
+  delimiters and change-set prefetch resolves them to tagged object ids before
+  batch reads, so quoting and spaces cannot change their identity or the batch
+  framing. BaseView remains the explicit exception that passes an untagged
+  object id returned by `git ls-tree`; no production caller passes a tagged
+  path. Quoted paths, missing NUL terminators, and invalid name-status or
+  porcelain records are environment failures with a final verdict.
 - A shallow clone is rejected only when a boundary inside the requested
   `base..HEAD` range has at least one parent commit absent locally. A boundary
   whose parents are present truncates nothing and is accepted. An incomplete
