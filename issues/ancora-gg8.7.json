@@ -1,6 +1,7 @@
 {
   "assignee": "",
   "blocked_by": [
+    "ancora-gg8.8",
     "ancora-xla",
     "ancora-xla.3"
   ],
@@ -24,5 +25,5 @@
   "status": "open",
   "title": "Perf: parallelize parse loops and parse once per side",
   "type": "task",
-  "updated_at": "2026-09-04T12:41:46Z"
+  "updated_at": "2026-09-04T14:00:05Z"
 }
