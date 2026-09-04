@@ -19,11 +19,15 @@
     {
       "text": "DECISION (Manuel, 2026-09-04): this ticket runs in the field-friction epic after all, once ancora-xla merges to main. Sequence: ancora-xla PR merges; ancora-gg8/field-friction is rebased onto origin/main (a rebase worker, per protocol); this ticket is admitted with the rebased tip as its base. Its Allowed touches and Advances must be re-checked against that tip at admission, since xla.3 and gg8.4/gg8.5 all touched gate.ex and the parsing path.",
       "timestamp": "2026-09-04T12:41:46Z"
+    },
+    {
+      "text": "ORCHESTRATOR CONTRACT AMENDMENT at admission (2026-09-04, base e6d5443 = epic tip containing release 1.1.0). Main's accepted decision ancora.decision.no_run_context_memo removed RunContext's ETS table and its memo functions (\"Parse reuse remains plain data passed to comparison code\"; \"any new repeated work must first justify machinery beyond plain function arguments\"). So deliverable 2 is re-read as follows, nothing else in the ticket changes:\n\n- Deliverable 2 (parse once per (side, file) across ModuleLocator -\u003e DefIndex): thread the parsed ASTs as plain data. ModuleLocator keeps the AST (or the parsed source product) it already produces per file and returns it alongside the module map; Gate.def_indexes/2 consumes those products instead of re-reading and re-parsing the files. This extends the parse-once shape 1.1.0 already uses between the gate and Compare. No ETS, no named process, no cache across runs; ancora.derive.memo_is_run_scoped stays true by construction and needs no wording change unless the statement text mentions the removed table (then edit that sentence in this diff).\n- Allowed touches: lib/ancora/derive/run_context.ex is dropped (nothing to thread there). lib/ancora/gate.ex is allowed for the ModuleLocator -\u003e def_indexes handoff and the def_indexes parallelization, still nothing else in that file. The rest of the list stands: module_locator.ex, def_index.ex, tag_scanner.ex, index.ex, test/**, .spec/specs/ancora.derive.spec.md (acknowledgment edits for this stage's own changes only).\n- Deliverable 1 stands unchanged: the four loops are still sequential on e6d5443 (module_locator.ex reduce_while over sources, tag_scanner.ex reduce over test files, gate.ex def_indexes/2, index.ex Enum.map over spec files).\n- Out of scope, restated: no changes to lib/ancora/derive/compare.ex or the ChangeSet/batch-port path that 1.1.0 rewrote; if parse-once needs a Compare signature change, post SCOPE_EXPANSION.\n- Benchmark clause: record before/after timings on the ancora corpus in the IMPLEMENTED record; the atlas corpus via --root only if reachable.",
+      "timestamp": "2026-09-04T15:19:02Z"
     }
   ],
   "priority": 2,
   "status": "open",
   "title": "Perf: parallelize parse loops and parse once per side",
   "type": "task",
-  "updated_at": "2026-09-04T14:00:05Z"
+  "updated_at": "2026-09-04T15:19:02Z"
 }
