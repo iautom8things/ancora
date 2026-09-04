@@ -335,11 +335,15 @@
     {
       "text": "PRE-RELEASE FIXES FOLDED IN (orchestrator, 2026-09-04 09:01 EDT). ancora-41r finished: six children closed, six gates green, tip 1293eda at 435 tests. ancora-xla/post-ship-hardening fast-forwarded e18fa05 -\u003e 1293eda (ten commits: the seven findings F1, F2, F4, F5, F6, F7, F8 plus their bounce retries), now 44 commits ahead of origin/main 7511407, working tree clean. The 1.1.0 release re-runs from this tip once ancora-41r's finish sequence (deliver, ORCHESTRATED, final console) is posted; the open-pr review gate will flag the standing report (review_commit e18fa05) as an ancestor, and that decision, delta review of the seven fixes versus proceed, is Manuel's.",
       "timestamp": "2026-09-04T13:01:05Z"
+    },
+    {
+      "text": "PR opened: https://github.com/iautom8things/ancora/pull/3 (release 1.1.0, feat/ancora-xla-post-ship-hardening at 3340e27, 45 commits over origin/main 7511407). Opened by /open-pr on 2026-09-04 09:40 EDT after Manuel chose to proceed past the stale review gate on the ten post-review commits and approved the changelog. Carries ancora-41r's six fixes. Babysitting CI.",
+      "timestamp": "2026-09-04T13:40:45Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T13:40:44Z"
+  "updated_at": "2026-09-04T13:40:45Z"
 }
