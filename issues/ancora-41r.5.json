@@ -10,9 +10,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-41r",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: 41r5-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-41r.5/codex-41r5-i1-adec463e/log\n\nCommit: aa5e8c174cb1c3aba809e5bac703d8807a9630d1\nFiles touched: .spec/decisions/ancora.decision.durable_acknowledgments.md, .spec/specs/ancora.findings.spec.md, .spec/specs/ancora.scaffold.spec.md, README.md, docs/migration.md, lib/ancora/config.ex, test/ancora/config_test.exs, test/ancora/scaffold/docs_test.exs, test/mix/tasks/spec_check_test.exs\nTests added: Ancora.ConfigTest \"per-subject overrides an unknown key fires config/unknown_key and the override is not applied\"; Ancora.Scaffold.DocsTest \"acknowledgment promotion documents the override scope accepted by 1.x\"; Mix.Tasks.Spec.CheckTest \"an unknown override key is reported and the override is not applied\"\nSpec acknowledgment: substantive requirement and scenario edits in ancora.findings and ancora.scaffold; ancora.decision.durable_acknowledgments updated; no Spec-Ack trailer used\nVerification tier: change-scoped — mix compile --warnings-as-errors; test/ancora/config_test.exs, test/ancora/scaffold/docs_test.exs, test/mix/tasks/spec_check_test.exs; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base e18fa05; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Config now rejects unknown override-entry keys with non-tunable config/unknown_key findings, ignores those entries, and the real CLI fixture proves the rejected override cannot suppress its subject finding. README and migration promotion guidance now documents the subject-and-code scope accepted by Ancora 1.x, pinned by normalized paragraph assertions and matching spec and decision edits. Mutation proofs were behavior 1 at 22 tests, 1 failure mutated and 22 tests, 0 failures restored; behavior 2 at 15 tests, 1 failure mutated and 15 tests, 0 failures restored; behavior 3 at 3 tests, 1 failure mutated and 3 tests, 0 failures restored.",
+      "timestamp": "2026-09-04T11:28:05Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "README and the migration guide promote acknowledgments with an override key Config silently drops",
   "type": "bug",
-  "updated_at": "2026-09-04T11:18:17Z"
+  "updated_at": "2026-09-04T11:28:05Z"
 }
