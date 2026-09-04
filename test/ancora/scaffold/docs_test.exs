@@ -42,6 +42,13 @@ defmodule Ancora.Scaffold.DocsTest do
     assert promotion_paragraphs(File.read!(@migration)) == expected
   end
 
+  @tag spec: "ancora.scaffold.readme_commitments"
+  @tag spec: "ancora.scaffold.migration_doc"
+  test "acknowledgment docs do not teach unsupported requirement-scoped overrides" do
+    refute File.read!(@readme) =~ "requirement:"
+    refute File.read!(@migration) =~ "requirement:"
+  end
+
   @tag spec: "ancora.scaffold.migration_doc"
   test "migration map names the complete 30-code registry and its defaults" do
     content = File.read!(@migration)

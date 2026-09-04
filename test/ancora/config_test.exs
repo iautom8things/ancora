@@ -181,7 +181,28 @@ defmodule Ancora.ConfigTest do
       assert Enum.any?(config.findings, fn finding ->
                finding.code == "config/unknown_key" and
                  finding.message =~ ~s("requirement") and
-                 finding.message =~ "atlas.web.sessions"
+                 finding.message =~ "atlas.web.sessions" and
+                 finding.message =~ "integration-only"
+             end)
+    end
+
+    @tag spec: "ancora.findings.per_subject_overrides"
+    test "an unknown key other than requirement is rejected", %{root: root} do
+      write_config(root, """
+      overrides:
+        - subject: atlas.web.sessions
+          code: derived/unanchored_subject
+          severity: info
+          reason: integration-only
+          scope: whole-repo
+      """)
+
+      config = Config.load(root, known_subjects: ["atlas.web.sessions"])
+
+      assert config.overrides == []
+
+      assert Enum.any?(config.findings, fn finding ->
+               finding.code == "config/unknown_key" and finding.message =~ ~s("scope")
              end)
     end
 
