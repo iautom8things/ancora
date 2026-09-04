@@ -61,11 +61,15 @@
     {
       "text": "MINI-RETRO\nbounces: 4 (all AUDIT: BOUNCE → implementer, 0 → verifier, one per child on 41r.1, 41r.2, 41r.3, 41r.5; none reached the cap. Classes: untested-clause 3 (a fold ordering no fixture discriminated; a must saying \"any other key\" tested with one key; an \"exactly one finding\" count never asserted), stale-spec 2 (a spec sentence false in the commit that shipped it; a sentence about an output line true for one of its two emitters), record 2 (a CLI kill reported for a parser mutation the CLI no longer reaches; reading checks written up as failing-then-passing tests), test-craft 2 (PATH rewritten in an async module; drift asserted by code membership only), code 1 (four new refusals raising with no verdict line))\nfull_suite_runs: 6\nfinals_gt1: 1\nflake_accepts: 0\nescalations: 0\nlessons_kept/retired: 8/0\nconsole_redeploys: 8/8",
       "timestamp": "2026-09-04T13:00:53Z"
+    },
+    {
+      "text": "DELIVERED (scoped, unattended, orchestrator, 2026-09-04 09:05 EDT). Child triage: all six children closed with merge evidence on their tickets; nothing to re-home. Epic kept in_progress deliberately: no PR exists yet, so there is no shipping evidence and the closure gate does not apply; the epic ships inside the 1.1.0 release from ancora-xla/post-ship-hardening, which now carries this branch's tip 1293eda. Plan board: no entries. Worktrees: every child worktree was removed at its close; the epic worktree /Users/mz/src/ancora-41r stays per the deliver rule (its branch is an ancestor of the parent branch and can be dropped when 1.1.0 merges). No stale 41r.* branches remain. Agent sweep: no teammate, worker or watcher resident. Follow-ups filed under the fast-follow epic ancora-d16 from grader advisories, none attached here: ancora-d16.31 (Ancora.validate/2 crashes on a direct bad spec_dir; third subject-count emitter unasserted), ancora-d16.32 (non-map spec-meta yields a spurious missing-field finding), ancora-d16.33 (trailer residue after 41r.3), ancora-d16.34 (git path residue after 41r.1), ancora-d16.35 (chip warning direction, CSS selector order), ancora-d16.36 (spec-dir env-tier test hygiene). Board synced.",
+      "timestamp": "2026-09-04T13:02:44Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T13:00:53Z"
+  "updated_at": "2026-09-04T13:02:44Z"
 }
