@@ -52,11 +52,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl\n\nGate conditions checked against the bounce re-verification VERIFY: PASS at 29eb958 (base 849dbf9):\n- Verdict PASS, no gaps. Delta-scoped to the four audit items; all four confirmed as real edits, not paraphrase.\n- Scope: 10 files touched across the ticket range, 0 outside Allowed, 0 in Out of Scope. No Spec-Ack trailer in 849dbf9..HEAD.\n- Spec gate: spec.check result=pass (7 info findings, all derived/unresolved_calls). mix spec.validate pass after the ADR rename.\n- Must ancora.gate.acknowledgment_clears: covered by the ordered unpromoted/promoted/trunk test and the higher-severity test plus five gate_test cases. Three failure modes produced by mutation: old conjunction restored fails exactly the silent-A refute (1 of 57); warn-unconditionally fails step (b); never-warn fails step (a) and the higher-severity case. The verifier rebuilt fixtures A through D itself and executed both documented promotion targets (severities and an overrides entry); both clear the warning.\n- Seams: none. Real git repositories and the real mix binary throughout.\n- Full suite not run by the verifier; the merge gate runs it after rebase.\n- TEST_CRITIC: PASS on file for the rewritten test pair.\nBounce record: 1/2 used. Next: mechanical rebase onto 253babd (merge-tree forecast clean), gate 13, close.",
       "timestamp": "2026-09-04T03:07:19Z"
+    },
+    {
+      "text": "REBASED\nSession: rebase-sfu\nOld base: 849dbf9  Old head: 29eb958\nNew base: 253babd  New head: 45ff9e9791a3770832a77014b1535ad9a65dacd9\nConflicts: none\nCompile: clean\nTests: 64 tests, 0 failures (three diff-touched files)\nFormat: clean\nspec.check --base 253babd: spec.check result=pass",
+      "timestamp": "2026-09-04T03:09:06Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Spec-Ack acknowledgments do not survive a squash merge",
   "type": "task",
-  "updated_at": "2026-09-04T03:07:31Z"
+  "updated_at": "2026-09-04T03:09:06Z"
 }
