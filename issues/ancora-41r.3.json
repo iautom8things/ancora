@@ -62,11 +62,15 @@
     {
       "text": "REBASE (HOP 2) VERIFIED MECHANICALLY (orchestrator, 2026-09-04 08:52 EDT, from the clock)\ngit range-diff 84e85b1..9af954a 13f8588..5af1707: both commits marked = (byte-identical patches; 181ee8c -\u003e 3ce6edd, 9af954a -\u003e 5af1707). No conflicts, no fresh cold agent. Rebase worker's checks on 13f8588: compile clean, 71 tests green across the three named files, format clean, spec.check --base 13f8588 result=pass.\nFast-forwarded ancora-41r/pre-release-fixes 13f8588 -\u003e 5af1707. Gate 5 running.",
       "timestamp": "2026-09-04T12:51:50Z"
+    },
+    {
+      "text": "APPROVED (merge record, orchestrator, 2026-09-04 08:53 EDT)\nFast-forwarded ancora-41r/pre-release-fixes 13f8588 -\u003e 5af1707 (two commits after two rebase hops).\nGate 5 on 5af1707: mix compile --warnings-as-errors clean; 3 properties, 425 tests, 0 failures; format clean; no unused deps; mix spec.check --base 7511407 result=pass. Log: scratchpad/gate41r-5.log.\nClosing. Worktree /Users/mz/src/ancora-41r.3 and branch ancora-41r.3/trailer-precedence removed after close.\nAdvisories carried to the fast-follow epic: the higher-severity CLI test requests --json and never parses it; the equal-dropped half of non_tip_overrides is guarded only by the tip-repeat CLI test; the ADR frontmatter date predates its precedence decision.",
+      "timestamp": "2026-09-04T12:52:44Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "The oldest Spec-Ack trailer beats the tip and silences the squash-loss warning",
   "type": "bug",
-  "updated_at": "2026-09-04T12:51:50Z"
+  "updated_at": "2026-09-04T12:52:44Z"
 }
