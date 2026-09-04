@@ -11,9 +11,15 @@
     "security",
     "slug:path-traversal-a-hostile"
   ],
+  "comments": [
+    {
+      "text": "Investigating. Report will land in vault under investigations/ancora/2026-09-04-ancora-kzw/",
+      "timestamp": "2026-09-04T13:59:43Z"
+    }
+  ],
   "priority": 0,
   "status": "open",
   "title": "Path traversal: a hostile git tree escapes the base-view write root",
   "type": "task",
-  "updated_at": "2026-09-04T13:59:42Z"
+  "updated_at": "2026-09-04T13:59:43Z"
 }
