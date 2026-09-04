@@ -30,11 +30,15 @@
     {
       "text": "REBASED\nSession: rebase-41r4\nOld base: e18fa05  Old head: 0344f5f\nNew base: d96d42f  New head: f818d733db064ba25e4b04a0ccec0697183c4c2f\nConflicts: none\nCompile: clean\nTests: 72 tests, 0 failures (five diff-touched files)\nFormat: clean\nspec.check --base d96d42f: spec.check result=pass",
       "timestamp": "2026-09-04T11:50:09Z"
+    },
+    {
+      "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-04 08:02 EDT)\ngit range-diff e18fa05..0344f5f d96d42f..f818d73: the single commit is marked = (byte-identical patch). No conflict hunks, so no fresh cold agent. Rebase worker's checks on the new base: compile clean, 72 tests green across the five diff-touched files, format clean, spec.check --base d96d42f result=pass.\nFast-forwarded ancora-41r/pre-release-fixes d96d42f -\u003e f818d73. Gate 2 running.",
+      "timestamp": "2026-09-04T11:52:15Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "The documented --spec-dir default does not exist and passing it raises with no verdict",
   "type": "bug",
-  "updated_at": "2026-09-04T11:50:09Z"
+  "updated_at": "2026-09-04T11:52:15Z"
 }
