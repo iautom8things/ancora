@@ -35,13 +35,19 @@ defmodule Ancora.Output.PropertyTest do
           extra: next
         })
 
-      refute_result(json)
+      assert json =~ "result="
+      refute_verdict(json)
     end
   end
 
   defp refute_result(line) when is_binary(line) do
     refute String.contains?(line, "result="),
            "formatter leaked result=: #{inspect(line)}"
+  end
+
+  defp refute_verdict(line) when is_binary(line) do
+    refute Regex.match?(~r/^spec\.(check|validate) result=/, line),
+           "JSON payload matched the verdict grammar: #{inspect(line)}"
   end
 
   defp finding_gen do

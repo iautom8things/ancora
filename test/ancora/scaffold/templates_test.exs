@@ -9,6 +9,45 @@ defmodule Ancora.Scaffold.TemplatesTest do
     {:ok, scaffold: result.directory}
   end
 
+  @tag spec: "ancora.scaffold.init_writes_templates"
+  test "copies static templates byte-for-byte and evaluates only AGENTS.md.eex", %{
+    scaffold: scaffold
+  } do
+    template_root = :ancora |> :code.priv_dir() |> List.to_string() |> Path.join("spec_init")
+
+    assert template_root
+           |> Path.join("**/*")
+           |> Path.wildcard()
+           |> Enum.filter(&File.regular?/1)
+           |> Enum.map(&Path.relative_to(&1, template_root))
+           |> Enum.sort() ==
+             [
+               "AGENTS.md.eex",
+               "README.md",
+               "agents/SKILL.md",
+               "config.yml",
+               "decisions/README.md",
+               "specs/project.core.spec.md"
+             ]
+
+    for relative <- [
+          "README.md",
+          "agents/SKILL.md",
+          "config.yml",
+          "decisions/README.md",
+          "specs/project.core.spec.md"
+        ] do
+      assert File.read!(Path.join(template_root, relative)) ==
+               File.read!(Path.join(scaffold, relative))
+    end
+
+    agents_source = File.read!(Path.join(template_root, "AGENTS.md.eex"))
+    agents_output = File.read!(Path.join(scaffold, "AGENTS.md"))
+    assert agents_source =~ "<%= read_protocol %>"
+    refute agents_output =~ "<%="
+    assert agents_output =~ Ancora.Output.read_protocol()
+  end
+
   @tag spec: "ancora.scaffold.agents_md_content"
   test "agent guide carries the working protocol", %{scaffold: scaffold} do
     content = File.read!(Path.join(scaffold, "AGENTS.md"))
@@ -84,5 +123,25 @@ defmodule Ancora.Scaffold.TemplatesTest do
         needle <- needles do
       refute content =~ needle, "#{needle} appears in #{path}"
     end
+  end
+
+  @tag spec: [
+         "ancora.parsing.append_authorization_is_requirement_scoped",
+         "ancora.parsing.retirement_vocabulary"
+       ]
+  test "decision guidance requires exact requirement ids for append authorization", %{
+    scaffold: scaffold
+  } do
+    content =
+      scaffold
+      |> Path.join("decisions/README.md")
+      |> File.read!()
+      |> String.replace(~r/\s+/, " ")
+
+    assert content =~
+             "A subject id documents broad scope. To authorize deleting or downgrading a requirement, name that exact requirement id."
+
+    assert content =~ "repeat that id under `retires:`"
+    assert content =~ "A retired subject authorizes deleting all of its requirements."
   end
 end

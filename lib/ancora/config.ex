@@ -15,6 +15,7 @@ defmodule Ancora.Config do
   id. An entry naming an unknown subject, requirement, or code, or missing
   `reason`, produces `config/invalid_value` and is ignored. `spec.status` labels
   a subject with an applied override `acknowledged` (see `subject_status/2`).
+  Any other entry key produces `config/unknown_key` and the entry is ignored.
 
   Malformed YAML degrades to defaults with a `[CONFIG]` diagnostic on
   stderr and nothing on stdout.
@@ -27,7 +28,7 @@ defmodule Ancora.Config do
   forward-compatible.
   """
 
-  alias Ancora.Finding
+  alias Ancora.{Finding, Output}
   alias Ancora.Severity
 
   defmodule Override do
@@ -45,6 +46,7 @@ defmodule Ancora.Config do
 
   @config_file Path.join([".spec", "config.yml"])
   @known_keys MapSet.new(["default_base", "test_paths", "lib_paths", "severities", "overrides"])
+  @known_override_keys MapSet.new(["subject", "requirement", "code", "severity", "reason"])
 
   @severity_tokens %{
     "off" => :off,
@@ -412,8 +414,21 @@ defmodule Ancora.Config do
     code = Map.get(entry, "code")
     reason = Map.get(entry, "reason")
     token = Map.get(entry, "severity")
+    unknown_keys = Map.keys(entry) |> MapSet.new() |> MapSet.difference(@known_override_keys)
 
     cond do
+      MapSet.size(unknown_keys) > 0 ->
+        keys = unknown_keys |> Enum.sort() |> Enum.map_join(", ", &inspect/1)
+        key = "#{keys} in overrides entry #{inspect(entry)}"
+
+        {:error,
+         finding(
+           "config/unknown_key",
+           file,
+           key,
+           "overrides entry contains unknown key(s): #{keys}"
+         )}
+
       not is_binary(subject) or subject == "" ->
         {:error,
          finding(
@@ -543,7 +558,7 @@ defmodule Ancora.Config do
   end
 
   defp emit_config(message) do
-    IO.puts(:stderr, "[CONFIG] #{message}")
+    Output.config_diagnostic(message)
   end
 
   defp format_yaml_error(error) when is_binary(error), do: error

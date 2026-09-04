@@ -10,6 +10,7 @@ defmodule Ancora.Schema.Decision do
               status: Zoi.enum(@statuses),
               date: Zoi.string(),
               affects: Zoi.list(Zoi.string()),
+              retires: Zoi.list(Zoi.string()) |> Zoi.optional(),
               superseded_by: Ancora.Schema.Id.id() |> Zoi.optional(),
               change_type: Zoi.string() |> Zoi.optional(),
               reverses_what: Zoi.string() |> Zoi.optional(),

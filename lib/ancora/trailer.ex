@@ -10,12 +10,13 @@ defmodule Ancora.Trailer do
   Unknown codes or severities emit a `[CONFIG]` warning on stderr and are
   ignored, never silently dropped.
 
-  ## Scope: `base..HEAD`, not HEAD-only
+  ## Scope: `base..HEAD`
 
-  `read/2` shells `git log <base>..HEAD --format=%B` and unions parsed
-  overrides across every commit in the range. HEAD-only scanning is
-  wrong: CI often sees squash or merge commits where the trailer lives
-  one commit deep.
+  `read/2` shells `git log <base>..HEAD --format=%B%x00` and applies parsed
+  overrides with the commit nearest `HEAD` winning when commits name the same
+  code. It also reports the nearest value below the tip when the tip omits that
+  code or names a different severity. The gate uses that value to warn when an
+  applied development acknowledgment will be lost by a squash merge.
 
   Trailers are a cooperative self-report. `read/2` does not verify
   signatures or authorship. This is suited to single-author and small-team
@@ -24,6 +25,7 @@ defmodule Ancora.Trailer do
 
   alias Ancora.Finding
   alias Ancora.Git
+  alias Ancora.Output
   alias Ancora.Severity
 
   @trailer_prefix "Spec-Ack:"
@@ -37,6 +39,11 @@ defmodule Ancora.Trailer do
 
   @type override_map :: %{optional(String.t()) => Severity.severity()}
   @type parse_result :: %{overrides: override_map(), warnings: [String.t()]}
+  @type read_result :: %{
+          overrides: override_map(),
+          warnings: [String.t()],
+          non_tip_overrides: override_map()
+        }
 
   @doc "Parses one or more commit messages into an override map."
   @spec parse(binary()) :: parse_result()
@@ -49,15 +56,47 @@ defmodule Ancora.Trailer do
   end
 
   @doc """
-  Reads `git log <base>..HEAD --format=%B` in `root` and returns the union
-  of parsed overrides across every commit in the range.
+  Reads `git log <base>..HEAD --format=%B%x00` in `root`, with the commit nearest
+  `HEAD` winning for each code. The result also includes the nearest value below
+  the tip unless the tip repeats that severity.
   """
-  @spec read(String.t(), String.t()) :: parse_result()
+  @spec read(String.t(), String.t()) :: read_result()
   def read(root, base) when is_binary(root) and is_binary(base) do
-    case Git.run(root, ["log", "#{base}..HEAD", "--format=%B"], []) do
-      {:ok, output} -> parse(output)
-      {:error, _reason} -> %{overrides: %{}, warnings: []}
+    case Git.run(root, ["log", "#{base}..HEAD", "--format=%B%x00"], []) do
+      {:ok, output} -> parse_commits(output)
+      {:error, _reason} -> empty_read_result()
     end
+  end
+
+  defp parse_commits(output) do
+    parsed =
+      output
+      |> String.split(<<0>>, trim: true)
+      |> Enum.map(&parse/1)
+
+    overrides =
+      parsed
+      |> Enum.reverse()
+      |> Enum.reduce(%{}, fn result, acc -> Map.merge(acc, result.overrides) end)
+
+    tip_overrides = parsed |> List.first(%{overrides: %{}}) |> Map.fetch!(:overrides)
+
+    non_tip_overrides =
+      parsed
+      |> Enum.drop(1)
+      |> Enum.reverse()
+      |> Enum.reduce(%{}, fn result, acc -> Map.merge(acc, result.overrides) end)
+      |> Map.reject(fn {code, severity} -> Map.get(tip_overrides, code) == severity end)
+
+    %{
+      overrides: overrides,
+      warnings: parsed |> Enum.flat_map(& &1.warnings) |> Enum.uniq(),
+      non_tip_overrides: non_tip_overrides
+    }
+  end
+
+  defp empty_read_result do
+    %{overrides: %{}, warnings: [], non_tip_overrides: %{}}
   end
 
   defp trailer_tokens(line) do
@@ -112,7 +151,7 @@ defmodule Ancora.Trailer do
 
   defp warn(%{warnings: warnings} = acc, msg) do
     line = "[CONFIG] Spec-Ack: #{msg}"
-    IO.puts(:stderr, line)
+    Output.config_diagnostic("Spec-Ack: #{msg}")
     %{acc | warnings: [line | warnings]}
   end
 

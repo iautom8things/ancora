@@ -30,6 +30,23 @@ defmodule Ancora.TmpGitRepo do
     root
   end
 
+  def shallow_clone!(source, opts \\ []) do
+    root = Path.join(System.tmp_dir!(), "ancora-shallow-#{Ancora.TempName.cross_vm_suffix()}")
+    depth = Keyword.get(opts, :depth, 1)
+    branch = Keyword.get(opts, :branch, "main")
+
+    {:ok, _} =
+      Ancora.Git.run(System.tmp_dir!(), [
+        "clone",
+        "--depth=#{depth}",
+        "--branch=#{branch}",
+        "file://#{source}",
+        root
+      ])
+
+    root
+  end
+
   def cleanup!(root) do
     # Port.close returns before the OS git process fully exits; deleting
     # `.git` under it prints `fatal: not a git repository` on stderr.

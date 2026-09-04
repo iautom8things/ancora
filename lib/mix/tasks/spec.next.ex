@@ -7,6 +7,12 @@ defmodule Mix.Tasks.Spec.Next do
   Classifies the current git change set and prints one suggested check command.
 
   A cold checkout may print dependency compilation lines before ancora output.
+
+  ## Options
+
+    * `--base REF` selects the git base. Defaults to configured `default_base`.
+    * `--since REF` selects the starting revision and overrides `--base`. Defaults to unset.
+    * `--verbose` lists changed and policy files. Defaults to false.
   """
 
   alias Ancora.Next

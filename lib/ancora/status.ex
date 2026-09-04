@@ -23,21 +23,19 @@ defmodule Ancora.Status do
   @spec build(Path.t(), keyword()) :: {:ok, report()} | {:env, String.t()}
   def build(root, opts \\ []) when is_binary(root) and is_list(opts) do
     root = Path.expand(root)
-    index = Index.build(root, index_opts(opts))
-    subject_ids = Enum.map(index["subjects"], &subject_id/1)
 
-    requirement_ids =
-      Enum.flat_map(index["subjects"], fn subject ->
-        subject["requirements"]
-        |> List.wrap()
-        |> Enum.map(&(Map.get(&1, :id) || Map.get(&1, "id")))
-        |> Enum.reject(&is_nil/1)
-      end)
-
-    config =
-      Config.load(root, known_subjects: subject_ids, known_requirements: requirement_ids)
-
-    with {:ok, project} <- ProjectInfo.load(root, project_opts(config)),
+    with {:ok, spec_dir} <- spec_dir(root, opts),
+         {:ok, _authored_dir} <- Index.detect_authored_dir(root, spec_dir),
+         :ok <- corpus(root, spec_dir),
+         {:ok, index} <- build_index(root, index_opts(opts)),
+         subject_ids = Enum.map(index["subjects"], &subject_id/1),
+         requirement_ids = requirement_ids(index),
+         config =
+           Config.load(root,
+             known_subjects: subject_ids,
+             known_requirements: requirement_ids
+           ),
+         {:ok, project} <- ProjectInfo.load(root, project_opts(config)),
          {:ok, locator} <- ModuleLocator.build(project, %ChangeSet{}),
          {:ok, subject_sets} <- derive_subject_sets(root, config, locator, subject_ids) do
       subjects = subject_rows(index, config, locator, subject_sets)
@@ -46,6 +44,23 @@ defmodule Ancora.Status do
       {:env, message} -> {:env, message}
       {:error, reason} -> {:env, "could not derive status: #{inspect(reason)}"}
     end
+  end
+
+  defp corpus(root, spec_dir) do
+    files =
+      Path.wildcard(Path.join([root, spec_dir, "specs", "**", "*.spec.md"])) ++
+        Path.wildcard(Path.join([root, spec_dir, "decisions", "**", "*.md"]))
+
+    Enum.reduce_while(files, :ok, fn path, :ok ->
+      case File.read(path) do
+        {:ok, _source} ->
+          {:cont, :ok}
+
+        {:error, reason} ->
+          message = "cannot read #{Path.relative_to(path, root)}: #{:file.format_error(reason)}"
+          {:halt, {:env, message}}
+      end
+    end)
   end
 
   @spec thin_threshold() :: pos_integer()
@@ -72,7 +87,8 @@ defmodule Ancora.Status do
   defp scan_tags(root, test_paths) do
     paths = Enum.map(test_paths, &Path.join(root, &1))
 
-    with {:ok, tag_map, parse_errors, dynamics} <- TagScanner.scan(paths) do
+    with {:ok, tag_map, parse_errors, dynamics} <- TagScanner.scan(paths),
+         :ok <- readable_tag_files(parse_errors, root) do
       relative =
         Map.new(tag_map, fn {id, entries} ->
           {id,
@@ -80,6 +96,13 @@ defmodule Ancora.Status do
         end)
 
       {:ok, relative, parse_errors, dynamics}
+    end
+  end
+
+  defp readable_tag_files(parse_errors, root) do
+    case Enum.find(parse_errors, &is_atom(&1.reason)) do
+      nil -> :ok
+      entry -> {:error, {:source_read, Path.relative_to(entry.file, root), entry.reason}}
     end
   end
 
@@ -96,18 +119,25 @@ defmodule Ancora.Status do
     module_paths
     |> Enum.group_by(fn {_module, path} -> path end, fn {module, _path} -> module end)
     |> Enum.reduce_while({:ok, %{}}, fn {path, modules}, {:ok, indexes} ->
-      case DefIndex.build(File.read!(Path.join(root, path)), path) do
-        {:ok, index} ->
-          {:cont, {:ok, Enum.reduce(modules, indexes, &Map.put(&2, &1, index))}}
+      case File.read(Path.join(root, path)) do
+        {:ok, source} ->
+          case DefIndex.build(source, path) do
+            {:ok, index} ->
+              {:cont, {:ok, Enum.reduce(modules, indexes, &Map.put(&2, &1, index))}}
+
+            {:error, reason} ->
+              {:halt, {:error, reason}}
+          end
 
         {:error, reason} ->
-          {:halt, {:error, reason}}
+          {:halt, {:error, {:source_read, path, reason}}}
       end
     end)
   end
 
   defp subject_rows(index, config, locator, subject_sets) do
     index["subjects"]
+    |> Enum.filter(&is_binary(subject_id(&1)))
     |> Enum.map(fn subject ->
       id = subject_id(subject)
       set = Map.fetch!(subject_sets, id)
@@ -167,7 +197,16 @@ defmodule Ancora.Status do
       "tests=#{subject.tests} unresolved=#{subject.unresolved}#{acknowledged}"
   end
 
-  defp subject_id(subject), do: subject |> Map.fetch!("meta") |> Map.fetch!(:id)
+  defp subject_id(subject), do: Index.subject_id(subject)
+
+  defp requirement_ids(index) do
+    Enum.flat_map(index["subjects"], fn subject ->
+      subject["requirements"]
+      |> List.wrap()
+      |> Enum.map(&(Map.get(&1, :id) || Map.get(&1, "id")))
+      |> Enum.reject(&is_nil/1)
+    end)
+  end
 
   defp project_opts(%Config{lib_paths: nil}), do: []
   defp project_opts(%Config{lib_paths: paths}), do: [lib_paths: paths]
@@ -176,6 +215,20 @@ defmodule Ancora.Status do
     case Keyword.get(opts, :spec_dir) do
       nil -> []
       spec_dir -> [spec_dir: spec_dir]
+    end
+  end
+
+  defp spec_dir(root, opts) do
+    case Keyword.fetch(opts, :spec_dir) do
+      {:ok, spec_dir} -> {:ok, spec_dir}
+      :error -> Index.detect_spec_dir(root)
+    end
+  end
+
+  defp build_index(root, opts) do
+    case Index.build(root, opts) do
+      {:error, message} -> {:env, message}
+      index -> {:ok, index}
     end
   end
 end

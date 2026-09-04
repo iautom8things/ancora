@@ -5,8 +5,6 @@ defmodule Mix.Tasks.Spec.PrimeTest do
 
   alias Ancora.Output
 
-  @moduletag :tmp_dir
-
   @tag spec: "ancora.tasks.prime_loop"
   @tag spec: "ancora.tasks.report_task_flags"
   test "prime subprocess ends its loop with the check command and read protocol", %{root: root} do

@@ -27,7 +27,7 @@ defmodule Ancora.Output.Verdict do
     {errors, warnings} = counts(report)
 
     line =
-      if pass?(report, errors, warnings) do
+      if pass?(report) do
         "#{task_name} result=pass"
       else
         tier = tier(task_name, report)
@@ -52,7 +52,11 @@ defmodule Ancora.Output.Verdict do
     {errors, warnings}
   end
 
-  defp pass?(report, errors, warnings) do
+  @doc false
+  @spec pass?(map()) :: boolean()
+  def pass?(report) when is_map(report) do
+    {errors, warnings} = counts(report)
+
     cond do
       Map.get(report, :fail) == true -> false
       Map.get(report, :pass) == true -> true

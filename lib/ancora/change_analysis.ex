@@ -5,6 +5,7 @@ defmodule Ancora.ChangeAnalysis do
 
   alias Ancora.Derive.ChangeSet
   alias Ancora.Finding
+  alias Ancora.Index
   alias Ancora.PolicyFiles
 
   @spec findings(ChangeSet.t(), map(), map(), map(), %{head: map(), base: map()}) :: [Finding.t()]
@@ -109,7 +110,7 @@ defmodule Ancora.ChangeAnalysis do
     current
     |> subjects()
     |> Enum.flat_map(fn subject ->
-      subject_id = subject |> Map.get("meta") |> Map.get(:id)
+      subject_id = Index.subject_id(subject)
       file = subject["file"]
 
       subject

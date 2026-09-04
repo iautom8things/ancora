@@ -21,6 +21,7 @@ summary: spec.init and spec.decision.new scaffolds, template content, ancora REA
 decisions:
   - ancora.decision.field_friction_response
   - ancora.decision.no_execution_no_state
+  - ancora.decision.cli_json_contract
 ```
 
 ## Requirements
@@ -32,7 +33,9 @@ decisions:
     `.spec/README.md`, `.spec/config.yml`, `.spec/decisions/README.md`, and
     one seed subject under `.spec/specs/`, printing `wrote` or `kept` per
     file and `spec.init scaffolded <dir>`. `--force` shall overwrite. No
-    GitHub workflow file shall be scaffolded.
+    GitHub workflow file shall be scaffolded. AGENTS.md.eex shall be the only
+    template evaluated by EEx. The other five templates shall have their
+    destination `.md` or `.yml` names and be copied byte-for-byte.
   priority: must
   stability: stable
 - id: ancora.scaffold.agents_md_content
@@ -93,14 +96,17 @@ decisions:
   stability: stable
 - id: ancora.scaffold.readme_commitments
   statement: >-
-    Ancora's README shall name `Ancora.Parser.parse_file/2` and
-    `Ancora.DecisionParser.parse_file/2` as the only semver-stable API, state
+    Ancora's README shall name `Ancora.Parser.parse_file/2`,
+    `Ancora.DecisionParser.parse_file/2`, `Ancora.check/2`, and
+    `Ancora.validate/2` as the only semver-stable API, state
     that `--root` is an internal affordance outside that commitment, state
     the introspection posture (the tool loads its own dependencies' bytecode
     for export lookup; this is toolchain introspection, not project
     execution), name `mix format --migrate` as an expect-acknowledgment case,
-    carry a six-line CI job snippet, and describe the tool as traceability
-    and drift detection, never as proof or verified behavior.
+    state that Ancora 1.x overrides are scoped to one subject and one finding
+    code, optionally narrowed to one requirement, carry a six-line CI job
+    snippet, and describe the tool as
+    traceability and drift detection, never as proof or verified behavior.
   priority: must
   stability: evolving
 - id: ancora.scaffold.migration_doc
@@ -109,7 +115,9 @@ decisions:
     complete specled_ex-code to ancora-code map, with the registry count
     matching `Ancora.Finding`, and shall document the command-gate successor:
     the tagged ExUnit source-scan pattern with `Ancora.SourceScan`, including
-    the vacuity guard and whole-token matching.
+    the vacuity guard and whole-token matching. It shall state that Ancora 1.x
+    overrides are scoped to one subject and one finding code, optionally
+    narrowed to one requirement.
   priority: must
   stability: evolving
 ```
@@ -124,6 +132,8 @@ decisions:
     - `mix spec.init --root <tmp>` runs
   then:
     - AGENTS.md, agents/SKILL.md, README.md, config.yml, decisions/README.md, and one seed spec exist under `.spec/`
+    - every static markdown or YAML file equals its source template byte-for-byte, including any literal EEx tag
+    - AGENTS.md is the only source template with an `.eex` extension and its read-protocol expression is evaluated
     - no file under `.github/` is written
     - stdout lists each file as `wrote` and ends with `spec.init scaffolded`
   covers:
@@ -204,7 +214,8 @@ decisions:
   when:
     - needle checks run
   then:
-    - it names both stable functions, says `--root` is internal, contains the introspection paragraph, mentions `mix format --migrate`, and contains no occurrence of "proof" or "verified behavior"
+    - it names all four stable functions, says `--root` is internal, contains the introspection paragraph, mentions `mix format --migrate`, and contains no occurrence of "proof" or "verified behavior"
+    - its acknowledgment promotion text names the subject, code, and optional requirement scope accepted by Ancora 1.x
   covers:
     - ancora.scaffold.readme_commitments
 - id: ancora.scaffold.scenario.migration_map_complete
@@ -217,6 +228,7 @@ decisions:
     - the stated registry count equals the registry size
     - the command-gate successor section names the vacuity guard and whole-token matching
     - its `Ancora.SourceScan` template compiles and passes as a test in a fixture project
+    - its acknowledgment text names the subject, code, and optional requirement scope accepted by Ancora 1.x
   covers:
     - ancora.scaffold.migration_doc
 ```

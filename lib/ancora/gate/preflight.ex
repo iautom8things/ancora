@@ -22,8 +22,10 @@ defmodule Ancora.Gate.Preflight do
     config = Config.load(root)
 
     with :ok <- git_repo(root),
+         :ok <- corpus(root),
          {:ok, project} <- ProjectInfo.load(root, project_opts(config)),
-         {:ok, base} <- resolve_base(root, Keyword.get(opts, :base), config.default_base) do
+         {:ok, base} <- resolve_base(root, Keyword.get(opts, :base), config.default_base),
+         :ok <- complete_range(root, base) do
       {:ok, %{root: root, base: base, config: config, project: project}}
     end
   end
@@ -37,23 +39,136 @@ defmodule Ancora.Gate.Preflight do
           {:env, "#{root} is not a git repository; run ancora inside a git worktree"}
         end
 
-      {:error, _reason} ->
-        {:env, "#{root} is not a git repository; run ancora inside a git worktree"}
+      {:error, :git_executable_not_found} ->
+        {:env, "git executable not found; install git and make it available on PATH"}
+
+      {:error, {:git, _args, output, 128}} ->
+        {:env,
+         git_failure(
+           "#{root} is not a git repository; run ancora inside a git worktree",
+           128,
+           output
+         )}
+
+      {:error, {:git, _args, output, status}} ->
+        {:env, git_failure("cannot inspect git repository", status, output)}
     end
+  end
+
+  defp corpus(root) do
+    if File.dir?(Path.join(root, ".spec")) do
+      corpus_files_readable(root)
+    else
+      {:env, "no .spec/ directory in #{root}; run mix spec.init"}
+    end
+  end
+
+  defp corpus_files_readable(root) do
+    files =
+      Path.wildcard(Path.join([root, ".spec", "specs", "**", "*.spec.md"])) ++
+        Path.wildcard(Path.join([root, ".spec", "decisions", "**", "*.md"]))
+
+    Enum.reduce_while(files, :ok, fn path, :ok ->
+      case File.read(path) do
+        {:ok, _source} -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:env, unreadable_message(root, path, reason)}}
+      end
+    end)
+  end
+
+  defp unreadable_message(root, path, reason) do
+    "cannot read #{Path.relative_to(path, root)}: #{:file.format_error(reason)}"
   end
 
   defp resolve_base(root, base, _default_base) when is_binary(base) and base != "" do
     case Git.run(root, ["rev-parse", "--verify", "#{base}^{commit}"]) do
       {:ok, _oid} -> {:ok, base}
-      {:error, _reason} -> {:env, missing_base_message(base)}
+      {:error, reason} -> {:env, base_failure_message(base, reason)}
     end
   end
 
   defp resolve_base(root, nil, default_base) do
     case Git.run(root, ["merge-base", "HEAD", default_base]) do
       {:ok, oid} -> {:ok, String.trim(oid)}
-      {:error, _reason} -> {:env, missing_base_message(default_base)}
+      {:error, reason} -> {:env, base_failure_message(default_base, reason)}
     end
+  end
+
+  defp complete_range(root, base) do
+    case Git.run(root, ["rev-parse", "--is-shallow-repository"]) do
+      {:ok, output} ->
+        if String.trim(output) == "true", do: shallow_range(root, base), else: :ok
+
+      {:error, reason} ->
+        {:env, range_inspection_failure(reason)}
+    end
+  end
+
+  defp shallow_range(root, base) do
+    with {:ok, shallow_path} <- Git.run(root, ["rev-parse", "--git-path", "shallow"]),
+         {:ok, shallow} <- File.read(git_path(root, shallow_path)),
+         {:ok, range} <- Git.run(root, ["rev-list", "#{base}..HEAD"]) do
+      boundaries = shallow |> String.split() |> MapSet.new()
+      commits = range |> String.split() |> MapSet.new()
+
+      case truncated_boundary(root, MapSet.intersection(boundaries, commits)) do
+        {:ok, nil} ->
+          :ok
+
+        {:ok, _boundary} ->
+          {:env,
+           "base..HEAD history is incomplete in this shallow clone; run git fetch --unshallow " <>
+             "or set fetch-depth: 0 in CI"}
+
+        {:error, reason} ->
+          {:env, range_inspection_failure(reason)}
+      end
+    else
+      {:error, reason} -> {:env, range_inspection_failure(reason)}
+    end
+  end
+
+  defp truncated_boundary(root, boundaries) do
+    Enum.reduce_while(boundaries, {:ok, nil}, fn boundary, {:ok, nil} ->
+      case boundary_truncates?(root, boundary) do
+        {:ok, true} -> {:halt, {:ok, boundary}}
+        {:ok, false} -> {:cont, {:ok, nil}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp boundary_truncates?(root, boundary) do
+    with {:ok, object} <- Git.run(root, ["cat-file", "-p", boundary]) do
+      object
+      |> String.split("\n")
+      |> Enum.take_while(&(&1 != ""))
+      |> Enum.filter(&String.starts_with?(&1, "parent "))
+      |> Enum.reduce_while({:ok, false}, fn "parent " <> parent, {:ok, false} ->
+        case Git.run(root, ["cat-file", "-e", "#{parent}^{commit}"]) do
+          {:ok, _output} -> {:cont, {:ok, false}}
+          {:error, {:git, _args, _output, _status}} -> {:halt, {:ok, true}}
+          {:error, reason} -> {:halt, {:error, reason}}
+        end
+      end)
+    end
+  end
+
+  defp git_path(root, output) do
+    path = String.trim(output)
+    if Path.type(path) == :absolute, do: path, else: Path.join(root, path)
+  end
+
+  defp range_inspection_failure({:git, _args, output, status}) do
+    git_failure("cannot inspect base..HEAD history", status, output)
+  end
+
+  defp range_inspection_failure(:git_executable_not_found) do
+    "git executable not found; install git and make it available on PATH"
+  end
+
+  defp range_inspection_failure(reason) do
+    "cannot inspect base..HEAD history: #{:file.format_error(reason)}"
   end
 
   defp missing_base_message(base) do
@@ -61,9 +176,28 @@ defmodule Ancora.Gate.Preflight do
       "or set the default_base config key"
   end
 
-  # Config.load/1 is the sole YAML parse in preflight. ProjectInfo receives an
-  # override only when the config key was present, so literal elixirc_paths
-  # remain authoritative otherwise.
-  defp project_opts(%Config{lib_paths: nil}), do: []
+  defp base_failure_message(_base, :git_executable_not_found) do
+    "git executable not found; install git and make it available on PATH"
+  end
+
+  defp base_failure_message(base, {:git, _args, output, 128}) do
+    missing_base_message(base) <> "; git exited 128: " <> String.trim(output)
+  end
+
+  defp base_failure_message(base, {:git, _args, output, status}) do
+    missing_base_message(base) <>
+      "; git failed with status #{status}: " <> String.trim(output)
+  end
+
+  defp git_failure(prefix, status, output) do
+    detail = String.trim(output)
+
+    if detail == "",
+      do: "#{prefix}; git exited #{status}",
+      else: "#{prefix}; git exited #{status}: #{detail}"
+  end
+
+  # ProjectInfo receives the resolved value, including nil, so preflight never
+  # asks it to read `.spec/config.yml` a second time.
   defp project_opts(%Config{lib_paths: paths}), do: [lib_paths: paths]
 end

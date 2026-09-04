@@ -284,7 +284,7 @@ defmodule Ancora.OutputTest do
       assert Enum.at(lines, 1) =~ ~r/^\[ERROR\] /
       assert "checked subjects=1 requirements=2 errors=1 warnings=1" in lines
 
-      assert "branch base=origin/main changed_files=3 findings=2 (error=1 warning=1 info=0 hidden: default=0 trailer=0 ack=0)" in lines
+      assert "branch base=origin/main changed_files=3 findings=2 (total error=1 warning=1 info=0 hidden: default=0 trailer=0 ack=0)" in lines
 
       assert "branch impacted_subjects=ancora.tasks" in lines
       assert "branch next=mix spec.check --base HEAD" in lines
@@ -303,7 +303,7 @@ defmodule Ancora.OutputTest do
                info: 6,
                hidden: %{default: 3, trailer: 2, ack: 1}
              }) ==
-               "branch base=HEAD changed_files=1 findings=9 (error=1 warning=2 info=6 hidden: default=3 trailer=2 ack=1)"
+               "branch base=HEAD changed_files=1 findings=9 (total error=1 warning=2 info=6 hidden: default=3 trailer=2 ack=1)"
     end
 
     @tag spec: "ancora.tasks.finding_line_format"
@@ -358,6 +358,17 @@ defmodule Ancora.OutputTest do
   describe "json" do
     @tag spec: "ancora.tasks.verdict_grammar"
     test "json payload precedes the verdict on stdout" do
+      # Would fail if Output.json_payload/1 encoded through Jason directly.
+      Code.ensure_loaded!(Ancora.Json)
+      :erlang.trace_pattern({Ancora.Json, :encode!, 1}, true, [:call_count])
+
+      {:call_count, calls_before} =
+        :erlang.trace_info({Ancora.Json, :encode!, 1}, :call_count)
+
+      on_exit(fn ->
+        :erlang.trace_pattern({Ancora.Json, :encode!, 1}, false, [:call_count])
+      end)
+
       report = %{
         json: true,
         findings: [finding(severity: :warning, message: "growth")],
@@ -376,6 +387,11 @@ defmodule Ancora.OutputTest do
       assert {:ok, decoded} = Jason.decode(json)
       assert is_list(decoded["findings"])
       assert List.last(lines) == "spec.check result=fail tier=branch errors=0 warnings=1"
+
+      {:call_count, calls_after} =
+        :erlang.trace_info({Ancora.Json, :encode!, 1}, :call_count)
+
+      assert calls_after - calls_before == 1
     end
   end
 

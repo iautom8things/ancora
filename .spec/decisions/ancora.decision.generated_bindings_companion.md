@@ -4,6 +4,25 @@ status: accepted
 date: 2026-08-21
 affects:
   - ancora.derive
+  - ancora.derive.change_set_union
+  - ancora.derive.base_reads_batched
+  - ancora.derive.memo_is_run_scoped
+  - ancora.derive.project_info_from_root
+  - ancora.derive.membership_source_derived
+  - ancora.derive.qualified_call_disposition
+  - ancora.derive.unqualified_ladder
+  - ancora.derive.dynamic_calls_unresolved
+  - ancora.derive.resolver_is_pure
+  - ancora.derive.imports_and_aliases
+  - ancora.derive.parse_degrades_to_finding
+  - ancora.derive.clause_extraction
+  - ancora.derive.canonical_is_metadata_strip
+  - ancora.derive.drift_scope_and_dedupe
+  - ancora.derive.growth_and_shrink
+  - ancora.derive.generated_bindings
+  - ancora.derive.acknowledgment_is_substantive
+  - ancora.derive.subject_footprint
+  - ancora.derive.formatter_round_trip
 ---
 
 # Generated Bindings: Companion `__using__/1` Bindings and the Transition Rule

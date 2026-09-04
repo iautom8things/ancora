@@ -1,7 +1,7 @@
 Code.require_file("../support/tmp_git_repo.exs", __DIR__)
 
 defmodule Ancora.Git.BatchPortTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Ancora.Git.BatchPort
   alias Ancora.TmpGitRepo
@@ -104,6 +104,52 @@ defmodule Ancora.Git.BatchPortTest do
     absent = "HEAD:no-such-file.ex"
     assert {:error, {:missing_object, ^absent}} = BatchPort.fetch(port, absent)
     assert {:ok, %{payload: "keep\n"}} = BatchPort.fetch(port, "HEAD:lib/a.ex")
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "fetch parses a missing path containing spaces from the right" do
+    root = TmpGitRepo.create!()
+    on_exit(fn -> TmpGitRepo.cleanup!(root) end)
+    TmpGitRepo.write!(root, %{"lib/a.ex" => "keep\n"})
+    TmpGitRepo.commit!(root, "initial")
+
+    assert {:ok, port} = BatchPort.open(root)
+    on_exit(fn -> BatchPort.close(port) end)
+
+    absent = "HEAD:my notes.txt"
+    assert {:error, {:missing_object, ^absent}} = BatchPort.fetch(port, absent)
+    assert {:ok, %{payload: "keep\n"}} = BatchPort.fetch(port, "HEAD:lib/a.ex")
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a timed out fetch poisons the port before another request can read stale data" do
+    root = TmpGitRepo.create!()
+    on_exit(fn -> TmpGitRepo.cleanup!(root) end)
+
+    payload = String.duplicate("x", 4_000_000)
+    TmpGitRepo.write!(root, %{"large.bin" => payload, "small.txt" => "fresh\n"})
+    TmpGitRepo.commit!(root, "initial")
+
+    assert {:ok, port} = BatchPort.open(root)
+    on_exit(fn -> BatchPort.close(port) end)
+
+    assert {:error, :cat_file_batch_timeout} =
+             BatchPort.fetch(port, "HEAD:large.bin", timeout: 0)
+
+    assert {:error, :port_poisoned} = BatchPort.fetch(port, "HEAD:small.txt")
+    assert Port.info(port.port) == nil
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "open returns data when git is absent from PATH" do
+    root = TmpGitRepo.create!()
+    on_exit(fn -> TmpGitRepo.cleanup!(root) end)
+
+    original_path = System.get_env("PATH")
+    on_exit(fn -> System.put_env("PATH", original_path) end)
+    System.put_env("PATH", Path.join(root, "no-executables"))
+
+    assert {:error, :git_executable_not_found} = BatchPort.open(root)
   end
 
   defp open_port_option_lists do

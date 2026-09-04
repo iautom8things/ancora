@@ -246,13 +246,13 @@ defmodule Ancora.Finding do
   end
 
   defp render("append/requirement_deleted", ctx) do
-    "#{s(ctx)}.#{req(ctx)} deleted; no authorizing ADR names it — " <>
-      "add an accepted ADR whose affects: names the requirement or its subject"
+    "#{req(ctx)} deleted; no authorizing ADR names it — " <>
+      "add an accepted ADR whose affects: or retires: names the requirement id"
   end
 
   defp render("append/must_downgraded", ctx) do
-    "#{s(ctx)}.#{req(ctx)}: must → should; no authorizing ADR names it — " <>
-      "add an accepted ADR whose affects: names the requirement or its subject"
+    "#{req(ctx)}: must → should; no authorizing ADR names it — " <>
+      "add an accepted ADR whose affects: names the requirement id"
   end
 
   defp render("append/statement_changed", ctx) do

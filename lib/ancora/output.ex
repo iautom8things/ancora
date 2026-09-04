@@ -2,17 +2,18 @@ defmodule Ancora.Output do
   @moduledoc """
   The only stdout writer in ancora.
 
-  Gate tasks (`spec.check`, `spec.validate`) run inside `gated/2`, which
+  Gate tasks (`spec.check`, `spec.validate`) run inside the gated wrapper, which
   classifies the outcome as `:ok`, `:usage`, `:env`, or `:internal`. The
   first three emit a verdict via `Ancora.Output.Verdict`; `:internal`
   re-raises with no verdict line. Report tasks use the same wrapper for
   error paths and print the message without a verdict.
 
-  `[CONFIG]` diagnostics and Logger output go to stderr. Formatters other
-  than the verdict emitter never produce the substring `result=`.
+  `[CONFIG]` diagnostics and Logger output go to stderr. Human-readable
+  formatters never produce the substring `result=`. JSON values remain intact,
+  but the encoded line cannot match the verdict grammar.
   """
 
-  alias Ancora.Finding
+  alias Ancora.{Finding, Json}
   alias Ancora.Output.Verdict
 
   @read_protocol "The verdict is the last stdout line: `spec.check result=…`. A non-zero exit with no verdict line means the run crashed before the gate finished — treat it as failure."
@@ -35,6 +36,13 @@ defmodule Ancora.Output do
   """
   @spec gated(String.t(), (-> term())) :: :ok | no_return()
   def gated(task_name, fun) when is_binary(task_name) and is_function(fun, 0) do
+    gated(task_name, [], fun)
+  end
+
+  @doc "Run `fun` with emission options. `:json` applies only to gate failure paths."
+  @spec gated(String.t(), keyword(), (-> term())) :: :ok | no_return()
+  def gated(task_name, opts, fun)
+      when is_binary(task_name) and is_list(opts) and is_function(fun, 0) do
     pin_logger_to_stderr()
 
     case classify(fun) do
@@ -43,16 +51,16 @@ defmodule Ancora.Output do
 
         if gate?(task_name) do
           Verdict.emit(task_name, report)
-          unless passed?(report), do: Mix.raise("#{task_name} failed")
+          unless Verdict.pass?(report), do: Mix.raise("#{task_name} failed")
         end
 
         :ok
 
       {:usage, msg} ->
-        fail_path(task_name, msg, :usage)
+        fail_path(task_name, msg, :usage, opts)
 
       {:env, msg} ->
-        fail_path(task_name, msg, :env)
+        fail_path(task_name, msg, :env, opts)
 
       {:internal, exception, stacktrace} ->
         reraise exception, stacktrace
@@ -157,7 +165,7 @@ defmodule Ancora.Output do
 
   @doc """
   Branch summary
-  `branch base=<ref> changed_files=<N> findings=<N> (error=E warning=W info=I hidden: default=D trailer=T ack=A)`.
+  `branch base=<ref> changed_files=<N> findings=<N> (total error=E warning=W info=I hidden: default=D trailer=T ack=A)`.
   """
   @spec branch_summary(map()) :: String.t()
   def branch_summary(branch) when is_map(branch) do
@@ -174,7 +182,7 @@ defmodule Ancora.Output do
 
     sanitize(
       "branch base=#{base} changed_files=#{changed} findings=#{findings} " <>
-        "(error=#{errors} warning=#{warnings} info=#{info} " <>
+        "(total error=#{errors} warning=#{warnings} info=#{info} " <>
         "hidden: default=#{default} trailer=#{trailer} ack=#{ack})"
     )
   end
@@ -195,18 +203,23 @@ defmodule Ancora.Output do
     sanitize("branch next=#{command}")
   end
 
-  @doc "JSON encoding of a report map, sanitized so it cannot contain `result=`."
+  @doc "JSON encoding of a report map."
   @spec json_payload(map()) :: String.t()
   def json_payload(report) when is_map(report) do
     report
     |> Map.delete(:json)
     |> json_safe()
-    |> Jason.encode!()
-    |> sanitize()
+    |> Json.encode!()
   end
 
-  defp fail_path(task_name, msg, tier) do
-    puts(msg)
+  defp fail_path(task_name, msg, tier, opts) do
+    if gate?(task_name) and Keyword.get(opts, :json, false) do
+      %{tier: tier, fail: true, message: msg}
+      |> Ancora.Gate.json_report()
+      |> render()
+    else
+      puts(msg)
+    end
 
     if gate?(task_name) do
       Verdict.emit_fail(task_name, tier)
@@ -241,7 +254,7 @@ defmodule Ancora.Output do
 
   defp render(report) when is_map(report) do
     if json?(report) do
-      puts(json_payload(report))
+      IO.puts(json_payload(report))
     else
       render_text(report)
     end
@@ -282,20 +295,6 @@ defmodule Ancora.Output do
     |> Map.get(:lines, [])
     |> List.wrap()
     |> Enum.each(&puts/1)
-  end
-
-  defp passed?(report) do
-    cond do
-      Map.get(report, :fail) == true ->
-        false
-
-      Map.get(report, :pass) == true ->
-        true
-
-      true ->
-        {errors, warnings} = Verdict.counts(report)
-        errors == 0 and warnings == 0
-    end
   end
 
   defp gate?(task_name), do: MapSet.member?(@gate_tasks, task_name)

@@ -119,6 +119,10 @@ defmodule Ancora.Derive do
          {:ok, result} <- Resolver.resolve(source, path, Map.put(ctx, :side, side)) do
       {:ok, path, result}
     end
+  rescue
+    exception -> {:error, {:resolver_exception, path, Exception.message(exception)}}
+  catch
+    kind, reason -> {:error, {:resolver_throw, path, kind, reason}}
   end
 
   defp read_source(sources, path) when is_map(sources) do
@@ -143,7 +147,6 @@ defmodule Ancora.Derive do
   end
 
   defp collect_resolution({:ok, {:error, reason}}, _acc), do: {:halt, {:error, reason}}
-  defp collect_resolution({:exit, reason}, _acc), do: {:halt, {:error, {:resolver_exit, reason}}}
 
   defp build_subject_sets(subject_files, side, ctx, resolutions) do
     Map.new(subject_files, fn {subject_id, files} ->

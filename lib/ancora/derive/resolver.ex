@@ -29,7 +29,7 @@ defmodule Ancora.Derive.Resolver do
         }
 
   @doc "Resolves one source file using data supplied by `Ancora.Derive.context/4`."
-  @spec resolve(binary(), Path.t(), map()) :: {:ok, result()}
+  @spec resolve(binary(), Path.t(), Derive.resolver_context()) :: {:ok, result()}
   def resolve(source, path, ctx) when is_binary(source) and is_binary(path) and is_map(ctx) do
     case Code.string_to_quoted(source, file: path, emit_warnings: false) do
       {:ok, ast} ->

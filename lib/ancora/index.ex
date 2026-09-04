@@ -5,6 +5,49 @@ defmodule Ancora.Index do
   alias Ancora.DecisionParser.Affects
   alias Ancora.Parser
 
+  @atom_keys Map.new(
+               ~w(
+                 affects covers date decisions execute file given id kind meta polarity priority
+                 realized_by reason refines replaces requirements retires reverses_what scenarios
+                 stability statement status summary superseded_by supersedes surface target then
+                 verification verification_minimum_strength when
+               )a,
+               &{Atom.to_string(&1), &1}
+             )
+
+  @doc false
+  def field(nil, _key), do: nil
+
+  def field(map, key) when is_map(map) and is_binary(key) do
+    case Map.fetch(map, key) do
+      {:ok, value} ->
+        value
+
+      :error ->
+        case @atom_keys do
+          %{^key => atom_key} -> Map.get(map, atom_key)
+          %{} -> nil
+        end
+    end
+  end
+
+  def field(map, key) when is_map(map) and is_atom(key) do
+    case Map.fetch(map, key) do
+      {:ok, value} -> value
+      :error -> Map.get(map, Atom.to_string(key))
+    end
+  end
+
+  def field(_value, _key), do: nil
+
+  @doc false
+  def subject_id(subject) when is_map(subject) do
+    id = subject |> field("meta") |> field("id") || field(subject, "id")
+    if is_binary(id) and id != "", do: id, else: nil
+  end
+
+  def subject_id(_subject), do: nil
+
   @doc """
   Builds the in-memory corpus index for `root`.
 
@@ -12,61 +55,63 @@ defmodule Ancora.Index do
   ADR under the decisions directory. Does not scan test tags and does not
   take realization inputs.
   """
+  @spec build(Path.t(), keyword()) :: map() | {:error, String.t()}
   def build(root, opts \\ []) do
-    spec_dir = opts[:spec_dir] || detect_spec_dir(root)
-    authored_dir = opts[:authored_dir] || detect_authored_dir(root, spec_dir)
-    decision_dir = opts[:decision_dir] || detect_decision_dir(root, spec_dir)
+    with {:ok, spec_dir} <- resolve_spec_dir(root, opts),
+         {:ok, authored_dir} <- resolve_authored_dir(root, spec_dir, opts) do
+      decision_dir = opts[:decision_dir] || detect_decision_dir(root, spec_dir)
 
-    spec_files =
-      authored_dir
-      |> expand_path(root)
-      |> Path.join("**/*.spec.md")
-      |> Path.wildcard()
-      |> Enum.sort()
-
-    decision_files =
-      if decision_dir && File.dir?(expand_path(decision_dir, root)) do
-        decision_dir
+      spec_files =
+        authored_dir
         |> expand_path(root)
-        |> Path.join("**/*.md")
+        |> Path.join("**/*.spec.md")
         |> Path.wildcard()
-        |> Enum.reject(&(Path.basename(&1) == "README.md"))
         |> Enum.sort()
-      else
-        []
-      end
 
-    subjects = Enum.map(spec_files, &Parser.parse_file(&1, root))
-    decisions = Enum.map(decision_files, &DecisionParser.parse_file(&1, root))
+      decision_files =
+        if decision_dir && File.dir?(expand_path(decision_dir, root)) do
+          decision_dir
+          |> expand_path(root)
+          |> Path.join("**/*.md")
+          |> Path.wildcard()
+          |> Enum.reject(&(Path.basename(&1) == "README.md"))
+          |> Enum.sort()
+        else
+          []
+        end
 
-    current_index = %{"subjects" => subjects, "decisions" => decisions}
-    resolvable_ids = Affects.resolvable_ids(current_index)
+      subjects = Enum.map(spec_files, &Parser.parse_file(&1, root))
+      decisions = Enum.map(decision_files, &DecisionParser.parse_file(&1, root))
+      current_index = %{"subjects" => subjects, "decisions" => decisions}
+      resolvable_ids = Affects.resolvable_ids(current_index)
 
-    validated =
-      DecisionParser.validate_affects(
-        decisions,
-        resolvable_ids,
-        opts
-      )
+      validated =
+        DecisionParser.validate_affects(
+          decisions,
+          resolvable_ids,
+          opts
+        )
 
-    %{
-      "version" => 1,
-      "generated_at" => DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
-      "spec_dir" => spec_dir,
-      "authored_dir" => authored_dir,
-      "decision_dir" => decision_dir,
-      "subjects" => subjects,
-      "decisions" => validated,
-      "findings" => collect_findings(subjects, validated),
-      "summary" => summary(subjects, validated)
-    }
+      %{
+        "version" => 1,
+        "generated_at" =>
+          DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
+        "spec_dir" => spec_dir,
+        "authored_dir" => authored_dir,
+        "decision_dir" => decision_dir,
+        "subjects" => subjects,
+        "decisions" => validated,
+        "findings" => collect_findings(subjects, validated),
+        "summary" => summary(subjects, validated)
+      }
+    end
   end
 
   def detect_spec_dir(root) do
     if File.dir?(Path.join(root, ".spec")) do
-      ".spec"
+      {:ok, ".spec"}
     else
-      raise ".spec directory not found in #{root}."
+      {:error, "no .spec/ directory in #{root}; run mix spec.init"}
     end
   end
 
@@ -74,14 +119,30 @@ defmodule Ancora.Index do
     authored = join_dir(spec_dir, "specs")
 
     if File.dir?(expand_path(authored, root)) do
-      authored
+      {:ok, authored}
     else
-      raise "#{authored} directory not found in #{root}."
+      {:error,
+       "--spec-dir selects the ancora workspace directory; " <>
+         "#{authored} directory not found in #{root}."}
     end
   end
 
   def detect_decision_dir(_root, spec_dir) do
     join_dir(spec_dir, "decisions")
+  end
+
+  defp resolve_spec_dir(root, opts) do
+    case Keyword.fetch(opts, :spec_dir) do
+      {:ok, spec_dir} -> {:ok, spec_dir}
+      :error -> detect_spec_dir(root)
+    end
+  end
+
+  defp resolve_authored_dir(root, spec_dir, opts) do
+    case Keyword.fetch(opts, :authored_dir) do
+      {:ok, authored_dir} -> {:ok, authored_dir}
+      :error -> detect_authored_dir(root, spec_dir)
+    end
   end
 
   defp collect_findings(subjects, decisions) do

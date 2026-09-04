@@ -12,7 +12,8 @@ defmodule Ancora.Git do
   alias Ancora.Git.BatchPort
 
   @type git_error ::
-          {:error, {:git, [String.t()], String.t(), non_neg_integer()}}
+          {:error, :git_executable_not_found}
+          | {:error, {:git, [String.t()], String.t(), non_neg_integer()}}
 
   @doc """
   Runs a git plumbing command against `root`.
@@ -22,10 +23,20 @@ defmodule Ancora.Git do
   @spec run(Path.t(), [String.t()], keyword()) :: {:ok, String.t()} | git_error()
   def run(root, args, opts \\ []) when is_binary(root) and is_list(args) do
     env = Keyword.get(opts, :env, [])
+    stderr_to_stdout? = Keyword.get(opts, :stderr_to_stdout, true)
 
-    case System.cmd("git", ["-C", root | args], stderr_to_stdout: true, env: env) do
-      {output, 0} -> {:ok, output}
-      {output, status} -> {:error, {:git, args, output, status}}
+    case System.find_executable("git") do
+      nil ->
+        {:error, :git_executable_not_found}
+
+      git ->
+        case System.cmd(git, ["-C", root | args],
+               stderr_to_stdout: stderr_to_stdout?,
+               env: env
+             ) do
+          {output, 0} -> {:ok, output}
+          {output, status} -> {:error, {:git, args, output, status}}
+        end
     end
   end
 
@@ -54,25 +65,31 @@ defmodule Ancora.Git do
   Reads one base-side blob.
 
   When the run context owns a `BatchPort`, the read goes through that port.
-  When it does not, the same function head falls back to `git show <base>:<path>`.
+  The second argument tags either a repository path or an already-resolved blob OID.
+  When the run has no port, the same function head falls back to `git show`.
   """
-  @spec read_blob(RunContext.t(), String.t()) :: {:ok, binary()} | {:error, term()}
-  def read_blob(%RunContext{batch_port: %BatchPort{} = port, base: base}, path)
-      when is_binary(path) do
-    case BatchPort.fetch(port, blob_spec(base, path)) do
+  @spec read_blob(RunContext.t(), {:path, String.t()} | {:oid, String.t()} | String.t()) ::
+          {:ok, binary()} | {:error, term()}
+  def read_blob(%RunContext{batch_port: %BatchPort{} = port, base: base}, reference) do
+    case BatchPort.fetch(port, blob_reference(base, reference)) do
       {:ok, %{payload: payload}} -> {:ok, payload}
       {:error, _} = error -> error
     end
   end
 
-  def read_blob(%RunContext{batch_port: nil, root: root, base: base}, path)
-      when is_binary(path) do
-    run(root, ["show", blob_spec(base, path)])
+  def read_blob(%RunContext{batch_port: nil, root: root, base: base}, reference) do
+    run(root, ["show", blob_reference(base, reference)], stderr_to_stdout: false)
   end
 
   @doc false
   @spec blob_spec(String.t(), String.t()) :: String.t()
   def blob_spec(base, path), do: "#{base}:#{path}"
+
+  defp blob_reference(base, {:path, path}) when is_binary(path), do: blob_spec(base, path)
+  defp blob_reference(_base, {:oid, oid}) when is_binary(oid), do: oid
+
+  # BaseView already resolves tree entries to OIDs before calling this function.
+  defp blob_reference(_base, oid) when is_binary(oid), do: oid
 
   defp pathspec_args([]), do: []
   defp pathspec_args(pathspecs), do: ["--" | pathspecs]

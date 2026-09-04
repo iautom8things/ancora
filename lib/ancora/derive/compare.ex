@@ -18,7 +18,8 @@ defmodule Ancora.Derive.Compare do
   Source may be supplied as
   `sources: %{base: %{path => source}, head: %{path => source}}` or as a
   two-argument `source_reader`. With neither, `:root` supplies HEAD reads and
-  the change set supplies changed base blobs.
+  the change set supplies changed base blobs. Gate callers may pass one
+  `:parsed_sources` map prepared across every subject in the run.
   """
   @spec compare(String.t(), Derive.subject_set(), Derive.subject_set(), keyword()) ::
           [Finding.t()]
@@ -27,9 +28,58 @@ defmodule Ancora.Derive.Compare do
     locator = Keyword.fetch!(opts, :locator)
     change_set = Keyword.fetch!(opts, :change_set)
 
+    parsed_sources =
+      Keyword.get_lazy(opts, :parsed_sources, fn ->
+        prepare_sources([{base, head}], locator, change_set, opts)
+      end)
+
     set_findings(subject_id, base, head) ++
       transition_findings(subject_id, base, head, locator, change_set, opts) ++
-      drift_findings(subject_id, base, head, locator, change_set, opts)
+      drift_findings(subject_id, base, head, locator, change_set, parsed_sources, opts)
+  end
+
+  @doc "Parses each changed defining file once per side for a set of subject pairs."
+  @spec prepare_sources(
+          [{Derive.subject_set(), Derive.subject_set()}],
+          ModuleLocator.t(),
+          ChangeSet.t(),
+          keyword()
+        ) :: %{base: map(), head: map()}
+  def prepare_sources(subject_pairs, locator, change_set, opts)
+      when is_list(subject_pairs) and is_list(opts) do
+    bindings =
+      subject_pairs
+      |> Enum.flat_map(fn {base, head} ->
+        base
+        |> Map.get(:bindings, MapSet.new())
+        |> MapSet.intersection(Map.get(head, :bindings, MapSet.new()))
+      end)
+      |> MapSet.new()
+
+    Map.new([:base, :head], fn side ->
+      paths =
+        bindings
+        |> Enum.flat_map(fn {module, _name, _arity} ->
+          case ModuleLocator.path_for(locator, side, module) do
+            {:ok, path} -> [path]
+            :error -> []
+          end
+        end)
+        |> Enum.filter(&ChangeSet.changed_path?(change_set, &1))
+        |> Enum.uniq()
+
+      parsed =
+        Map.new(paths, fn path ->
+          result =
+            with {:ok, source} <- read_source(side, path, change_set, opts) do
+              Extract.parse(source, path)
+            end
+
+          {path, result}
+        end)
+
+      {side, parsed}
+    end)
   end
 
   defp set_findings(subject_id, base, head) do
@@ -82,7 +132,7 @@ defmodule Ancora.Derive.Compare do
     end)
   end
 
-  defp drift_findings(subject_id, base, head, locator, change_set, opts) do
+  defp drift_findings(subject_id, base, head, locator, change_set, parsed_sources, opts) do
     base_textual = Map.get(base, :bindings, MapSet.new())
     head_textual = Map.get(head, :bindings, MapSet.new())
 
@@ -91,7 +141,7 @@ defmodule Ancora.Derive.Compare do
     |> Enum.filter(&changed_definition?(&1, locator, change_set))
     |> Enum.sort_by(&format_binding/1)
     |> Enum.reduce({[], MapSet.new()}, fn binding, {findings, seen} ->
-      case compare_binding(binding, locator, change_set, opts) do
+      case compare_binding(binding, locator, parsed_sources) do
         {:equal, _key} ->
           {findings, seen}
 
@@ -120,13 +170,11 @@ defmodule Ancora.Derive.Compare do
     |> Enum.reverse()
   end
 
-  defp compare_binding({module, name, _arity} = binding, locator, change_set, opts) do
+  defp compare_binding({module, name, _arity} = binding, locator, parsed_sources) do
     with {:ok, base_path} <- ModuleLocator.path_for(locator, :base, module),
          {:ok, head_path} <- ModuleLocator.path_for(locator, :head, module),
-         {:ok, base_source} <- read_source(:base, base_path, change_set, opts),
-         {:ok, head_source} <- read_source(:head, head_path, change_set, opts),
-         {:ok, base_clauses} <- Extract.clauses(base_source, base_path, binding),
-         {:ok, head_clauses} <- Extract.clauses(head_source, head_path, binding) do
+         {:ok, base_clauses} <- clauses_for(parsed_sources, :base, base_path, binding),
+         {:ok, head_clauses} <- clauses_for(parsed_sources, :head, head_path, binding) do
       base_normalized = Canonical.normalize(base_clauses)
       head_normalized = Canonical.normalize(head_clauses)
       key = {module, name, base_normalized, head_normalized}
@@ -149,14 +197,20 @@ defmodule Ancora.Derive.Compare do
   end
 
   defp changed_definition?({module, _name, _arity}, locator, change_set) do
-    changed = MapSet.new(ChangeSet.paths(change_set))
-
     Enum.any?([:base, :head], fn side ->
       case ModuleLocator.path_for(locator, side, module) do
-        {:ok, path} -> MapSet.member?(changed, path)
+        {:ok, path} -> ChangeSet.changed_path?(change_set, path)
         :error -> false
       end
     end)
+  end
+
+  defp clauses_for(parsed_sources, side, path, binding) do
+    case get_in(parsed_sources, [side, path]) do
+      {:ok, ast} -> {:ok, Extract.clauses(ast, binding)}
+      {:error, _reason} = error -> error
+      nil -> :error
+    end
   end
 
   defp defining_file({module, _name, _arity}, locator) do

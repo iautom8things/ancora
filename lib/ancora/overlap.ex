@@ -13,7 +13,7 @@ defmodule Ancora.Overlap do
       subject share a normalized stem
   """
 
-  alias Ancora.Finding
+  alias Ancora.{Finding, Index}
 
   @doc """
   Returns overlap findings for `subjects`.
@@ -30,7 +30,7 @@ defmodule Ancora.Overlap do
     entries =
       Enum.flat_map(subjects, fn subject ->
         subject_id = subject_id(subject)
-        file = fetch(subject, "file")
+        file = Index.field(subject, "file")
 
         subject
         |> list_field("verification")
@@ -68,7 +68,7 @@ defmodule Ancora.Overlap do
     subjects
     |> Enum.flat_map(fn subject ->
       subject_id = subject_id(subject)
-      file = fetch(subject, "file")
+      file = Index.field(subject, "file")
 
       subject
       |> list_field("requirements")
@@ -124,7 +124,7 @@ defmodule Ancora.Overlap do
   end
 
   defp must?(req) do
-    case fetch(req, "priority") do
+    case Index.field(req, "priority") do
       "must" -> true
       :must -> true
       _ -> false
@@ -132,7 +132,7 @@ defmodule Ancora.Overlap do
   end
 
   defp canonical_stem(req) do
-    statement = fetch(req, "statement") || ""
+    statement = Index.field(req, "statement") || ""
 
     normalized =
       statement
@@ -148,35 +148,16 @@ defmodule Ancora.Overlap do
     end
   end
 
-  defp subject_id(subject) do
-    meta = fetch(subject, "meta")
-    id = fetch(meta, "id") || fetch(subject, "id")
-    if is_binary(id) and id != "", do: id, else: nil
-  end
+  defp subject_id(subject), do: Index.subject_id(subject)
 
   defp list_field(map, key) do
-    case fetch(map, key) do
+    case Index.field(map, key) do
       list when is_list(list) -> list
       _ -> []
     end
   end
 
-  defp id_of(item), do: fetch(item, "id")
-
-  defp fetch(nil, _key), do: nil
-
-  defp fetch(map, key) when is_map(map) and is_binary(key) do
-    atom_key =
-      try do
-        String.to_existing_atom(key)
-      rescue
-        ArgumentError -> nil
-      end
-
-    Map.get(map, key, if(atom_key, do: Map.get(map, atom_key)))
-  end
-
-  defp fetch(_, _), do: nil
+  defp id_of(item), do: Index.field(item, "id")
 
   defp sort_findings(findings) do
     Enum.sort_by(findings, fn f ->

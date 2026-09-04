@@ -4,7 +4,27 @@ status: accepted
 date: 2026-08-21
 affects:
   - ancora.gate
+  - ancora.gate.preflight_hard_fails
+  - ancora.gate.default_base_no_fallback
+  - ancora.gate.diff_scoped_versus_repo_state
+  - ancora.gate.acknowledgment_clears
+  - ancora.gate.new_subject_self_clears
+  - ancora.gate.two_append_guards
+  - ancora.gate.unanchored_subject
+  - ancora.gate.change_findings
+  - ancora.gate.strict_verdict
+  - ancora.gate.only_git_is_spawned
+  - ancora.gate.no_derived_state
   - ancora.findings
+  - ancora.findings.registry_closed
+  - ancora.findings.registry_defaults
+  - ancora.findings.messages_carry_remedy
+  - ancora.findings.severity_precedence
+  - ancora.findings.info_visibility
+  - ancora.findings.trailer_grammar
+  - ancora.findings.config_schema
+  - ancora.findings.per_subject_overrides
+  - ancora.findings.config_coversioned_note
 ---
 
 # Slimmed Governance: Two Append-Only Guards
@@ -22,8 +42,9 @@ decision and not an accident.
 
 The gate enforces `append/requirement_deleted` and `append/must_downgraded`
 only. Authorization for either is an ADR with `status: accepted` whose
-`affects:` names the requirement id or its subject id. There is no
-weakening-class enum and no `change_type` requirement.
+`affects:` names the exact requirement id. A subject id documents scope but
+grants no append-only authorization. There is no weakening-class enum and no
+`change_type` requirement.
 
 The following are no longer guarded by any finding:
 
