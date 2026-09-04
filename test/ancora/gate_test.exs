@@ -1,7 +1,7 @@
 Code.require_file("../support/ancora_case.exs", __DIR__)
 
 defmodule Ancora.GateTest do
-  use Ancora.TestCase
+  use Ancora.TestCase, async: false
 
   alias Ancora.Gate
   alias Ancora.Gate.Preflight
@@ -44,6 +44,20 @@ defmodule Ancora.GateTest do
     write_files(root, %{"mix.exs" => mix_file("[app: app_name()]")})
     assert {:env, dynamic_app} = Preflight.run(root, base: "HEAD")
     assert dynamic_app =~ "app: as a literal atom"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "the gate maps batch timeout and poisoned-port failures to environment messages" do
+    assert private_clause_result!(Gate, :run_context_error, :cat_file_batch_timeout) ==
+             "git cat-file batch timed out"
+
+    assert private_clause_result!(Gate, :run_context_error, :port_poisoned) ==
+             "git cat-file batch port is unusable"
+
+    gate_error_source = Gate |> compiled_definition!(:gate_error, 1) |> Macro.to_string()
+    assert gate_error_source =~ ":cat_file_batch_timeout"
+    assert gate_error_source =~ ":port_poisoned"
+    assert gate_error_source =~ "{:env, {:run_context_error"
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
@@ -371,18 +385,60 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.acknowledgment_clears"
-  test "a substantive spec edit clears production drift", %{root: root} do
+  test "a substantive spec edit clears drift, growth, and shrink", %{root: root} do
     init_git_repo(root)
-    write_anchored_subject(root, "The sample shall return the current value.")
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" =>
+        subject_spec("The sample shall return the current and legacy values."),
+      "lib/sample.ex" => """
+      defmodule Sample do
+        def value, do: :current
+        def legacy, do: :legacy
+      end
+      """,
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works" do
+          assert Sample.value() == :current
+          assert Sample.legacy() == :legacy
+        end
+      end
+      """
+    })
+
     commit_all(root, "base")
 
     write_files(root, %{
-      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n",
-      ".spec/specs/sample.spec.md" => subject_spec("The sample shall return the changed value.")
+      ".spec/specs/sample.spec.md" =>
+        subject_spec("The sample shall return the changed and replacement values."),
+      "lib/sample.ex" => """
+      defmodule Sample do
+        def value, do: :changed
+        def legacy, do: :legacy
+        def replacement, do: :replacement
+      end
+      """,
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works" do
+          assert Sample.value() == :changed
+          assert Sample.replacement() == :replacement
+        end
+      end
+      """
     })
 
     assert {:ok, report} = Gate.check(root, base: "HEAD")
-    refute Enum.any?(report.all_findings, &(&1.code == "derived/drift"))
+
+    for code <- ["derived/drift", "derived/growth", "derived/shrink"] do
+      refute Enum.any?(report.all_findings, &(&1.code == code))
+    end
   end
 
   @tag spec: "ancora.gate.acknowledgment_clears"
@@ -402,6 +458,29 @@ defmodule Ancora.GateTest do
     assert Enum.any?(report.all_findings, fn finding ->
              finding.code == "derived/drift" and finding.severity == :info and
                finding.severity_source == :trailer
+           end)
+
+    assert report.fail == false
+  end
+
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  test "a Spec-Ack trailer never raises a configured info finding", %{root: root} do
+    init_git_repo(root)
+    write_anchored_subject(root, "The sample shall return the current value.")
+    write_config(root, "severities:\n  derived/drift: info\n")
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    commit_all(root, "change value\n\nSpec-Ack: derived/drift=warning")
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD~1")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "derived/drift" and finding.severity == :info and
+               finding.severity_source == :config
            end)
 
     assert report.fail == false
@@ -551,6 +630,31 @@ defmodule Ancora.GateTest do
     init_git_repo(root)
     write_project(root)
     commit_all(root, "base")
+  end
+
+  defp private_clause_result!(module, name, argument) do
+    module
+    |> compiled_definition!(name, 1)
+    |> Enum.find_value(fn {_meta, args, guards, body} ->
+      if args == [argument] and guards == [] do
+        {result, []} = Code.eval_quoted(body)
+        result
+      end
+    end)
+  end
+
+  defp compiled_definition!(module, name, arity) do
+    path = :code.which(module)
+
+    {:ok, {_, [{:debug_info, {:debug_info_v1, :elixir_erl, {:elixir_v1, map, _}}}]}} =
+      :beam_lib.chunks(path, [:debug_info])
+
+    {{^name, ^arity}, _kind, _meta, clauses} =
+      Enum.find(map.definitions, fn {{defined_name, defined_arity}, _, _, _} ->
+        {defined_name, defined_arity} == {name, arity}
+      end)
+
+    clauses
   end
 
   defp write_project(root) do

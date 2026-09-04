@@ -212,10 +212,22 @@ decisions:
   given:
     - a project with a corpus and no git executable on `PATH`
   when:
-    - preflight runs
+    - preflight or `Ancora.Git.BatchPort.open/1` runs
   then:
     - it returns an environment failure that names git and `PATH`
+    - the batch port returns `{:error, :git_executable_not_found}` as data
     - no exception escapes from `Ancora.Git.run/3`
+  covers:
+    - ancora.gate.preflight_hard_fails
+- id: ancora.gate.scenario.batch_failures_are_environment_errors
+  given:
+    - the git batch read context reports a timeout or a poisoned port
+  when:
+    - the gate maps the failure
+  then:
+    - the timeout maps to `git cat-file batch timed out`
+    - the poisoned port maps to `git cat-file batch port is unusable`
+    - both mappings return through the environment-error arm rather than raising
   covers:
     - ancora.gate.preflight_hard_fails
 - id: ancora.gate.scenario.poisoned_batch_port
@@ -253,11 +265,13 @@ decisions:
 - id: ancora.gate.scenario.drift_cleared_by_spec_edit
   given:
     - a watched function body changed in the diff
+    - one tagged call was added and another tagged call was removed
     - the subject's spec file has one requirement statement reworded in the same diff
   when:
     - the gate runs
   then:
     - no `derived/drift` fires for the subject
+    - no `derived/growth` or `derived/shrink` fires for the subject
   covers:
     - ancora.gate.acknowledgment_clears
 - id: ancora.gate.scenario.trailer_downgrades_not_silences
@@ -268,6 +282,17 @@ decisions:
     - the gate runs
   then:
     - "the finding is present at severity `info` with `severity_source: :trailer`"
+    - the verdict is `result=pass` if no other warning or error exists
+  covers:
+    - ancora.gate.acknowledgment_clears
+- id: ancora.gate.scenario.trailer_never_raises
+  given:
+    - a drift finding configured at `info`
+    - "a commit in `base..HEAD` with trailer `Spec-Ack: derived/drift=warning`"
+  when:
+    - the gate runs
+  then:
+    - "the finding remains at `info` with `severity_source: :config`"
     - the verdict is `result=pass` if no other warning or error exists
   covers:
     - ancora.gate.acknowledgment_clears
@@ -361,9 +386,11 @@ decisions:
   given:
     - a corpus whose only finding is one warning
   when:
-    - `mix spec.check` and `mix spec.validate` both run
+    - `mix spec.check`, `Ancora.validate/2`, and `mix spec.validate` run
   then:
     - spec.check exits non-zero with `result=fail`
+    - "direct non-strict validation returns `fail: false` with one checked warning and no errors"
+    - "direct strict validation returns `fail: true` with the same checked counts"
     - spec.validate exits zero with `result=pass`
     - spec.validate --strict exits non-zero
   covers:
@@ -380,11 +407,23 @@ decisions:
     - ancora.gate.strict_verdict
 - id: ancora.gate.scenario.forbidden_spawner_test
   given:
-    - every file under `lib/` parsed to AST
+    - a non-empty compile-time-rooted list of every file under `lib/` parsed to AST
+    - the allowed git layer contains a known subprocess call
   when:
     - the static spawner test walks each AST
   then:
+    - the detector finds the known call before applying the allowlist
     - no `System.cmd`, `System.shell`, `Port.open`, or `:os.cmd` call exists outside `lib/ancora/git.ex` and `lib/ancora/git/`
+  covers:
+    - ancora.gate.only_git_is_spawned
+- id: ancora.gate.scenario.mix_tasks_load_only_dependencies
+  given:
+    - the package application module list contains exactly eight `spec.*` Mix tasks
+  when:
+    - the static task test reads each task's compiled attributes
+  then:
+    - every task declares exactly `deps.loadpaths` as its requirement
+    - changing one task to a compiling requirement fails the test
   covers:
     - ancora.gate.only_git_is_spawned
 - id: ancora.gate.scenario.no_output_flag_on_gate_tasks

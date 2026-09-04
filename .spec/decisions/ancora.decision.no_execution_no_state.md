@@ -91,7 +91,11 @@ names all three as charter constraints.
 - No ancora task executes tests or repository shell. The only subprocess is
   `git`, spawned from `Ancora.Git`. Export introspection of ancora's own
   dependencies in the tool VM is toolchain introspection, not project
-  execution, and the load path never includes the target's `_build`.
+  execution, and the load path never includes the target's `_build`. Static
+  tests enumerate the package's eight Mix tasks and require each one to
+  declare exactly `deps.loadpaths`. The subprocess and stdout guards also
+  require a non-empty `lib/` candidate set and prove their detectors against
+  known allowed calls before applying their allowlists.
 - No derived state is written: no `state.json`, no hash baseline, no
   `--output` on gate tasks. `spec.review --output` writes a render target,
   which is not gate input. Every gate input is the working tree plus git

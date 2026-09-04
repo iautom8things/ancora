@@ -83,15 +83,21 @@ defmodule Ancora.ReviewTest do
     view = view(:fail, finding)
     html = view |> Html.render() |> IO.iodata_to_binary()
 
+    [_before, watched_and_later] = String.split(html, "<h3>Watched interface</h3>", parts: 2)
+
+    [watched_interface, supporting_and_later] =
+      String.split(watched_and_later, "<h3>Supporting changes</h3>", parts: 2)
+
+    [_supporting_changes, test_changes] =
+      String.split(supporting_and_later, "<h3>Test changes</h3>", parts: 2)
+
     assert html =~ "class=\"chip fail\""
-    assert html =~ "Watched interface"
-    assert html =~ "Billing.next/1"
-    assert html =~ "drift"
-    assert html =~ "lib/billing.ex"
-    assert html =~ "+def next(value)"
-    assert html =~ "Supporting changes"
-    assert html =~ "Test changes"
-    assert html =~ "Billing.void/2"
+    assert watched_interface =~ "Billing.next/1"
+    assert watched_interface =~ "drift"
+    assert watched_interface =~ "lib/billing.ex"
+    assert watched_interface =~ "+def next(value)"
+    refute watched_interface =~ "Billing.void/2"
+    assert test_changes =~ "Billing.void/2"
   end
 
   @tag spec: "ancora.review.findings_delta_without_store"

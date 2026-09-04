@@ -6,8 +6,6 @@ defmodule Ancora.PrimeTest do
   alias Ancora.Output
   alias Ancora.Prime
 
-  @moduletag :tmp_dir
-
   @tag spec: "ancora.tasks.prime_loop"
   test "composes status and next with the check and read-protocol footer", %{root: root} do
     init_git_repo(root)

@@ -12,11 +12,18 @@ defmodule Ancora.Static.ForbiddenWriterTest do
   # Would fail if a lib/ module other than Output grew an IO.puts/1,
   # Mix.shell(), or other stdout write — the emission path nobody enumerated.
   test "no stdout writer exists outside Ancora.Output" do
+    candidates = list_elixir_files(@lib)
+    assert candidates != []
+
+    detected = Enum.flat_map(candidates, &file_violations/1)
+
+    assert Enum.any?(detected, fn {path, _kind, _line} -> allowed?(path) end),
+           "stdout detector did not find the known writer in Ancora.Output"
+
     violations =
-      @lib
-      |> list_elixir_files()
-      |> Enum.reject(&allowed?/1)
-      |> Enum.flat_map(&file_violations/1)
+      detected
+      |> Enum.reject(fn {path, _kind, _line} -> allowed?(path) end)
+      |> Enum.map(&format_violation/1)
 
     assert violations == [], """
     stdout writers outside lib/ancora/output.ex and lib/ancora/output/:
@@ -42,14 +49,16 @@ defmodule Ancora.Static.ForbiddenWriterTest do
       {:ok, ast} ->
         ast
         |> collect([])
-        |> Enum.map(fn {kind, line} ->
-          rel = Path.relative_to(path, Path.expand("../../..", __DIR__))
-          "#{rel}:#{line} #{kind}"
-        end)
+        |> Enum.map(fn {kind, line} -> {path, kind, line} end)
 
       {:error, {meta, err, token}} ->
-        ["#{path}:#{meta[:line]} parse error: #{err}#{token}"]
+        [{path, "parse error: #{err}#{token}", meta[:line]}]
     end
+  end
+
+  defp format_violation({path, kind, line}) do
+    rel = Path.relative_to(path, Path.expand("../../..", __DIR__))
+    "#{rel}:#{line} #{kind}"
   end
 
   defp collect(ast, acc) do

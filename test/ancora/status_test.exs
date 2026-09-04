@@ -5,8 +5,6 @@ defmodule Ancora.StatusTest do
 
   alias Ancora.Status
 
-  @moduletag :tmp_dir
-
   @tag spec: "ancora.tasks.status_derived_report"
   test "reports empty and thin subjects with fixed threshold", %{root: root} do
     create_project(root)

@@ -3,8 +3,6 @@ Code.require_file("../../support/ancora_case.exs", __DIR__)
 defmodule Mix.Tasks.Spec.CheckTest do
   use Ancora.TestCase
 
-  @moduletag :tmp_dir
-
   @tag spec: "ancora.tasks.gated_emission_paths"
   @tag spec: "ancora.tasks.verdict_grammar"
   @tag spec: "ancora.tasks.exit_codes"
@@ -65,27 +63,19 @@ defmodule Mix.Tasks.Spec.CheckTest do
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
-  test "unreadable working-tree inputs emit an environment verdict", %{root: root} do
+  test "an unreadable test emits an environment verdict", %{root: root} do
     create_project(root)
     write_anchored_subject(root)
     commit_all(root, "anchored subject")
+    assert_unreadable_input(root, "test/sample_test.exs")
+  end
 
-    for relative <- ["test/sample_test.exs", "lib/sample.ex"] do
-      path = Path.join(root, relative)
-      on_exit(fn -> File.chmod(path, 0o644) end)
-      File.chmod!(path, 0o000)
-
-      result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
-
-      assert result.status == 1
-      assert result.stdout =~ relative
-
-      assert List.last(lines(result.stdout)) ==
-               "spec.check result=fail tier=env errors=0 warnings=0"
-
-      refute result.stderr =~ "RuntimeError"
-      File.chmod!(path, 0o644)
-    end
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "an unreadable library source emits an environment verdict", %{root: root} do
+    create_project(root)
+    write_anchored_subject(root)
+    commit_all(root, "anchored subject")
+    assert_unreadable_input(root, "lib/sample.ex")
   end
 
   @tag spec: "ancora.tasks.gated_emission_paths"
@@ -265,10 +255,10 @@ defmodule Mix.Tasks.Spec.CheckTest do
   @tag spec: "ancora.tasks.check_flags"
   @tag spec: "ancora.tasks.validate_flags"
   test "gate task callable surfaces are present" do
-    check = &Mix.Tasks.Spec.Check.run/1
-    validate = &Mix.Tasks.Spec.Validate.run/1
-    assert is_function(check, 1)
-    assert is_function(validate, 1)
+    Code.ensure_loaded!(Mix.Tasks.Spec.Check)
+    Code.ensure_loaded!(Mix.Tasks.Spec.Validate)
+    assert function_exported?(Mix.Tasks.Spec.Check, :run, 1)
+    assert function_exported?(Mix.Tasks.Spec.Validate, :run, 1)
   end
 
   @tag spec: "ancora.tasks.stderr_pinning"
@@ -420,6 +410,23 @@ defmodule Mix.Tasks.Spec.CheckTest do
   end
 
   defp lines(output), do: String.split(output, "\n", trim: true)
+
+  defp assert_unreadable_input(root, relative) do
+    path = Path.join(root, relative)
+    on_exit(fn -> File.chmod(path, 0o644) end)
+    File.chmod!(path, 0o000)
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    assert result.stdout =~ relative
+    assert result.stdout =~ to_string(:file.format_error(:eacces))
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+
+    refute result.stderr =~ "RuntimeError"
+  end
 
   defp last_parseable_json(output) do
     output

@@ -5,8 +5,6 @@ defmodule Ancora.NextTest do
 
   alias Ancora.Next
 
-  @moduletag :tmp_dir
-
   @tag spec: "ancora.tasks.next_labels_verbatim"
   test "prints covered local change and needs subject updates verbatim", %{root: root} do
     create_anchored_project(root)

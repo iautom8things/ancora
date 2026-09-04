@@ -3,8 +3,6 @@ Code.require_file("../../support/ancora_case.exs", __DIR__)
 defmodule Mix.Tasks.Spec.StatusTest do
   use Ancora.TestCase
 
-  @moduletag :tmp_dir
-
   @tag spec: "ancora.tasks.report_task_flags"
   @tag spec: "ancora.tasks.status_derived_report"
   test "status exits zero for an unanchored corpus and reports the derived set", %{root: root} do

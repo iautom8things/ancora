@@ -179,6 +179,29 @@ defmodule Ancora.Derive.PipelineTest do
     assert Process.alive?(self())
   end
 
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a throwing resolver returns an error without exiting its caller" do
+    ctx = %{
+      membership: fn _module -> throw(:resolver_threw) end,
+      ambient: MapSet.new(),
+      external_exports: MapSet.new(),
+      def_index: fn _module -> :unknown end,
+      findings: [],
+      side: :head
+    }
+
+    source = "defmodule SampleTest do\n  test \"call\", do: Sample.run()\nend\n"
+
+    assert {:error, {:resolver_throw, "test/sample_test.exs", :throw, :resolver_threw}} =
+             Derive.run(%{"app.subject" => ["test/sample_test.exs"]},
+               side: :head,
+               context: ctx,
+               sources: %{"test/sample_test.exs" => source}
+             )
+
+    assert Process.alive?(self())
+  end
+
   defp index!(source) do
     {:ok, index} = DefIndex.build(source, "fixture.ex")
     index
