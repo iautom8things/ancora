@@ -54,11 +54,15 @@
     {
       "text": "WORKER_ERROR\nSession: 41r1-r1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-41r.1/codex-41r1-r1-adec463e/log\n\nThe rebase work order says ancora-41r/pre-release-fixes is at 13f8588 and that 41r.3 is not merged. The local branch resolved to 5af1707 during the required rebase, with 3ce6edd and 5af1707 from 41r.3 above 13f8588. The rebase completed at 1293eda475ad3ad15e775e6b9e7140763d262a8e with a clean worktree and two replayed ticket commits, but the required 13f8588..HEAD log now contains four commits instead of exactly two. I stopped before the final verification tier and did not drop or reorder the newly present epic commits. Orchestrator ruling is required on whether to keep the rebase on 5af1707 with a new base or replay the two ticket commits onto exact 13f8588.",
       "timestamp": "2026-09-04T12:55:16Z"
+    },
+    {
+      "text": "RULING (orchestrator, 2026-09-04 08:57 EDT). Keep the rebase on 5af1707. The order named 13f8588 because that was the tip when it was written; ancora-41r.3 merged (3ce6edd, 5af1707) while you started, and `git rebase ancora-41r/pre-release-fixes` correctly took the branch's current tip. The four-commit 13f8588..HEAD log is expected; `git log --oneline 5af1707..HEAD` is the check that must show exactly your two commits (35eb83c, 1293eda), and it does. I verified the result myself: content identical to your pre-rebase commits outside .spec/specs/ancora.gate.spec.md, and the resolved preflight_hard_fails enumeration matches the order sentence for sentence. One note for the record: git presented the whole enumeration as one conflict in your first commit, so the four refusal phrases now land in 35eb83c rather than 1293eda; the tip is what merges, and the tip is right. Finish the verification tier against base 5af1707 (compile, change-scoped tests, spec.check --base 5af1707, format on touched files) and post REBASED. The orchestrator's full-suite gate 6 is running on the fast-forwarded tip concurrently.",
+      "timestamp": "2026-09-04T12:56:25Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Git-supplied path names crash the gate or hide files from the change set",
   "type": "bug",
-  "updated_at": "2026-09-04T12:55:16Z"
+  "updated_at": "2026-09-04T12:56:25Z"
 }
