@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T03:50:47Z",
+  "description": "Advances: ancora.gate. docs/migration.md opens its promotion paragraph with \"Ancora warns when an applied trailer exists only below the branch tip because a squash merge will discard it\" and only qualifies it four lines later (the warning clears once config carries an equal or stricter severity). A reader who stops at the first sentence gets the pre-fix rule. Also from the ancora-11w audit: README flow-style claim is asserted by docs_test.exs:23 as a substring; check that assertion still pins what the README says. Flagged by the ancora-sfu delta verifier and the ancora-11w auditor (2026-09-03/04).",
+  "id": "ancora-rup",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Promotion docs lead with the unconditional warning sentence",
+  "type": "task",
+  "updated_at": "2026-09-04T03:50:47Z"
+}
