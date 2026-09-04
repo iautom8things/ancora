@@ -60,11 +60,15 @@
     {
       "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-03 23:52 local)\ngit range-diff 849dbf9..29eb958 253babd..45ff9e9: both commits marked = (byte-identical patches; 9d0b7c4 -\u003e 135d741, 29eb958 -\u003e 45ff9e9). No conflict hunks, so no fresh cold agent. Rebase worker's checks on the new base: compile clean, three diff-touched test files green, format clean, spec.check --base 253babd result=pass.\nFast-forwarded ancora-xla/post-ship-hardening 253babd -\u003e 45ff9e9. Gate 13 running.",
       "timestamp": "2026-09-04T03:09:48Z"
+    },
+    {
+      "text": "APPROVED (merge record, orchestrator, 2026-09-03 23:58 local)\nFast-forwarded ancora-xla/post-ship-hardening 253babd -\u003e 45ff9e9 (two commits after rebase: 135d741, 45ff9e9).\nGate 13 on 45ff9e9: mix compile --warnings-as-errors clean; 3 properties, 397 tests, 0 failures; format clean; no unused deps; mix spec.check --base 7511407 result=pass. Log: scratchpad/gate13.log.\nClosing. Worktree /Users/mz/src/ancora-sfu and branch ancora-sfu/ack-in-config removed after close.\nCross-epic note carried forward for the PR: the docs name the requirement-scoped override key from ancora-gg8.1 as landing separately; both epic branches reconcile at PR time.",
+      "timestamp": "2026-09-04T03:10:56Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Spec-Ack acknowledgments do not survive a squash merge",
   "type": "task",
-  "updated_at": "2026-09-04T03:09:48Z"
+  "updated_at": "2026-09-04T03:10:56Z"
 }
