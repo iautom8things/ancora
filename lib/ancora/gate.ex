@@ -200,15 +200,38 @@ defmodule Ancora.Gate do
   end
 
   defp validate_override_subjects(config, index) do
-    known = MapSet.new(subject_ids(index))
-    {valid, unknown} = Enum.split_with(config.overrides, &MapSet.member?(known, &1.subject))
+    known_subjects = MapSet.new(subject_ids(index))
+
+    known_requirements =
+      index["subjects"]
+      |> Enum.flat_map(fn subject ->
+        subject["requirements"]
+        |> List.wrap()
+        |> Enum.map(&(Map.get(&1, :id) || Map.get(&1, "id")))
+        |> Enum.reject(&is_nil/1)
+      end)
+      |> MapSet.new()
+
+    {valid, unknown} =
+      Enum.split_with(config.overrides, fn override ->
+        MapSet.member?(known_subjects, override.subject) and
+          (is_nil(override.requirement) or
+             MapSet.member?(known_requirements, override.requirement))
+      end)
 
     findings =
       Enum.map(unknown, fn override ->
+        detail =
+          if MapSet.member?(known_subjects, override.subject) do
+            "override names unknown requirement #{override.requirement}"
+          else
+            "override names unknown subject #{override.subject}"
+          end
+
         Finding.new(
           code: "config/invalid_value",
           file: ".spec/config.yml",
-          detail: "override names unknown subject #{override.subject}"
+          detail: detail
         )
       end)
 

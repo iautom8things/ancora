@@ -494,6 +494,39 @@ defmodule Ancora.GateTest do
     refute Enum.any?(report.findings, &(&1.subject == "sample.a"))
   end
 
+  @tag spec: "ancora.findings.per_subject_overrides"
+  test "rejects an override for a requirement outside the indexed corpus", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" => subject_spec(),
+      ".spec/config.yml" => """
+      overrides:
+        - subject: sample.subject
+          requirement: sample.subject.missing
+          code: tags/requirement_untagged
+          severity: warning
+          reason: requirement does not exist
+      """
+    })
+
+    commit_all(root, "base")
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "config/invalid_value" and
+               finding.message =~ "sample.subject.missing"
+           end)
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "tags/requirement_untagged" and
+               finding.requirement == "sample.subject.works" and
+               finding.severity == :info and finding.severity_source == :default
+           end)
+  end
+
   @tag spec: "ancora.gate.unanchored_subject"
   test "an unanchored subject fires on every unchanged run with its override remedy", %{
     root: root

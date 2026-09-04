@@ -112,6 +112,44 @@ defmodule Ancora.StatusTest do
     assert Enum.any?(report.lines, &(&1 =~ "generated=1+2" and &1 =~ "acknowledged"))
   end
 
+  @tag spec: "ancora.findings.per_subject_overrides"
+  test "ignores an override for an unknown requirement", %{root: root} do
+    create_project(root)
+    write_subject(root, "sample.generated", "sample.generated.works")
+
+    write_config(root, """
+    overrides:
+      - subject: sample.generated
+        requirement: sample.generated.missing
+        code: tags/requirement_untagged
+        severity: info
+        reason: requirement does not exist
+    """)
+
+    assert {:ok, report} = Status.build(root)
+    row = Enum.find(report.subjects, &(&1.id == "sample.generated"))
+    refute row.acknowledged?
+  end
+
+  @tag spec: "ancora.findings.per_subject_overrides"
+  test "acknowledges an override for a known requirement", %{root: root} do
+    create_project(root)
+    write_subject(root, "sample.generated", "sample.generated.works")
+
+    write_config(root, """
+    overrides:
+      - subject: sample.generated
+        requirement: sample.generated.works
+        code: tags/requirement_untagged
+        severity: info
+        reason: requirement is blocked
+    """)
+
+    assert {:ok, report} = Status.build(root)
+    row = Enum.find(report.subjects, &(&1.id == "sample.generated"))
+    assert row.acknowledged?
+  end
+
   defp create_project(root) do
     write_files(root, %{
       "mix.exs" => """

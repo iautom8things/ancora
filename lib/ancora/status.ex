@@ -25,7 +25,17 @@ defmodule Ancora.Status do
     root = Path.expand(root)
     index = Index.build(root, index_opts(opts))
     subject_ids = Enum.map(index["subjects"], &subject_id/1)
-    config = Config.load(root, known_subjects: subject_ids)
+
+    requirement_ids =
+      Enum.flat_map(index["subjects"], fn subject ->
+        subject["requirements"]
+        |> List.wrap()
+        |> Enum.map(&(Map.get(&1, :id) || Map.get(&1, "id")))
+        |> Enum.reject(&is_nil/1)
+      end)
+
+    config =
+      Config.load(root, known_subjects: subject_ids, known_requirements: requirement_ids)
 
     with {:ok, project} <- ProjectInfo.load(root, project_opts(config)),
          {:ok, locator} <- ModuleLocator.build(project, %ChangeSet{}),

@@ -258,7 +258,7 @@ defmodule Ancora.ConfigTest do
         - subject: subject.a
           requirement: subject.a.r1
           code: tags/requirement_untagged
-          severity: info
+          severity: warning
           reason: blocked until the upstream API lands
       """)
 
@@ -288,7 +288,7 @@ defmodule Ancora.ConfigTest do
       [r1, r2, subject_only] = Severity.resolve_all(findings, config: config)
 
       assert r1.requirement == "subject.a.r1"
-      assert r1.severity == :info
+      assert r1.severity == :warning
       assert r1.severity_source == :config
       assert r2.requirement == "subject.a.r2"
       assert r2.severity == :info
@@ -297,6 +297,35 @@ defmodule Ancora.ConfigTest do
       assert subject_only.severity == :info
       assert subject_only.severity_source == :default
       assert Config.subject_status(config, "subject.a") == :acknowledged
+    end
+
+    @tag spec: "ancora.findings.per_subject_overrides"
+    test "a subject-wide override applies to a requirement finding", %{root: root} do
+      write_config(root, """
+      overrides:
+        - subject: subject.a
+          code: tags/requirement_untagged
+          severity: warning
+          reason: applies to every requirement in the subject
+      """)
+
+      config =
+        Config.load(root,
+          known_subjects: ["subject.a"],
+          known_requirements: ["subject.a.r1"]
+        )
+
+      finding =
+        Finding.new(
+          code: "tags/requirement_untagged",
+          subject: "subject.a",
+          requirement: "subject.a.r1"
+        )
+
+      [resolved] = Severity.resolve_all([finding], config: config)
+
+      assert resolved.severity == :warning
+      assert resolved.severity_source == :config
     end
 
     @tag spec: "ancora.findings.per_subject_overrides"
