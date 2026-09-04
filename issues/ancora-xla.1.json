@@ -52,11 +52,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl\n\nGate conditions checked against the bounce re-verification VERIFY: PASS at 106494e (base 849dbf9):\n- Verdict PASS, no gaps. Delta-scoped to the four audit items; all four confirmed as real edits.\n- Scope: 0 files outside Allowed, 0 in Out of Scope. No Spec-Ack trailer.\n- Spec gate: spec.check result=pass (7 info findings, no drift/growth/shrink).\n- Musts: structural_references and stable_public_api covered by named tests with five measured failure modes; both bounce mutations (nil-meta missing_field derivation; review.ex:143 filter deletion) run by the verifier alone against a clean tree and caught at index_test.exs:192 and :226. Both fixtures now produce exactly one spec/parse_error naming the rejected field; zero false missing_field findings, down from four errors with two false at d9a39d7. All six corpus readers clean on both fixtures. Requirement-id half byte-identical at 511 bytes; well-formed spec.status byte-identical at 530 bytes.\n- Honesty of the rewritten invalid_id clause: the verifier read it as honest (subject removed from the enumeration, the replacement behavior stated affirmatively in requirement and ADR, all four remaining categories verified to fire). Advisory note carried: the malformed id value is no longer echoed, only the field and the regex.\n- Seams: real mix subprocesses; no mocks. Full suite not run by the verifier; the merge gate runs it after rebase.\n- TEST_CRITIC: PASS on file.\nBounce record: 1/2 used. Next: mechanical rebase onto 45ff9e9 (merge-tree forecast clean), gate 14, close.",
       "timestamp": "2026-09-04T03:23:50Z"
+    },
+    {
+      "text": "REBASED\nSession: rebase-xla1\nOld base: 849dbf9  Old head: 106494e\nNew base: 45ff9e9  New head: 9e22e1e0998132d6723d76712b4bff01952ad403\nConflicts: none\nCompile: clean\nTests: 32 tests, 0 failures (four diff-touched files)\nFormat: clean\nspec.check --base 45ff9e9: spec.check result=pass",
+      "timestamp": "2026-09-04T03:24:52Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Pin the type of subject meta and collapse the dual-key index accessor",
   "type": "task",
-  "updated_at": "2026-09-04T03:23:54Z"
+  "updated_at": "2026-09-04T03:24:52Z"
 }
