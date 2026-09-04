@@ -54,11 +54,15 @@
     {
       "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-04 08:32 EDT)\ngit range-diff e18fa05..1523912 f818d73..84e85b1: both commits marked = (byte-identical patches; aa5e8c1 -\u003e 3acd303, 1523912 -\u003e 84e85b1). No conflict hunks, so no fresh cold agent. Rebase worker's checks on the new base: compile clean, 43 tests green across the three diff-touched files, format clean, spec.check --base f818d73 result=pass.\nFast-forwarded ancora-41r/pre-release-fixes f818d73 -\u003e 84e85b1. Gate 3 running.",
       "timestamp": "2026-09-04T12:10:40Z"
+    },
+    {
+      "text": "APPROVED (merge record, orchestrator, 2026-09-04 08:12 EDT)\nFast-forwarded ancora-41r/pre-release-fixes f818d73 -\u003e 84e85b1 (two commits after rebase).\nGate 3 on 84e85b1: mix compile --warnings-as-errors clean; 3 properties, 419 tests, 0 failures; format clean; no unused deps; mix spec.check --base 7511407 result=pass. Log: scratchpad/gate41r-3.log.\nClosing. Worktree /Users/mz/src/ancora-41r.5 and branch ancora-41r.5/override-key-docs removed after close.",
+      "timestamp": "2026-09-04T12:11:31Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "README and the migration guide promote acknowledgments with an override key Config silently drops",
   "type": "bug",
-  "updated_at": "2026-09-04T12:10:40Z"
+  "updated_at": "2026-09-04T12:11:31Z"
 }
