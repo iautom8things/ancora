@@ -57,11 +57,15 @@
     {
       "text": "FRICTION, from the ancora-xla run (orchestrator, 2026-09-03 20:19). Two related items, both observed on ancora-xla.8 tonight.\n\n1. Whole-subject acknowledgment forces text into subjects that observe nothing. Ancora.Git.run/2 and read_blob/2 are bound to ancora.gate solely because gate-tagged tests in test/ancora/git_test.exs call Git.run directly. A change to run/3's option handling therefore raises derived/drift against ancora.gate, and the only way to clear it is a requirement-or-scenario text change in the gate spec. The gate cannot observe that change (it always opens a batch port and never takes the no-port fallback in a run), so the honest options are a vacuous sentence or a retag. Under that pressure a worker wrote one vacuous and one false sentence in a single commit, and a cold verifier caught both. The derived/drift fan-out entry on this epic should include \"binding via direct-call test tags\" as a distinct cause.\n\n2. Bindings move under a ticket. The same ticket had a clean Allowed list at admission; two siblings merged since and their tagged tests rebound three of its functions to two new subjects. The drift errors appeared only at rebase time. Any per-ticket allow-list in a spec-led repo has to be re-derived against the tip at every rebase, and ancora offers no query for \"which subjects would this diff drift against a given base\" short of running the whole gate.\n\nRecord only; no child filed here. The ancora-xla epic ticket carries the full trail.",
       "timestamp": "2026-09-04T00:17:23Z"
+    },
+    {
+      "text": "ADDENDUM to the friction note above (orchestrator, 2026-09-03 20:22), with the root cause an auditor traced.\n\nDerivation is file-scoped, not test-scoped: derive.ex:54-63 flattens tagged test paths per subject and derive.ex:151-158 unions whole files' calls into one subject set. So one gate-tagged test placed in an otherwise derive-tagged file (test/ancora/git_test.exs:17 and :26, added by ancora-xla.2) binds Ancora.Git.run/2 and read_blob/2 to ancora.gate, and one parsing-tagged test placed in a scaffold-tagged file (test/ancora/scaffold/templates_test.exs:127, added by ancora-n24) binds Ancora.Init.scaffold/1 to ancora.parsing through that file's setup. Every function called anywhere in the file joins every subject tagged anywhere in the file.\n\nConcrete child candidate: move the two gate-tagged tests out of git_test.exs into a gate-scoped file, and the parsing-tagged test out of templates_test.exs into a parsing-scoped file. That removes all three functions from the wrong subjects at the root. The broader fix is test-scoped derivation, which is a design change and belongs to this epic's ack end-state discussion. Recorded as a candidate; not filed.",
+      "timestamp": "2026-09-04T00:24:23Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-04T00:17:23Z"
+  "updated_at": "2026-09-04T00:24:23Z"
 }
