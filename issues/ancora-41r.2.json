@@ -7,7 +7,7 @@
   "id": "ancora-41r.2",
   "labels": [
     "critical",
-    "phase:verifying"
+    "phase:auditing"
   ],
   "parent": "ancora-41r",
   "comments": [
@@ -32,5 +32,5 @@
   "status": "in_progress",
   "title": "A spec file with no spec-meta block passes the gate with zero findings",
   "type": "bug",
-  "updated_at": "2026-09-04T11:41:32Z"
+  "updated_at": "2026-09-04T11:42:15Z"
 }
