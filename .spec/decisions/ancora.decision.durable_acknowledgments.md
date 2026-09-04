@@ -28,14 +28,15 @@ code under `severities:` or a per-subject override with a reason. In Ancora
 1.x, an override accepts only `subject`, `code`, `severity`, and `reason`, so
 its narrowest scope is one subject and one finding code. Unknown entry keys
 are config errors and prevent that entry from applying. A `Spec-Ack:` trailer
-remains a temporary development convenience. When an
-applied trailer exists only below the branch tip, the gate warns on stderr only
-if removing the trailer would change the finding's severity. Config at the
-same severity clears the warning. Config at a more severe value does not,
-because the trailer wins while present and config applies after the trailer is
-removed. The warning directs the developer to promote the acknowledgment to
-config. There is no separate recovery path that treats a squash or merge commit
-body as the durable record.
+remains a temporary development convenience. When commits
+in the range acknowledge the same code at different severities, the commit
+nearest `HEAD` wins. When an applied trailer exists only below the branch tip,
+the gate warns on stderr only if removing the trailer would change the
+finding's severity. Config at the same severity clears the warning. Config at
+a more severe value does not, because the trailer wins while present and config
+applies after the trailer is removed. The warning directs the developer to
+promote the acknowledgment to config. There is no separate recovery path that
+treats a squash or merge commit body as the durable record.
 
 ## Consequences
 

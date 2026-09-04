@@ -151,7 +151,7 @@ defmodule Ancora.TrailerTest do
     end
 
     @tag spec: "ancora.findings.trailer_grammar"
-    test "an override repeated at the tip is not non-tip-only", %{root: root} do
+    test "the nearest override wins and keeps a differing non-tip value", %{root: root} do
       init_git_repo(root)
       write_files(root, %{"README.md" => "init\n"})
       commit_all(root, "initial")
@@ -162,8 +162,8 @@ defmodule Ancora.TrailerTest do
 
       result = Trailer.read(root, "main~2")
 
-      assert result.overrides["derived/drift"] == :warning
-      assert result.non_tip_overrides == %{}
+      assert result.overrides["derived/drift"] == :info
+      assert result.non_tip_overrides == %{"derived/drift" => :warning}
     end
   end
 

@@ -6,6 +6,7 @@ defmodule Ancora.Gate do
   alias Ancora.AppendOnly
   alias Ancora.BaseView
   alias Ancora.ChangeAnalysis
+  alias Ancora.Config
   alias Ancora.Derive
   alias Ancora.Derive.Ack
   alias Ancora.Derive.ChangeSet
@@ -497,14 +498,13 @@ defmodule Ancora.Gate do
     findings
     |> Enum.filter(fn finding ->
       case Map.fetch(trailer.non_tip_overrides, finding.code) do
-        {:ok, _severity} ->
-          [without_non_tip_override] =
-            Severity.resolve_all([finding],
-              config: config,
-              trailer_override: Map.drop(trailer.overrides, [finding.code])
-            )
+        {:ok, non_tip_severity} ->
+          durable_severity =
+            Config.severity_for(config, finding.code, finding.subject) ||
+              Finding.default_severity(finding.code)
 
-          without_non_tip_override.severity != finding.severity
+          finding.severity_source == :trailer and finding.severity == non_tip_severity and
+            finding.severity != durable_severity
 
         :error ->
           false

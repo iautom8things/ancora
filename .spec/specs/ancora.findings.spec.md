@@ -100,10 +100,13 @@ decisions:
     Ancora.Trailer shall parse `Spec-Ack: <code>=<info|warning>` from
     commits in `git log <base>..HEAD`, accept only registry codes, apply
     downgrade only (never `error`, never `off`, never higher than the resolved
-    config severity), and support no presets. The read result shall identify
-    valid code overrides found only below the tip separately from the union of
-    all overrides. An unknown code or severity shall emit a `[CONFIG]` warning
-    on stderr and be ignored, never silently dropped.
+    config severity), and support no presets. When more than one commit in the
+    range acknowledges the same code, the commit nearest `HEAD` shall win. The
+    read result shall identify the nearest valid value below the tip when the
+    tip omits that code or supplies a different severity, separately from the
+    winning union of all overrides. It shall omit that below-tip value only
+    when the tip repeats the same severity. An unknown code or severity shall
+    emit a `[CONFIG]` warning on stderr and be ignored, never silently dropped.
   priority: must
   stability: stable
 - id: ancora.findings.config_schema
@@ -224,6 +227,7 @@ decisions:
     - the code and severity appear in the union of overrides
     - the same code and severity appear in the non-tip-only overrides
     - repeating the code on the tip removes it from the non-tip-only overrides
+    - naming the code at a different severity on the tip keeps the nearest below-tip value in the non-tip-only overrides
   covers:
     - ancora.findings.trailer_grammar
 - id: ancora.findings.scenario.info_hidden_by_default

@@ -73,14 +73,23 @@ defmodule Ancora.Trailer do
       |> Enum.map(&parse/1)
 
     overrides =
-      Enum.reduce(parsed, %{}, fn result, acc -> Map.merge(acc, result.overrides) end)
+      parsed
+      |> Enum.reverse()
+      |> Enum.reduce(%{}, fn result, acc -> Map.merge(acc, result.overrides) end)
 
     tip_overrides = parsed |> List.first(%{overrides: %{}}) |> Map.fetch!(:overrides)
+
+    non_tip_overrides =
+      parsed
+      |> Enum.drop(1)
+      |> Enum.reverse()
+      |> Enum.reduce(%{}, fn result, acc -> Map.merge(acc, result.overrides) end)
+      |> Map.reject(fn {code, severity} -> Map.get(tip_overrides, code) == severity end)
 
     %{
       overrides: overrides,
       warnings: parsed |> Enum.flat_map(& &1.warnings) |> Enum.uniq(),
-      non_tip_overrides: Map.drop(overrides, Map.keys(tip_overrides))
+      non_tip_overrides: non_tip_overrides
     }
   end
 

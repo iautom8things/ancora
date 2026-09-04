@@ -326,6 +326,19 @@ decisions:
     - the verdict is `result=pass` if no other warning or error exists
   covers:
     - ancora.gate.acknowledgment_clears
+- id: ancora.gate.scenario.nearest_commit_acknowledgment_wins
+  given:
+    - a drift finding
+    - "an older commit with `Spec-Ack: derived/drift=info`"
+    - "the tip commit with `Spec-Ack: derived/drift=warning`"
+  when:
+    - the gate runs across both commits
+  then:
+    - "the finding resolves to `warning` with `severity_source: :trailer`"
+    - the verdict is `result=fail`
+    - stderr has no squash-loss warning because the winning acknowledgment is on the tip
+  covers:
+    - ancora.gate.acknowledgment_clears
 - id: ancora.gate.scenario.non_tip_trailer_warns_before_squash
   given:
     - a finding downgraded by a `Spec-Ack:` trailer below the branch tip

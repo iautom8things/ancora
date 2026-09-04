@@ -6,6 +6,8 @@ defmodule Mix.Tasks.Spec.CheckTest do
 
   alias Ancora.TmpGitRepo
 
+  @squash_warning "[CONFIG] Spec-Ack: derived/drift=info resolved from a non-tip commit and will be lost by a squash merge; promote it to .spec/config.yml before merging\n"
+
   @tag spec: "ancora.tasks.gated_emission_paths"
   @tag spec: "ancora.tasks.verdict_grammar"
   @tag spec: "ancora.tasks.exit_codes"
@@ -466,6 +468,107 @@ defmodule Mix.Tasks.Spec.CheckTest do
 
   @tag spec: "ancora.gate.acknowledgment_clears"
   @tag spec: "ancora.tasks.stderr_pinning"
+  test "the tip acknowledgment wins when commits name conflicting severities", %{root: root} do
+    create_project(root)
+    write_anchored_subject(root)
+    commit_all(root, "anchored subject")
+    base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    commit_all(root, "change value\n\nSpec-Ack: derived/drift=info")
+    write_files(root, %{"notes.md" => "The tip narrows the acknowledgment.\n"})
+    commit_all(root, "narrow acknowledgment\n\nSpec-Ack: derived/drift=warning")
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", base, "--json"])
+    report = last_parseable_json(result.stdout)
+    drift = Enum.find(report["all_findings"], &(&1["code"] == "derived/drift"))
+
+    assert result.status == 1
+    assert drift["severity"] == "warning"
+    assert drift["severity_source"] == "trailer"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=branch errors=0 warnings=1"
+
+    assert result.stderr == "** (Mix) spec.check failed\n"
+  end
+
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  @tag spec: "ancora.tasks.stderr_pinning"
+  test "a non-tip acknowledgment changes the result after squash", %{root: root} do
+    create_project(root)
+    write_anchored_subject(root)
+    commit_all(root, "anchored subject")
+    base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+    git!(root, ["checkout", "-b", "feature"])
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    commit_all(root, "change value\n\nSpec-Ack: derived/drift=info")
+    write_files(root, %{"notes.md" => "The tip has no acknowledgment.\n"})
+    commit_all(root, "document branch state")
+
+    branch = run_mix_subprocess(["spec.check", "--root", root, "--base", base, "--json"])
+    branch_report = last_parseable_json(branch.stdout)
+    branch_drift = Enum.find(branch_report["all_findings"], &(&1["code"] == "derived/drift"))
+
+    assert branch.status == 0
+    assert branch_drift["severity"] == "info"
+    assert branch_drift["severity_source"] == "trailer"
+    assert List.last(lines(branch.stdout)) == "spec.check result=pass"
+    assert branch.stderr == @squash_warning
+
+    git!(root, ["checkout", "main"])
+    git!(root, ["merge", "--squash", "feature"])
+    commit_all(root, "squash feature without trailer")
+
+    trunk = run_mix_subprocess(["spec.check", "--root", root, "--base", base, "--json"])
+    trunk_report = last_parseable_json(trunk.stdout)
+    trunk_drift = Enum.find(trunk_report["all_findings"], &(&1["code"] == "derived/drift"))
+
+    assert trunk.status == 1
+    assert trunk_drift["severity"] == "error"
+    assert trunk_drift["severity_source"] == "default"
+
+    assert List.last(lines(trunk.stdout)) ==
+             "spec.check result=fail tier=branch errors=1 warnings=0"
+
+    assert trunk.stderr == "** (Mix) spec.check failed\n"
+  end
+
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  @tag spec: "ancora.tasks.stderr_pinning"
+  test "repeating the non-tip acknowledgment on the tip stays silent", %{root: root} do
+    create_project(root)
+    write_anchored_subject(root)
+    commit_all(root, "anchored subject")
+    base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    commit_all(root, "change value\n\nSpec-Ack: derived/drift=info")
+    write_files(root, %{"notes.md" => "The tip repeats the acknowledgment.\n"})
+    commit_all(root, "repeat acknowledgment\n\nSpec-Ack: derived/drift=info")
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", base, "--json"])
+    report = last_parseable_json(result.stdout)
+    drift = Enum.find(report["all_findings"], &(&1["code"] == "derived/drift"))
+
+    assert result.status == 0
+    assert drift["severity"] == "info"
+    assert drift["severity_source"] == "trailer"
+    assert result.stderr == ""
+  end
+
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  @tag spec: "ancora.tasks.stderr_pinning"
   test "promoted acknowledgment survives a squash merge", %{root: root} do
     create_project(root)
     write_anchored_subject(root)
@@ -491,7 +594,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert unpromoted.status == 0
     assert unpromoted_drift["severity"] == "info"
     assert unpromoted_drift["severity_source"] == "trailer"
-    assert unpromoted.stderr =~ "lost by a squash merge"
+    assert unpromoted.stderr == @squash_warning
 
     write_config(root, "severities:\n  derived/drift: info\n")
 
@@ -528,7 +631,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert promoted.status == 0
     assert promoted_drift["severity"] == "info"
     assert promoted_drift["severity_source"] == "trailer"
-    refute promoted.stderr =~ "lost by a squash merge"
+    assert promoted.stderr == ""
 
     git!(root, ["checkout", "main"])
     git!(root, ["merge", "--squash", "feature"])
@@ -541,7 +644,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert trunk.status == 0
     assert trunk_drift["severity"] == promoted_drift["severity"]
     assert trunk_drift["severity_source"] == "config"
-    refute trunk.stderr =~ "lost by a squash merge"
+    assert trunk.stderr == ""
   end
 
   @tag spec: "ancora.gate.acknowledgment_clears"
@@ -594,7 +697,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert result.status == 0
     assert drift["severity"] == "info"
     assert drift["severity_source"] == "trailer"
-    assert result.stderr =~ "lost by a squash merge"
+    assert result.stderr == @squash_warning
   end
 
   @tag spec: "ancora.gate.strict_verdict"
