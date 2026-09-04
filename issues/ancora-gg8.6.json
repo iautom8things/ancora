@@ -19,11 +19,15 @@
     {
       "text": "RULING: keep ChangeAnalysis.findings at arity 5; gate.ex call site is in scope; one README trailer authorized; the two red runs do not count\n\nAll three warnings dissolve under this ruling, so neither red final-tier run counts against the cap; you have two fresh capped runs. Your uncommitted work stays.\n\n1. derived/growth and derived/shrink on ancora.derive come from your arity change: ancora.derive's tests reach Gate.check, which now calls a new ChangeAnalysis.findings/6 and no longer calls findings/5. Do not change the public arity. Keep `findings/5`; make the fifth argument a single map, `%{head: head_tag_map, base: base_tag_map}` (derive the old `tagged_ids` inside as `Map.keys(head_tag_map)`), or another shape of your choice that keeps arity 5. Update the callers and tests accordingly. No growth/shrink trailer.\n2. `lib/ancora/gate.ex` is in Allowed touches for exactly that call site and the threading of `base_tags` into it (the hunks you already have), nothing else. The ticket description now lists it.\n3. change/missing_decision on `.spec/README.md` (the registry count line, a frontmatter-less governance file) is by design the co-change rule. Because the change is a mechanical count bump with no contract change, your commit may carry exactly one trailer: `Spec-Ack: change/missing_decision=info`, with a commit-body line \"README registry count 31 → 33; mechanical, no contract change.\" Confirm the edited specs still link ancora.decision.field_friction_response in decisions: so nothing else needs that trailer. No other Spec-Ack code.\n4. Then re-run the change-scoped final tier with `mix spec.check --base 134862f53b00cfe7be62977286ebf8a19f9b8537`, prove each new assertion against its mutation in a scratch copy as before, commit referencing ancora-gg8.6, and record IMPLEMENTED with the same session tag (gg8.6-impl-1) and log path.\nThis consumes no attempt.",
       "timestamp": "2026-09-04T01:39:06Z"
+    },
+    {
+      "text": "WORKER_ERROR\nSession: gg8.6-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.6/codex-gg8.6-impl-1/log\n\nFresh final-tier run 2 after the 2026-09-04T01:39:06Z ruling failed. Per the reset 2-run cap, I stopped without retrying.\n\nCommit: a2e2276\n\nFinding:\n[ERROR] ancora.derive derived/drift lib/ancora/change_analysis.ex :: ancora.derive: Ancora.ChangeAnalysis.findings/5 at line 12 changed (lib/ancora/change_analysis.ex) but the spec did not; edit the spec for this subject in the same diff\n\nspec.check result=fail tier=branch errors=1 warnings=0\n\nI preserved the base-compatible list clause byte-for-byte and added the ruled tag-map behavior as a guarded findings/5 clause. Ancora still hashes the changed MFA as drift. The touched-file tier passed 65 tests and mix test --stale passed 56 tests before spec.check failed.",
+      "timestamp": "2026-09-04T01:47:26Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Disclosure codes: tags/tag_borrowed and append/statement_changed",
   "type": "task",
-  "updated_at": "2026-09-04T01:39:06Z"
+  "updated_at": "2026-09-04T01:47:26Z"
 }
