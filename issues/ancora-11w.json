@@ -36,11 +36,15 @@
     {
       "text": "WORKER_ERROR\nSession: 11w-i2-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-11w/codex-11w-i2-adec463e/log\n\nFinal-tier runs: 2\nFailure: final-tier run 2 completed 45 touched-file tests and 386 stale tests with 0 failures, then mix spec.check --base c330458 failed with ancora.tasks derived/growth because test/mix/tasks/spec_check_test.exs now calls Ancora.Git.run/2. Known-red baselines: none.\n\nThe final-tier cap forbids another fix-and-rerun cycle. No completion commit was created and IMPLEMENTED was not recorded.",
       "timestamp": "2026-09-04T01:44:42Z"
+    },
+    {
+      "text": "RULING (orchestrator, 2026-09-03 21:50 local). Stopping at the cap with the diff uncommitted was correct; no attempt is lost. Resume in the same pane under this order:\n\n1. Do NOT acknowledge the derived/growth warning in ancora.tasks.spec.md. The tasks subject observes nothing new: the binding appeared because test/mix/tasks/spec_check_test.exs:104 and :149 call Ancora.Git.run/2 to assert that the acknowledgment commit is absent from the shallow fixture (`cat-file -e`). That is fixture inspection, not behaviour under test, and a production function is not a fixture tool. Replace both calls with a non-raising shell call that does not touch Ancora.Git: either `System.cmd(\"git\", [\"-C\", shallow, \"cat-file\", \"-e\", \"#{ack_commit}^{commit}\"], stderr_to_stdout: true)` asserting a non-zero exit status, or a small non-bang helper next to git!/2 in test/support/tmp_git_repo.exs (support files carry no tags, so calls from them bind nothing). Keep the assertion's meaning: the commit must be absent locally.\n\n2. Commit all of your work (the uncommitted fix for the seven-item audit order plus this change), no Spec-Ack trailer.\n\n3. The final-tier cap is reset by this ruling for exactly ONE more run: your change-scoped tests plus `mix spec.check --base c330458`, which must end `spec.check result=pass`. If it is red again, post WORKER_ERROR with the finding lines verbatim and stop.\n\n4. Post IMPLEMENTED with the commit list, the per-item mutation results the audit order asked for, the test counts and the verdict line. Keep the same session tag.",
+      "timestamp": "2026-09-04T01:46:34Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Gate silently resolves a different verdict on a shallow clone",
   "type": "task",
-  "updated_at": "2026-09-04T01:44:42Z"
+  "updated_at": "2026-09-04T01:46:34Z"
 }
