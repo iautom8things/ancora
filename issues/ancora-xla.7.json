@@ -48,11 +48,15 @@
     {
       "text": "REBASED\n\nold head 582b3e6, new head 849dbf9, rebased onto epic tip 4d0adee. No conflict.\n\ngit log --oneline 4d0adee..HEAD:\n849dbf9 test: remove unreachable coverage claims\n62bb608 test: harden static guards and gate coverage\n\nSmoke: mix compile --warnings-as-errors clean. mix test: 3 properties, 385 tests, 0 failures.\n\nspec.check result=pass\n\nSession: adec463e-8b46-45af-8018-b1cd8b92afc5\nLog: /Users/mz/.claude-personal/projects/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5.jsonl",
       "timestamp": "2026-09-04T01:52:44Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-xla/post-ship-hardening. Closing per orchestrator sign-off.\n\nMechanical rebase onto 4d0adee was conflict-free; range-diff shows both commits byte-identical to the verified ones. Fast-forward to 849dbf9. Merge gate 11 on the epic branch: compile clean, 385 tests and 3 properties with 0 failures in 29.6s, format pass, deps.unlock pass, mix spec.check --base 7511407 result=pass. Test count moved 379 to 385. Gate log: /private/tmp/claude-501/-Users-mz-src-ancora/adec463e-8b46-45af-8018-b1cd8b92afc5/scratchpad/gate11.log\n\nCarried forward, not blocking: the four env-arm production observations from the audit are filed standalone as ancora-f1w; the vestigial Mix.Task.load_all/0 call; a future nested helper module under a task namespace would read as a ninth task under the broadened filter.",
+      "timestamp": "2026-09-04T01:54:17Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Give the static guards and thin tests real teeth",
   "type": "task",
-  "updated_at": "2026-09-04T01:52:44Z"
+  "updated_at": "2026-09-04T01:54:17Z"
 }
