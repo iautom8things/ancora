@@ -13,11 +13,15 @@
     {
       "text": "ORCHESTRATION STARTED (orchestrator, 2026-09-04 07:18 EDT). Preflight: all mandated tools resolve. Epic in progress, phase:implementing. Worktree /Users/mz/src/ancora-41r on ancora-41r/pre-release-fixes at e18fa05; smoke green (mix compile --warnings-as-errors; 3 properties, 407 tests, 0 failures). Comment mode; MARKERS.md as on the parent epic. Laborer: codex via cx-implementer, profile team (remembers blocked on its 7-day window). Known-red baselines: none. LESSONS: the parent's 20-entry pack carried in every brief. Six children pending, no dependency edges, all admit in one wave; child worktrees /Users/mz/src/ancora-41r.1 through .6 cutting from e18fa05 now. Console adopted from the epic description and refreshed for orchestration start. console_triggers=1 console_redeploys=1.",
       "timestamp": "2026-09-04T11:17:09Z"
+    },
+    {
+      "text": "WAVE ONE ADMITTED (orchestrator, 2026-09-04 07:22 EDT). All six children spawned together on base e18fa05, Codex profile team, one worktree each: 41r.1 /Users/mz/src/ancora-41r.1 (git path handling, session 41r1-i1), 41r.2 .2 (absent spec-meta, 41r2-i1), 41r.3 .3 (trailer precedence, 41r3-i1), 41r.4 .4 (--spec-dir flag, 41r4-i1), 41r.5 .5 (override key docs, 41r5-i1), 41r.6 .6 (artifact verdict chip, 41r6-i1). Each brief carries the ticket contract as the whole work order, the parent epic's 20 lessons, the dev-loop spec.check cadence, the prove-both-ways rule, and the no-rebase instruction. Watchers armed on each decisions.log. Every child is labeled critical, so every completion goes to a cold verifier; a critic is added wherever assertional tests change (all six order new behavior tests, so expect six).",
+      "timestamp": "2026-09-04T11:19:28Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T11:17:09Z"
+  "updated_at": "2026-09-04T11:19:28Z"
 }
