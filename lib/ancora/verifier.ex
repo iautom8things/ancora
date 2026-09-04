@@ -7,7 +7,7 @@ defmodule Ancora.Verifier do
   command building, execution, timeout, forensics, or strength ladder.
   """
 
-  alias Ancora.Finding
+  alias Ancora.{Finding, Index}
   alias Ancora.Schema.Verification
 
   # \A/\z, not ^/$: `$` matches before a trailing newline.
@@ -42,8 +42,8 @@ defmodule Ancora.Verifier do
   end
 
   defp verify_subject(subject, claim_ids, decision_ids, tagged_covers) do
-    file = fetch(subject, "file")
-    meta = fetch(subject, "meta")
+    file = Index.field(subject, "file")
+    meta = Index.field(subject, "meta")
     subject_id = id_of(meta) || file
     requirements = map_items(list_field(subject, "requirements"))
     scenarios = map_items(list_field(subject, "scenarios"))
@@ -158,7 +158,7 @@ defmodule Ancora.Verifier do
     |> Enum.flat_map(fn subject ->
       subject
       |> list_field("verification")
-      |> Enum.filter(fn v -> fetch(v, "kind") == Verification.current_kind() end)
+      |> Enum.filter(fn v -> Index.field(v, "kind") == Verification.current_kind() end)
       |> Enum.flat_map(&list_field(&1, "covers"))
     end)
     |> Enum.filter(&is_binary/1)
@@ -179,13 +179,13 @@ defmodule Ancora.Verifier do
   end
 
   defp declared_ids(subject, :subject) do
-    file = fetch(subject, "file")
+    file = Index.field(subject, "file")
     id = subject_id(subject)
     if is_binary(id), do: [{id, file}], else: []
   end
 
   defp declared_ids(subject, key) do
-    file = fetch(subject, "file")
+    file = Index.field(subject, "file")
 
     subject
     |> list_field(key)
@@ -198,7 +198,7 @@ defmodule Ancora.Verifier do
   end
 
   defp decision_entry(decision) do
-    file = fetch(decision, "file")
+    file = Index.field(decision, "file")
     id = decision_id(decision)
     if is_binary(id), do: {id, file}, else: {nil, file}
   end
@@ -235,7 +235,7 @@ defmodule Ancora.Verifier do
   defp invalid_declared_id_findings(subjects, decisions) do
     subject_ids =
       Enum.flat_map(subjects, fn subject ->
-        file = fetch(subject, "file")
+        file = Index.field(subject, "file")
         sid = subject_id(subject)
 
         ids =
@@ -255,7 +255,7 @@ defmodule Ancora.Verifier do
     decision_ids =
       Enum.flat_map(decisions, fn decision ->
         id = decision_id(decision)
-        file = fetch(decision, "file")
+        file = Index.field(decision, "file")
 
         if is_binary(id) and not valid_id?(id) do
           [invalid_id_finding(id, file, id)]
@@ -268,7 +268,7 @@ defmodule Ancora.Verifier do
   end
 
   defp present_required?(item, key) do
-    case fetch(item, key) do
+    case Index.field(item, key) do
       nil -> false
       "" -> false
       list when is_list(list) -> list != []
@@ -331,39 +331,24 @@ defmodule Ancora.Verifier do
   end
 
   defp subject_id(subject) do
-    id_of(fetch(subject, "meta")) || id_of(subject)
+    Index.subject_id(subject)
   end
 
   defp decision_id(decision) do
-    id_of(fetch(decision, "meta"))
+    id_of(Index.field(decision, "meta"))
   end
 
   defp map_items(list) when is_list(list), do: Enum.filter(list, &is_map/1)
   defp map_items(_), do: []
 
   defp list_field(map, key) do
-    case fetch(map, key) do
+    case Index.field(map, key) do
       list when is_list(list) -> list
       _ -> []
     end
   end
 
-  defp id_of(item), do: fetch(item, "id")
-
-  defp fetch(nil, _key), do: nil
-
-  defp fetch(map, key) when is_map(map) and is_binary(key) do
-    atom_key =
-      try do
-        String.to_existing_atom(key)
-      rescue
-        ArgumentError -> nil
-      end
-
-    Map.get(map, key, if(atom_key, do: Map.get(map, atom_key)))
-  end
-
-  defp fetch(_, _), do: nil
+  defp id_of(item), do: Index.field(item, "id")
 
   defp sort_findings(findings) do
     Enum.sort_by(findings, fn f ->

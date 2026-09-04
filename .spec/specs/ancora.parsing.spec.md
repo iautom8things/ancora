@@ -29,6 +29,7 @@ decisions:
   - ancora.decision.requirement_scoped_append_authorization
   - ancora.decision.cli_json_contract
   - ancora.decision.retirement_vocabulary
+  - ancora.decision.invalid_spec_meta
 ```
 
 ## Requirements
@@ -67,7 +68,13 @@ decisions:
     `spec/duplicate_id` for any subject, requirement, scenario, or decision id
     declared twice across the corpus; `spec/invalid_id` for an id that does
     not match the dotted-identifier format; and `spec/missing_field` for a
-    spec-meta, requirement, or scenario entry missing a required field.
+    spec-meta, requirement, or scenario entry missing a required field. When
+    spec-meta fails schema validation, Ancora.Parser shall store nil under
+    `"meta"` and emit `spec/parse_error`. Ancora.Index shall read known fields
+    from validated atom-keyed schema structs and raw string-keyed maps without
+    creating atoms from input, and shall return only a non-empty binary or nil
+    for a subject id. Every corpus-reading Mix task shall handle that malformed
+    subject without raising.
   priority: must
   stability: stable
 - id: ancora.parsing.requirement_unverified
@@ -221,6 +228,18 @@ decisions:
     - `spec/duplicate_id` fires once naming both files
   covers:
     - ancora.parsing.structural_references
+- id: ancora.parsing.scenario.invalid_spec_meta
+  given:
+    - a spec-meta block missing a required field
+  when:
+    - each corpus-reading Mix task reads the corpus
+  then:
+    - the parsed subject keeps the string-keyed outer index shape and stores nil under `"meta"`
+    - `spec/parse_error` is retained and no task raises
+    - field lookup does not create an atom for an unknown input key
+  covers:
+    - ancora.parsing.structural_references
+    - ancora.parsing.stable_public_api
 - id: ancora.parsing.scenario.requirement_without_tagged_tests
   given:
     - a subject with a requirement that no `tagged_tests` entry covers

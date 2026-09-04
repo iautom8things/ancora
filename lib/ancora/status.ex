@@ -136,6 +136,7 @@ defmodule Ancora.Status do
 
   defp subject_rows(index, config, locator, subject_sets) do
     index["subjects"]
+    |> Enum.filter(&is_binary(subject_id(&1)))
     |> Enum.map(fn subject ->
       id = subject_id(subject)
       set = Map.fetch!(subject_sets, id)
@@ -195,7 +196,7 @@ defmodule Ancora.Status do
       "tests=#{subject.tests} unresolved=#{subject.unresolved}#{acknowledged}"
   end
 
-  defp subject_id(subject), do: subject |> Map.fetch!("meta") |> Map.fetch!(:id)
+  defp subject_id(subject), do: Index.subject_id(subject)
 
   defp project_opts(%Config{lib_paths: nil}), do: []
   defp project_opts(%Config{lib_paths: paths}), do: [lib_paths: paths]

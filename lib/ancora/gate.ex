@@ -438,7 +438,7 @@ defmodule Ancora.Gate do
   end
 
   defp subject_source(subject_id, index, root) do
-    case Enum.find(index["subjects"], &(subject_id_of(&1) == subject_id)) do
+    case Enum.find(index["subjects"], &(Index.subject_id(&1) == subject_id)) do
       nil ->
         {:ok, nil}
 
@@ -550,11 +550,9 @@ defmodule Ancora.Gate do
   end
 
   defp subject_ids(index) do
-    Enum.map(index["subjects"], &subject_id_of/1)
-  end
-
-  defp subject_id_of(subject) do
-    subject |> Map.get("meta") |> Map.get(:id)
+    index["subjects"]
+    |> Enum.map(&Index.subject_id/1)
+    |> Enum.filter(&is_binary/1)
   end
 
   defp index_opts(opts) do
