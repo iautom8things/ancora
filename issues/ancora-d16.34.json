@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T13:02:05Z",
+  "description": "Advances: ancora.derive. Calibrated severity: Low. Carried from the 41r.1 verifier and auditor: Git.run/3 defaults stderr_to_stdout: true so any git stderr on the two -z calls turns into an env refusal rather than being dropped; the UTF-8 and spaced-path drift fixtures reach the change set only through porcelain (uncommitted head edit); the ancora.derive sentence that no production caller passes {:path, _} becomes false when ancora-kzw moves BaseView to tagged reads. Do the last one together with kzw. Filed at ancora-41r delivery (2026-09-04) from grader advisories; every item was measured or read by a cold grader and left out of the release scope on purpose. Not a full implement-tier contract: run /investigate or write the contract before /implement. Review-bar-override: release scope decision by Manuel on 2026-09-04; reason above.",
+  "id": "ancora-d16.34",
+  "labels": [],
+  "parent": "ancora-d16",
+  "priority": 4,
+  "status": "open",
+  "title": "Git path handling residue after ancora-41r.1: stderr folded into -z parses, porcelain-only drift fixtures, a derive sentence that goes stale when kzw lands",
+  "type": "task",
+  "updated_at": "2026-09-04T13:02:05Z"
+}
