@@ -58,11 +58,15 @@
     {
       "text": "REBASED\nSession: rebase-41r3-hop2\nOld base: 84e85b1  Old head: 9af954a\nNew base: 13f8588  New head: 5af1707\nConflicts: none\nCompile: clean\nTests: 71 tests, 0 failures (three diff-touched files)\nFormat: clean\nspec.check --base 13f8588: spec.check result=pass",
       "timestamp": "2026-09-04T12:49:38Z"
+    },
+    {
+      "text": "REBASE (HOP 2) VERIFIED MECHANICALLY (orchestrator, 2026-09-04 08:52 EDT, from the clock)\ngit range-diff 84e85b1..9af954a 13f8588..5af1707: both commits marked = (byte-identical patches; 181ee8c -\u003e 3ce6edd, 9af954a -\u003e 5af1707). No conflicts, no fresh cold agent. Rebase worker's checks on 13f8588: compile clean, 71 tests green across the three named files, format clean, spec.check --base 13f8588 result=pass.\nFast-forwarded ancora-41r/pre-release-fixes 13f8588 -\u003e 5af1707. Gate 5 running.",
+      "timestamp": "2026-09-04T12:51:50Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "The oldest Spec-Ack trailer beats the tip and silences the squash-loss warning",
   "type": "bug",
-  "updated_at": "2026-09-04T12:49:38Z"
+  "updated_at": "2026-09-04T12:51:50Z"
 }
