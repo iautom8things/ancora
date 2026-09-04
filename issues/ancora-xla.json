@@ -291,11 +291,15 @@
     {
       "text": "GATE 15 RED + ROUTE (orchestrator, 2026-09-04 00:44 local). ancora-xla.6 rebased onto 9e22e1e byte-identical (both commits =) and fast-forwarded to c010b8f; gate 15 on c010b8f: 407 tests, 1 failure, deterministic. The failing test is the static guard ancora-xla.6 itself widened, \"no direct IO writer exists outside Ancora.Output\", which now reports lib/ancora/gate.ex:515 IO.puts/2. Blame: 135d741, ancora-sfu's warn_non_tip_acknowledgments/2, merged at 45ff9e9 after xla.6 branched from 849dbf9. xla.6 removed the :stderr exemption after routing Config, Severity and Trailer diagnostics through Output.config_diagnostic/1; sfu added a direct stderr write in between. Each ticket green on its own base, no textual conflict on rebase, red in combination. This is exactly the case merge-gates.md names: a red can implicate any ticket merged since the last green gate.\n\nRoute per merge-gates.md: INTEGRATION_REGRESSION posted on ancora-xla.6, ticket left open, responsible implementer respawned with the merge diff and gate output. Remedy is one substitution: Output.config_diagnostic/1 at gate.ex:515, the pattern xla.6 used for Trailer.warn/2, with the stderr bytes sfu's tests assert unchanged (the helper adds the [CONFIG] prefix itself and sanitizes only \"result=\"). Scope grant for that single emission site added to xla.6's Allowed list, dated. Bounce 2 of 2 on xla.6, mechanical-remedy 1 of 2. Not a flake, so no flake-accept; not an expansion, so no SCOPE_EXPANSION. The epic tip stays at c010b8f (red) until the fix fast-forwards; nothing else is admitting, so no dependent pauses. A second consecutive red pauses the epic.\n\nLesson for the pack: a ticket that widens a repo-wide static guard must re-run that guard against the CURRENT epic tip before its final tier, not only against its own base, because siblings merged since its branch point are exactly what the guard exists to catch. console_triggers=20.",
       "timestamp": "2026-09-04T03:33:32Z"
+    },
+    {
+      "text": "SIXTEENTH CHILD CLOSED, ALL MERGED (orchestrator, 2026-09-04 00:52 local). ancora-xla.6's integration fix e18fa05 (three lines: an alias and the routed diagnostic call) verified cold: static guard 1 -\u003e 0 measured in a scratch worktree, stderr line byte-identical at both commits (151 bytes, same sha256), spec.check --base 9e22e1e pass, only Ancora.Output writes IO in lib. Fast-forward c010b8f -\u003e e18fa05. Gate 16 on e18fa05: 407 tests, 3 properties, 0 failures; format, unused-deps and spec.check --base 7511407 pass. Worktree and branch removed, board synced. All 16 children closed; epic tip e18fa05, green.\n\nPhase 2 begins: MINI-RETRO, deliver for child triage and worktree cleanup, ORCHESTRATED, final console, final report. The epic branch is not pushed and no PR is opened; that checkpoint is Manuel's. console_triggers=21 console_redeploys=21.",
+      "timestamp": "2026-09-04T03:48:53Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T03:33:32Z"
+  "updated_at": "2026-09-04T03:48:53Z"
 }
