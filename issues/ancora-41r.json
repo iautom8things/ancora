@@ -5,10 +5,12 @@
   "created": "2026-09-04T10:57:50Z",
   "description": "Critical and High fix-now findings from the consolidated critical review of ancora-xla/post-ship-hardening (review_commit e18fa05). Spec dir: .spec/\nWorktree: /Users/mz/src/ancora-41r\nBranch: ancora-41r/pre-release-fixes\nBase: e18fa05 (tip of ancora-xla/post-ship-hardening; children fast-forward into THIS epic branch, and this branch fast-forwards into ancora-xla/post-ship-hardening when green, so 1.1.0 opens from there; main is never the merge target here)\nMerge target: ancora-xla/post-ship-hardening\nConsole: https://claude.ai/code/artifact/47c7ca0b-520f-456c-b981-c97a4fe90f1a\nSource of record: ~/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-04/ancora-xla-post-ship-hardening/20260904-061300-consolidated.md (96 raw, 77 unique, 71 calibrated; 2 Critical, 6 High). Ten persona reports sit beside it.\nScope: F1, F2, F4, F5, F6, F7, F8 (F3 stays on ancora-kzw; F10 stays on ancora-90t). Every other finding is on the fast-follow epic ancora-d16.\nDecision: Manuel, 2026-09-04 02:44, \"Critical + High only\" before the 1.1.0 PR.\nSpec authoring at distill: none, by design. A new requirement id without its tagged test would turn every child's per-close merge gate red until the last child landed, so each child's contract names the exact spec sentence and scenario its implementer must land in-diff, with the decision-record edit the gate forces. Spec commit: none (see this line).\nSix children, no dependency edges: each fix is one seam. Sibling spec edits will meet at rebase; the orchestrator handles those mechanically.",
   "id": "ancora-41r",
-  "labels": [],
+  "labels": [
+    "slug:pre-release-fixes"
+  ],
   "priority": 1,
   "status": "open",
   "title": "Critical-review fixes before 1.1.0",
   "type": "epic",
-  "updated_at": "2026-09-04T11:14:11Z"
+  "updated_at": "2026-09-04T11:14:48Z"
 }
