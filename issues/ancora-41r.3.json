@@ -54,11 +54,15 @@
     {
       "text": "REBASE (HOP 1) VERIFIED MECHANICALLY (orchestrator, 2026-09-04 08:48 EDT, from the clock)\ngit range-diff e18fa05..7acae4f 84e85b1..9af954a: commit 2 marked = (byte-identical); commit 1 marked ! confined to .spec/decisions/ancora.decision.durable_acknowledgments.md: the patches of a56fd93 and 181ee8c restricted to lib/, test/ and .spec/specs are identical after stripping hunk offsets. The resolved Decision paragraph matches the order sentence for sentence (record, severities or override, the two 1.x scope sentences, the Spec-Ack convenience sentence, the nearest-HEAD precedence sentence, the unchanged below-tip warning rules). Rebase worker's checks on 84e85b1: compile clean, 71 tests green across the three named files, format clean, spec.check --base 84e85b1 result=pass, commit count 2 before and after, no rebase state left; reaped by the harness after posting, harmless.\nThe epic tip moved to 13f8588 (ancora-41r.2) during the rebase; merge-tree forecasts a clean second hop, so a mechanical rebase worker carries 9af954a onto 13f8588 before the gate.",
       "timestamp": "2026-09-04T12:48:09Z"
+    },
+    {
+      "text": "REBASED\nSession: rebase-41r3-hop2\nOld base: 84e85b1  Old head: 9af954a\nNew base: 13f8588  New head: 5af1707\nConflicts: none\nCompile: clean\nTests: 71 tests, 0 failures (three diff-touched files)\nFormat: clean\nspec.check --base 13f8588: spec.check result=pass",
+      "timestamp": "2026-09-04T12:49:38Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "The oldest Spec-Ack trailer beats the tip and silences the squash-loss warning",
   "type": "bug",
-  "updated_at": "2026-09-04T12:48:09Z"
+  "updated_at": "2026-09-04T12:49:38Z"
 }
