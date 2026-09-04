@@ -7,7 +7,7 @@
   "id": "ancora-41r.6",
   "labels": [
     "critical",
-    "phase:implementing"
+    "phase:verifying"
   ],
   "parent": "ancora-41r",
   "comments": [
@@ -20,5 +20,5 @@
   "status": "in_progress",
   "title": "The review artifact's verdict chip says fail while the gate says pass",
   "type": "bug",
-  "updated_at": "2026-09-04T11:27:26Z"
+  "updated_at": "2026-09-04T11:28:37Z"
 }
