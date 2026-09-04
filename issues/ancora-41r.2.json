@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-04T11:03:30Z",
+  "description": "Advances: ancora.parsing, ancora.gate. Distilled from the consolidated critical review of ancora-xla/post-ship-hardening at e18fa05; full contract follows.",
+  "id": "ancora-41r.2",
+  "labels": [],
+  "parent": "ancora-41r",
+  "priority": 1,
+  "status": "open",
+  "title": "A spec file with no spec-meta block passes the gate with zero findings",
+  "type": "bug",
+  "updated_at": "2026-09-04T11:03:30Z"
+}
