@@ -350,11 +350,15 @@
     {
       "text": "Post-merge CI on main green for f977c9a (run 33880501175). Epic worktree /Users/mz/src/ancora-xla and branch removed after the verified merge, along with the ancora-41r worktree and branch and the local release branch; no worktree or branch of either epic remains. Side note: the primary checkout's ancora-gg8/field-friction is back at 6e0f24e, so the gg8 session restored its branch. Handing to /deliver.",
       "timestamp": "2026-09-04T13:55:20Z"
+    },
+    {
+      "text": "Closed by /deliver (2026-09-04 09:56 EDT). Shipping evidence: PR #3 squash-merged to main as f977c9a at 13:52:34Z; post-merge CI on main green (run 33880501175). This repo has no deploy or publish workflow, so there is no health watch to run; Manuel ordered babysit -\u003e merge -\u003e deliver on this PR, and that order plus the two facts above close the epic. All 16 children closed with merge evidence; nothing re-homed. Remaining review findings live on the open backlog epic ancora-d16 (36 children). Closing this epic unblocks ancora-gg8.7. Glossary state: merged to main, not published to Hex by anything in this repo.",
+      "timestamp": "2026-09-04T13:56:16Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T13:55:59Z"
+  "updated_at": "2026-09-04T13:56:16Z"
 }
