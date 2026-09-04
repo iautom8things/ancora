@@ -165,11 +165,15 @@
     {
       "text": "RULING CONTINUATION ON ancora-xla.8, stated before acting (orchestrator, 2026-09-03 20:22).\n\nThe audit returned BOUNCE → implementer with Defect location: ruling-ordered acknowledgment text only. It confirmed the false parsing sentence by execution (six files scaffolded, one subject parsed, zero decisions), supplied the exact replacement text, and verified that the deliverable itself, the three conflict resolutions and the gate sentence are all clean. It also traced the root cause of all three forced acknowledgments: derivation is file-scoped, so a single gate-tagged test dropped into git_test.exs by the environment verdict tier binds Git.run/2 and read_blob/2 to ancora.gate, and a parsing-tagged test dropped into templates_test.exs by the retirement vocabulary binds Init.scaffold/1 to ancora.parsing. It named the fix (split those tests into subject-scoped files) as a scope-expansion candidate for ancora-gg8, not for this ticket. Forwarded there.\n\nDecision: this respawn is a continuation of my 20:08 ruling, not a third implementation attempt, and does not touch the ticket's exhausted bounce cap. Grounds: the defect is confined to one sentence I ordered into existence after the ticket's content had already passed verification and the audit gate; the audit says so in its own Defect location line; and expansion-class work consumes no bounce under exception-routing. The worker will amend 4634d5f with the audit's exact text, rebase onto 1c301fd to clear the artifact_size lag, and re-run spec.check against 1c301fd. Then a delta re-verify covering the one sentence and the rebase, then merge. Manuel can veto by replying; nothing merges before the re-verify regardless.",
       "timestamp": "2026-09-04T00:24:18Z"
+    },
+    {
+      "text": "NINTH CHILD CLOSED (orchestrator, 2026-09-03 20:32). ancora-xla.8 merged at 316798a. Gate 8: 372 tests, 3 properties, 0 failures, 26.9s; format, deps.unlock and spec.check --base 7511407 pass. Test count 369 to 372. Worktree and branch removed.\n\nThe continuation worker applied the audit's replacement sentence and nothing else; range-diff across both rebases shows the three verified commits byte-identical and the amended commit differing in exactly that one hunk. spec.check --base 1c301fd passed in the stage before merge, clearing the artifact_size lag. I verified the continuation mechanically rather than with another cold agent and recorded why on the ticket.\n\nWave accounting. Five tickets were unrouted when this session resumed at 19:38; four are now merged (xla.5, n24, gqb, xla.8) and the fifth (xla.3) is in cold re-verification with its critic already passed. Nine of sixteen children closed. Eleven full gates run, all green since the epic was released.\n\nNext: when xla.3 lands, admit the next wave from the six unblocked children (11w, sfu, xla.1, xla.6, xla.7, xla.9), re-deriving each Allowed list against the tip at admission per tonight's lesson.\n\nConsole redeployed for the close and the gate. console_redeploys=12.",
+      "timestamp": "2026-09-04T00:31:06Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T00:24:18Z"
+  "updated_at": "2026-09-04T00:31:06Z"
 }
