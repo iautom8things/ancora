@@ -243,11 +243,15 @@
     {
       "text": "FINAL BOUNCE ON ancora-11w (orchestrator, 2026-09-03 22:24 local). Second audit returned BOUNCE → implementer, bounce 2 of 2, mechanical-remedy 0/2: wrong behaviour on a reachable input that falsifies five corpus statements, not a remedy count.\n\nThe auditor confirmed the parser defect with three fixtures differing only in the head commit's message (\"parent 0000...\" and \"parent pom bumped by the release script\" both turn a complete range into an environment failure), then built the entire remedy and ran the full final tier green before ordering it: header cut, regression test proven both ways (28/0 with the cut, 28/1 without, only that test moving), the System.cmd fixture replacement, no spec edit needed, 387 tests, spec gate pass. Eight-item order with nothing optional. README flow-style formatting ruled a Note with a follow-up recommended against the brittle six-line assertion in docs_test.exs.\n\nSpawned cold as 11w-i3-adec463e on the personal profile with the audit verbatim and one addition from me, done first: rebase onto 849dbf9 with the one forecast conflict resolved as specified (keep the TmpGitRepo alias, drop the dead moduletag), so the verifier sees the whole branch against the real tip and no rebase round follows a pass. A failure here parks the ticket and escalates to Manuel.\n\nFour workers live: 11w final attempt, sfu, xla.1, xla.6.",
       "timestamp": "2026-09-04T02:16:09Z"
+    },
+    {
+      "text": "CONTEXT CHECKPOINT: turn-end boundary at 60.0035% before /compact",
+      "timestamp": "2026-09-04T02:29:26Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T02:16:09Z"
+  "updated_at": "2026-09-04T02:29:26Z"
 }
