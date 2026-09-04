@@ -60,11 +60,15 @@
     {
       "text": "REBASE VERIFIED MECHANICALLY (orchestrator, 2026-09-04 00:26 local)\ngit range-diff 849dbf9..106494e 45ff9e9..9e22e1e: both commits marked = (byte-identical patches; d9a39d7 -\u003e 0511f4a, 106494e -\u003e 9e22e1e). No conflict hunks, so no fresh cold agent. Rebase worker's checks on the new base: compile clean, 32 tests green across the four diff-touched files, format clean, spec.check --base 45ff9e9 result=pass.\nFast-forwarded ancora-xla/post-ship-hardening 45ff9e9 -\u003e 9e22e1e. Gate 14 running.",
       "timestamp": "2026-09-04T03:25:50Z"
+    },
+    {
+      "text": "APPROVED (merge record, orchestrator, 2026-09-04 00:28 local)\nFast-forwarded ancora-xla/post-ship-hardening 45ff9e9 -\u003e 9e22e1e (two commits after rebase: 0511f4a, 9e22e1e).\nGate 14 on 9e22e1e: mix compile --warnings-as-errors clean; 3 properties, 399 tests, 0 failures; format clean; no unused deps; mix spec.check --base 7511407 result=pass. Log: scratchpad/gate14.log.\nClosing. Worktree /Users/mz/src/ancora-xla.1 and branch ancora-xla.1/spec-meta-type removed after close.\nAdvisory carried to the mini-retro: the malformed id value is no longer echoed in any channel, only the rejected field and the regex; the \"only spec/* finding\" sentence is scoped to single-defect corpora by its scenario.",
+      "timestamp": "2026-09-04T03:27:00Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Pin the type of subject meta and collapse the dual-key index accessor",
   "type": "task",
-  "updated_at": "2026-09-04T03:25:50Z"
+  "updated_at": "2026-09-04T03:27:00Z"
 }
