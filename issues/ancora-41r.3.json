@@ -10,9 +10,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-41r",
+  "comments": [
+    {
+      "text": "IMPLEMENTED\nSession: 41r3-i1-adec463e\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-41r.3/codex-41r3-i1-adec463e/log\n\nCommit: a56fd932b29ed2aa599d0d1306c1bed056fade34\nFiles touched: .spec/decisions/ancora.decision.durable_acknowledgments.md, .spec/specs/ancora.findings.spec.md, .spec/specs/ancora.gate.spec.md, lib/ancora/gate.ex, lib/ancora/trailer.ex, test/ancora/trailer_test.exs, test/mix/tasks/spec_check_test.exs\nTests added: Mix.Tasks.Spec.CheckTest \"the tip acknowledgment wins when commits name conflicting severities\", \"a non-tip acknowledgment changes the result after squash\", and \"repeating the non-tip acknowledgment on the tip stays silent\"; updated Ancora.TrailerTest \"the nearest override wins and keeps a differing non-tip value\"\nSpec acknowledgment: substantive edits to ancora.findings and ancora.gate, with the precedence decision recorded in ancora.decision.durable_acknowledgments; no Spec-Ack trailer used\nVerification tier: change-scoped — mix compile --warnings-as-errors; test/ancora/trailer_test.exs, test/ancora/gate_test.exs, test/mix/tasks/spec_check_test.exs; mix format --check-formatted; mix deps.unlock --check-unused; mix spec.check --base e18fa05; full-system proof deferred to the merge gate / PR CI\nFinal-tier runs: 1\n\nSummary: Trailer.read now gives the commit nearest HEAD precedence and retains the nearest differing below-tip value, while Gate warns only when that below-tip value supplied the finding severity and differs from durable config or the default. Mutation proof: item 1's oldest-wins fold produced 1 failure from 1 selected CLI test and passed 1 of 1 after revert; item 2's key-based non-tip filter produced 1 failure from 1 selected trailer test and passed 1 of 1 after revert; item 3's old source-and-membership predicate produced 2 failures from 2 selected CLI tests and passed 2 of 2 after revert. The final 67-test run passed and pins equal config silent, stricter config loud, no config loud, and tip repeat silent byte-for-byte on stderr.",
+      "timestamp": "2026-09-04T11:30:09Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "The oldest Spec-Ack trailer beats the tip and silences the squash-loss warning",
   "type": "bug",
-  "updated_at": "2026-09-04T11:17:48Z"
+  "updated_at": "2026-09-04T11:30:09Z"
 }
