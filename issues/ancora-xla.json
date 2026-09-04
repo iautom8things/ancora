@@ -319,11 +319,15 @@
     {
       "text": "DECISION (Manuel, 2026-09-04 02:44 local): Critical + High only land on this branch before 1.1.0 opens. Seven fixes from the consolidated review: F1 space-in-path batch-port crash, F2 missing spec-meta false pass, F4 C-quoted paths invisible to the change set, F5 trailer precedence oldest-wins, F6 --spec-dir documented default and unhandled raise, F7 requirement: override key silently dropped (docs plus unknown-key rejection), F8 review artifact verdict chip disagrees with the gate. F3 stays on ancora-kzw. The 37 Mediums and the 20 tracked rows go to a fast-follow epic. Release stays 1.1.0 on feat/ancora-xla-post-ship-hardening; /open-pr re-runs when the seven are merged and the gate is green. Distilling the report into tickets now.",
       "timestamp": "2026-09-04T10:56:08Z"
+    },
+    {
+      "text": "DISTILLED (orchestrator, 2026-09-04 03:20 local). Two epics from the critical review of e18fa05.\nancora-41r \"Critical-review fixes before 1.1.0\" (P1, in this orchestrator's hands next): worktree /Users/mz/src/ancora-41r, branch ancora-41r/pre-release-fixes off e18fa05, merge target THIS epic branch. Six children with full implement-tier contracts, no dependency edges: 41r.1 git-supplied paths (F1 Critical + F4 High + F24), 41r.2 absent spec-meta block (F2 Critical + F27), 41r.3 trailer precedence (F5 High + F16), 41r.4 --spec-dir docs and error tier (F6 High; preflight half stays on ancora-90t), 41r.5 requirement: override key (F7 High), 41r.6 artifact verdict chip (F8 High + F28). No spec authored at distill, by design: a new requirement id without its tagged test would turn every child's per-close gate red until the last landed, so each contract names the exact spec sentence and scenario its implementer lands in-diff with the decision-record edit.\nancora-d16 \"Fast-follow: critical-review findings deferred from the 1.1.0 release\" (P3, open backlog, 30 children with severity and report pointers; F3 kzw, F10 90t, F37 gg8 referenced not duplicated).\nRelease plan unchanged: 1.1.0 on feat/ancora-xla-post-ship-hardening; /open-pr re-runs when ancora-41r fast-forwards into this branch green and the critical-review gate sees a report covering that HEAD (the current report covers e18fa05; a re-review of the seven fixes is the orchestrator's call at that point).",
+      "timestamp": "2026-09-04T11:04:51Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T10:56:08Z"
+  "updated_at": "2026-09-04T11:04:51Z"
 }
