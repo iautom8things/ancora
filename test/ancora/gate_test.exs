@@ -762,23 +762,46 @@ defmodule Ancora.GateTest do
   test "parallel parsing preserves complete finding order across runs", %{root: root} do
     create_clean_repo(root)
 
+    slow_spec =
+      String.duplicate("Spec parser padding.\n", 20_000) <>
+        subject_spec("Alpha shall work.", "alpha.subject")
+
     slow_error =
       "defmodule SlowErrorTest do\n" <>
         String.duplicate("  @tag :padding\n", 20_000) <>
         "  test(\nend\n"
 
     write_files(root, %{
+      ".spec/specs/a_alpha.spec.md" => slow_spec,
+      ".spec/specs/b_beta.spec.md" => subject_spec("Beta shall work.", "beta.subject"),
+      ".spec/specs/c_gamma.spec.md" => subject_spec("Gamma shall work.", "gamma.subject"),
+      ".spec/specs/d_delta.spec.md" => subject_spec("Delta shall work.", "delta.subject"),
+      "lib/alpha.ex" => "defmodule Alpha do\n  def value, do: :alpha\nend\n",
+      "lib/beta.ex" => "defmodule Beta do\n  def value, do: :beta\nend\n",
+      "lib/gamma.ex" => "defmodule Gamma do\n  def value, do: :gamma\nend\n",
       "test/a_slow_error_test.exs" => slow_error,
       "test/z_fast_error_test.exs" => "defmodule FastErrorTest do\n  test(\nend\n"
     })
 
     finding_lists =
-      for _run <- 1..5 do
+      for _run <- 1..10 do
         assert {:ok, report} = Gate.check(root, base: "HEAD")
         report.all_findings
       end
 
     assert Enum.all?(tl(finding_lists), &(&1 == hd(finding_lists)))
+
+    assert finding_lists
+           |> hd()
+           |> Enum.filter(&(&1.code == "tags/requirement_untagged"))
+           |> Enum.map(&{&1.subject, &1.code}) ==
+             [
+               {"alpha.subject", "tags/requirement_untagged"},
+               {"beta.subject", "tags/requirement_untagged"},
+               {"gamma.subject", "tags/requirement_untagged"},
+               {"delta.subject", "tags/requirement_untagged"}
+             ],
+           "Would fail if spec parse results were collected outside path order"
 
     assert finding_lists
            |> hd()
