@@ -26,6 +26,7 @@ decisions:
   - ancora.decision.slimmed_governance
   - ancora.decision.cli_json_contract
   - ancora.decision.retirement_vocabulary
+  - ancora.decision.durable_acknowledgments
 ```
 
 ## Requirements
@@ -86,7 +87,12 @@ decisions:
     the diff, the gate shall suppress that subject's `derived/drift`,
     `derived/growth`, and `derived/shrink` findings. A `Spec-Ack:` trailer in
     the `base..HEAD` range shall downgrade the named code toward `info` or
-    `warning` but never suppress it and never raise it.
+    `warning` but never suppress it and never raise it. The durable
+    acknowledgment record shall be `.spec/config.yml` through `severities:` or
+    a per-subject override; trailers are a development convenience. When a
+    finding resolves through a trailer that exists only in a non-tip commit,
+    the gate shall warn on stderr that a squash merge will lose it and name
+    `.spec/config.yml` as the promotion target.
   priority: must
   stability: stable
 - id: ancora.gate.new_subject_self_clears
@@ -307,6 +313,19 @@ decisions:
   then:
     - "the finding remains at `info` with `severity_source: :config`"
     - the verdict is `result=pass` if no other warning or error exists
+  covers:
+    - ancora.gate.acknowledgment_clears
+- id: ancora.gate.scenario.non_tip_trailer_warns_before_squash
+  given:
+    - a finding downgraded by a `Spec-Ack:` trailer below the branch tip
+    - no trailer for that code on the tip commit
+  when:
+    - the gate runs before a squash merge
+  then:
+    - stderr names the applied code and severity
+    - stderr says the acknowledgment will be lost by a squash merge
+    - stderr names `.spec/config.yml` as the promotion target
+    - a non-tip trailer that resolves no finding produces no loss warning
   covers:
     - ancora.gate.acknowledgment_clears
 - id: ancora.gate.scenario.new_subject_clears_itself

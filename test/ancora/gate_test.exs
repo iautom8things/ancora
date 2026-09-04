@@ -574,7 +574,12 @@ defmodule Ancora.GateTest do
 
     commit_all(root, "change value\n\nSpec-Ack: derived/drift=info")
 
-    assert {:ok, report} = Gate.check(root, base: "HEAD~1")
+    stderr =
+      capture_io(:stderr, fn ->
+        send(self(), {:report, Gate.check(root, base: "HEAD~1")})
+      end)
+
+    assert_received {:report, {:ok, report}}
 
     assert Enum.any?(report.all_findings, fn finding ->
              finding.code == "derived/drift" and finding.severity == :info and
@@ -582,6 +587,58 @@ defmodule Ancora.GateTest do
            end)
 
     assert report.fail == false
+    refute stderr =~ "lost by a squash merge"
+  end
+
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  test "an applied trailer below the tip warns before squash", %{root: root} do
+    init_git_repo(root)
+    write_anchored_subject(root, "The sample shall return the current value.")
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    commit_all(root, "change value\n\nSpec-Ack: derived/drift=info")
+    write_files(root, %{"README.md" => "tip\n"})
+    commit_all(root, "tip without trailer")
+
+    stderr =
+      capture_io(:stderr, fn ->
+        send(self(), {:report, Gate.check(root, base: "HEAD~2")})
+      end)
+
+    assert_received {:report, {:ok, report}}
+    assert report.fail == false
+    assert stderr =~ "Spec-Ack: derived/drift=info"
+    assert stderr =~ "non-tip commit"
+    assert stderr =~ "lost by a squash merge"
+    assert stderr =~ ".spec/config.yml"
+  end
+
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  test "a non-tip trailer that resolves no finding does not warn", %{root: root} do
+    init_git_repo(root)
+    write_anchored_subject(root, "The sample shall return the current value.")
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    commit_all(root, "unrelated ack\n\nSpec-Ack: derived/growth=info")
+    write_files(root, %{"README.md" => "tip\n"})
+    commit_all(root, "tip without trailer")
+
+    stderr =
+      capture_io(:stderr, fn ->
+        send(self(), {:report, Gate.check(root, base: "HEAD~2")})
+      end)
+
+    assert_received {:report, {:ok, report}}
+    assert report.fail == true
+    refute stderr =~ "lost by a squash merge"
   end
 
   @tag spec: "ancora.gate.acknowledgment_clears"

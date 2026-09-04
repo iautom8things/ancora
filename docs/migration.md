@@ -29,6 +29,15 @@ Ancora version.
 8. Remove the compatibility shim only after the repository's CI passes with
    Ancora alone.
 
+`Spec-Ack:` trailers are temporary development acknowledgments. Ancora warns
+when an applied trailer exists only below the branch tip because a squash merge
+will discard it. Before merging, copy that severity into `.spec/config.yml`
+under `severities:` or an `overrides:` entry, add the reason for an override,
+and commit the config change. Prefer the optional `requirement:` key when the
+installed Ancora version supports requirement-scoped overrides. It is the
+narrowest durable target, but support for that key lands separately from the
+non-tip trailer warning.
+
 `spec-exceptions` blocks and the `"exceptions"` key returned by
 `Ancora.Parser.parse_file/2` are deprecated. Ancora 1.x still parses and returns
 them. Remove these blocks before upgrading to Ancora 2.0, which removes both.

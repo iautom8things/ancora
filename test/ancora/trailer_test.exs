@@ -122,6 +122,7 @@ defmodule Ancora.TrailerTest do
 
       result = Trailer.read(root, "main~2")
       assert result.overrides["derived/drift"] == :warning
+      assert result.non_tip_overrides == %{"derived/drift" => :warning}
 
       [resolved] =
         Severity.resolve_all(
@@ -139,12 +140,30 @@ defmodule Ancora.TrailerTest do
       write_files(root, %{"README.md" => "init\n"})
       commit_all(root, "initial")
 
-      assert %{overrides: %{}, warnings: []} = Trailer.read(root, "HEAD")
+      assert %{overrides: %{}, warnings: [], non_tip_overrides: %{}} =
+               Trailer.read(root, "HEAD")
     end
 
     @tag spec: "ancora.findings.trailer_grammar"
     test "git failure returns empty result", %{root: root} do
-      assert %{overrides: %{}, warnings: []} = Trailer.read(root, "no-such-ref")
+      assert %{overrides: %{}, warnings: [], non_tip_overrides: %{}} =
+               Trailer.read(root, "no-such-ref")
+    end
+
+    @tag spec: "ancora.findings.trailer_grammar"
+    test "an override repeated at the tip is not non-tip-only", %{root: root} do
+      init_git_repo(root)
+      write_files(root, %{"README.md" => "init\n"})
+      commit_all(root, "initial")
+      write_files(root, %{"one" => "one\n"})
+      commit_all(root, "earlier\n\nSpec-Ack: derived/drift=warning")
+      write_files(root, %{"two" => "two\n"})
+      commit_all(root, "tip\n\nSpec-Ack: derived/drift=info")
+
+      result = Trailer.read(root, "main~2")
+
+      assert result.overrides["derived/drift"] == :warning
+      assert result.non_tip_overrides == %{}
     end
   end
 

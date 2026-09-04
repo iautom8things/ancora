@@ -378,6 +378,72 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert List.last(lines(result.stdout)) =~ "spec.check result=fail tier=branch"
   end
 
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  @tag spec: "ancora.tasks.stderr_pinning"
+  test "promoted acknowledgment survives a squash merge", %{root: root} do
+    create_project(root)
+    write_anchored_subject(root)
+    commit_all(root, "anchored subject")
+    base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+    git!(root, ["checkout", "-b", "feature"])
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    commit_all(root, "change value\n\nSpec-Ack: derived/drift=info")
+
+    write_config(root, "severities:\n  derived/drift: info\n")
+
+    write_decision(root, "promote-ack", """
+    ---
+    id: sample.decision.promote_ack
+    status: accepted
+    date: 2026-09-03
+    affects:
+      - sample.subject
+    ---
+
+    # Promote the acknowledgment
+
+    ## Context
+
+    The branch carries a temporary trailer.
+
+    ## Decision
+
+    Record the severity in config before merging.
+
+    ## Consequences
+
+    The acknowledgment survives a squash merge.
+    """)
+
+    commit_all(root, "promote acknowledgment")
+
+    branch = run_mix_subprocess(["spec.check", "--root", root, "--base", base, "--json"])
+    branch_report = last_parseable_json(branch.stdout)
+    branch_drift = Enum.find(branch_report["all_findings"], &(&1["code"] == "derived/drift"))
+
+    assert branch.status == 0
+    assert branch_drift["severity"] == "info"
+    assert branch_drift["severity_source"] == "trailer"
+    assert branch.stderr =~ "lost by a squash merge"
+
+    git!(root, ["checkout", "main"])
+    git!(root, ["merge", "--squash", "feature"])
+    commit_all(root, "squash feature without trailer")
+
+    trunk = run_mix_subprocess(["spec.check", "--root", root, "--base", base, "--json"])
+    trunk_report = last_parseable_json(trunk.stdout)
+    trunk_drift = Enum.find(trunk_report["all_findings"], &(&1["code"] == "derived/drift"))
+
+    assert trunk.status == 0
+    assert trunk_drift["severity"] == branch_drift["severity"]
+    assert trunk_drift["severity_source"] == "config"
+    refute trunk.stderr =~ "lost by a squash merge"
+  end
+
   @tag spec: "ancora.gate.strict_verdict"
   @tag spec: "ancora.tasks.exit_codes"
   test "a warning-only corpus fails spec.check", %{root: root} do

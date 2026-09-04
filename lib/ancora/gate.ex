@@ -483,10 +483,32 @@ defmodule Ancora.Gate do
   defp resolve_findings(findings, preflight, ctx) do
     trailer = Trailer.read(preflight.root, ctx.base)
 
-    Severity.resolve_all(findings,
-      config: preflight.config,
-      trailer_override: trailer.overrides
-    )
+    findings =
+      Severity.resolve_all(findings,
+        config: preflight.config,
+        trailer_override: trailer.overrides
+      )
+
+    warn_non_tip_acknowledgments(findings, trailer.non_tip_overrides)
+    findings
+  end
+
+  defp warn_non_tip_acknowledgments(findings, non_tip_overrides) do
+    findings
+    |> Enum.filter(fn finding ->
+      finding.severity_source == :trailer and Map.has_key?(non_tip_overrides, finding.code)
+    end)
+    |> Enum.map(& &1.code)
+    |> Enum.uniq()
+    |> Enum.each(fn code ->
+      severity = Map.fetch!(non_tip_overrides, code)
+
+      IO.puts(
+        :stderr,
+        "[CONFIG] Spec-Ack: #{code}=#{severity} resolved from a non-tip commit and will be " <>
+          "lost by a squash merge; promote it to .spec/config.yml before merging"
+      )
+    end)
   end
 
   defp report(preflight, change_set, index, subject_sets, findings, opts) do

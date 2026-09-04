@@ -25,6 +25,7 @@ status: active
 summary: Closed 30-code finding registry, severity precedence, Spec-Ack trailer grammar, and config.yml schema with per-subject overrides.
 decisions:
   - ancora.decision.slimmed_governance
+  - ancora.decision.durable_acknowledgments
 ```
 
 ## Requirements
@@ -97,11 +98,12 @@ decisions:
 - id: ancora.findings.trailer_grammar
   statement: >-
     Ancora.Trailer shall parse `Spec-Ack: <code>=<info|warning>` from
-    `git log <base>..HEAD --format=%B`, accept only registry codes, apply
-    downgrade only (never `error`, never `off`, never higher than the
-    resolved config severity), and support no presets. An unknown code or
-    severity shall emit a `[CONFIG]` warning on stderr and be ignored, never
-    silently dropped.
+    commits in `git log <base>..HEAD`, accept only registry codes, apply
+    downgrade only (never `error`, never `off`, never higher than the resolved
+    config severity), and support no presets. The read result shall identify
+    valid code overrides found only below the tip separately from the union of
+    all overrides. An unknown code or severity shall emit a `[CONFIG]` warning
+    on stderr and be ignored, never silently dropped.
   priority: must
   stability: stable
 - id: ancora.findings.config_schema
@@ -198,6 +200,18 @@ decisions:
   then:
     - a `[CONFIG]` line on stderr names the unknown code
     - no severity changes
+  covers:
+    - ancora.findings.trailer_grammar
+- id: ancora.findings.scenario.non_tip_override_is_identified
+  given:
+    - a valid trailer for one code below the branch tip
+    - no trailer for that code on the tip commit
+  when:
+    - the trailer range is read
+  then:
+    - the code and severity appear in the union of overrides
+    - the same code and severity appear in the non-tip-only overrides
+    - repeating the code on the tip removes it from the non-tip-only overrides
   covers:
     - ancora.findings.trailer_grammar
 - id: ancora.findings.scenario.info_hidden_by_default

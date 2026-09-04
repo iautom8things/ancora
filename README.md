@@ -50,7 +50,13 @@ when the tool loads them.
 Tagged tests define which production functions belong to a subject. When
 those functions or calls change, edit the subject's requirements or scenarios
 in the same diff. Mechanical rewrites such as `mix format --migrate` still
-need an explicit acknowledgment when they change the derived call set.
+need an explicit acknowledgment when they change the derived call set. A
+`Spec-Ack: <code>=<info|warning>` commit trailer is temporary development
+metadata. Before squash-merging, promote an applied trailer to the durable
+`.spec/config.yml` record with either `severities:` or a subject override. Use
+the optional `requirement:` key for the narrowest override when the installed
+Ancora version supports requirement-scoped overrides. That key lands separately
+from this acknowledgment warning.
 
 ## Deprecated 1.x grammar
 
