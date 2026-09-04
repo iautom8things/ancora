@@ -343,11 +343,15 @@
     {
       "text": "CI green on PR #3 with 0 fix commits (both matrix jobs pass: Elixir 1.19.5/OTP 28.3.1 and 1.18.4/OTP 26.2.5; merge state clean; no review comments). Ready for merge; Manuel ordered babysit -\u003e merge -\u003e deliver, proceeding to /merge-pr.",
       "timestamp": "2026-09-04T13:51:41Z"
+    },
+    {
+      "text": "Squash-merged to main as f977c9a (PR #3, release 1.1.0) at 13:52:34Z. Remote branch feat/ancora-xla-post-ship-hardening deleted; local main ref advanced in the primary checkout without touching its checked-out gg8 branch. No deploy or publish workflow exists in this repo, so the post-merge run is CI on main for f977c9a; watching it. Per the glossary this is merged, not shipped: the package is not published anywhere by this merge.",
+      "timestamp": "2026-09-04T13:53:17Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Fast-follow: ancora 1.0 critical review and post-ship hardening",
   "type": "epic",
-  "updated_at": "2026-09-04T13:52:52Z"
+  "updated_at": "2026-09-04T13:53:17Z"
 }
