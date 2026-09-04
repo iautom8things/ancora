@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Manuel Zubieta",
   "blocked_by": [],
   "blocks": [],
   "created": "2026-09-04T11:03:32Z",
@@ -10,8 +10,8 @@
   ],
   "parent": "ancora-41r",
   "priority": 1,
-  "status": "open",
+  "status": "in_progress",
   "title": "README and the migration guide promote acknowledgments with an override key Config silently drops",
   "type": "bug",
-  "updated_at": "2026-09-04T11:03:33Z"
+  "updated_at": "2026-09-04T11:18:17Z"
 }
