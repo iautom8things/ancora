@@ -13,11 +13,15 @@
     {
       "text": "SCOPE_EXPANSION\nSession: gg8.9-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.9/codex-gg8.9-impl-1/log\nPath: priv/spec_init/agents/SKILL.md\nReason: Deliverable 9 requires the scaffolded agent guide, but Allowed touches names priv/spec_init/agents/SKILL.md.eex, which does not exist. Ancora.Init and scaffold tests use priv/spec_init/agents/SKILL.md, so editing or creating the allowed .eex path would not reach production.\nOrigin: ancora-gg8.9",
       "timestamp": "2026-09-05T11:20:26Z"
+    },
+    {
+      "text": "ORCHESTRATOR RULING: SCOPE_EXPANSION approved. The Allowed touches should have read priv/spec_init/agents/SKILL.md (the shipped scaffold file; there is no .eex variant). priv/spec_init/agents/SKILL.md is in scope for deliverable 9 and for any registry or flag text it needs. Everything else in the ticket stands. Continue with the same session tag (gg8.9-impl-1) and log path; this run does not count against the cap.",
+      "timestamp": "2026-09-05T11:21:22Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Critical-review fixes before the field-friction PR",
   "type": "task",
-  "updated_at": "2026-09-05T11:20:26Z"
+  "updated_at": "2026-09-05T11:21:22Z"
 }
