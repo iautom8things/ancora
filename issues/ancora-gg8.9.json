@@ -9,9 +9,15 @@
     "phase:implementing"
   ],
   "parent": "ancora-gg8",
+  "comments": [
+    {
+      "text": "SCOPE_EXPANSION\nSession: gg8.9-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.9/codex-gg8.9-impl-1/log\nPath: priv/spec_init/agents/SKILL.md\nReason: Deliverable 9 requires the scaffolded agent guide, but Allowed touches names priv/spec_init/agents/SKILL.md.eex, which does not exist. Ancora.Init and scaffold tests use priv/spec_init/agents/SKILL.md, so editing or creating the allowed .eex path would not reach production.\nOrigin: ancora-gg8.9",
+      "timestamp": "2026-09-05T11:20:26Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Critical-review fixes before the field-friction PR",
   "type": "task",
-  "updated_at": "2026-09-05T11:16:21Z"
+  "updated_at": "2026-09-05T11:20:26Z"
 }
