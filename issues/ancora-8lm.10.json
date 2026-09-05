@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-05T13:13:51Z",
+  "description": "Advances: ancora.findings\nReady-for: investigate\nSeverity: Medium (calibrated; critical review 2026-09-05, consolidated F39, security M1).\nReview-bar-override: changes what a semver-stable function returns; needs a contract decision, not a patch.\n\nSymptom: a severity: off entry in .spec/config.yml destroys the finding before the hidden-by-source counters run (lib/ancora/severity.ex), so it appears in no bucket, while acks, trailers and (since ancora-gg8.9) config demotions are counted.\nEvidence: reproduced on a scratch repo: suppressing change/uncovered_file left all hidden buckets at zero. The field-friction decision says every run counts what each suppression source hid.\nWhy now: the disclosure model has one uncounted lever. Question: is off a suppression source that should be counted, or is destroying the finding what off means?",
+  "id": "ancora-8lm.10",
+  "labels": [],
+  "parent": "ancora-8lm",
+  "priority": 2,
+  "status": "open",
+  "title": "Decide whether severity: off is a counted suppression source",
+  "type": "task",
+  "updated_at": "2026-09-05T13:13:51Z"
+}
