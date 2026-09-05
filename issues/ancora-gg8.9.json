@@ -61,11 +61,15 @@
     {
       "text": "AUDIT: APPROVE (auto — selective audit)\nSession: e92f6de6-94f7-4814-8140-19f3f3007d0a\nLog: /Users/mz/.claude-remembers/projects/-Users-mz-src-ancora/e92f6de6-94f7-4814-8140-19f3f3007d0a.jsonl\n\nReasoning: VERIFY reported PASS with a passing spec gate and full requirement coverage, zero\nscope violations, passing targeted verification, complete seam disclosure, and\nno seam substituting production wiring. TEST_CRITIC: PASS (re-run after bounce 1; the three worker rescues are now each pinned by a behavioral subprocess test that fails only under its own worker's mutation; the source-text tests are gone; the unneeded rewrite is reverted byte for byte). No auditor was spawned\nper policy for the delta re-verification; the prior audit's bounce items are closed by execution.",
       "timestamp": "2026-09-05T13:15:41Z"
+    },
+    {
+      "text": "APPROVED. Merged into ancora-gg8/field-friction. Closing per orchestrator sign-off.\n\nFast-forwarded (stage cut from the epic tip e2fb6d2) in the ship worktree /Users/mz/src/ancora-gg8. Merge gate 10 (epic tip e97f3b8), doubling as the /ship-it CI pre-flight: mix compile --warnings-as-errors clean; mix test 3 properties, 505 tests, 0 failures; mix format --check-formatted clean; mix deps.unlock --check-unused clean; mix spec.check --base origin/main (46ae769, the CI base) result=pass. The per-merge delta check mix spec.check --base e2fb6d2 is red on one warning: ancora.derive derived/growth, \"tests now call new functions: Ancora.Gate.gate_error/1\" (the clause tests made gate_error/1 public). Against the CI base it is subsumed by the epic's substantive ancora.derive edits, so CI will be green; the visibility smell itself goes to the fast-follow epic (ancora-8lm) rather than a second bounce on the day of the PR.",
+      "timestamp": "2026-09-05T13:18:09Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Critical-review fixes before the field-friction PR",
   "type": "task",
-  "updated_at": "2026-09-05T13:15:41Z"
+  "updated_at": "2026-09-05T13:18:09Z"
 }
