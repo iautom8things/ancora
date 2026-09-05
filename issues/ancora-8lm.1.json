@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-05T13:12:54Z",
+  "description": "Advances: ancora.findings\n\nSeverity: High (calibrated; critical review 2026-09-05, consolidated finding CF8, consensus spec+data). Evidence: with two overrides: entries for the same subject and code, one subject-wide and one requirement:-scoped, the effective severity is decided by YAML list order (lib/ancora/config.ex override_for); reversing the entries flips the result between :off and :error. No statement in ancora.findings defines a precedence. Question to decide: does a requirement:-scoped entry beat a subject-wide entry for the same subject and code (specificity), or is it an error to declare both? Then state it, implement it, and test both orders. Ready-for: investigate.",
+  "id": "ancora-8lm.1",
+  "labels": [],
+  "parent": "ancora-8lm",
+  "priority": 2,
+  "status": "open",
+  "title": "Define override precedence between subject-wide and requirement-scoped entries",
+  "type": "task",
+  "updated_at": "2026-09-05T13:12:54Z"
+}
