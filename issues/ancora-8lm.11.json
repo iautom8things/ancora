@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-05T13:18:16Z",
+  "description": "Advances: ancora.gate\nReady-for: investigate\nSeverity: Medium (found by the ancora-gg8.9 merge gate, 2026-09-05).\nReview-bar-override: the fix is a design choice between describing the function in the spec and re-testing through the public path; not a patch.\n\nSymptom: ancora-gg8.9 changed Ancora.Gate.gate_error/1 from defp to def so four clause tests could call it directly. mix spec.check --base e2fb6d2 reports ancora.derive derived/growth: tests now call new functions Ancora.Gate.gate_error/1. Against origin/main the finding is subsumed by the epic-wide ancora.derive spec edits, so CI is green, but no statement describes gate_error/1.\nWhy now: a production function made public for tests is exactly what derived/growth exists to catch. Options: (a) make it private again and cover the clauses through Gate.check with fixtures (three of the four worker cases already have subprocess tests); (b) describe the error-mapping contract in ancora.gate and keep it public.",
+  "id": "ancora-8lm.11",
+  "labels": [],
+  "parent": "ancora-8lm",
+  "priority": 2,
+  "status": "open",
+  "title": "Gate.gate_error/1 is public only so tests can call it",
+  "type": "task",
+  "updated_at": "2026-09-05T13:18:16Z"
+}
