@@ -137,6 +137,10 @@
     {
       "text": "CI green on PR #5 after 1 fix commit (ea3ca70; both matrix jobs pass, merge state CLEAN, no review comments). Squash-merging per /ship-it.",
       "timestamp": "2026-09-05T13:33:41Z"
+    },
+    {
+      "text": "Squash-merged to main as 0dac901 (PR #5, release 1.2.0). Post-merge CI run on main is the deploy equivalent for this library (no publish workflow); watching it. Remote branch feat/ancora-gg8-field-friction deleted.",
+      "timestamp": "2026-09-05T13:34:25Z"
     }
   ],
   "priority": 1,
