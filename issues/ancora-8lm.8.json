@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-05T13:13:43Z",
+  "description": "Advances: ancora.derive\nReady-for: investigate\nSeverity: High (calibrated; pre-existing, exposed by the 2026-09-05 critical review audit of ancora-gg8.9).\n\nSymptom: a lib file containing defmodule Outer do defmodule __MODULE__.Inner do def value, do: :ok end end makes Ancora.Derive.DefIndex raise (literal_segments admits the __MODULE__ tuple and add_definition joins it, Protocol.UndefinedError).\nEvidence: before ancora-gg8.9 this crashed mix spec.check with a raw EXIT; since gg8.9 the def_index worker rescue turns it into an env-tier verdict, and the spec_check_test \"a nested __MODULE__ name emits a def_index environment verdict\" depends on this shape raising (comment at that test).\nWhy now: valid Elixir fails the gate at the environment tier. Fix DefIndex to resolve __MODULE__ in nested module names (or skip such definitions deterministically), then replace that test fixture with another worker-raising shape.",
+  "id": "ancora-8lm.8",
+  "labels": [],
+  "parent": "ancora-8lm",
+  "priority": 2,
+  "status": "open",
+  "title": "DefIndex crashes on defmodule __MODULE__.Inner (valid nested module name)",
+  "type": "bug",
+  "updated_at": "2026-09-05T13:13:43Z"
+}
