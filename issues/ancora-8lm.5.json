@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-05T13:13:16Z",
+  "description": "Advances: ancora.tasks\n\nSeverity: Medium (calibrated; critical review 2026-09-05, consolidated F21). Evidence: a requirement:-scoped override acknowledges one requirement, but mix spec.status labels the whole subject acknowledged. Question to decide: keep the subject-wide label, or introduce a partial label naming the acknowledged requirement(s)? Spec statement plus status output plus goldens. Ready-for: investigate.",
+  "id": "ancora-8lm.5",
+  "labels": [],
+  "parent": "ancora-8lm",
+  "priority": 2,
+  "status": "open",
+  "title": "Status label for a subject whose acknowledgment is requirement-scoped",
+  "type": "task",
+  "updated_at": "2026-09-05T13:13:16Z"
+}
