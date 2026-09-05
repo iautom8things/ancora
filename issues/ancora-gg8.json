@@ -141,11 +141,15 @@
     {
       "text": "Squash-merged to main as 0dac901 (PR #5, release 1.2.0). Post-merge CI run on main is the deploy equivalent for this library (no publish workflow); watching it. Remote branch feat/ancora-gg8-field-friction deleted.",
       "timestamp": "2026-09-05T13:34:25Z"
+    },
+    {
+      "text": "DELIVERED. Squash-merged to main as 0dac901 (PR https://github.com/iautom8things/ancora/pull/5, release 1.2.0) at 13:34Z; post-merge CI run 33969270126 on main: success on both matrix jobs (Elixir 1.18.4/OTP 26, 1.19.5/OTP 28). This is a library with no deploy or publish workflow, so the green post-merge run is the shipping evidence; monitor-app does not apply. All nine implementation children plus the review-fixes child are closed. Follow-ups: ancora-8lm (eleven items, all Ready-for: investigate) and ancora-btu. Closing the epic per /ship-it Phase 8.",
+      "timestamp": "2026-09-05T13:36:37Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-05T13:34:25Z"
+  "updated_at": "2026-09-05T13:36:37Z"
 }
