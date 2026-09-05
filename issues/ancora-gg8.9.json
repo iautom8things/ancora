@@ -25,11 +25,15 @@
     {
       "text": "ORCHESTRATOR RULING: SCOPE_EXPANSION approved. lib/ancora/review/html.ex is in scope for the embedded stylesheet and badge markup needed by deliverable 2 (the drift_transitive badge styled as info, not as pass); no other change in that file. The Allowed-touches entry priv/review/** was wrong (no such directory). Restore the CSS hunk you removed, continue with the same session tag (gg8.9-impl-1) and log path; this run still does not count against the cap.",
       "timestamp": "2026-09-05T11:46:33Z"
+    },
+    {
+      "text": "ORCHESTRATOR NOTE: attempt 1 (gg8.9-impl-1, team profile) died at 12:08Z on a Codex usage limit while running the mutation proofs (CF6 was mid-check). Its work is intact and uncommitted in /Users/mz/src/ancora-review-fixes (26 files, +665/-118). Attempt 2 (gg8.9-impl-2) resumes from that working tree on the personal profile: same ticket, same rulings (SKILL.md and review/html.ex in scope), finish the remaining items and proofs, commit, record IMPLEMENTED. Not a bounce; the run cap is untouched.",
+      "timestamp": "2026-09-05T12:14:08Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Critical-review fixes before the field-friction PR",
   "type": "task",
-  "updated_at": "2026-09-05T11:46:33Z"
+  "updated_at": "2026-09-05T12:14:08Z"
 }
