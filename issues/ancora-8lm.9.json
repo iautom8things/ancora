@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-05T13:13:47Z",
+  "description": "Advances: ancora.derive\nReady-for: investigate\nSeverity: High (calibrated; critical review 2026-09-05, consolidated CF9, spec H1).\n\nSymptom: surface: [] in a subject spec-meta is truthy, so Gate.subject_surface/2 returns [] and every binding of that subject becomes derived/drift_transitive at info; mix spec.check reports errors=0 with no reason recorded and no acknowledged label.\nEvidence: ancora.derive.drift_primary_transitive enumerates three cases and stops before the empty list; reproduced on a probe index. Also undefined: whether an entry is an exact repo-relative path, a prefix, or a glob.\nWhy now: a one-line spec-meta edit silently downgrades a whole subject. Questions: does an empty list mean absent or everything-transitive (recommend: reject with a spec finding); what is the match rule. Then implement, test, and finish the docs ancora-gg8.9 started. Related: ancora-btu.",
+  "id": "ancora-8lm.9",
+  "labels": [],
+  "parent": "ancora-8lm",
+  "priority": 2,
+  "status": "open",
+  "title": "Define surface: semantics: empty list, path matching, and documentation",
+  "type": "task",
+  "updated_at": "2026-09-05T13:13:47Z"
+}
