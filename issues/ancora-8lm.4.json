@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-05T13:13:13Z",
+  "description": "Advances: ancora.derive\n\nSeverity: Medium (calibrated; critical review 2026-09-05, consolidated CF2, distributed M2 and performance). Evidence: ModuleLocator now retains a quoted AST for every lib file on both diff sides for the life of the run (measured 9.3x source bytes, about 3 MB per side on ancora itself, scaling with corpus), and ordered async_stream buffering is not bounded by max_concurrency. ancora-gg8.9 removed the per-worker copy of the whole map; retention itself remains. Question to decide, after measuring at atlas scale: should the DefIndex be built inside the parsing worker so no AST crosses a process boundary or outlives its file, collapsing two streams into one? Also Ancora.Status still re-reads and re-parses lib files (status.ex) and could reuse the locator ASTs. Ready-for: investigate.",
+  "id": "ancora-8lm.4",
+  "labels": [],
+  "parent": "ancora-8lm",
+  "priority": 2,
+  "status": "open",
+  "title": "Bound AST retention: build the DefIndex inside the parse worker",
+  "type": "task",
+  "updated_at": "2026-09-05T13:13:13Z"
+}
