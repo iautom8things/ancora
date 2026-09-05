@@ -20,14 +20,19 @@ defmodule Ancora.SourceScanTest do
     File.write!(glob_only, "System.cmd(\"runtime\", [])\n")
     File.write!(allowed, "System.cmd(\"allowed\", [])\n")
 
+    # One regex struct on both sides: on OTP 28 two separately compiled
+    # sigils with the same source are not equal, and scan/1 returns the
+    # caller's token verbatim.
+    os_cmd = ~r/:os\.cmd/
+
     assert SourceScan.scan(
              dirs_or_globs: [Path.join(root, "lib"), Path.join(root, "config/*.exs")],
-             tokens: ["System.cmd", ~r/:os\.cmd/],
+             tokens: ["System.cmd", os_cmd],
              allowlist: [allowed]
            ) == [
              {glob_only, 1, "System.cmd"},
              {direct, 1, "System.cmd"},
-             {globbed, 2, ~r/:os\.cmd/}
+             {globbed, 2, os_cmd}
            ]
   end
 
@@ -54,19 +59,20 @@ defmodule Ancora.SourceScanTest do
     # or wrapped a caller's regex.
     source = Path.join(root, "bindings.ex")
     File.write!(source, "system_cmd = :safe\ncmdline = :safe\n:os.cmd('x')\ncmd = :violation\n")
+    cmd_regex = ~r/cmd/
 
     assert SourceScan.scan(
              dirs_or_globs: [source],
-             tokens: ["cmd", ":os.cmd", ~r/cmd/],
+             tokens: ["cmd", ":os.cmd", cmd_regex],
              allowlist: []
            ) == [
-             {source, 1, ~r/cmd/},
-             {source, 2, ~r/cmd/},
+             {source, 1, cmd_regex},
+             {source, 2, cmd_regex},
              {source, 3, "cmd"},
              {source, 3, ":os.cmd"},
-             {source, 3, ~r/cmd/},
+             {source, 3, cmd_regex},
              {source, 4, "cmd"},
-             {source, 4, ~r/cmd/}
+             {source, 4, cmd_regex}
            ]
   end
 
