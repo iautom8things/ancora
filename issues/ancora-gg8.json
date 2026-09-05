@@ -113,11 +113,15 @@
     {
       "text": "SHIP (Manuel invoked /ship-it, 2026-09-05). Release 1.1.1 (ancora-kzw, squash 46ae769) landed on main before this epic. Brought it in as merge commit e2fb6d2 (parents eae6eb1 and 46ae769) in the ship worktree /Users/mz/src/ancora-gg8; git auto-merged the three overlapping files (gate.ex, derive spec, gate_test) with no conflicts. A literal rebase would have replayed the fifteen pre-1.1.0 commits onto 1.1.1 and re-hit gg8.8's 21-file conflict set, so the merge shape was kept. Local CI pre-flight on e2fb6d2: compile --warnings-as-errors clean, 484 tests 0 failures, format clean, deps.unlock clean, spec.check --base origin/main result=pass. Critical review (nine personas) is running against eae6eb1; per Manuel, no re-review after the 1.1.1 merge.",
       "timestamp": "2026-09-05T10:57:53Z"
+    },
+    {
+      "text": "SHIP Phase 1 verdict (critical review, nine personas, reviewed commit eae6eb1; consolidated report ~/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-05/ancora-gg8-field-friction/20260905-063249-consolidated.md). 78 raw findings, 48 unique, 38 after calibration: 1 Critical, 5 High, 20 Medium, 12 Low. Must-fix, going on the branch now as ancora-gg8.9: the def_indexes closure that copies the whole AST map per worker (15x slower at 818 files), the review page mislabeling transitive drift as acknowledged, the hidden-count rollup missing the config source, missing_decision clearing on non-accepted ADRs, worker crashes killing the task with a raw EXIT, the doubled requirement id in four messages plus the JSON report dropping the requirement field, tag_borrowed unreachable by overrides, the hardcoded next= guidance, undocumented surface:, and the trace_delivered barrier. Refuted for this ship (no reachable defect; refactors and hygiene): helper de-duplication, SourceScan regex hoisting, Config.restrict, Status parse reuse, the spec sentence sweep, the CHANGELOG section (open-pr writes it), the one-cond visible/hidden rewrite, the sanitize C0 strip, the remaining test polish. Nine design questions go to a fast-follow epic at delivery: override precedence, surface: [] semantics, counting severity off, explain-acks add vs replace, tag rename semantics, memo statement wording, AST retention, status partial label, a scale bench. Per Manuel, no second critical review after the fixes; a cold verifier checks the fix ticket.",
+      "timestamp": "2026-09-05T11:16:29Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-05T10:57:53Z"
+  "updated_at": "2026-09-05T11:16:29Z"
 }
