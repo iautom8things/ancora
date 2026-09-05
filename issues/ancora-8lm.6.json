@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-05T13:13:20Z",
+  "description": "Advances: ancora.derive\n\nSeverity: Medium (calibrated; critical review 2026-09-05, consolidated F26, spec). Evidence: ancora.derive.memo_is_run_scoped says derived state shall not live in a memo, registry, cache, or new process, while the parallel-parsing statements added by ancora-gg8.7 mandate Task.async_stream workers (new processes) for parsing. Both are true in intent (no cross-run state vs concurrent stateless workers) but the text reads as contradictory. Scoping or splitting a stable must needs an ADR (amend ancora.decision.no_run_context_memo or add one). Ready-for: investigate.",
+  "id": "ancora-8lm.6",
+  "labels": [],
+  "parent": "ancora-8lm",
+  "priority": 2,
+  "status": "open",
+  "title": "memo_is_run_scoped forbids a new process and mandates concurrency in adjacent sentences",
+  "type": "task",
+  "updated_at": "2026-09-05T13:13:20Z"
+}
