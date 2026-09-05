@@ -1,4 +1,5 @@
 Code.require_file("../support/ancora_case.exs", __DIR__)
+Code.require_file("../support/tmp_git_repo.exs", __DIR__)
 
 defmodule Ancora.ReviewTest do
   use Ancora.TestCase
@@ -7,6 +8,25 @@ defmodule Ancora.ReviewTest do
   alias Ancora.Review
   alias Ancora.Review.FindingsDelta
   alias Ancora.Review.Html
+  alias Ancora.TmpGitRepo
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "review propagates an unsafe base tree as an environment failure" do
+    root = TmpGitRepo.create!()
+    on_exit(fn -> TmpGitRepo.cleanup!(root) end)
+
+    TmpGitRepo.write!(root, %{
+      "mix.exs" => "defmodule Sample.MixProject do\n  def project, do: [app: :sample]\nend\n",
+      ".spec/specs/.keep" => ""
+    })
+
+    TmpGitRepo.commit!(root, "head")
+    base = TmpGitRepo.commit_tree_path!(root, ["lib", "..", "evil.txt"])
+
+    assert {:env, message} = Review.build(root, base: base)
+    assert message =~ "unsafe base tree path"
+    assert message =~ "lib/../evil.txt"
+  end
 
   @tag spec: "ancora.review.views"
   @tag spec: "ancora.review.findings_inline"
