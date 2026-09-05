@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-05T13:13:09Z",
+  "description": "Advances: ancora.gate\n\nSeverity: Medium (calibrated; critical review 2026-09-05, consolidated F27, testing M2). Evidence: tag identity for tags/tag_borrowed is {file, test_name}, so renaming a test file or a test fires the disclosure on an unchanged requirement even though no tag was added; reproduced on a real repo; no test pins the behavior either way. Question to decide: is a rename a borrow (disclose) or a move (silent)? If move, define the identity that survives renames and test both. Ready-for: investigate.",
+  "id": "ancora-8lm.3",
+  "labels": [],
+  "parent": "ancora-8lm",
+  "priority": 2,
+  "status": "open",
+  "title": "Decide whether a moved or renamed tag counts as a borrowed tag",
+  "type": "task",
+  "updated_at": "2026-09-05T13:13:09Z"
+}
