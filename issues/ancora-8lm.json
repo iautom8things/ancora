@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-05T13:12:28Z",
+  "description": "Advances: ancora.gate\n\nFast-follows ancora-gg8 (Ancora field friction ledger), shipped as the field-friction PR. Split out at delivery per BEADWORK-LIFECYCLE fast-follow epics. Carries the design questions the 2026-09-05 critical review (consolidated report at ~/vaults/rmbrs-vault/code_review/critical/ancora/2026-09-05/ancora-gg8-field-friction/20260905-063249-consolidated.md, Track section) left open, plus pre-existing defects that review exposed. Each child is evidence, not a contract: run /investigate before /implement.",
+  "id": "ancora-8lm",
+  "labels": [],
+  "priority": 2,
+  "status": "open",
+  "title": "Fast-follow: Ancora field friction ledger",
+  "type": "epic",
+  "updated_at": "2026-09-05T13:12:28Z"
+}
