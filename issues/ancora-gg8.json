@@ -129,11 +129,15 @@
     {
       "text": "PR opened: https://github.com/iautom8things/ancora/pull/5 (release 1.2.0, branch feat/ancora-gg8-field-friction at aedc2b2 = epic tip e97f3b8 plus the release-prep commit; mix.exs 1.1.1 -\u003e 1.2.0, CHANGELOG 1.2.0 section). Babysitting CI. Note: the stale remote ref ancora-gg8/field-friction (d9a39d7) was left alone; the PR branch is separate. Follow-ups live in ancora-8lm and ancora-btu.",
       "timestamp": "2026-09-05T13:25:35Z"
+    },
+    {
+      "text": "CI on PR #5: the Elixir 1.19.5 / OTP 28 matrix job failed two SourceScan tests; 1.18.4 / OTP 26 passed. Cause reproduced locally on the same toolchain: on OTP 28 two separately compiled regex sigils with the same source are not equal, and the tests compared the scanner's verbatim token against a second sigil. Test-only fix pushed (bind the regex once, use it on both sides); production code unchanged. Fix commit 1 of the babysit.",
+      "timestamp": "2026-09-05T13:30:09Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-05T13:25:35Z"
+  "updated_at": "2026-09-05T13:30:09Z"
 }
