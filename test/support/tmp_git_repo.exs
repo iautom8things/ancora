@@ -54,6 +54,36 @@ defmodule Ancora.TmpGitRepo do
     File.rm_rf(root)
   end
 
+  def commit_tree_path!(root, components, opts \\ []) do
+    input = Path.join(root, ".git/tree-input")
+    File.write!(input, "hostile tree payload\n")
+    blob = root |> git!(["hash-object", "-w", input]) |> String.trim()
+
+    tree =
+      components
+      |> Enum.reverse()
+      |> Enum.reduce({"100644 blob", blob}, fn name, {kind, oid} ->
+        entry = "#{kind} #{oid}\t#{name}\0"
+
+        entry =
+          if name == hd(components) and Keyword.get(opts, :leading_blob, false) do
+            "100644 blob #{blob}\t0-safe.txt\0" <> entry
+          else
+            entry
+          end
+
+        File.write!(input, entry)
+
+        {output, 0} =
+          System.cmd("sh", ["-c", "git mktree -z < \"$1\"", "mktree", input], cd: root)
+
+        {"040000 tree", String.trim(output)}
+      end)
+      |> elem(1)
+
+    root |> git!(["commit-tree", tree, "-m", "tree path fixture"]) |> String.trim()
+  end
+
   def git!(root, args) do
     case Ancora.Git.run(root, args) do
       {:ok, output} ->

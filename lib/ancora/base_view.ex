@@ -19,7 +19,7 @@ defmodule Ancora.BaseView do
   ephemeral batch port.
   """
   @spec blobs(RunContext.t() | Path.t(), String.t() | nil, keyword()) ::
-          {:ok, %{String.t() => binary()}} | {:error, term()}
+          {:ok, %{String.t() => binary()}} | {:error, term()} | {:env, String.t()}
   def blobs(source, base \\ nil, opts \\ [])
 
   def blobs(%RunContext{} = ctx, base, opts) do
@@ -47,7 +47,7 @@ defmodule Ancora.BaseView do
   controlled collision checks.
   """
   @spec materialize(RunContext.t() | Path.t(), String.t() | nil, keyword()) ::
-          {:ok, Path.t()} | {:error, term()}
+          {:ok, Path.t()} | {:error, term()} | {:env, String.t()}
   def materialize(source, base \\ nil, opts \\ []) do
     with {:ok, files} <- blobs(source, base, opts) do
       temp_root = Keyword.get(opts, :temp_root) || unique_temp()
@@ -75,12 +75,11 @@ defmodule Ancora.BaseView do
   end
 
   defp read_tree_blobs(%RunContext{} = ctx, pathspecs) do
-    with {:ok, entries} <- Git.ls_tree_entries(ctx.root, ctx.base, pathspecs) do
+    with {:ok, entries} <- Git.ls_tree_entries(ctx.root, ctx.base, pathspecs),
+         :ok <- validate_tree_paths(entries) do
       entries
       |> Enum.filter(&(&1.type == "blob"))
       |> Enum.reduce_while({:ok, %{}}, fn entry, {:ok, acc} ->
-        # Entry paths come from Git verbatim and are not validated here.
-        # A tree entry named `..` can escape the materialization root; tracked as ancora-kzw.
         case Git.read_blob(ctx, entry.oid) do
           {:ok, payload} ->
             {:cont, {:ok, Map.put(acc, entry.path, payload)}}
@@ -90,6 +89,18 @@ defmodule Ancora.BaseView do
         end
       end)
     end
+  end
+
+  defp validate_tree_paths(entries) do
+    Enum.reduce_while(entries, :ok, fn entry, :ok ->
+      components = :binary.split(entry.path, "/", [:global])
+
+      if Enum.any?(components, &(&1 in ["..", ".", ""])) do
+        {:halt, {:env, "unsafe base tree path: #{inspect(entry.path)}"}}
+      else
+        {:cont, :ok}
+      end
+    end)
   end
 
   defp unique_temp do

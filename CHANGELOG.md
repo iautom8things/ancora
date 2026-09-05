@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## 1.1.1 - 2026-09-04
+
+### Fixed
+
+- Path traversal: a git tree with an entry literally named `..` made
+  `Ancora.BaseView.materialize` write a blob outside its temporary root, and
+  the cleanup never removed it. BaseView now rejects the whole tree at
+  `tier=env` before any read or write when a path has a `..`, `.`, or empty
+  component; `foo..bar` still passes. Reachable only from a local checkout of
+  an untrusted repository, since GitHub rejects dot-dot trees on push.
+  [ancora-kzw](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-kzw.json)
+
 ## 1.1.0 - 2026-09-04
 
 Post-ship hardening: the 66 calibrated findings of the 1.0 critical review,

@@ -91,6 +91,122 @@ defmodule Ancora.BaseViewTest do
     assert Enum.count(calls, &(&1 == :mkdir)) == 1
   end
 
+  for depth <- [2, 5], batch <- [false, true] do
+    @tag spec: "ancora.derive.base_reads_batched"
+    test "materialize rejects traversal depth #{depth} with batch=#{batch} without writing", %{
+      root: root
+    } do
+      depth = unquote(depth)
+      components = ["a"] ++ List.duplicate("..", depth) ++ ["evil.txt"]
+      base = TmpGitRepo.commit_tree_path!(root, components)
+      parent = Path.join(root, "materialization")
+      temp = Path.join([parent] ++ List.duplicate("level", depth - 2) ++ ["base"])
+      target = Path.expand(Path.join(temp, Enum.join(components, "/")))
+      File.mkdir_p!(Path.dirname(temp))
+
+      on_exit(fn ->
+        File.rm(target)
+        File.rm_rf(parent)
+      end)
+
+      assert target == Path.join(parent, "evil.txt")
+      assert {:ok, entries} = Ancora.Git.ls_tree_entries(root, base)
+      assert Enum.map(entries, & &1.path) == [Enum.join(components, "/")]
+      assert {:ok, ctx} = RunContext.start(root, base, batch: unquote(batch))
+      on_exit(fn -> RunContext.stop(ctx) end)
+
+      result = BaseView.materialize(ctx, nil, temp_root: temp)
+
+      # Would fail if a hostile path reached the write loop, even if it later returned an error.
+      refute File.exists?(target)
+      refute File.exists?(temp)
+
+      assert Path.wildcard(Path.join(parent, "**/*"), match_dot: true)
+             |> Enum.filter(&File.regular?/1) == []
+
+      assert {:env, message} = result
+      assert message =~ "unsafe base tree path"
+      assert message =~ Enum.join(components, "/")
+    end
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "materialize rejects a dot component", %{root: root} do
+    base = TmpGitRepo.commit_tree_path!(root, ["a", ".", "evil.txt"])
+    temp = Path.join(root, "base")
+
+    result = BaseView.materialize(root, base, temp_root: temp)
+
+    refute File.exists?(temp)
+    assert {:env, message} = result
+    assert message =~ "a/./evil.txt"
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "materialize rejects an empty component emitted by a literal tree", %{root: root} do
+    input = Path.join(root, ".git/literal-tree")
+    File.write!(input, "payload\n")
+    blob = root |> TmpGitRepo.git!(["hash-object", "-w", input]) |> String.trim()
+    File.write!(input, "100644 a//evil.txt\0" <> Base.decode16!(blob, case: :lower))
+
+    tree =
+      root
+      |> TmpGitRepo.git!(["hash-object", "-w", "--literally", "-t", "tree", input])
+      |> String.trim()
+
+    base = root |> TmpGitRepo.git!(["commit-tree", tree, "-m", "literal tree"]) |> String.trim()
+    temp = Path.join(root, "base")
+
+    assert {:ok, [%{path: "a//evil.txt"}]} = Ancora.Git.ls_tree_entries(root, base)
+    result = BaseView.materialize(root, base, temp_root: temp)
+
+    refute File.exists?(temp)
+    assert {:env, message} = result
+    assert message =~ "a//evil.txt"
+  end
+
+  for batch <- [false, true] do
+    @tag spec: "ancora.derive.base_reads_batched"
+    test "blobs validates the entire listing before any read with batch=#{batch}", %{root: root} do
+      base = TmpGitRepo.commit_tree_path!(root, ["a", "..", "evil.txt"], leading_blob: true)
+      assert {:ok, entries} = Ancora.Git.ls_tree_entries(root, base)
+      assert Enum.map(entries, & &1.path) == ["0-safe.txt", "a/../evil.txt"]
+      assert {:ok, ctx} = RunContext.start(root, base, batch: unquote(batch))
+      on_exit(fn -> RunContext.stop(ctx) end)
+
+      tracer = start_trace_forwarder(self())
+      :erlang.trace(self(), true, [:call, {:tracer, tracer}])
+      :erlang.trace_pattern({Ancora.Git, :read_blob, 2}, true, [])
+
+      on_exit(fn ->
+        :erlang.trace_pattern({Ancora.Git, :read_blob, 2}, false, [])
+        send(tracer, :stop)
+      end)
+
+      result = BaseView.blobs(ctx)
+      flush_trace(tracer)
+
+      assert collect_calls(Ancora.Git, :read_blob, []) == []
+      assert {:env, _} = result
+
+      assert {:ok, %{"0-safe.txt" => "hostile tree payload\n"}} =
+               BaseView.blobs(ctx, nil, pathspecs: ["0-safe.txt"])
+
+      flush_trace(tracer)
+      assert [[^ctx, _oid]] = collect_calls(Ancora.Git, :read_blob, [])
+    end
+  end
+
+  @tag spec: "ancora.derive.base_reads_batched"
+  test "materialize preserves legitimate components containing two dots", %{root: root} do
+    TmpGitRepo.write!(root, %{"foo..bar/content.txt" => "legitimate\n"})
+    TmpGitRepo.commit!(root, "legitimate path")
+    temp = Path.join(root, "base")
+
+    assert {:ok, ^temp} = BaseView.materialize(root, "HEAD", temp_root: temp)
+    assert File.read!(Path.join(temp, "foo..bar/content.txt")) == "legitimate\n"
+  end
+
   @tag spec: "ancora.derive.base_reads_batched"
   test "materialize rejects a symlink root before writing", %{root: root} do
     # Would fail if BaseView accepted an existing symlink and redirected blob writes.
@@ -199,6 +315,13 @@ defmodule Ancora.BaseViewTest do
     end
   end
 
+  defp flush_trace(tracer) do
+    delivered = :erlang.trace_delivered(self())
+    assert_receive {:trace_delivered, _, ^delivered}
+    send(tracer, {:flush, self(), delivered})
+    assert_receive {:flushed, ^delivered}
+  end
+
   defp start_trace_forwarder(parent) do
     spawn(fn -> forward_traces(parent) end)
   end
@@ -207,6 +330,10 @@ defmodule Ancora.BaseViewTest do
     receive do
       :stop ->
         :ok
+
+      {:flush, caller, ref} ->
+        send(caller, {:flushed, ref})
+        forward_traces(parent)
 
       message ->
         send(parent, {:forwarded_trace, message})
