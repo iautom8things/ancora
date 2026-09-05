@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-05T13:13:06Z",
+  "description": "Advances: ancora.tasks\n\nSeverity: Medium (calibrated; critical review 2026-09-05, consolidated F22, frontend). Evidence: ancora.tasks specifies that --explain-acks lists only acknowledged findings, so on a failing run the blocking errors are absent from the listing a human reads. Question to decide: should the flag add the acknowledged findings to the normal visible list instead of replacing it? Spec change plus output change plus goldens. Ready-for: investigate.",
+  "id": "ancora-8lm.2",
+  "labels": [],
+  "parent": "ancora-8lm",
+  "priority": 2,
+  "status": "open",
+  "title": "Decide whether --explain-acks adds to or replaces the visible finding list",
+  "type": "task",
+  "updated_at": "2026-09-05T13:13:06Z"
+}
