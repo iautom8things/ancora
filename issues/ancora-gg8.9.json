@@ -21,11 +21,15 @@
     {
       "text": "SCOPE_EXPANSION\nSession: gg8.9-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.9/codex-gg8.9-impl-1/log\nPath: lib/ancora/review/html.ex\nReason: Deliverable 2 requires a distinct info-colored drift_transitive badge. The stylesheet is embedded in lib/ancora/review/html.ex, but Allowed touches names priv/review/** for badge style and no priv/review directory exists. The out-of-scope CSS hunk was removed pending this ruling.\nOrigin: ancora-gg8.9",
       "timestamp": "2026-09-05T11:45:52Z"
+    },
+    {
+      "text": "ORCHESTRATOR RULING: SCOPE_EXPANSION approved. lib/ancora/review/html.ex is in scope for the embedded stylesheet and badge markup needed by deliverable 2 (the drift_transitive badge styled as info, not as pass); no other change in that file. The Allowed-touches entry priv/review/** was wrong (no such directory). Restore the CSS hunk you removed, continue with the same session tag (gg8.9-impl-1) and log path; this run still does not count against the cap.",
+      "timestamp": "2026-09-05T11:46:33Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Critical-review fixes before the field-friction PR",
   "type": "task",
-  "updated_at": "2026-09-05T11:45:52Z"
+  "updated_at": "2026-09-05T11:46:33Z"
 }
