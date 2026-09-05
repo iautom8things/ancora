@@ -125,11 +125,15 @@
     {
       "text": "FAST-FOLLOW EPIC filed at ship time: ancora-8lm (\"Fast-follow: Ancora field friction ledger\"), standalone, never a child of this epic. It carries the nine Track items from the 2026-09-05 critical review (override precedence 8lm.1, explain-acks add vs replace 8lm.2, tag rename semantics 8lm.3, AST retention 8lm.4, status partial label 8lm.5, memo statement wording 8lm.6, scale bench 8lm.7, surface: semantics 8lm.9, severity off counting 8lm.10) plus one pre-existing defect the audit exposed (DefIndex crash on defmodule __MODULE__.Inner, 8lm.8). All are Ready-for: investigate with calibrated severities. ancora-btu (surface: lists on ancora's own specs) stays standalone and is referenced from 8lm.9.",
       "timestamp": "2026-09-05T13:14:04Z"
+    },
+    {
+      "text": "PR opened: https://github.com/iautom8things/ancora/pull/5 (release 1.2.0, branch feat/ancora-gg8-field-friction at aedc2b2 = epic tip e97f3b8 plus the release-prep commit; mix.exs 1.1.1 -\u003e 1.2.0, CHANGELOG 1.2.0 section). Babysitting CI. Note: the stale remote ref ancora-gg8/field-friction (d9a39d7) was left alone; the PR branch is separate. Follow-ups live in ancora-8lm and ancora-btu.",
+      "timestamp": "2026-09-05T13:25:35Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-05T13:25:32Z"
+  "updated_at": "2026-09-05T13:25:35Z"
 }
