@@ -109,11 +109,15 @@
     {
       "text": "ORCHESTRATED\nChildren closed: 9\nBOUNCEs encountered: 9\nUser escalations: 0\n\nEpic tip eae6eb1 on ancora-gg8/field-friction (473 tests, nine green merge gates), containing release 1.1.0 via the gg8.8 merge commit. Not pushed; PR not opened; the remote ref ancora-gg8/field-friction still points at the stray d9a39d7 and needs Manuel's force-with-lease or deletion. Deliver sweep: both remaining stage worktrees removed after merge; the epic worktree /Users/mz/src/ancora is checked out on another session's branch (ancora-kzw); epic kept in_progress (no PR yet); no agents resident. Supersedes the 02:2xZ ORCHESTRATED, which covered seven children.",
       "timestamp": "2026-09-04T20:04:55Z"
+    },
+    {
+      "text": "SHIP (Manuel invoked /ship-it, 2026-09-05). Release 1.1.1 (ancora-kzw, squash 46ae769) landed on main before this epic. Brought it in as merge commit e2fb6d2 (parents eae6eb1 and 46ae769) in the ship worktree /Users/mz/src/ancora-gg8; git auto-merged the three overlapping files (gate.ex, derive spec, gate_test) with no conflicts. A literal rebase would have replayed the fifteen pre-1.1.0 commits onto 1.1.1 and re-hit gg8.8's 21-file conflict set, so the merge shape was kept. Local CI pre-flight on e2fb6d2: compile --warnings-as-errors clean, 484 tests 0 failures, format clean, deps.unlock clean, spec.check --base origin/main result=pass. Critical review (nine personas) is running against eae6eb1; per Manuel, no re-review after the 1.1.1 merge.",
+      "timestamp": "2026-09-05T10:57:53Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "Ancora field friction ledger: investigate and plan fixes from consumer evidence",
   "type": "epic",
-  "updated_at": "2026-09-04T20:04:55Z"
+  "updated_at": "2026-09-05T10:57:53Z"
 }
