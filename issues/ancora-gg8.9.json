@@ -17,11 +17,15 @@
     {
       "text": "ORCHESTRATOR RULING: SCOPE_EXPANSION approved. The Allowed touches should have read priv/spec_init/agents/SKILL.md (the shipped scaffold file; there is no .eex variant). priv/spec_init/agents/SKILL.md is in scope for deliverable 9 and for any registry or flag text it needs. Everything else in the ticket stands. Continue with the same session tag (gg8.9-impl-1) and log path; this run does not count against the cap.",
       "timestamp": "2026-09-05T11:21:22Z"
+    },
+    {
+      "text": "SCOPE_EXPANSION\nSession: gg8.9-impl-1\nLog: /Users/mz/.local/state/agentic-runs/ancora/ancora-gg8.9/codex-gg8.9-impl-1/log\nPath: lib/ancora/review/html.ex\nReason: Deliverable 2 requires a distinct info-colored drift_transitive badge. The stylesheet is embedded in lib/ancora/review/html.ex, but Allowed touches names priv/review/** for badge style and no priv/review directory exists. The out-of-scope CSS hunk was removed pending this ruling.\nOrigin: ancora-gg8.9",
+      "timestamp": "2026-09-05T11:45:52Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "Critical-review fixes before the field-friction PR",
   "type": "task",
-  "updated_at": "2026-09-05T11:21:22Z"
+  "updated_at": "2026-09-05T11:45:52Z"
 }
