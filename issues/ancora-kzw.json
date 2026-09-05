@@ -47,11 +47,15 @@
     {
       "text": "PR open: https://github.com/iautom8things/ancora/pull/4\n\nFix commit e37f6b3 was cherry-picked from ancora-kzw/reject-unsafe-tree-paths onto origin/main as ancora-kzw/unsafe-tree-paths-1.1.1, so the release does not carry the unmerged field-friction commits. The ADR paragraph moved from the field-friction decision to a new ADR, ancora.decision.reject_unsafe_tree_paths, since that file is not on main. Version 1.1.1, changelog entry added. Full gate green locally: 446 tests, spec.check pass against origin/main. CI on the PR is pending.",
       "timestamp": "2026-09-04T20:16:11Z"
+    },
+    {
+      "text": "Merged to main as 46ae769 via https://github.com/iautom8things/ancora/pull/4 (squash). Release 1.1.1. Ancora has no hex publish or tag step, so merged to main is the release state for consumers pinned to the git dep.",
+      "timestamp": "2026-09-05T10:50:35Z"
     }
   ],
   "priority": 0,
   "status": "in_progress",
   "title": "Path traversal: a hostile git tree escapes the base-view write root",
   "type": "task",
-  "updated_at": "2026-09-04T20:16:11Z"
+  "updated_at": "2026-09-05T10:50:35Z"
 }
