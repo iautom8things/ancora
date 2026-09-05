@@ -851,35 +851,6 @@ defmodule Ancora.GateTest do
     refute worker =~ "parsed_sources"
   end
 
-  test "parallel workers convert failures to tagged error data" do
-    sources = %{
-      spec_parse: File.read!(Path.expand("../../lib/ancora/index.ex", __DIR__)),
-      tag_scan: File.read!(Path.expand("../../lib/ancora/tag_scanner.ex", __DIR__)),
-      source_scan: File.read!(Path.expand("../../lib/ancora/derive/module_locator.ex", __DIR__)),
-      def_index: File.read!(Path.expand("../../lib/ancora/gate.ex", __DIR__))
-    }
-
-    assert sources.spec_parse =~ ~r/defp parse_spec\(.*?rescue.*?:worker_failure.*?catch/s
-    assert sources.tag_scan =~ ~r/defp scan_worker\(.*?rescue.*?:worker_failure.*?catch/s
-    assert sources.source_scan =~ ~r/defp scan_source\(.*?rescue.*?:worker_failure.*?catch/s
-
-    assert sources.def_index =~
-             ~r/defp build_def_index\(\{path, modules, \{:ok, ast\}\}\).*?rescue.*?:worker_failure.*?catch/s
-
-    refute sources.spec_parse =~ "exit(reason)"
-    refute sources.tag_scan =~ "exit(reason)"
-  end
-
-  test "trace synchronization waits for every async-stream child" do
-    source = File.read!(__ENV__.file)
-    [_, forwarder] = String.split(source, "\n  defp forward_traces(parent) do\n", parts: 2)
-
-    [forwarder, _rest] =
-      String.split(forwarder, "\n  defp forward_until_delivered", parts: 2)
-
-    assert forwarder =~ ":erlang.trace_delivered(:all)"
-  end
-
   @tag spec: "ancora.derive.parse_degrades_to_finding"
   test "parallel parsing preserves complete finding order across runs", %{root: root} do
     create_clean_repo(root)

@@ -304,6 +304,67 @@ defmodule Mix.Tasks.Spec.CheckTest do
     refute result.stderr =~ "** (EXIT"
   end
 
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "invalid UTF-8 in a test emits a tag_scan environment verdict", %{root: root} do
+    create_project(root)
+    write_files(root, %{"test/bin_test.exs" => <<255, 254, 0>>})
+    commit_all(root, "binary test fixture")
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    refute result.stderr =~ "** (EXIT"
+    assert result.stdout =~ "tag_scan worker failed for"
+    assert result.stdout =~ "test/bin_test.exs"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "invalid UTF-8 in a library emits a source_scan environment verdict", %{root: root} do
+    create_project(root)
+    write_files(root, %{"lib/bin.ex" => <<255, 254, 0>>})
+    commit_all(root, "binary library fixture")
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    refute result.stderr =~ "** (EXIT"
+    assert result.stdout =~ "source_scan worker failed for lib/bin.ex"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a nested __MODULE__ name emits a def_index environment verdict", %{root: root} do
+    create_project(root)
+
+    # This relies on the pre-existing DefIndex failure for this module shape.
+    # Fixing that behavior is fast-follow work and will require a different fixture.
+    write_files(root, %{
+      "lib/outer.ex" => """
+      defmodule Outer do
+        defmodule __MODULE__.Inner do
+          def value, do: :ok
+        end
+      end
+      """
+    })
+
+    commit_all(root, "nested module fixture")
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    refute result.stderr =~ "** (EXIT"
+    assert result.stdout =~ "def_index worker failed for lib/outer.ex"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+  end
+
   @tag spec: "ancora.tasks.gated_emission_paths"
   @tag spec: "ancora.tasks.finding_line_format"
   test "findings precede summaries, guidance, and the last-line verdict", %{root: root} do
@@ -675,18 +736,6 @@ defmodule Mix.Tasks.Spec.CheckTest do
   test "an unknown override key is reported and the override is not applied", %{root: root} do
     create_project(root)
     write_unanchored_subject(root)
-
-    path = Path.join(root, ".spec/specs/sample.spec.md")
-    source = File.read!(path)
-
-    File.write!(
-      path,
-      Regex.replace(
-        ~r/```yaml spec-verification.*?```/s,
-        source,
-        "```yaml spec-verification\n[]\n```"
-      )
-    )
 
     write_config(root, """
     overrides:
