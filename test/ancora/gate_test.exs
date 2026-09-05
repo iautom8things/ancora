@@ -30,6 +30,38 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a missing parsed source is classified at the environment tier" do
+    assert {:env, message} = Gate.gate_error({:parsed_source_missing, "lib/missing.ex"})
+    assert message =~ "parsed source missing"
+    assert message =~ "lib/missing.ex"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a definition index task exit is classified at the environment tier" do
+    assert {:env, message} = Gate.gate_error({:def_index_exit, :killed})
+    assert message =~ "definition index worker exited"
+    assert message =~ ":killed"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a source scan task exit is classified at the environment tier" do
+    assert {:env, message} = Gate.gate_error({:source_scan_exit, :base, :killed})
+    assert message =~ "base source scan worker exited"
+    assert message =~ ":killed"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a caught worker exception is classified at the environment tier" do
+    exception = %File.Error{reason: :eisdir, action: "read", path: "bad.spec.md"}
+
+    assert {:env, message} =
+             Gate.gate_error({:worker_failure, :spec_parse, "bad.spec.md", exception})
+
+    assert message =~ "spec_parse worker failed for bad.spec.md"
+    assert message =~ "illegal operation on a directory"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
   test "preflight rejects a directory outside git", %{root: root} do
     write_project(root)
 
@@ -387,6 +419,36 @@ defmodule Ancora.GateTest do
 
     assert {:ok, second_report} = Gate.check(root, base: "HEAD")
     refute missing_decision?(second_report, ".spec/specs/sample.spec.md")
+  end
+
+  @tag spec: "ancora.gate.change_findings"
+  test "a non-accepted ADR does not govern a subject spec change", %{root: root} do
+    for status <- ["proposed", "superseded"] do
+      File.rm_rf!(root)
+      File.mkdir_p!(root)
+      init_git_repo(root)
+
+      write_governed_subject(
+        root,
+        "The sample shall return the initial value.",
+        "sample.decision.governance",
+        "sample.subject",
+        status
+      )
+
+      commit_all(root, "base")
+
+      write_governed_subject(
+        root,
+        "The sample shall return the changed value.",
+        "sample.decision.governance",
+        "sample.subject",
+        status
+      )
+
+      assert {:ok, report} = Gate.check(root, base: "HEAD")
+      assert missing_decision?(report, ".spec/specs/sample.spec.md")
+    end
   end
 
   @tag spec: "ancora.gate.change_findings"
@@ -776,6 +838,48 @@ defmodule Ancora.GateTest do
            "Would fail if the DefIndex leg read and parsed a lib file after ModuleLocator had already parsed it"
   end
 
+  test "definition index workers receive one fetched AST instead of the full AST map" do
+    source = File.read!(Path.expand("../../lib/ancora/gate.ex", __DIR__))
+    [_, def_indexes] = String.split(source, "defp def_indexes", parts: 2)
+
+    [worker_setup, worker_and_reduce] =
+      String.split(def_indexes, "|> Task.async_stream", parts: 2)
+
+    [worker, _rest] = String.split(worker_and_reduce, "|> Enum.reduce_while", parts: 2)
+
+    assert worker_setup =~ "Map.fetch(parsed_sources, path)"
+    refute worker =~ "parsed_sources"
+  end
+
+  test "parallel workers convert failures to tagged error data" do
+    sources = %{
+      spec_parse: File.read!(Path.expand("../../lib/ancora/index.ex", __DIR__)),
+      tag_scan: File.read!(Path.expand("../../lib/ancora/tag_scanner.ex", __DIR__)),
+      source_scan: File.read!(Path.expand("../../lib/ancora/derive/module_locator.ex", __DIR__)),
+      def_index: File.read!(Path.expand("../../lib/ancora/gate.ex", __DIR__))
+    }
+
+    assert sources.spec_parse =~ ~r/defp parse_spec\(.*?rescue.*?:worker_failure.*?catch/s
+    assert sources.tag_scan =~ ~r/defp scan_worker\(.*?rescue.*?:worker_failure.*?catch/s
+    assert sources.source_scan =~ ~r/defp scan_source\(.*?rescue.*?:worker_failure.*?catch/s
+
+    assert sources.def_index =~
+             ~r/defp build_def_index\(\{path, modules, \{:ok, ast\}\}\).*?rescue.*?:worker_failure.*?catch/s
+
+    refute sources.spec_parse =~ "exit(reason)"
+    refute sources.tag_scan =~ "exit(reason)"
+  end
+
+  test "trace synchronization waits for every async-stream child" do
+    source = File.read!(__ENV__.file)
+    [_, forwarder] = String.split(source, "\n  defp forward_traces(parent) do\n", parts: 2)
+
+    [forwarder, _rest] =
+      String.split(forwarder, "\n  defp forward_until_delivered", parts: 2)
+
+    assert forwarder =~ ":erlang.trace_delivered(:all)"
+  end
+
   @tag spec: "ancora.derive.parse_degrades_to_finding"
   test "parallel parsing preserves complete finding order across runs", %{root: root} do
     create_clean_repo(root)
@@ -985,6 +1089,53 @@ defmodule Ancora.GateTest do
 
     assert finding.message =~ "test/sample_test.exs"
     assert finding.message =~ "sample.subject.works"
+  end
+
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
+  @tag spec: "ancora.findings.per_subject_overrides"
+  test "a requirement-scoped override reaches a borrowed tag finding", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" => subject_spec(),
+      ".spec/config.yml" => """
+      overrides:
+        - subject: sample.subject
+          requirement: sample.subject.works
+          code: tags/tag_borrowed
+          severity: warning
+          reason: Review borrowed coverage before merge.
+      """,
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "tags/tag_borrowed" and
+               finding.subject == "sample.subject" and
+               finding.requirement == "sample.subject.works" and
+               finding.severity == :warning and finding.severity_source == :config
+           end)
   end
 
   @tag spec: "ancora.gate.borrowed_tag_disclosed"
@@ -1449,12 +1600,12 @@ defmodule Ancora.GateTest do
     })
   end
 
-  defp write_governed_subject(root, statement, decision_id, affected_id) do
+  defp write_governed_subject(root, statement, decision_id, affected_id, status \\ "accepted") do
     write_files(root, %{
       "mix.exs" => mix_file("[app: :sample]"),
       ".spec/specs/sample.spec.md" => governed_subject_spec(statement, decision_id),
       ".spec/decisions/governance.md" =>
-        governing_decision("sample.decision.governance", affected_id),
+        governing_decision("sample.decision.governance", affected_id, status),
       "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
       "test/sample_test.exs" => """
       defmodule SampleTest do
@@ -1486,6 +1637,7 @@ defmodule Ancora.GateTest do
         %{
           "meta" => %{
             "id" => "sample.decision.governance",
+            "status" => "accepted",
             "affects" => [affected_id]
           }
         }
@@ -1618,11 +1770,11 @@ defmodule Ancora.GateTest do
     """
   end
 
-  defp governing_decision(decision_id, affected_id) do
+  defp governing_decision(decision_id, affected_id, status \\ "accepted") do
     """
     ---
     id: #{decision_id}
-    status: accepted
+    status: #{status}
     date: 2026-09-03
     affects:
       - #{affected_id}
@@ -1690,7 +1842,7 @@ defmodule Ancora.GateTest do
         :ok
 
       {:sync, caller, traced, caller_ref} ->
-        delivery_ref = :erlang.trace_delivered(traced)
+        delivery_ref = :erlang.trace_delivered(:all)
         forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref)
 
       message ->
@@ -1701,7 +1853,7 @@ defmodule Ancora.GateTest do
 
   defp forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref) do
     receive do
-      {:trace_delivered, ^traced, ^delivery_ref} ->
+      {:trace_delivered, :all, ^delivery_ref} ->
         send(caller, {:trace_forwarder_synced, caller_ref})
         forward_traces(parent)
 

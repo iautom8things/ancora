@@ -56,6 +56,9 @@ decisions:
     that path does not read the config again. The config
     `lib_paths:` key shall override project identity only when present in
     `.spec/config.yml`; literal `elixirc_paths:` shall be honored otherwise.
+    A spec parse, tag scan, source scan, or definition-index worker failure
+    shall return tagged error data and end at the environment tier rather than
+    exiting the gate process.
     In `--json` mode, a preflight environment failure shall be returned as a
     version 1 JSON report with the fixed `ancora.tasks.json_report` shape, an
     empty `all_findings` list, and the error message before the failing
@@ -169,7 +172,7 @@ decisions:
     `.spec/AGENTS.md`, `.spec/README.md`) with no `.spec/decisions/` file
     added or changed in the same diff shall produce `change/missing_decision`,
     except when the changed file is a subject spec whose `decisions:`
-    frontmatter at HEAD names an ADR that resolves in the index and whose
+    frontmatter at HEAD names an accepted ADR that resolves in the index and whose
     `affects:` names the subject or an id within it; governance files without
     frontmatter (`.spec/config.yml`, `.spec/AGENTS.md`, `.spec/README.md`)
     shall keep the co-change rule.
@@ -493,6 +496,17 @@ decisions:
     - the gate runs for each of two successive subject spec changes
   then:
     - `change/missing_decision` does not fire for either change
+  covers:
+    - ancora.gate.change_findings
+- id: ancora.gate.scenario.non_accepted_decision_does_not_clear
+  given:
+    - a changed subject spec whose `decisions:` names a proposed or superseded ADR
+    - the ADR's `affects:` names the subject
+    - no decision file changed in the diff
+  when:
+    - the gate runs
+  then:
+    - `change/missing_decision` fires for the subject spec
   covers:
     - ancora.gate.change_findings
 - id: ancora.gate.scenario.one_way_reference_does_not_clear

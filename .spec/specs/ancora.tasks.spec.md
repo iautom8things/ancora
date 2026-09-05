@@ -103,9 +103,11 @@ decisions:
     <file> :: <message>`, sorted warnings first, then info (when shown), then
     errors last, followed by `branch base=<ref> changed_files=<N>
     findings=<N> (total error=E warning=W info=I hidden: default=D trailer=T
-    ack=A)` where all three severity counts include visible and hidden findings,
+    ack=A config=C)` where all three severity counts include visible and hidden findings,
     followed by guidance lines `branch impacted_subjects=…` and `branch
-    next=…`. The summary line shall be `checked subjects=<N> requirements=<N>
+    next=…`. When a run hides info findings, `next` shall name their
+    count, `--verbose`, and `--explain-acks`; when nothing is hidden it shall
+    keep the edit guidance. The summary line shall be `checked subjects=<N> requirements=<N>
     errors=<E> warnings=<W>`; no line beginning `validate status=` shall exist.
   priority: must
   stability: stable
@@ -124,7 +126,7 @@ decisions:
     `--debug`, `--root <dir>`, `--spec-dir <dir>`, `--json`, and
     `--explain-acks`. With `--json` it shall print the full report map as JSON
     to stdout with the verdict line still last. `--explain-acks` shall list
-    only findings whose `severity_source` is `:trailer` or `:ack`, independent
+    only findings whose `severity_source` is `:config`, `:trailer`, or `:ack`, independent
     of `--verbose` and `ANCORA_SHOW_INFO`. `--spec-dir` shall select the ancora
     workspace that contains `specs/`, and omitting it shall select `.spec`.
     `--no-run-commands`, `--min-strength`,
@@ -147,6 +149,8 @@ decisions:
     `guidance`, `message`, `errors`, `warnings`, `tier`, and `fail`;
     `checked`, `branch`, and `guidance` shall always be maps with the same
     nested keys, while unavailable values shall be null, empty lists, or zero.
+    Each finding object shall have `code`, `subject`, optional `requirement`,
+    `file`, `message`, `severity`, and `severity_source` fields.
     `Ancora.Output.json_payload/1` shall encode through `Ancora.Json.encode!/1`.
     Consumers shall select the last stdout line that parses as JSON. The
     verdict shall follow it as the final stdout line.

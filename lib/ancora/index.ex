@@ -55,7 +55,7 @@ defmodule Ancora.Index do
   ADR under the decisions directory. Does not scan test tags and does not
   take realization inputs.
   """
-  @spec build(Path.t(), keyword()) :: map() | {:error, String.t()}
+  @spec build(Path.t(), keyword()) :: map() | {:error, term()}
   def build(root, opts \\ []) do
     with {:ok, spec_dir} <- resolve_spec_dir(root, opts),
          {:ok, authored_dir} <- resolve_authored_dir(root, spec_dir, opts) do
@@ -80,34 +80,31 @@ defmodule Ancora.Index do
           []
         end
 
-      subjects =
-        spec_files
-        |> Task.async_stream(&Parser.parse_file(&1, root), ordered: true, timeout: :infinity)
-        |> Enum.map(&task_value!/1)
+      with {:ok, subjects} <- parse_specs(spec_files, root) do
+        decisions = Enum.map(decision_files, &DecisionParser.parse_file(&1, root))
+        current_index = %{"subjects" => subjects, "decisions" => decisions}
+        resolvable_ids = Affects.resolvable_ids(current_index)
 
-      decisions = Enum.map(decision_files, &DecisionParser.parse_file(&1, root))
-      current_index = %{"subjects" => subjects, "decisions" => decisions}
-      resolvable_ids = Affects.resolvable_ids(current_index)
+        validated =
+          DecisionParser.validate_affects(
+            decisions,
+            resolvable_ids,
+            opts
+          )
 
-      validated =
-        DecisionParser.validate_affects(
-          decisions,
-          resolvable_ids,
-          opts
-        )
-
-      %{
-        "version" => 1,
-        "generated_at" =>
-          DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
-        "spec_dir" => spec_dir,
-        "authored_dir" => authored_dir,
-        "decision_dir" => decision_dir,
-        "subjects" => subjects,
-        "decisions" => validated,
-        "findings" => collect_findings(subjects, validated),
-        "summary" => summary(subjects, validated)
-      }
+        %{
+          "version" => 1,
+          "generated_at" =>
+            DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
+          "spec_dir" => spec_dir,
+          "authored_dir" => authored_dir,
+          "decision_dir" => decision_dir,
+          "subjects" => subjects,
+          "decisions" => validated,
+          "findings" => collect_findings(subjects, validated),
+          "summary" => summary(subjects, validated)
+        }
+      end
     end
   end
 
@@ -142,8 +139,36 @@ defmodule Ancora.Index do
     end
   end
 
-  defp task_value!({:ok, value}), do: value
-  defp task_value!({:exit, reason}), do: exit(reason)
+  defp parse_specs(spec_files, root) do
+    spec_files
+    |> Task.async_stream(&parse_spec(&1, root), ordered: true, timeout: :infinity)
+    |> Enum.reduce_while({:ok, []}, fn
+      {:ok, {:ok, subject}}, {:ok, subjects} ->
+        {:cont, {:ok, [subject | subjects]}}
+
+      {:ok, {:error, reason}}, _acc ->
+        {:halt, {:error, reason}}
+
+      {:exit, reason}, _acc ->
+        {:halt, {:error, {:worker_failure, :spec_parse, nil, reason}}}
+    end)
+    |> case do
+      {:ok, subjects} -> {:ok, Enum.reverse(subjects)}
+      {:error, _reason} = error -> error
+    end
+  end
+
+  defp parse_spec(path, root) do
+    try do
+      {:ok, Parser.parse_file(path, root)}
+    rescue
+      exception ->
+        {:error, {:worker_failure, :spec_parse, Path.relative_to(path, root), exception}}
+    catch
+      kind, reason ->
+        {:error, {:worker_failure, :spec_parse, Path.relative_to(path, root), {kind, reason}}}
+    end
+  end
 
   defp resolve_authored_dir(root, spec_dir, opts) do
     case Keyword.fetch(opts, :authored_dir) do

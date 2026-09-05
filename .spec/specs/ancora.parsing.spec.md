@@ -82,7 +82,9 @@ decisions:
     binary or nil for a subject id. Index assembly shall return a missing
     authored `specs/` directory as error data that names the requested
     workspace and directory. Every corpus-reading Mix task shall handle absent
-    and malformed metadata, and a missing directory, without raising.
+    and malformed metadata, a missing directory, and a spec parse worker
+    failure without raising; worker failures shall be reported at the
+    environment tier.
   priority: must
   stability: stable
 - id: ancora.parsing.requirement_unverified
@@ -137,7 +139,8 @@ decisions:
     for-comprehension bodies, and shall fold requirement ids up to subject ids
     for the detector. A non-literal tag value shall be recorded as
     `tags/dynamic_value` and never guessed; a test file that fails to parse
-    shall emit `tags/parse_error`; a tag naming an id absent from the corpus
+    shall emit `tags/parse_error`; an unexpected tag scan worker failure shall
+    be reported at the environment tier; a tag naming an id absent from the corpus
     shall emit `tags/unknown_requirement`; a requirement with no tag anywhere
     shall emit `tags/requirement_untagged`.
   priority: must

@@ -107,12 +107,7 @@ defmodule Ancora.Derive.ModuleLocator do
     sources
     |> Enum.sort_by(fn {path, _source} -> path end)
     |> Task.async_stream(
-      fn {path, source} ->
-        case Code.string_to_quoted(source, file: path, emit_warnings: false) do
-          {:ok, ast} -> {:ok, path, ast, collect_modules(ast, [], path, %{})}
-          {:error, reason} -> {:error, {:unparseable_source, side, path, reason}}
-        end
-      end,
+      fn {path, source} -> scan_source(path, source, side) end,
       ordered: true,
       timeout: :infinity
     )
@@ -126,6 +121,19 @@ defmodule Ancora.Derive.ModuleLocator do
       {:exit, reason}, _acc ->
         {:halt, {:error, {:source_scan_exit, side, reason}}}
     end)
+  end
+
+  defp scan_source(path, source, side) do
+    try do
+      case Code.string_to_quoted(source, file: path, emit_warnings: false) do
+        {:ok, ast} -> {:ok, path, ast, collect_modules(ast, [], path, %{})}
+        {:error, reason} -> {:error, {:unparseable_source, side, path, reason}}
+      end
+    rescue
+      exception -> {:error, {:worker_failure, :source_scan, path, exception}}
+    catch
+      kind, reason -> {:error, {:worker_failure, :source_scan, path, {kind, reason}}}
+    end
   end
 
   defp scan_base_sources(

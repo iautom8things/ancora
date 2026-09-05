@@ -98,7 +98,7 @@ decisions:
     Findings at `info` shall be printed only when `--verbose` is passed or
     `ANCORA_SHOW_INFO=1` is set, and shall never affect exit status. The
     branch summary shall report the hidden count per severity source
-    (`default`, `trailer`, and `ack`). A preflight environment failure
+    (`default`, `trailer`, `ack`, and `config`). A preflight environment failure
     represented as JSON shall keep `all_findings` empty rather than fabricate
     a finding for the environment error, including a target-read error or shallow
     boundary inside `base..HEAD` whose parent is absent locally.
@@ -250,6 +250,16 @@ decisions:
     - no finding line is printed
     - the summary reports one hidden info finding
     - the verdict is `result=pass`
+  covers:
+    - ancora.findings.info_visibility
+- id: ancora.findings.scenario.config_hidden_is_counted
+  given:
+    - an info finding whose severity comes from `.spec/config.yml`
+  when:
+    - `mix spec.check` runs without `--verbose`
+  then:
+    - the finding is hidden from the default list
+    - the branch summary reports it in the `config` bucket
   covers:
     - ancora.findings.info_visibility
 - id: ancora.findings.scenario.shallow_range_env_has_no_findings

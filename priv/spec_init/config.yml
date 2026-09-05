@@ -7,10 +7,17 @@ test_paths:
 #   - lib
 severities: {}
 
-# A subject-specific override needs a concrete reason.
+# A subject-wide override needs a concrete reason.
 # overrides:
 #   - subject: project.core
-#     requirement: project.core.requirement
+#     code: derived/unanchored_subject
+#     severity: info
+#     reason: Covered by an external integration suite.
+
+# Add requirement only when the override applies to one requirement id.
+# overrides:
+#   - subject: project.core
+#     requirement: project.core.invoice_totals
 #     code: tags/requirement_untagged
 #     severity: info
 #     reason: Blocked until the upstream API lands.

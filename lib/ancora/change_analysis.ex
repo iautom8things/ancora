@@ -84,9 +84,10 @@ defmodule Ancora.ChangeAnalysis do
   defp governs?(decision, decision_ids, governed_ids) do
     meta = Map.get(decision, "meta")
     decision_id = field(meta, "id")
+    status = field(meta, "status")
     affects = field(meta, "affects")
 
-    decision_id in decision_ids and is_list(affects) and
+    status == "accepted" and decision_id in decision_ids and is_list(affects) and
       Enum.any?(affects, &MapSet.member?(governed_ids, &1))
   end
 
@@ -157,7 +158,12 @@ defmodule Ancora.ChangeAnalysis do
         head_entries
         |> Enum.reject(&MapSet.member?(base_entries, tag_identity(&1)))
         |> Enum.map(fn entry ->
-          Finding.new(code: "tags/tag_borrowed", file: entry.file, requirement: id)
+          Finding.new(
+            code: "tags/tag_borrowed",
+            subject: current_requirement.subject_id,
+            file: entry.file,
+            requirement: id
+          )
         end)
       else
         _ -> []
@@ -169,11 +175,16 @@ defmodule Ancora.ChangeAnalysis do
     index
     |> subjects()
     |> Enum.flat_map(fn subject ->
+      subject_id = Index.subject_id(subject)
+
       subject
       |> Map.get("requirements", [])
       |> Enum.map(fn requirement ->
         {Map.get(requirement, :id),
-         %{statement: normalize_statement(Map.get(requirement, :statement))}}
+         %{
+           subject_id: subject_id,
+           statement: normalize_statement(Map.get(requirement, :statement))
+         }}
       end)
     end)
     |> Map.new()

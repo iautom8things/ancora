@@ -220,7 +220,7 @@ defmodule Ancora.Finding do
   end
 
   defp render("tags/new_requirement_untagged", ctx) do
-    "#{s(ctx)}.#{req(ctx)}: added without a tagged test; tag a test with this requirement id"
+    "#{req(ctx)}: added without a tagged test; tag a test with this requirement id"
   end
 
   defp render("tags/tag_borrowed", ctx) do
@@ -237,7 +237,7 @@ defmodule Ancora.Finding do
   end
 
   defp render("tags/requirement_untagged", ctx) do
-    "#{s(ctx)}.#{req(ctx)}: no tagged test; tag a test with this requirement id"
+    "#{req(ctx)}: no tagged test; tag a test with this requirement id"
   end
 
   defp render("tags/unknown_requirement", ctx) do
@@ -256,7 +256,7 @@ defmodule Ancora.Finding do
   end
 
   defp render("append/statement_changed", ctx) do
-    "#{s(ctx)}.#{req(ctx)}: requirement statement changed; review the revised contract"
+    "#{req(ctx)}: requirement statement changed; review the revised contract"
   end
 
   defp render("format/retired_construct", ctx) do
@@ -285,7 +285,7 @@ defmodule Ancora.Finding do
   end
 
   defp render("spec/requirement_unverified", ctx) do
-    "#{s(ctx)}.#{req(ctx)}: no tagged_tests verification block; " <>
+    "#{req(ctx)}: no tagged_tests verification block; " <>
       "add a tagged_tests block covering this requirement"
   end
 

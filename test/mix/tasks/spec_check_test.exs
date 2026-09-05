@@ -286,6 +286,24 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert_unreadable_input(root, "lib/sample.ex")
   end
 
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  @tag spec: "ancora.parsing.structural_references"
+  test "a spec path that is a directory emits an environment verdict", %{root: root} do
+    create_project(root)
+    File.mkdir_p!(Path.join(root, ".spec/specs/bad.spec.md"))
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    assert result.stdout =~ ".spec/specs/bad.spec.md"
+    assert result.stdout =~ "illegal operation on a directory"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+
+    refute result.stderr =~ "** (EXIT"
+  end
+
   @tag spec: "ancora.tasks.gated_emission_paths"
   @tag spec: "ancora.tasks.finding_line_format"
   test "findings precede summaries, guidance, and the last-line verdict", %{root: root} do
@@ -432,7 +450,74 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert result.status == 0
 
     assert result.stdout =~
-             "branch base=HEAD~1 changed_files=3 findings=7 (total error=0 warning=0 info=7 hidden: default=3 trailer=1 ack=3)"
+             "branch base=HEAD~1 changed_files=3 findings=7 (total error=0 warning=0 info=7 hidden: default=3 trailer=1 ack=3 config=0)"
+
+    assert result.stdout =~
+             "branch next=7 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
+  end
+
+  @tag spec: "ancora.findings.info_visibility"
+  @tag spec: "ancora.tasks.finding_line_format"
+  test "config-demoted info is counted on the production output path", %{root: root} do
+    write_config_hidden_fixture(root)
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 0
+
+    assert result.stdout =~
+             "branch base=HEAD changed_files=0 findings=3 (total error=0 warning=0 info=3 hidden: default=2 trailer=0 ack=0 config=1)"
+
+    assert result.stdout =~
+             "branch next=3 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
+
+    json_result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--json"])
+    assert json_result.status == 0
+    report = last_parseable_json(json_result.stdout)
+
+    assert report["branch"]["hidden"] == %{
+             "default" => 2,
+             "trailer" => 0,
+             "ack" => 0,
+             "config" => 1
+           }
+
+    assert report["branch"]["info"] == Enum.sum(Map.values(report["branch"]["hidden"]))
+
+    verbose_result =
+      run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--verbose"])
+
+    assert verbose_result.status == 0
+    assert verbose_result.stdout =~ "branch next=edit the affected spec or production code"
+  end
+
+  @tag spec: "ancora.tasks.finding_line_format"
+  test "a failing run still explains hidden info", %{root: root} do
+    write_config_hidden_fixture(root)
+
+    write_files(root, %{
+      "lib/uncovered.ex" => "defmodule Uncovered do\n  def value, do: :ok\nend\n"
+    })
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    assert result.stdout =~ "change/uncovered_file"
+
+    assert result.stdout =~
+             "branch next=3 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
+  end
+
+  @tag spec: "ancora.tasks.check_flags"
+  test "explain-acks includes config-demoted findings", %{root: root} do
+    write_config_hidden_fixture(root)
+
+    result =
+      run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--explain-acks"])
+
+    assert result.status == 0
+    assert result.stdout =~ "[INFO] sample.subject derived/unanchored_subject"
+    assert List.last(lines(result.stdout)) == "spec.check result=pass"
   end
 
   @tag spec: "ancora.tasks.check_flags"
@@ -493,6 +578,14 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert reports |> Enum.map(&Map.keys(&1["checked"])) |> Enum.uniq() |> length() == 1
     assert reports |> Enum.map(&Map.keys(&1["branch"])) |> Enum.uniq() |> length() == 1
     assert reports |> Enum.map(&Map.keys(&1["guidance"])) |> Enum.uniq() |> length() == 1
+
+    finding_keys =
+      MapSet.new(~w(code file message requirement severity severity_source subject))
+
+    assert reports
+           |> Enum.flat_map(& &1["all_findings"])
+           |> Enum.all?(&(MapSet.new(Map.keys(&1)) == finding_keys))
+
     assert Enum.at(reports, 0)["message"] == nil
     assert Enum.at(reports, 1)["message"] =~ "cannot be resolved"
     assert Enum.at(reports, 2)["message"] =~ "--no-run-commands"
@@ -582,6 +675,18 @@ defmodule Mix.Tasks.Spec.CheckTest do
   test "an unknown override key is reported and the override is not applied", %{root: root} do
     create_project(root)
     write_unanchored_subject(root)
+
+    path = Path.join(root, ".spec/specs/sample.spec.md")
+    source = File.read!(path)
+
+    File.write!(
+      path,
+      Regex.replace(
+        ~r/```yaml spec-verification.*?```/s,
+        source,
+        "```yaml spec-verification\n[]\n```"
+      )
+    )
 
     write_config(root, """
     overrides:
@@ -1159,6 +1264,33 @@ defmodule Mix.Tasks.Spec.CheckTest do
     })
 
     commit_all(root, "change values\n\nSpec-Ack: derived/drift_transitive=info")
+  end
+
+  defp write_config_hidden_fixture(root) do
+    create_project(root)
+    write_unanchored_subject(root)
+
+    path = Path.join(root, ".spec/specs/sample.spec.md")
+    source = File.read!(path)
+
+    File.write!(
+      path,
+      Regex.replace(
+        ~r/```yaml spec-verification.*?```/s,
+        source,
+        "```yaml spec-verification\n[]\n```"
+      )
+    )
+
+    write_config(root, """
+    overrides:
+      - subject: sample.subject
+        code: derived/unanchored_subject
+        severity: info
+        reason: Covered by an external integration suite.
+    """)
+
+    commit_all(root, "config-demoted finding")
   end
 
   defp ack_subject_spec(name, value) do

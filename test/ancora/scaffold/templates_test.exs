@@ -73,7 +73,11 @@ defmodule Ancora.Scaffold.TemplatesTest do
 
     assert content =~ "Spec-Ack: <code>=<info|warning>"
     assert content =~ "overrides:"
+    assert content =~ "# requirement: project.core.invoice_totals"
     assert content =~ "reason:"
+    assert content =~ "mix spec.check --verbose"
+    assert content =~ "--explain-acks"
+    assert content =~ "surface:"
   end
 
   @tag spec: "ancora.scaffold.config_template"
@@ -92,6 +96,7 @@ defmodule Ancora.Scaffold.TemplatesTest do
     assert config.lib_paths == nil
     assert config.findings == []
     assert content =~ "# overrides:"
+    assert content =~ "#     code: derived/unanchored_subject"
     assert content =~ "#     requirement:"
     assert content =~ "#     reason:"
   end

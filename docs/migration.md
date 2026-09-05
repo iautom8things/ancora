@@ -42,6 +42,23 @@ The warning clears once config supplies the same severity. It remains when
 config is more severe because removing the trailer would still change the gate
 result.
 
+## Declaring a subject surface
+
+Use `surface:` in a subject's `spec-meta` block only when the subject has a
+known primary source boundary. Each entry is an exact repo-relative path:
+
+```yaml
+surface:
+  - lib/my_app/accounts.ex
+  - lib/my_app/accounts/user.ex
+```
+
+A changed derived binding in one of those files produces primary
+`derived/drift`. A changed derived binding defined outside the list produces
+info-tier `derived/drift_transitive`. Omit `surface:` to preserve the prior
+behavior where every derived binding is primary. Do not use `surface: []`;
+its meaning is not defined yet.
+
 `spec-exceptions` blocks and the `"exceptions"` key returned by
 `Ancora.Parser.parse_file/2` are deprecated. Ancora 1.x still parses and returns
 them. Remove these blocks before upgrading to Ancora 2.0, which removes both.

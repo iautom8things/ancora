@@ -276,6 +276,43 @@ defmodule Ancora.ReviewTest do
 
   @tag spec: "ancora.review.code_pivot_grouping"
   @tag spec: "ancora.review.view_model_builder"
+  test "production builder renders transitive drift as info instead of acknowledged", %{
+    root: root
+  } do
+    write_project(root)
+
+    spec_path = Path.join(root, ".spec/specs/billing.spec.md")
+
+    write_files(root, %{
+      ".spec/specs/billing.spec.md" =>
+        spec_path
+        |> File.read!()
+        |> String.replace(
+          "summary: Billing behavior.\n",
+          "summary: Billing behavior.\nsurface:\n  - lib/primary.ex\n"
+        )
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "lib/billing.ex" => "defmodule Billing do\n  def next(value), do: value + 1\nend\n"
+    })
+
+    assert {:ok, built} = Review.build(root, base: "HEAD")
+    assert [subject] = built.subjects
+
+    assert [%{binding: "Billing.next/1", badge: :drift_transitive}] =
+             subject.code.watched_interface
+
+    html = built |> Html.render() |> IO.iodata_to_binary()
+    assert html =~ "class=\"badge drift_transitive\">drift_transitive</span>"
+    refute html =~ "class=\"badge acknowledged\">acknowledged</span>"
+    assert html =~ ".drift_transitive{color:var(--accent)}"
+  end
+
+  @tag spec: "ancora.review.code_pivot_grouping"
+  @tag spec: "ancora.review.view_model_builder"
   test "production builder keeps an acknowledged body change in the watched interface", %{
     root: root
   } do
@@ -298,6 +335,25 @@ defmodule Ancora.ReviewTest do
 
     html = built |> Html.render() |> IO.iodata_to_binary()
     assert html =~ "class=\"badge acknowledged\">acknowledged</span>"
+  end
+
+  @tag spec: "ancora.review.code_pivot_grouping"
+  @tag spec: "ancora.review.view_model_builder"
+  test "a changed binding without an ack finding is never labeled acknowledged", %{root: root} do
+    write_project(root)
+    write_files(root, %{".spec/config.yml" => "severities:\n  derived/drift: off\n"})
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "lib/billing.ex" => "defmodule Billing do\n  def next(value), do: value + 1\nend\n"
+    })
+
+    assert {:ok, built} = Review.build(root, base: "HEAD")
+    assert [subject] = built.subjects
+    assert subject.code.watched_interface == []
+
+    refute built |> Html.render() |> IO.iodata_to_binary() =~
+             "class=\"badge acknowledged\">acknowledged</span>"
   end
 
   @tag spec: "ancora.review.artifact_size"

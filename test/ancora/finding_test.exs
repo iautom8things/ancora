@@ -163,6 +163,22 @@ defmodule Ancora.FindingTest do
       assert message =~ "atlas.web.sessions"
       assert message =~ "overrides:"
     end
+
+    @tag spec: "ancora.findings.messages_carry_remedy"
+    test "requirement-scoped messages print each fully qualified id once" do
+      context = %{subject: "billing.core", requirement: "billing.core.charge"}
+
+      for code <- [
+            "append/statement_changed",
+            "tags/requirement_untagged",
+            "tags/new_requirement_untagged",
+            "spec/requirement_unverified"
+          ] do
+        message = Finding.message(code, context)
+        assert String.starts_with?(message, "billing.core.charge:")
+        refute message =~ "billing.core.billing.core.charge"
+      end
+    end
   end
 
   describe "non-tunable codes" do

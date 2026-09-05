@@ -62,6 +62,15 @@ The warning clears once config supplies the same severity. It remains when
 config is more severe because removing the trailer would still change the gate
 result.
 
+### Primary and transitive drift
+
+A subject may declare `surface:` in its `spec-meta` block as a list of exact,
+repo-relative source paths. Drift in a listed file is primary
+`derived/drift`; drift in a derived binding defined outside the list is
+`derived/drift_transitive` at info. Omitting `surface:` preserves the existing
+behavior and treats every derived binding as primary. The meaning of
+`surface: []` is not defined yet, so do not use an empty list.
+
 ## Deprecated 1.x grammar
 
 `Ancora.Parser.parse_file/2` keeps returning its `"exceptions"` key and keeps

@@ -40,7 +40,7 @@ defmodule Ancora.Gate do
       errors: 0,
       warnings: 0,
       info: 0,
-      hidden: %{default: 0, trailer: 0, ack: 0}
+      hidden: %{default: 0, trailer: 0, ack: 0, config: 0}
     },
     guidance: %{impacted_subjects: [], next: nil},
     message: nil,
@@ -414,16 +414,9 @@ defmodule Ancora.Gate do
     module_paths
     |> Enum.group_by(fn {_module, path} -> path end, fn {module, _path} -> module end)
     |> Enum.sort_by(fn {path, _modules} -> path end)
+    |> Enum.map(fn {path, modules} -> {path, modules, Map.fetch(parsed_sources, path)} end)
     |> Task.async_stream(
-      fn {path, modules} ->
-        with {:ok, ast} <- Map.fetch(parsed_sources, path),
-             {:ok, index} <- DefIndex.build(ast, path) do
-          {:ok, modules, index}
-        else
-          :error -> {:error, {:parsed_source_missing, path}}
-          {:error, _reason} = error -> error
-        end
-      end,
+      &build_def_index/1,
       ordered: true,
       timeout: :infinity
     )
@@ -437,6 +430,23 @@ defmodule Ancora.Gate do
       {:exit, reason}, _acc ->
         {:halt, {:error, {:def_index_exit, reason}}}
     end)
+  end
+
+  defp build_def_index({path, _modules, :error}) do
+    {:error, {:parsed_source_missing, path}}
+  end
+
+  defp build_def_index({path, modules, {:ok, ast}}) do
+    try do
+      case DefIndex.build(ast, path) do
+        {:ok, index} -> {:ok, modules, index}
+        {:error, _reason} = error -> error
+      end
+    rescue
+      exception -> {:error, {:worker_failure, :def_index, path, exception}}
+    catch
+      kind, reason -> {:error, {:worker_failure, :def_index, path, {kind, reason}}}
+    end
   end
 
   defp set_visibility_findings(subject_sets) do
@@ -513,42 +523,65 @@ defmodule Ancora.Gate do
 
   defp mark_acknowledged(finding), do: finding
 
-  defp gate_error({:source_read, path, reason}) do
+  @doc false
+  def gate_error({:source_read, path, reason}) do
     {:env, "cannot read #{path}: #{:file.format_error(reason)}"}
   end
 
-  defp gate_error({:spec_dir, message}), do: {:env, message}
+  def gate_error({:spec_dir, message}), do: {:env, message}
 
-  defp gate_error(reason)
-       when reason in [:git_executable_not_found, :cat_file_batch_timeout, :port_poisoned] do
+  def gate_error({:parsed_source_missing, path}) do
+    {:env, "parsed source missing for #{path} while building definition indexes"}
+  end
+
+  def gate_error({:def_index_exit, reason}) do
+    {:env, "definition index worker exited: #{worker_failure_message(reason)}"}
+  end
+
+  def gate_error({:source_scan_exit, side, reason}) do
+    {:env, "#{side} source scan worker exited: #{worker_failure_message(reason)}"}
+  end
+
+  def gate_error({:worker_failure, stage, path, reason}) do
+    location = if is_binary(path), do: " for #{path}", else: ""
+    {:env, "#{stage} worker failed#{location}: #{worker_failure_message(reason)}"}
+  end
+
+  def gate_error(reason)
+      when reason in [:git_executable_not_found, :cat_file_batch_timeout, :port_poisoned] do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error({:cat_file_batch_exited, _status} = reason) do
+  def gate_error({:cat_file_batch_exited, _status} = reason) do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error({:cat_file_batch_bad_header, _header} = reason) do
+  def gate_error({:cat_file_batch_bad_header, _header} = reason) do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error({:quoted_git_path, _path} = reason) do
+  def gate_error({:quoted_git_path, _path} = reason) do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error({:missing_nul_terminator, _source} = reason) do
+  def gate_error({:missing_nul_terminator, _source} = reason) do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error({:invalid_name_status, _records} = reason) do
+  def gate_error({:invalid_name_status, _records} = reason) do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error({:invalid_porcelain_status, _records} = reason) do
+  def gate_error({:invalid_porcelain_status, _records} = reason) do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error(reason), do: raise("gate assembly failed: #{inspect(reason)}")
+  def gate_error(reason), do: raise("gate assembly failed: #{inspect(reason)}")
+
+  defp worker_failure_message(%{__exception__: true} = exception),
+    do: Exception.message(exception)
+
+  defp worker_failure_message(reason), do: inspect(reason)
 
   defp run_context_error(:git_executable_not_found) do
     "git executable not found; install git and make it available on PATH"
@@ -635,9 +668,14 @@ defmodule Ancora.Gate do
 
     visible =
       cond do
-        explain_acks? -> Enum.filter(findings, &(&1.severity_source in [:trailer, :ack]))
-        show_info? -> findings
-        true -> non_info
+        explain_acks? ->
+          Enum.filter(findings, &(&1.severity_source in [:config, :trailer, :ack]))
+
+        show_info? ->
+          findings
+
+        true ->
+          non_info
       end
 
     errors = Enum.count(findings, &(&1.severity == :error))
@@ -647,7 +685,8 @@ defmodule Ancora.Gate do
     hidden_by_source = %{
       default: Enum.count(hidden_info, &(&1.severity_source == :default)),
       trailer: Enum.count(hidden_info, &(&1.severity_source == :trailer)),
-      ack: Enum.count(hidden_info, &(&1.severity_source == :ack))
+      ack: Enum.count(hidden_info, &(&1.severity_source == :ack)),
+      config: Enum.count(hidden_info, &(&1.severity_source == :config))
     }
 
     info_count = length(info)
@@ -672,7 +711,7 @@ defmodule Ancora.Gate do
       },
       guidance: %{
         impacted_subjects: Map.keys(subject_sets) |> Enum.sort(),
-        next: "edit the affected spec or production code"
+        next: next_guidance(hidden_by_source)
       },
       errors: errors,
       warnings: warnings,
@@ -682,6 +721,17 @@ defmodule Ancora.Gate do
     }
 
     if Keyword.get(opts, :json, false), do: json_report(report), else: report
+  end
+
+  defp next_guidance(hidden_by_source) do
+    hidden = hidden_by_source |> Map.values() |> Enum.sum()
+
+    if hidden == 0 do
+      "edit the affected spec or production code"
+    else
+      "#{hidden} info findings hidden; run with --verbose to list them or " <>
+        "--explain-acks to list config and acknowledgment sources"
+    end
   end
 
   defp prepare_base_dirs(base_root, head_root, spec_dir) do
@@ -720,7 +770,8 @@ defmodule Ancora.Gate do
 
   defp build_index(root, opts) do
     case Index.build(root, opts) do
-      {:error, message} -> {:error, {:spec_dir, message}}
+      {:error, message} when is_binary(message) -> {:error, {:spec_dir, message}}
+      {:error, _reason} = error -> error
       index -> {:ok, index}
     end
   end

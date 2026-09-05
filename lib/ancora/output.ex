@@ -165,7 +165,7 @@ defmodule Ancora.Output do
 
   @doc """
   Branch summary
-  `branch base=<ref> changed_files=<N> findings=<N> (total error=E warning=W info=I hidden: default=D trailer=T ack=A)`.
+  `branch base=<ref> changed_files=<N> findings=<N> (total error=E warning=W info=I hidden: default=D trailer=T ack=A config=C)`.
   """
   @spec branch_summary(map()) :: String.t()
   def branch_summary(branch) when is_map(branch) do
@@ -179,11 +179,12 @@ defmodule Ancora.Output do
     default = fetch_count(hidden, :default)
     trailer = fetch_count(hidden, :trailer)
     ack = fetch_count(hidden, :ack)
+    config = fetch_count(hidden, :config)
 
     sanitize(
       "branch base=#{base} changed_files=#{changed} findings=#{findings} " <>
         "(total error=#{errors} warning=#{warnings} info=#{info} " <>
-        "hidden: default=#{default} trailer=#{trailer} ack=#{ack})"
+        "hidden: default=#{default} trailer=#{trailer} ack=#{ack} config=#{config})"
     )
   end
 
@@ -326,6 +327,7 @@ defmodule Ancora.Output do
     %{
       code: finding.code,
       subject: finding.subject,
+      requirement: finding.requirement,
       file: finding.file,
       message: finding.message,
       severity: finding.severity,

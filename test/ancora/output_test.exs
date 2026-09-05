@@ -284,7 +284,7 @@ defmodule Ancora.OutputTest do
       assert Enum.at(lines, 1) =~ ~r/^\[ERROR\] /
       assert "checked subjects=1 requirements=2 errors=1 warnings=1" in lines
 
-      assert "branch base=origin/main changed_files=3 findings=2 (total error=1 warning=1 info=0 hidden: default=0 trailer=0 ack=0)" in lines
+      assert "branch base=origin/main changed_files=3 findings=2 (total error=1 warning=1 info=0 hidden: default=0 trailer=0 ack=0 config=0)" in lines
 
       assert "branch impacted_subjects=ancora.tasks" in lines
       assert "branch next=mix spec.check --base HEAD" in lines
@@ -303,7 +303,22 @@ defmodule Ancora.OutputTest do
                info: 6,
                hidden: %{default: 3, trailer: 2, ack: 1}
              }) ==
-               "branch base=HEAD changed_files=1 findings=9 (total error=1 warning=2 info=6 hidden: default=3 trailer=2 ack=1)"
+               "branch base=HEAD changed_files=1 findings=9 (total error=1 warning=2 info=6 hidden: default=3 trailer=2 ack=1 config=0)"
+    end
+
+    @tag spec: "ancora.findings.info_visibility"
+    @tag spec: "ancora.tasks.finding_line_format"
+    test "branch summary reports config-hidden info" do
+      assert Output.branch_summary(%{
+               base: "HEAD",
+               changed_files: 0,
+               findings: 1,
+               errors: 0,
+               warnings: 0,
+               info: 1,
+               hidden: %{config: 1}
+             }) ==
+               "branch base=HEAD changed_files=0 findings=1 (total error=0 warning=0 info=1 hidden: default=0 trailer=0 ack=0 config=1)"
     end
 
     @tag spec: "ancora.tasks.finding_line_format"
@@ -356,6 +371,24 @@ defmodule Ancora.OutputTest do
   end
 
   describe "json" do
+    @tag spec: "ancora.tasks.json_report"
+    test "finding objects retain their optional requirement id" do
+      json =
+        Output.json_payload(%{
+          findings: [
+            finding(
+              code: "tags/tag_borrowed",
+              requirement: "ancora.tasks.json_report",
+              severity: :info,
+              severity_source: :default
+            )
+          ]
+        })
+
+      assert {:ok, %{"findings" => [finding]}} = Jason.decode(json)
+      assert finding["requirement"] == "ancora.tasks.json_report"
+    end
+
     @tag spec: "ancora.tasks.verdict_grammar"
     test "json payload precedes the verdict on stdout" do
       # Would fail if Output.json_payload/1 encoded through Jason directly.

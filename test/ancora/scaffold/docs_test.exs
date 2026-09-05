@@ -50,6 +50,18 @@ defmodule Ancora.Scaffold.DocsTest do
     assert File.read!(@migration) =~ "requirement:"
   end
 
+  @tag spec: "ancora.scaffold.readme_commitments"
+  @tag spec: "ancora.scaffold.migration_doc"
+  test "README and migration guide define non-empty surface paths" do
+    for path <- [@readme, @migration] do
+      content = File.read!(path)
+      assert content =~ "repo-relative"
+      assert content =~ "derived/drift_transitive"
+      assert content =~ "`surface: []`"
+      assert content =~ "not defined"
+    end
+  end
+
   @tag spec: "ancora.scaffold.migration_doc"
   test "migration map names the complete 33-code registry and its defaults" do
     content = File.read!(@migration)
