@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-05T13:13:25Z",
+  "description": "Advances: ancora.gate\n\nSeverity: Medium (calibrated; critical review 2026-09-05, consolidated F38, performance). Evidence: the ancora-gg8.7 closure-copy regression (15x slower at 818 files, invisible at 67) passed every test and merge gate because nothing measures the gate at scale; the performance reviewer built a synthetic 818-file corpus from real Elixir sources to find it. Proposal: a generated-corpus bench (mix task or test tagged :bench) with a wall-clock ceiling run in CI or nightly, so a quadratic regression fails a check. Needs a policy call on the ceiling and where it runs. Related: ancora-u38 cache revisit bench. Ready-for: investigate.",
+  "id": "ancora-8lm.7",
+  "labels": [],
+  "parent": "ancora-8lm",
+  "priority": 2,
+  "status": "open",
+  "title": "Scale bench: generated large corpus with a CI wall-clock ceiling for the gate",
+  "type": "task",
+  "updated_at": "2026-09-05T13:13:25Z"
+}
