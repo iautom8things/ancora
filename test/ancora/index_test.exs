@@ -17,6 +17,15 @@ defmodule Ancora.IndexTest do
       assert message =~ ".spec/specs/specs directory not found"
     end
 
+    @tag spec: "ancora.parsing.structural_references"
+    test "returns spec parser worker failures as tagged data", %{root: root} do
+      File.mkdir_p!(Path.join(root, ".spec/specs/bad.spec.md"))
+
+      assert {:error,
+              {:worker_failure, :spec_parse, ".spec/specs/bad.spec.md",
+               %File.Error{reason: :eisdir}}} = Index.build(root)
+    end
+
     @tag spec: "ancora.parsing.block_grammar_unchanged"
     test "indexes authored specs and decisions and exposes Ancora.index/2", %{root: root} do
       write_spec(root, "alpha", """

@@ -286,6 +286,85 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert_unreadable_input(root, "lib/sample.ex")
   end
 
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  @tag spec: "ancora.parsing.structural_references"
+  test "a spec path that is a directory emits an environment verdict", %{root: root} do
+    create_project(root)
+    File.mkdir_p!(Path.join(root, ".spec/specs/bad.spec.md"))
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    assert result.stdout =~ ".spec/specs/bad.spec.md"
+    assert result.stdout =~ "illegal operation on a directory"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+
+    refute result.stderr =~ "** (EXIT"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "invalid UTF-8 in a test emits a tag_scan environment verdict", %{root: root} do
+    create_project(root)
+    write_files(root, %{"test/bin_test.exs" => <<255, 254, 0>>})
+    commit_all(root, "binary test fixture")
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    refute result.stderr =~ "** (EXIT"
+    assert result.stdout =~ "tag_scan worker failed for"
+    assert result.stdout =~ "test/bin_test.exs"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "invalid UTF-8 in a library emits a source_scan environment verdict", %{root: root} do
+    create_project(root)
+    write_files(root, %{"lib/bin.ex" => <<255, 254, 0>>})
+    commit_all(root, "binary library fixture")
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    refute result.stderr =~ "** (EXIT"
+    assert result.stdout =~ "source_scan worker failed for lib/bin.ex"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a nested __MODULE__ name emits a def_index environment verdict", %{root: root} do
+    create_project(root)
+
+    # This relies on the pre-existing DefIndex failure for this module shape.
+    # Fixing that behavior is fast-follow work and will require a different fixture.
+    write_files(root, %{
+      "lib/outer.ex" => """
+      defmodule Outer do
+        defmodule __MODULE__.Inner do
+          def value, do: :ok
+        end
+      end
+      """
+    })
+
+    commit_all(root, "nested module fixture")
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    refute result.stderr =~ "** (EXIT"
+    assert result.stdout =~ "def_index worker failed for lib/outer.ex"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+  end
+
   @tag spec: "ancora.tasks.gated_emission_paths"
   @tag spec: "ancora.tasks.finding_line_format"
   test "findings precede summaries, guidance, and the last-line verdict", %{root: root} do
@@ -406,6 +485,118 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert Enum.any?(report["findings"], &(&1["code"] == "derived/growth"))
   end
 
+  @tag spec: "ancora.tasks.check_flags"
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  test "explain-acks lists ack and trailer findings but not default info", %{root: root} do
+    write_ack_fixture(root)
+
+    result =
+      run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD~1", "--explain-acks"])
+
+    assert result.status == 0
+    finding_lines = Enum.filter(lines(result.stdout), &String.starts_with?(&1, "[INFO]"))
+    assert length(finding_lines) == 4
+    assert Enum.all?(finding_lines, &String.contains?(&1, "derived/drift"))
+    refute result.stdout =~ "derived/unresolved_calls"
+    assert List.last(lines(result.stdout)) == "spec.check result=pass"
+  end
+
+  @tag spec: "ancora.findings.info_visibility"
+  @tag spec: "ancora.tasks.finding_line_format"
+  test "default branch summary reports hidden info from the production gate", %{root: root} do
+    write_ack_fixture(root)
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD~1"])
+
+    assert result.status == 0
+
+    assert result.stdout =~
+             "branch base=HEAD~1 changed_files=3 findings=7 (total error=0 warning=0 info=7 hidden: default=3 trailer=1 ack=3 config=0)"
+
+    assert result.stdout =~
+             "branch next=7 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
+  end
+
+  @tag spec: "ancora.findings.info_visibility"
+  @tag spec: "ancora.tasks.finding_line_format"
+  test "config-demoted info is counted on the production output path", %{root: root} do
+    write_config_hidden_fixture(root)
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 0
+
+    assert result.stdout =~
+             "branch base=HEAD changed_files=0 findings=3 (total error=0 warning=0 info=3 hidden: default=2 trailer=0 ack=0 config=1)"
+
+    assert result.stdout =~
+             "branch next=3 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
+
+    json_result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--json"])
+    assert json_result.status == 0
+    report = last_parseable_json(json_result.stdout)
+
+    assert report["branch"]["hidden"] == %{
+             "default" => 2,
+             "trailer" => 0,
+             "ack" => 0,
+             "config" => 1
+           }
+
+    assert report["branch"]["info"] == Enum.sum(Map.values(report["branch"]["hidden"]))
+
+    verbose_result =
+      run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--verbose"])
+
+    assert verbose_result.status == 0
+    assert verbose_result.stdout =~ "branch next=edit the affected spec or production code"
+  end
+
+  @tag spec: "ancora.tasks.finding_line_format"
+  test "a failing run still explains hidden info", %{root: root} do
+    write_config_hidden_fixture(root)
+
+    write_files(root, %{
+      "lib/uncovered.ex" => "defmodule Uncovered do\n  def value, do: :ok\nend\n"
+    })
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
+
+    assert result.status == 1
+    assert result.stdout =~ "change/uncovered_file"
+
+    assert result.stdout =~
+             "branch next=3 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
+  end
+
+  @tag spec: "ancora.tasks.check_flags"
+  test "explain-acks includes config-demoted findings", %{root: root} do
+    write_config_hidden_fixture(root)
+
+    result =
+      run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--explain-acks"])
+
+    assert result.status == 0
+    assert result.stdout =~ "[INFO] sample.subject derived/unanchored_subject"
+    assert List.last(lines(result.stdout)) == "spec.check result=pass"
+  end
+
+  @tag spec: "ancora.tasks.check_flags"
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  test "json all_findings retains acknowledgment source", %{root: root} do
+    write_ack_fixture(root)
+
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD~1", "--json"])
+
+    assert result.status == 0
+    report = last_parseable_json(result.stdout)
+
+    assert Enum.any?(report["all_findings"], fn finding ->
+             finding["subject"] == "sample.alpha" and finding["code"] == "derived/drift" and
+               finding["severity"] == "info" and finding["severity_source"] == "ack"
+           end)
+  end
+
   @tag spec: "ancora.tasks.json_report"
   test "json ok, environment, usage, and branch paths share one versioned shape", %{root: root} do
     # Would fail if a CLI consumer had to select keys based on the failure path.
@@ -448,6 +639,14 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert reports |> Enum.map(&Map.keys(&1["checked"])) |> Enum.uniq() |> length() == 1
     assert reports |> Enum.map(&Map.keys(&1["branch"])) |> Enum.uniq() |> length() == 1
     assert reports |> Enum.map(&Map.keys(&1["guidance"])) |> Enum.uniq() |> length() == 1
+
+    finding_keys =
+      MapSet.new(~w(code file message requirement severity severity_source subject))
+
+    assert reports
+           |> Enum.flat_map(& &1["all_findings"])
+           |> Enum.all?(&(MapSet.new(Map.keys(&1)) == finding_keys))
+
     assert Enum.at(reports, 0)["message"] == nil
     assert Enum.at(reports, 1)["message"] =~ "cannot be resolved"
     assert Enum.at(reports, 2)["message"] =~ "--no-run-commands"
@@ -541,10 +740,10 @@ defmodule Mix.Tasks.Spec.CheckTest do
     write_config(root, """
     overrides:
       - subject: sample.subject
-        requirement: sample.subject.works
         code: derived/unanchored_subject
         severity: info
         reason: integration-only
+        scope: whole-repo
     """)
 
     result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--json"])
@@ -554,8 +753,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
 
     assert Enum.any?(report["findings"], fn finding ->
              finding["code"] == "config/unknown_key" and
-               finding["message"] =~ ~s("requirement") and
-               finding["message"] =~ "sample.subject"
+               finding["message"] =~ ~s("scope")
            end)
 
     assert Enum.any?(report["findings"], fn finding ->
@@ -1051,6 +1249,155 @@ defmodule Mix.Tasks.Spec.CheckTest do
       end
       """
     })
+  end
+
+  defp write_ack_fixture(root) do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => """
+      defmodule Fixture.MixProject do
+        use Mix.Project
+        def project, do: [app: :fixture]
+      end
+      """,
+      ".spec/specs/alpha.spec.md" => ack_subject_spec("alpha", "current"),
+      ".spec/specs/beta.spec.md" => ack_subject_spec("beta", "current"),
+      ".spec/decisions/change.md" => """
+      ---
+      id: sample.decision.change
+      status: accepted
+      date: 2026-09-03
+      affects:
+        - sample.alpha
+      ---
+
+      # Change
+
+      ## Context
+
+      Alpha changes need an owner.
+
+      ## Decision
+
+      This decision governs alpha changes.
+
+      ## Consequences
+
+      Alpha may cite this decision.
+      """,
+      "lib/alpha.ex" => """
+      defmodule Alpha do
+        def value, do: :current
+        def second, do: :current
+        def third, do: :current
+      end
+      """,
+      "lib/beta.ex" => "defmodule Beta do\n  def value, do: :current\nend\n",
+      "test/alpha_test.exs" => ack_test("alpha"),
+      "test/beta_test.exs" => ack_test("beta")
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      ".spec/specs/alpha.spec.md" => ack_subject_spec("alpha", "changed"),
+      "lib/alpha.ex" => """
+      defmodule Alpha do
+        def value, do: :changed
+        def second, do: :changed
+        def third, do: :changed
+      end
+      """,
+      "lib/beta.ex" => "defmodule Beta do\n  def value, do: :changed\nend\n"
+    })
+
+    commit_all(root, "change values\n\nSpec-Ack: derived/drift_transitive=info")
+  end
+
+  defp write_config_hidden_fixture(root) do
+    create_project(root)
+    write_unanchored_subject(root)
+
+    path = Path.join(root, ".spec/specs/sample.spec.md")
+    source = File.read!(path)
+
+    File.write!(
+      path,
+      Regex.replace(
+        ~r/```yaml spec-verification.*?```/s,
+        source,
+        "```yaml spec-verification\n[]\n```"
+      )
+    )
+
+    write_config(root, """
+    overrides:
+      - subject: sample.subject
+        code: derived/unanchored_subject
+        severity: info
+        reason: Covered by an external integration suite.
+    """)
+
+    commit_all(root, "config-demoted finding")
+  end
+
+  defp ack_subject_spec(name, value) do
+    surface = if name == "beta", do: "surface: []\n", else: ""
+
+    """
+    # #{name}
+
+    ```yaml spec-meta
+    id: sample.#{name}
+    kind: module
+    status: draft
+    #{surface}decisions:
+      - sample.decision.change
+    ```
+
+    ```yaml spec-requirements
+    - id: sample.#{name}.works
+      statement: The sample shall return its #{value} value.
+      priority: must
+    ```
+
+    ```yaml spec-scenarios
+    []
+    ```
+
+    ```yaml spec-verification
+    - kind: tagged_tests
+      covers:
+        - sample.#{name}.works
+    ```
+    """
+  end
+
+  defp ack_test(name) do
+    module = String.capitalize(name)
+
+    alpha_assertions =
+      if name == "alpha" do
+        """
+        assert Alpha.second() in [:current, :changed]
+        assert Alpha.third() in [:current, :changed]
+        """
+      else
+        ""
+      end
+
+    """
+    defmodule #{module}Test do
+      use ExUnit.Case
+      @tag spec: "sample.#{name}.works"
+      test "works" do
+        assert #{module}.value() in [:current, :changed]
+        #{alpha_assertions}
+        assert apply(#{module}, :value, []) in [:current, :changed]
+      end
+    end
+    """
   end
 
   defp lines(output), do: String.split(output, "\n", trim: true)

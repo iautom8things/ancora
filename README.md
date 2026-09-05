@@ -57,9 +57,19 @@ when an applied trailer exists only below the branch tip because a squash merge
 will discard it. Before merging, copy that severity into `.spec/config.yml`
 under `severities:` or a subject override, add the reason for an override, and
 commit the config change. Overrides in Ancora 1.x are scoped to one subject and
-one finding code. The warning clears once config supplies the same severity. It
-remains when config is more severe because removing the trailer would still
-change the gate result.
+one finding code, optionally narrowed to one requirement with `requirement:`.
+The warning clears once config supplies the same severity. It remains when
+config is more severe because removing the trailer would still change the gate
+result.
+
+### Primary and transitive drift
+
+A subject may declare `surface:` in its `spec-meta` block as a list of exact,
+repo-relative source paths. Drift in a listed file is primary
+`derived/drift`; drift in a derived binding defined outside the list is
+`derived/drift_transitive` at info. Omitting `surface:` preserves the existing
+behavior and treats every derived binding as primary. The meaning of
+`surface: []` is not defined yet, so do not use an empty list.
 
 ## Deprecated 1.x grammar
 

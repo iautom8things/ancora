@@ -16,6 +16,7 @@ defmodule Mix.Tasks.Spec.Check do
     * `--root DIR` selects the target project. Defaults to the current directory.
     * `--spec-dir DIR` selects the ancora workspace directory. Defaults to `.spec`.
     * `--json` emits a versioned JSON report before the verdict. Defaults to false.
+    * `--explain-acks` lists only findings whose severity_source is `:trailer`, `:ack` or `:config`, independent of `--verbose` and `ANCORA_SHOW_INFO`. Defaults to false.
 
   #{Ancora.Output.read_protocol()}
   """
@@ -29,7 +30,8 @@ defmodule Mix.Tasks.Spec.Check do
     debug: :boolean,
     root: :string,
     spec_dir: :string,
-    json: :boolean
+    json: :boolean,
+    explain_acks: :boolean
   ]
 
   @impl Mix.Task

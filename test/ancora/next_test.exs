@@ -19,6 +19,20 @@ defmodule Ancora.NextTest do
   end
 
   @tag spec: "ancora.tasks.next_labels_verbatim"
+  test "uses a status report supplied by a composing task", %{root: root} do
+    # Would fail if Next ignored the status already built by Prime and derived it again.
+    create_anchored_project(root)
+    commit_all(root, "base")
+    write_files(root, %{"lib/sample.ex" => sample_module(":changed")})
+
+    status = %{subjects: []}
+
+    assert {:ok, report} = Next.build(root, base: "HEAD", status: status)
+    assert report.classification == "uncovered frontier change"
+    assert report.reconciliation == "needs new subject"
+  end
+
+  @tag spec: "ancora.tasks.next_labels_verbatim"
   test "prints ready for check after the impacted subject changes", %{root: root} do
     create_anchored_project(root)
     commit_all(root, "base")

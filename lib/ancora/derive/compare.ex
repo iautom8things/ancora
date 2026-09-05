@@ -13,7 +13,9 @@ defmodule Ancora.Derive.Compare do
   @doc """
   Compares a subject's base and HEAD derived sets.
 
-  Required options are `:locator` and `:change_set`. Source may be supplied as
+  Required options are `:locator` and `:change_set`. The optional `:surface`
+  is the subject's authored file list; when absent, all drift stays primary.
+  Source may be supplied as
   `sources: %{base: %{path => source}, head: %{path => source}}` or as a
   two-argument `source_reader`. With neither, `:root` supplies HEAD reads and
   the change set supplies changed base blobs. Gate callers may pass one
@@ -32,8 +34,8 @@ defmodule Ancora.Derive.Compare do
       end)
 
     set_findings(subject_id, base, head) ++
-      transition_findings(subject_id, base, head, locator, change_set) ++
-      drift_findings(subject_id, base, head, locator, change_set, parsed_sources)
+      transition_findings(subject_id, base, head, locator, change_set, opts) ++
+      drift_findings(subject_id, base, head, locator, change_set, parsed_sources, opts)
   end
 
   @doc "Parses each changed defining file once per side for a set of subject pairs."
@@ -107,7 +109,7 @@ defmodule Ancora.Derive.Compare do
     end
   end
 
-  defp transition_findings(subject_id, base, head, locator, change_set) do
+  defp transition_findings(subject_id, base, head, locator, change_set, opts) do
     shared = MapSet.intersection(Derive.all_bindings(base), Derive.all_bindings(head))
     base_textual = Map.get(base, :bindings, MapSet.new())
     head_textual = Map.get(head, :bindings, MapSet.new())
@@ -120,7 +122,7 @@ defmodule Ancora.Derive.Compare do
     |> Enum.uniq_by(fn {module, name, _arity} -> {module, name} end)
     |> Enum.map(fn binding ->
       Finding.new(
-        code: "derived/drift",
+        code: drift_code(defining_file(binding, locator), opts),
         subject: subject_id,
         file: defining_file(binding, locator),
         message:
@@ -130,7 +132,7 @@ defmodule Ancora.Derive.Compare do
     end)
   end
 
-  defp drift_findings(subject_id, base, head, locator, change_set, parsed_sources) do
+  defp drift_findings(subject_id, base, head, locator, change_set, parsed_sources, opts) do
     base_textual = Map.get(base, :bindings, MapSet.new())
     head_textual = Map.get(head, :bindings, MapSet.new())
 
@@ -150,7 +152,12 @@ defmodule Ancora.Derive.Compare do
             detail = "#{format_binding(binding)} at line #{line}"
 
             finding =
-              Finding.new(code: "derived/drift", subject: subject_id, file: file, detail: detail)
+              Finding.new(
+                code: drift_code(file, opts),
+                subject: subject_id,
+                file: file,
+                detail: detail
+              )
 
             {[finding | findings], MapSet.put(seen, key)}
           end
@@ -216,6 +223,18 @@ defmodule Ancora.Derive.Compare do
           {:ok, path} -> path
           :error -> nil
         end
+    end
+  end
+
+  defp drift_code(_file, opts) when not is_list(opts), do: "derived/drift"
+
+  defp drift_code(file, opts) do
+    case Keyword.fetch(opts, :surface) do
+      :error ->
+        "derived/drift"
+
+      {:ok, surface} when is_list(surface) ->
+        if file in surface, do: "derived/drift", else: "derived/drift_transitive"
     end
   end
 

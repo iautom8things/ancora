@@ -8,6 +8,7 @@ defmodule Ancora.Review do
   alias Ancora.Derive.Membership
   alias Ancora.Derive.ModuleLocator
   alias Ancora.Derive.RunContext
+  alias Ancora.Finding
   alias Ancora.Gate
   alias Ancora.Gate.Preflight
   alias Ancora.Git
@@ -20,6 +21,7 @@ defmodule Ancora.Review do
   alias Ancora.TagScanner
 
   @diff_families ~w(derived change append)
+  @drift_codes ["derived/drift", "derived/drift_transitive"]
 
   @spec build(Path.t(), keyword()) :: {:ok, map()} | {:env, String.t()}
   def build(root, opts \\ []) when is_binary(root) do
@@ -133,7 +135,7 @@ defmodule Ancora.Review do
          changed_files,
          diffs,
          tags,
-         subject_sets,
+         _subject_sets,
          footprints,
          file_owners,
          findings
@@ -149,15 +151,8 @@ defmodule Ancora.Review do
       test_files = Map.get(tags, id, [])
       drift_cards = drift_cards(subject_findings, diffs)
 
-      called =
-        subject_sets
-        |> Map.get(id, %{})
-        |> Derive.all_bindings()
-        |> Enum.map(&review_binding/1)
-        |> MapSet.new()
-
       acknowledged_cards =
-        acknowledged_cards(root, called, changed_files, diffs, drift_cards)
+        acknowledged_cards(root, subject_findings, changed_files, diffs, drift_cards)
 
       watched_cards = drift_cards ++ acknowledged_cards
       watched_files = watched_cards |> Enum.map(& &1.file) |> MapSet.new()
@@ -236,19 +231,28 @@ defmodule Ancora.Review do
 
   defp drift_cards(findings, diffs) do
     findings
-    |> Enum.filter(&(&1.code == "derived/drift"))
+    |> Enum.filter(&(&1.code in @drift_codes))
     |> Enum.map(fn finding ->
       %{
         binding: binding_from_message(finding.message),
-        badge: :drift,
+        badge: drift_badge(finding),
         file: finding.file,
         lines: Map.get(diffs, finding.file, [])
       }
     end)
   end
 
-  defp acknowledged_cards(root, called, changed_files, diffs, drift_cards) do
+  defp drift_badge(%Finding{severity_source: :ack}), do: :acknowledged
+  defp drift_badge(%Finding{code: "derived/drift_transitive"}), do: :drift_transitive
+  defp drift_badge(%Finding{}), do: :drift
+
+  defp acknowledged_cards(root, findings, changed_files, diffs, drift_cards) do
     watched = MapSet.new(drift_cards, & &1.binding)
+
+    acknowledged =
+      findings
+      |> Enum.filter(&(&1.severity_source == :ack and &1.code in @drift_codes))
+      |> MapSet.new(&binding_from_message(&1.message))
 
     changed_files
     |> Enum.filter(&String.starts_with?(&1, "lib/"))
@@ -258,7 +262,7 @@ defmodule Ancora.Review do
       diffs
       |> Map.get(file, [])
       |> changed_definitions(module)
-      |> Enum.filter(&MapSet.member?(called, &1))
+      |> Enum.filter(&MapSet.member?(acknowledged, format_binding(&1)))
       |> Enum.reject(&MapSet.member?(watched, format_binding(&1)))
       |> Enum.map(fn binding ->
         %{
@@ -355,11 +359,6 @@ defmodule Ancora.Review do
   end
 
   defp format_binding({module, name, arity}), do: "#{module}.#{name}/#{arity}"
-
-  defp review_binding({module, name, arity}) do
-    module = module |> Atom.to_string() |> String.trim_leading("Elixir.")
-    {module, Atom.to_string(name), arity}
-  end
 
   defp binding_from_message(message) do
     case Regex.run(~r/([A-Z][A-Za-z0-9_.]*\.[a-zA-Z_!?][a-zA-Z0-9_!?]*\/\d+)/, message || "",

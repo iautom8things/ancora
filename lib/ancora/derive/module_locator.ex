@@ -13,11 +13,13 @@ defmodule Ancora.Derive.ModuleLocator do
   @type side :: :head | :base
   @type module_name :: String.t()
 
-  defstruct head: %{}, base: %{}
+  defstruct head: %{}, base: %{}, head_asts: %{}, base_asts: %{}
 
   @type t :: %__MODULE__{
           head: %{module_name() => String.t()},
-          base: %{module_name() => String.t()}
+          base: %{module_name() => String.t()},
+          head_asts: %{String.t() => Macro.t()},
+          base_asts: %{String.t() => Macro.t()}
         }
 
   @doc "Builds the per-side module-to-source maps for a project and change set."
@@ -25,9 +27,16 @@ defmodule Ancora.Derive.ModuleLocator do
   def build(%ProjectInfo{} = project, %ChangeSet{} = change_set) do
     with {:ok, head_sources} <- head_sources(project),
          base_sources <- base_sources(project, change_set, head_sources),
-         {:ok, head} <- scan_sources(head_sources, :head),
-         {:ok, base} <- scan_sources(base_sources, :base) do
-      {:ok, %__MODULE__{head: head, base: base}}
+         {:ok, head, head_asts} <- scan_sources(head_sources, :head),
+         {:ok, base, base_asts} <-
+           scan_base_sources(base_sources, head, head_asts, change_set) do
+      {:ok,
+       %__MODULE__{
+         head: head,
+         base: base,
+         head_asts: head_asts,
+         base_asts: base_asts
+       }}
     end
   end
 
@@ -95,16 +104,49 @@ defmodule Ancora.Derive.ModuleLocator do
   end
 
   defp scan_sources(sources, side) do
-    Enum.reduce_while(sources, {:ok, %{}}, fn {path, source}, {:ok, modules} ->
-      case Code.string_to_quoted(source, file: path, emit_warnings: false) do
-        {:ok, ast} ->
-          {:cont, {:ok, collect_modules(ast, [], path, modules)}}
+    sources
+    |> Enum.sort_by(fn {path, _source} -> path end)
+    |> Task.async_stream(
+      fn {path, source} -> scan_source(path, source, side) end,
+      ordered: true,
+      timeout: :infinity
+    )
+    |> Enum.reduce_while({:ok, %{}, %{}}, fn
+      {:ok, {:ok, path, ast, file_modules}}, {:ok, modules, asts} ->
+        {:cont, {:ok, Map.merge(file_modules, modules), Map.put(asts, path, ast)}}
 
-        {:error, reason} ->
-          {:halt, {:error, {:unparseable_source, side, path, reason}}}
-      end
+      {:ok, {:error, reason}}, _acc ->
+        {:halt, {:error, reason}}
+
+      {:exit, reason}, _acc ->
+        {:halt, {:error, {:source_scan_exit, side, reason}}}
     end)
   end
+
+  defp scan_source(path, source, side) do
+    try do
+      case Code.string_to_quoted(source, file: path, emit_warnings: false) do
+        {:ok, ast} -> {:ok, path, ast, collect_modules(ast, [], path, %{})}
+        {:error, reason} -> {:error, {:unparseable_source, side, path, reason}}
+      end
+    rescue
+      exception -> {:error, {:worker_failure, :source_scan, path, exception}}
+    catch
+      kind, reason -> {:error, {:worker_failure, :source_scan, path, {kind, reason}}}
+    end
+  end
+
+  defp scan_base_sources(
+         _sources,
+         head,
+         head_asts,
+         %ChangeSet{entries: [], prefetched: prefetched}
+       )
+       when map_size(prefetched) == 0,
+       do: {:ok, head, head_asts}
+
+  defp scan_base_sources(sources, _head, _head_asts, %ChangeSet{}),
+    do: scan_sources(sources, :base)
 
   defp collect_modules({kind, _, [name_ast, body]}, parent, path, modules)
        when kind in [:defmodule, :defprotocol] and is_list(body) do

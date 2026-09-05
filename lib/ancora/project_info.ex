@@ -139,7 +139,7 @@ defmodule Ancora.ProjectInfo do
   defp validate_lib_paths(paths)
        when is_list(paths) and paths != [] do
     if Enum.all?(paths, &(is_binary(&1) and &1 != "")) do
-      {:ok, paths}
+      {:ok, Enum.map(paths, &String.trim_trailing(&1, "/"))}
     else
       {:env, "lib_paths must be a non-empty list of paths"}
     end

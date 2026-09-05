@@ -49,6 +49,7 @@ defmodule Ancora.TagScanner do
   """
   @spec scan([String.t()], keyword()) ::
           {:ok, %{String.t() => [tag_entry()]}, [parse_error()], [dynamic_entry()]}
+          | {:error, term()}
   def scan(paths, _opts \\ []) do
     test_files =
       paths
@@ -57,19 +58,48 @@ defmodule Ancora.TagScanner do
       |> Enum.uniq()
       |> Enum.sort()
 
-    {tag_map, parse_errors, dynamics} =
-      Enum.reduce(test_files, {%{}, [], []}, fn path, {tm, pes, dyns} ->
-        case scan_file(path, include_dynamic: true) do
-          {:ok, tags, dynamic} ->
-            tm2 = merge_tags(tm, tags)
-            {tm2, pes, dyns ++ dynamic}
+    result =
+      test_files
+      |> Task.async_stream(
+        &scan_worker/1,
+        ordered: true,
+        timeout: :infinity
+      )
+      |> Enum.reduce_while({:ok, {%{}, [], []}}, fn
+        {:ok, {:ok, path, result}}, {:ok, {tm, pes, dyns}} ->
+          case result do
+            {:ok, tags, dynamic} ->
+              tm2 = merge_tags(tm, tags)
+              {:cont, {:ok, {tm2, pes, dyns ++ dynamic}}}
 
-          {:error, reason} ->
-            {tm, [%{file: path, reason: reason} | pes], dyns}
-        end
+            {:error, reason} ->
+              {:cont, {:ok, {tm, [%{file: path, reason: reason} | pes], dyns}}}
+          end
+
+        {:ok, {:error, reason}}, _acc ->
+          {:halt, {:error, reason}}
+
+        {:exit, reason}, _acc ->
+          {:halt, {:error, {:worker_failure, :tag_scan, nil, reason}}}
       end)
 
-    {:ok, tag_map, Enum.reverse(parse_errors), dynamics}
+    case result do
+      {:error, reason} ->
+        {:error, reason}
+
+      {:ok, {tag_map, parse_errors, dynamics}} ->
+        {:ok, tag_map, Enum.reverse(parse_errors), dynamics}
+    end
+  end
+
+  defp scan_worker(path) do
+    try do
+      {:ok, path, scan_file(path, include_dynamic: true)}
+    rescue
+      exception -> {:error, {:worker_failure, :tag_scan, path, exception}}
+    catch
+      kind, reason -> {:error, {:worker_failure, :tag_scan, path, {kind, reason}}}
+    end
   end
 
   @doc """

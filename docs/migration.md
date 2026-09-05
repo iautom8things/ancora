@@ -26,7 +26,10 @@ Ancora version.
 7. Run `mix spec.check --base HEAD` once to fix corpus and tag errors. Then run
    against the trunk base and review every drift, growth, shrink, and uncovered
    file finding.
-8. Remove the compatibility shim only after the repository's CI passes with
+8. Budget for migration-driven load shifts. Retagged suites and added compile
+   work can expose latent consumer flakes even when the migrated behavior is
+   unchanged.
+9. Remove the compatibility shim only after the repository's CI passes with
    Ancora alone.
 
 `Spec-Ack:` trailers are temporary development acknowledgments. Ancora warns
@@ -34,9 +37,27 @@ when an applied trailer exists only below the branch tip because a squash merge
 will discard it. Before merging, copy that severity into `.spec/config.yml`
 under `severities:` or a subject override, add the reason for an override, and
 commit the config change. Overrides in Ancora 1.x are scoped to one subject and
-one finding code. The warning clears once config supplies the same severity. It
-remains when config is more severe because removing the trailer would still
-change the gate result.
+one finding code, optionally narrowed to one requirement with `requirement:`.
+The warning clears once config supplies the same severity. It remains when
+config is more severe because removing the trailer would still change the gate
+result.
+
+## Declaring a subject surface
+
+Use `surface:` in a subject's `spec-meta` block only when the subject has a
+known primary source boundary. Each entry is an exact repo-relative path:
+
+```yaml
+surface:
+  - lib/my_app/accounts.ex
+  - lib/my_app/accounts/user.ex
+```
+
+A changed derived binding in one of those files produces primary
+`derived/drift`. A changed derived binding defined outside the list produces
+info-tier `derived/drift_transitive`. Omit `surface:` to preserve the prior
+behavior where every derived binding is primary. Do not use `surface: []`;
+its meaning is not defined yet.
 
 `spec-exceptions` blocks and the `"exceptions"` key returned by
 `Ancora.Parser.parse_file/2` are deprecated. Ancora 1.x still parses and returns
@@ -59,15 +80,40 @@ demotion and return to the registry default. Builder should replace its six
 identifier tombstone files with `retires:` entries, then delete the tombstones
 and their `derived/unanchored_subject` overrides.
 
+## Command gates
+
+Replace forbidden-text command gates with a tagged ExUnit test that calls
+`Ancora.SourceScan` in the consumer's test suite. Keep the vacuity guard. An
+empty glob must fail instead of turning a missing directory into a green test.
+Keep whole-token matching too. A plain string such as `System.cmd` should not
+match inside a longer identifier. Use a regular expression when you want
+broader matching.
+
+```elixir source-scan-test
+defmodule MyApp.SourcePolicyTest do
+  use ExUnit.Case, async: true
+
+  @tag spec: "my_app.no_shell_calls"
+  test "production source does not invoke shell commands" do
+    assert Ancora.SourceScan.scan(
+             dirs_or_globs: ["lib", "config/*.exs"],
+             tokens: ["System.cmd", "System.shell", ~r/:os\.cmd/],
+             allowlist: ["lib/my_app/approved_runner.ex"]
+           ) == []
+  end
+end
+```
+
 ## Finding code map
 
-Ancora has 30 finding codes. The middle column is the closed registry. Several
+Ancora has 33 finding codes. The middle column is the closed registry. Several
 old checks converge on one current code, while some current codes have no
 direct predecessor.
 
 | specled_ex code | Ancora code | Default severity |
 |---|---|---|
 | `branch_guard_realization_drift` | `derived/drift` | `error` |
+| no direct predecessor | `derived/drift_transitive` | `info` |
 | no direct predecessor | `derived/growth` | `warning` |
 | no direct predecessor | `derived/shrink` | `warning` |
 | `detector_unavailable` | `derived/unresolved_calls` | `info` |
@@ -76,12 +122,14 @@ direct predecessor.
 | `branch_guard_unmapped_change` | `change/uncovered_file` | `warning` |
 | `branch_guard_missing_decision_update` | `change/missing_decision` | `warning` |
 | `branch_guard_requirement_without_test_tag` | `tags/new_requirement_untagged` | `warning` |
+| no direct predecessor | `tags/tag_borrowed` | `info` |
 | `tag_scan_parse_error` | `tags/parse_error` | `error` |
 | `tag_dynamic_value_skipped` | `tags/dynamic_value` | `info` |
 | `requirement_without_test_tag` | `tags/requirement_untagged` | `info` |
 | `verification_cover_untagged` | `tags/unknown_requirement` | `warning` |
 | `append_only/requirement_deleted` | `append/requirement_deleted` | `error` |
 | `append_only/must_downgraded` | `append/must_downgraded` | `error` |
+| no direct predecessor | `append/statement_changed` | `info` |
 | `verification_kind_invalid`, `verification_unknown_kind` | `format/retired_construct` | `warning` |
 | `verification_command_*`, `tagged_tests_cover_not_executed` | `spec/parse_error` | `error` |
 | `duplicate_requirement_id`, `duplicate_scenario_id`, `duplicate_subject_id`, `duplicate_exception_id`, `duplicate_decision_id` | `spec/duplicate_id` | `error` |

@@ -2,6 +2,82 @@
 
 All notable changes to this project are documented in this file.
 
+## 1.2.0 - 2026-09-05
+
+Field friction: the fixes decided after one day of running 1.0 against a real
+consumer (Atlas, six sessions), where CI came out green only with human
+rulings, worker bounces, hand-ported gates, and retried flakes. Four behavior
+changes a 1.1 repository meets on upgrade, each with its remedy in
+`docs/migration.md`:
+
+- Acknowledged findings are no longer suppressed. A drift, growth, or shrink
+  finding cleared by a substantive spec edit stays in `all_findings` and in the
+  JSON report at `info` with `severity_source: :ack`, and the branch summary
+  line counts what each source hid: `hidden: default=N trailer=N ack=N config=N`.
+- `derived/drift` splits in two once a subject declares a `surface:` list in
+  its spec-meta: a changed function whose defining file is on the surface stays
+  `derived/drift`; every other binding becomes `derived/drift_transitive` at
+  `info`. Subjects without `surface:` behave as before.
+- `change/missing_decision` clears when the edited spec names a governing,
+  accepted ADR in its `decisions:` frontmatter and that ADR names the subject
+  back in `affects:`. The path-only rule stays as the fallback.
+- Two new disclosures default to `info` and are hidden in default output: a
+  tag that binds a new test to an unchanged requirement (`tags/tag_borrowed`),
+  and a requirement statement whose text moved (`append/statement_changed`).
+  `--verbose` or `--explain-acks` shows them; the `next=` line now says how
+  many findings are hidden and which flag reveals them. The registry grows
+  from 30 to 33 codes.
+
+### Added
+
+- **Requirement-scoped overrides.** An `overrides:` entry may carry
+  `requirement:` to narrow a subject-and-code override to one requirement;
+  unknown requirement ids fail at load with `config/unknown_key`. The JSON
+  report carries the optional `requirement` field. [ancora-gg8.1](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-gg8.1.json)
+- **Governed `change/missing_decision`.** A spec edit under an accepted ADR
+  linked from `decisions:` no longer needs the ADR in the same diff. [ancora-gg8.2](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-gg8.2.json)
+- **`Ancora.SourceScan`** is the blessed no-execution source scanner for
+  consumers, with the pattern documented in `docs/migration.md` and the
+  scaffolded agent guide. [ancora-gg8.3](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-gg8.3.json)
+- **Primary versus transitive drift, visible acknowledgments, `--explain-acks`.**
+  `surface:` scopes drift, acknowledged findings stay visible at `info` with
+  their source, the review artifact shows an acknowledged badge and a distinct
+  transitive-drift badge, and `--explain-acks` lists only the findings a
+  trailer, config entry, or acknowledgment demoted. [ancora-gg8.5](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-gg8.5.json)
+- **`tags/tag_borrowed` and `append/statement_changed`** disclose borrowed
+  tags and moved statements at `info`; a tag on an edited or new requirement,
+  and whitespace-only or priority-only edits, stay silent. [ancora-gg8.6](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-gg8.6.json)
+
+### Fixed
+
+- **A trailing slash in `lib_paths` made `change/uncovered_file` unclearable.**
+  Paths are normalized once at config load, and change analysis honors the
+  configured `lib_paths` instead of a hardcoded `lib/`. [ancora-ufm](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-ufm.json)
+- **Pre-PR review fixes.** Four messages printed the requirement id twice
+  (`ancora.derive.ancora.derive.x`); the review page had no card for
+  transitive drift and colored it as acknowledged; the hidden-count rollup had
+  no bucket for `config.yml` demotions; a proposed or superseded ADR cleared
+  `change/missing_decision`; a worker crash inside the parallel parse loops
+  killed `mix spec.check` with a raw EXIT and no verdict line (now an
+  environment-tier verdict); `tags/tag_borrowed` carried no subject, so no
+  override could reach it; the definition-index workers copied the whole
+  per-side AST map into every task. [ancora-gg8.9](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-gg8.9.json)
+
+### Changed
+
+- **One derivation per command.** `spec.prime`, `spec.status`, and decision
+  validation each derived the corpus two or three times; they now derive once
+  and share the result. Output is byte-identical. [ancora-gg8.4](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-gg8.4.json)
+- **Parallel parsing, one parse per file and side.** The four sequential
+  parse loops (module locator, tag scanner, definition indexes, spec index) run
+  as ordered `Task.async_stream` pipelines, and the module locator hands its
+  ASTs to the definition-index build so lib files parse once per side. Finding
+  order is identical run to run, pinned by a ten-run determinism test; the
+  first parse error in path order still wins. [ancora-gg8.7](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-gg8.7.json)
+- The branch was reconciled with releases 1.1.0 and 1.1.1 through reviewed
+  merge commits rather than a rebase; every test and requirement from both
+  sides survives. [ancora-gg8.8](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-gg8.8.json)
+
 ## 1.1.1 - 2026-09-04
 
 ### Fixed

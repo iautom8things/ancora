@@ -2,7 +2,7 @@ defmodule Mix.Tasks.Spec.TaskDocsTest do
   use ExUnit.Case, async: true
 
   @tasks %{
-    Mix.Tasks.Spec.Check => ~w(--base --verbose --debug --root --spec-dir --json),
+    Mix.Tasks.Spec.Check => ~w(--base --verbose --debug --root --spec-dir --json --explain-acks),
     Mix.Tasks.Spec.Validate => ~w(--strict --debug --root --spec-dir),
     Mix.Tasks.Spec.Prime => ~w(--base --since --root --spec-dir),
     Mix.Tasks.Spec.Next => ~w(--base --since --verbose),

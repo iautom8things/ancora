@@ -32,6 +32,7 @@ defmodule Ancora.Derive.ModuleLocatorTest do
     assert ModuleLocator.path_for(locator, :head, Outer.Inner) == {:ok, "src/shape.ex"}
     assert ModuleLocator.path_for(locator, :head, Shape) == {:ok, "src/shape.ex"}
     assert ModuleLocator.path_for(locator, :head, Ignored) == :error
+    assert locator.base == locator.head
   end
 
   @tag spec: "ancora.derive.membership_source_derived"
@@ -70,5 +71,26 @@ defmodule Ancora.Derive.ModuleLocatorTest do
 
     assert {:ok, locator} = ModuleLocator.build(project, %ChangeSet{})
     assert ModuleLocator.modules(locator, :head) == MapSet.new()
+  end
+
+  @tag spec: "ancora.derive.parse_degrades_to_finding"
+  test "reports the path-order-first error when several sources are unparseable", %{root: root} do
+    slow_error =
+      "defmodule SlowError do\n" <>
+        String.duplicate("  value = :padding\n", 20_000) <>
+        "  def broken(\nend\n"
+
+    write_files(root, %{
+      "lib/a_slow_error.ex" => slow_error,
+      "lib/z_fast_error.ex" => "defmodule FastError do\n  def broken(\nend\n"
+    })
+
+    project = %ProjectInfo{root: root, app: :sample, lib_paths: ["lib"]}
+
+    for _run <- 1..5 do
+      assert {:error, {:unparseable_source, :head, "lib/a_slow_error.ex", _reason}} =
+               ModuleLocator.build(project, %ChangeSet{}),
+             "Would fail if parallel parsing selected an error by task completion order or kept the last path error"
+    end
   end
 end

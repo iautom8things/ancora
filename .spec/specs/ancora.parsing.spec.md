@@ -26,6 +26,7 @@ status: active
 summary: "Spec and ADR block grammar, retired-construct tolerance, structural reference checks, and @tag spec: discovery."
 decisions:
   - ancora.decision.no_execution_no_state
+  - ancora.decision.field_friction_response
   - ancora.decision.requirement_scoped_append_authorization
   - ancora.decision.cli_json_contract
   - ancora.decision.retirement_vocabulary
@@ -81,7 +82,9 @@ decisions:
     binary or nil for a subject id. Index assembly shall return a missing
     authored `specs/` directory as error data that names the requested
     workspace and directory. Every corpus-reading Mix task shall handle absent
-    and malformed metadata, and a missing directory, without raising.
+    and malformed metadata, a missing directory, and a spec parse worker
+    failure without raising; worker failures shall be reported at the
+    environment tier.
   priority: must
   stability: stable
 - id: ancora.parsing.requirement_unverified
@@ -101,7 +104,9 @@ decisions:
     shall emit `adr/parse_error`; an empty `affects:` shall emit
     `adr/affects_empty`; an `affects:` entry naming an id that is neither in
     the corpus nor repeated in `retires:` shall emit
-    `adr/affects_unresolved`.
+    `adr/affects_unresolved`. Index assembly shall build the corpus resolvable-id
+    set once and validate every decision against that same set, augmented by
+    the decision's retired ids.
   priority: must
   stability: stable
 - id: ancora.parsing.append_authorization_is_requirement_scoped
@@ -134,7 +139,8 @@ decisions:
     for-comprehension bodies, and shall fold requirement ids up to subject ids
     for the detector. A non-literal tag value shall be recorded as
     `tags/dynamic_value` and never guessed; a test file that fails to parse
-    shall emit `tags/parse_error`; a tag naming an id absent from the corpus
+    shall emit `tags/parse_error`; an unexpected tag scan worker failure shall
+    be reported at the environment tier; a tag naming an id absent from the corpus
     shall emit `tags/unknown_requirement`; a requirement with no tag anywhere
     shall emit `tags/requirement_untagged`.
   priority: must

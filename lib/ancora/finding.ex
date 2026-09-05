@@ -1,6 +1,6 @@
 defmodule Ancora.Finding do
   @moduledoc """
-  Closed 30-code finding registry: the single source every other module reads.
+  Closed 33-code finding registry: the single source every other module reads.
 
   Each code has a family, a default severity, and a message function whose
   text names the subject or file and the action that clears the finding.
@@ -11,6 +11,7 @@ defmodule Ancora.Finding do
   defstruct [
     :code,
     :subject,
+    :requirement,
     :file,
     :message,
     :severity,
@@ -18,12 +19,13 @@ defmodule Ancora.Finding do
   ]
 
   @type severity :: :error | :warning | :info | :off
-  @type source :: :config | :trailer | :default
+  @type source :: :config | :trailer | :ack | :default
   @type code :: String.t()
 
   @type t :: %__MODULE__{
           code: code(),
           subject: String.t() | nil,
+          requirement: String.t() | nil,
           file: String.t() | nil,
           message: String.t() | nil,
           severity: severity() | nil,
@@ -38,9 +40,10 @@ defmodule Ancora.Finding do
 
   @non_tunable MapSet.new(["config/unknown_key", "config/invalid_value"])
 
-  # {code, default}. Family is the prefix before `/`. Count is 30.
+  # {code, default}. Family is the prefix before `/`. Count is 33.
   @entries [
     {"derived/drift", :error},
+    {"derived/drift_transitive", :info},
     {"derived/growth", :warning},
     {"derived/shrink", :warning},
     {"derived/unresolved_calls", :info},
@@ -49,12 +52,14 @@ defmodule Ancora.Finding do
     {"change/uncovered_file", :warning},
     {"change/missing_decision", :warning},
     {"tags/new_requirement_untagged", :warning},
+    {"tags/tag_borrowed", :info},
     {"tags/parse_error", :error},
     {"tags/dynamic_value", :info},
     {"tags/requirement_untagged", :info},
     {"tags/unknown_requirement", :warning},
     {"append/requirement_deleted", :error},
     {"append/must_downgraded", :error},
+    {"append/statement_changed", :info},
     {"format/retired_construct", :warning},
     {"spec/parse_error", :error},
     {"spec/duplicate_id", :error},
@@ -135,6 +140,7 @@ defmodule Ancora.Finding do
     %__MODULE__{
       code: code,
       subject: Map.get(attrs, :subject),
+      requirement: Map.get(attrs, :requirement),
       file: Map.get(attrs, :file),
       message: Map.get(attrs, :message) || message(code, attrs),
       severity: Map.get(attrs, :severity),
@@ -170,6 +176,11 @@ defmodule Ancora.Finding do
   defp render("derived/drift", ctx) do
     "#{s(ctx)}: #{d(ctx, "production code")} changed (#{f(ctx)}) but the spec did not; " <>
       "edit the spec for this subject in the same diff"
+  end
+
+  defp render("derived/drift_transitive", ctx) do
+    "#{s(ctx)}: #{d(ctx, "production code")} changed transitively (#{f(ctx)}); " <>
+      "add the defining file to this subject's surface or review the change as informational"
   end
 
   defp render("derived/growth", ctx) do
@@ -209,7 +220,12 @@ defmodule Ancora.Finding do
   end
 
   defp render("tags/new_requirement_untagged", ctx) do
-    "#{s(ctx)}.#{req(ctx)}: added without a tagged test; tag a test with this requirement id"
+    "#{req(ctx)}: added without a tagged test; tag a test with this requirement id"
+  end
+
+  defp render("tags/tag_borrowed", ctx) do
+    "#{f(ctx)}: new test binds to unchanged requirement #{req(ctx)}; " <>
+      "confirm the test exercises it"
   end
 
   defp render("tags/parse_error", ctx) do
@@ -221,7 +237,7 @@ defmodule Ancora.Finding do
   end
 
   defp render("tags/requirement_untagged", ctx) do
-    "#{s(ctx)}.#{req(ctx)}: no tagged test; tag a test with this requirement id"
+    "#{req(ctx)}: no tagged test; tag a test with this requirement id"
   end
 
   defp render("tags/unknown_requirement", ctx) do
@@ -237,6 +253,10 @@ defmodule Ancora.Finding do
   defp render("append/must_downgraded", ctx) do
     "#{req(ctx)}: must → should; no authorizing ADR names it — " <>
       "add an accepted ADR whose affects: names the requirement id"
+  end
+
+  defp render("append/statement_changed", ctx) do
+    "#{req(ctx)}: requirement statement changed; review the revised contract"
   end
 
   defp render("format/retired_construct", ctx) do
@@ -265,7 +285,7 @@ defmodule Ancora.Finding do
   end
 
   defp render("spec/requirement_unverified", ctx) do
-    "#{s(ctx)}.#{req(ctx)}: no tagged_tests verification block; " <>
+    "#{req(ctx)}: no tagged_tests verification block; " <>
       "add a tagged_tests block covering this requirement"
   end
 

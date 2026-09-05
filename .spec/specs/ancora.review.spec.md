@@ -21,6 +21,7 @@ kind: module
 status: active
 summary: The spec.review HTML artifact, derived-set Code grouping, owned markdown transform, and byte-stable meta line.
 decisions:
+  - ancora.decision.field_friction_response
   - ancora.decision.review_artifact_contract
 ```
 
@@ -45,8 +46,8 @@ decisions:
     base ref and return `{:ok, view}`. For each affected subject, the view
     shall combine its contract, tagged test files, changed-file diffs, and
     gate findings so newly called functions appear in `added_bindings` and
-    changed watched functions appear as drift or acknowledged cards. The
-    builder shall pass its already-parsed base and HEAD subjects to
+    changed watched functions appear as primary drift, transitive drift, or
+    acknowledged cards. The builder shall pass its already-parsed base and HEAD subjects to
     `Ancora.Review.SpecDiff.compute/2`; no root-reading `compute/3` entry point
     shall exist.
   priority: must
@@ -55,11 +56,13 @@ decisions:
   statement: >-
     The Code pivot shall group a subject's changes into three sections:
     watched interface (one card per derived binding whose body changed, with
-    `M.f/a`, a drift or acknowledged badge, the changed file's diff, and a
-    defining-file link), supporting changes (remaining changed source-file
+    `M.f/a`, a drift, drift_transitive, or acknowledged badge, the changed
+    file's diff, and a defining-file link), supporting changes (remaining changed source-file
     diffs), and test changes (tagged-test diffs plus growth and shrink
     bindings listed as added and removed). Watched badges shall use the badge
-    value as their CSS class, and each defining-file link shall target the one
+    value as their CSS class. Transitive drift shall use the info color, and
+    only findings with severity source ack shall produce acknowledged cards.
+    Each defining-file link shall target the one
     `file-*` anchor for that file in All files. Diff code shall remain outside
     Prism highlighting, preserve authored per-line spans, and apply review CSS
     after Prism CSS.
@@ -186,6 +189,17 @@ decisions:
     - ancora.review.view_model_builder
     - ancora.review.code_pivot_grouping
     - ancora.review.findings_inline
+- id: ancora.review.scenario.transitive_drift_badge
+  given:
+    - a changed derived binding whose defining file is outside the subject's declared `surface:`
+  when:
+    - the review artifact builds and renders its watched interface
+  then:
+    - the binding renders once with a `drift_transitive` badge
+    - the binding does not render as acknowledged
+  covers:
+    - ancora.review.view_model_builder
+    - ancora.review.code_pivot_grouping
 - id: ancora.review.scenario.growth_listed_under_test_changes
   given:
     - a temporary repository whose tagged test calls `Billing.next/1` at the base ref

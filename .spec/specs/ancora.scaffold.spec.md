@@ -19,6 +19,7 @@ kind: module
 status: active
 summary: spec.init and spec.decision.new scaffolds, template content, ancora README commitments, and the migration checklist.
 decisions:
+  - ancora.decision.field_friction_response
   - ancora.decision.no_execution_no_state
   - ancora.decision.cli_json_contract
 ```
@@ -62,7 +63,8 @@ decisions:
   statement: >-
     The scaffolded config.yml shall carry the v1 schema with taught
     defaults, guidance on `default_base` for repos whose trunk is not
-    `origin/main`, and one commented `overrides:` example with a reason.
+    `origin/main`, and one commented `overrides:` example with a reason that
+    documents the optional `requirement:` key.
   priority: must
   stability: stable
 - id: ancora.scaffold.no_retired_vocabulary
@@ -102,7 +104,8 @@ decisions:
     for export lookup; this is toolchain introspection, not project
     execution), name `mix format --migrate` as an expect-acknowledgment case,
     state that Ancora 1.x overrides are scoped to one subject and one finding
-    code, carry a six-line CI job snippet, and describe the tool as
+    code, optionally narrowed to one requirement, carry a six-line CI job
+    snippet, and describe the tool as
     traceability and drift detection, never as proof or verified behavior.
   priority: must
   stability: evolving
@@ -110,8 +113,11 @@ decisions:
   statement: >-
     `docs/migration.md` shall carry the consumer migration checklist and the
     complete specled_ex-code to ancora-code map, with the registry count
-    matching `Ancora.Finding`, and shall state that Ancora 1.x overrides are
-    scoped to one subject and one finding code.
+    matching `Ancora.Finding`, and shall document the command-gate successor:
+    the tagged ExUnit source-scan pattern with `Ancora.SourceScan`, including
+    the vacuity guard and whole-token matching. It shall state that Ancora 1.x
+    overrides are scoped to one subject and one finding code, optionally
+    narrowed to one requirement.
   priority: must
   stability: evolving
 ```
@@ -209,7 +215,7 @@ decisions:
     - needle checks run
   then:
     - it names all four stable functions, says `--root` is internal, contains the introspection paragraph, mentions `mix format --migrate`, and contains no occurrence of "proof" or "verified behavior"
-    - its acknowledgment promotion text names the subject-and-code scope accepted by Ancora 1.x
+    - its acknowledgment promotion text names the subject, code, and optional requirement scope accepted by Ancora 1.x
   covers:
     - ancora.scaffold.readme_commitments
 - id: ancora.scaffold.scenario.migration_map_complete
@@ -220,7 +226,9 @@ decisions:
   then:
     - every ancora code it names exists in Ancora.Finding
     - the stated registry count equals the registry size
-    - its acknowledgment promotion text names the subject-and-code scope accepted by Ancora 1.x
+    - the command-gate successor section names the vacuity guard and whole-token matching
+    - its `Ancora.SourceScan` template compiles and passes as a test in a fixture project
+    - its acknowledgment text names the subject, code, and optional requirement scope accepted by Ancora 1.x
   covers:
     - ancora.scaffold.migration_doc
 ```

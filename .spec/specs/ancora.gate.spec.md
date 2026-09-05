@@ -24,6 +24,7 @@ summary: spec.check orchestration, hard-fail preflight, diff scoping, acknowledg
 decisions:
   - ancora.decision.no_execution_no_state
   - ancora.decision.slimmed_governance
+  - ancora.decision.field_friction_response
   - ancora.decision.cli_json_contract
   - ancora.decision.retirement_vocabulary
   - ancora.decision.durable_acknowledgments
@@ -55,6 +56,9 @@ decisions:
     that path does not read the config again. The config
     `lib_paths:` key shall override project identity only when present in
     `.spec/config.yml`; literal `elixirc_paths:` shall be honored otherwise.
+    A spec parse, tag scan, source scan, or definition-index worker failure
+    shall return tagged error data and end at the environment tier rather than
+    exiting the gate process.
     In `--json` mode, a preflight environment failure shall be returned as a
     version 1 JSON report with the fixed `ancora.tasks.json_report` shape, an
     empty `all_findings` list, and the error message before the failing
@@ -80,11 +84,12 @@ decisions:
   stability: stable
 - id: ancora.gate.diff_scoped_versus_repo_state
   statement: >-
-    `derived/drift`, `derived/growth`, `derived/shrink`,
+    `derived/drift`, `derived/drift_transitive`, `derived/growth`, `derived/shrink`,
     `derived/unresolved_calls`, `derived/unparseable_source`,
     `change/uncovered_file`, `change/missing_decision`,
-    `tags/new_requirement_untagged`, `append/requirement_deleted`, and
-    `append/must_downgraded` shall be computed only relative to the base and
+    `tags/new_requirement_untagged`, `tags/tag_borrowed`,
+    `append/requirement_deleted`, `append/must_downgraded`, and
+    `append/statement_changed` shall be computed only relative to the base and
     shall not fire for an empty diff. All other registry codes are repo-state
     and shall fire on every run while their condition holds.
   priority: must
@@ -92,10 +97,12 @@ decisions:
 - id: ancora.gate.acknowledgment_clears
   statement: >-
     For a subject that Ancora.Derive.Ack reports as substantively changed in
-    the diff, the gate shall suppress that subject's `derived/drift`,
-    `derived/growth`, and `derived/shrink` findings. A `Spec-Ack:` trailer in
-    the `base..HEAD` range shall downgrade the named code toward `info` or
-    `warning` but never suppress it and never raise it. The durable
+    the diff, that subject's `derived/drift`, `derived/drift_transitive`,
+    `derived/growth`, and `derived/shrink` findings shall resolve to info with
+    `severity_source: :ack`. Acknowledged findings shall remain in
+    `all_findings` and JSON. A `Spec-Ack:` trailer in the `base..HEAD` range
+    shall downgrade the named code toward `info` or `warning` but never
+    suppress it and never raise it. The durable
     acknowledgment record shall be `.spec/config.yml` through `severities:` or
     a per-subject override; trailers are a development convenience. When a
     finding resolves through a trailer that exists only in a non-tip commit,
@@ -109,9 +116,9 @@ decisions:
 - id: ancora.gate.new_subject_self_clears
   statement: >-
     A subject whose spec file is added in the diff shall fire growth against
-    an empty base set and clear in the same run, because the added
-    requirement block is itself substantive; the gate shall need no special
-    case for new subjects.
+    an empty base set and resolve it to info with `severity_source: :ack` in
+    the same run, because the added requirement block is itself substantive;
+    the gate shall need no special case for new subjects.
   priority: must
   stability: stable
 - id: ancora.gate.two_append_guards
@@ -126,9 +133,28 @@ decisions:
     authorize either change, and `retires:` shall not authorize a downgrade.
     See `ancora.parsing.append_authorization_is_requirement_scoped` and
     `ancora.parsing.retirement_vocabulary` for the shared authorization rules.
-    No other spec weakening shall be guarded.
+    No other spec weakening shall be guarded. The diff-scoped disclosure
+    `append/statement_changed` at info names requirement ids whose statement
+    text changed and never blocks or authorizes anything; the guard set remains
+    exactly the two above.
   priority: must
   stability: stable
+- id: ancora.gate.borrowed_tag_disclosed
+  statement: >-
+    A `@tag spec:` added in the diff shall produce `tags/tag_borrowed` at info
+    naming the test file and requirement id when that id existed at base and
+    its normalized statement is unchanged on HEAD. It shall not fire when the
+    requirement statement changed in the same diff or when the requirement is
+    new in the diff.
+  priority: must
+  stability: evolving
+- id: ancora.gate.statement_change_disclosed
+  statement: >-
+    A requirement whose normalized statement differs between base and HEAD
+    shall produce `append/statement_changed` at info naming the requirement id.
+    Whitespace-only formatting and priority-only changes shall not produce it.
+  priority: must
+  stability: evolving
 - id: ancora.gate.unanchored_subject
   statement: >-
     A subject whose HEAD derived set (bindings plus generated) is empty shall
@@ -144,7 +170,12 @@ decisions:
     shall produce `change/uncovered_file`. A change to a governance file
     (the set Ancora.PolicyFiles defines: `.spec/specs/**`, `.spec/config.yml`,
     `.spec/AGENTS.md`, `.spec/README.md`) with no `.spec/decisions/` file
-    added or changed in the same diff shall produce `change/missing_decision`.
+    added or changed in the same diff shall produce `change/missing_decision`,
+    except when the changed file is a subject spec whose `decisions:`
+    frontmatter at HEAD names an accepted ADR that resolves in the index and whose
+    `affects:` names the subject or an id within it; governance files without
+    frontmatter (`.spec/config.yml`, `.spec/AGENTS.md`, `.spec/README.md`)
+    shall keep the co-change rule.
   priority: must
   stability: evolving
 - id: ancora.gate.strict_verdict
@@ -152,7 +183,9 @@ decisions:
     `mix spec.check` shall fail on any finding at `error` or `warning`
     severity and never on `info`. `mix spec.validate` shall fail on `error`
     and, with `--strict`, on `warning` too. A run with zero subjects shall be
-    a true pass with a `subjects=0` summary. The `checked subjects=` count
+    a true pass with a `subjects=0` summary. The index built for a gate run
+    shall build the corpus resolvable-id set once and reuse it across every
+    decision's `affects:` validation. The `checked subjects=` count
     shall include only spec files with an accepted, non-empty subject id.
   priority: must
   stability: stable
@@ -313,8 +346,8 @@ decisions:
   when:
     - the gate runs
   then:
-    - no `derived/drift` fires for the subject
-    - no `derived/growth` or `derived/shrink` fires for the subject
+    - "the `derived/drift` finding remains in `all_findings` at info with `severity_source: :ack`"
+    - JSON output retains the acknowledged finding
   covers:
     - ancora.gate.acknowledgment_clears
 - id: ancora.gate.scenario.trailer_downgrades_not_silences
@@ -374,7 +407,7 @@ decisions:
   when:
     - the gate runs
   then:
-    - no `derived/growth` fires for the new subject
+    - "the `derived/growth` finding remains at info with `severity_source: :ack`"
   covers:
     - ancora.gate.new_subject_self_clears
 - id: ancora.gate.scenario.deleted_requirement_without_adr
@@ -454,6 +487,95 @@ decisions:
     - `change/missing_decision` fires
   covers:
     - ancora.gate.change_findings
+- id: ancora.gate.scenario.governed_spec_change_clears
+  given:
+    - a changed subject spec whose `decisions:` names an accepted ADR
+    - the ADR's `affects:` names the subject
+    - no decision file changed in the diff
+  when:
+    - the gate runs for each of two successive subject spec changes
+  then:
+    - `change/missing_decision` does not fire for either change
+  covers:
+    - ancora.gate.change_findings
+- id: ancora.gate.scenario.non_accepted_decision_does_not_clear
+  given:
+    - a changed subject spec whose `decisions:` names a proposed or superseded ADR
+    - the ADR's `affects:` names the subject
+    - no decision file changed in the diff
+  when:
+    - the gate runs
+  then:
+    - `change/missing_decision` fires for the subject spec
+  covers:
+    - ancora.gate.change_findings
+- id: ancora.gate.scenario.one_way_reference_does_not_clear
+  given:
+    - a changed subject spec whose `decisions:` names an accepted ADR
+    - the ADR's `affects:` does not name the subject or an id within it
+    - no decision file changed in the diff
+  when:
+    - the gate runs
+  then:
+    - `change/missing_decision` fires for the subject spec
+  covers:
+    - ancora.gate.change_findings
+- id: ancora.gate.scenario.borrowed_tag
+  given:
+    - a requirement that exists at base with an unchanged statement on HEAD
+    - a test tag for that requirement added in the diff
+  when:
+    - the gate runs
+  then:
+    - `tags/tag_borrowed` fires at info naming the test file and requirement id
+  covers:
+    - ancora.gate.borrowed_tag_disclosed
+- id: ancora.gate.scenario.edited_requirement_tag
+  given:
+    - an existing requirement whose statement is edited in the diff
+    - a test tag for that requirement added in the same diff
+  when:
+    - the gate runs
+  then:
+    - `tags/tag_borrowed` does not fire
+  covers:
+    - ancora.gate.borrowed_tag_disclosed
+- id: ancora.gate.scenario.new_requirement_tag
+  given:
+    - a requirement and its test tag both added in the diff
+  when:
+    - the gate runs
+  then:
+    - `tags/tag_borrowed` does not fire
+  covers:
+    - ancora.gate.borrowed_tag_disclosed
+- id: ancora.gate.scenario.statement_reworded
+  given:
+    - an existing requirement whose statement text is reworded
+  when:
+    - the gate runs
+  then:
+    - `append/statement_changed` fires at info naming the requirement id
+  covers:
+    - ancora.gate.statement_change_disclosed
+- id: ancora.gate.scenario.statement_whitespace_reformatted
+  given:
+    - an existing requirement whose statement receives whitespace-only formatting changes
+  when:
+    - the gate runs
+  then:
+    - `append/statement_changed` does not fire
+  covers:
+    - ancora.gate.statement_change_disclosed
+- id: ancora.gate.scenario.statement_priority_only
+  given:
+    - an existing requirement whose priority changes while its statement stays the same
+  when:
+    - the gate runs
+  then:
+    - `append/statement_changed` does not fire
+  covers:
+    - ancora.gate.statement_change_disclosed
 - id: ancora.gate.scenario.warning_fails_check_not_validate
   given:
     - a corpus whose only finding is one warning
@@ -530,6 +652,8 @@ decisions:
     - ancora.gate.acknowledgment_clears
     - ancora.gate.new_subject_self_clears
     - ancora.gate.two_append_guards
+    - ancora.gate.borrowed_tag_disclosed
+    - ancora.gate.statement_change_disclosed
     - ancora.gate.unanchored_subject
     - ancora.gate.change_findings
     - ancora.gate.strict_verdict

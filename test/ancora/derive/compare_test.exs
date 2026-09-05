@@ -42,6 +42,21 @@ defmodule Ancora.Derive.CompareTest do
     assert [%{code: "derived/drift"}] = compare(bindings, bindings, base, head)
   end
 
+  @tag spec: "ancora.derive.drift_primary_transitive"
+  test "surface membership splits primary and transitive drift while absence stays primary" do
+    binding = {Billing, :next, 1}
+    base = "defmodule Billing do\n  def next(x), do: x + 1\nend\n"
+    head = "defmodule Billing do\n  def next(x), do: x + 2\nend\n"
+
+    assert [%{code: "derived/drift_transitive"}] =
+             compare([binding], [binding], base, head, surface: [])
+
+    assert [%{code: "derived/drift"}] =
+             compare([binding], [binding], base, head, surface: ["lib/billing.ex"])
+
+    assert [%{code: "derived/drift"}] = compare([binding], [binding], base, head)
+  end
+
   test "unchanged_file_not_parsed" do
     binding = {Billing, :next, 1}
     locator = locator()
@@ -303,14 +318,22 @@ defmodule Ancora.Derive.CompareTest do
              )
   end
 
-  defp compare(base_bindings, head_bindings, base_source, head_source) do
-    Compare.compare("billing", set(:base, base_bindings), set(:head, head_bindings),
-      locator: locator(),
-      change_set: change_set(["lib/billing.ex"]),
-      sources: %{
-        base: %{"lib/billing.ex" => base_source},
-        head: %{"lib/billing.ex" => head_source}
-      }
+  defp compare(base_bindings, head_bindings, base_source, head_source, opts \\ []) do
+    Compare.compare(
+      "billing",
+      set(:base, base_bindings),
+      set(:head, head_bindings),
+      Keyword.merge(
+        [
+          locator: locator(),
+          change_set: change_set(["lib/billing.ex"]),
+          sources: %{
+            base: %{"lib/billing.ex" => base_source},
+            head: %{"lib/billing.ex" => head_source}
+          }
+        ],
+        opts
+      )
     )
   end
 

@@ -1,6 +1,6 @@
 # Finding Registry, Severity, Trailer, and Config
 
-The closed 30-code registry, per-finding severity resolution, the `Spec-Ack:`
+The closed 33-code registry, per-finding severity resolution, the `Spec-Ack:`
 trailer, and the `.spec/config.yml` schema with per-subject overrides.
 
 ## Intent
@@ -10,8 +10,9 @@ triage table, owned by one module that config validation, output, docs, and
 the review artifact all read. Adding a code is a spec change in this corpus.
 
 Count note: the planning documents say 26 codes. Enumerating the registry
-table after the `spec/prose_too_short` cut gives 30; the 26 was a carried
-miscount. The enumerated list below is authoritative.
+table after the `spec/prose_too_short` cut gave 30; the 26 was a carried
+miscount. The primary/transitive drift split and two disclosure codes bring
+the registry to 33. The enumerated list below is authoritative.
 Severity has one precedence chain, silence lives in the repo where review
 can see it, and the trailer can only lower.
 
@@ -22,8 +23,9 @@ Modules: `Ancora.Finding`, `Ancora.Severity`, `Ancora.Trailer`,
 id: ancora.findings
 kind: module
 status: active
-summary: Closed 30-code finding registry, severity precedence, Spec-Ack trailer grammar, and config.yml schema with per-subject overrides.
+summary: Closed 33-code finding registry, severity precedence, Spec-Ack trailer grammar, and config.yml schema with per-subject overrides.
 decisions:
+  - ancora.decision.field_friction_response
   - ancora.decision.slimmed_governance
   - ancora.decision.durable_acknowledgments
 ```
@@ -33,15 +35,18 @@ decisions:
 ```yaml spec-requirements
 - id: ancora.findings.registry_closed
   statement: >-
-    Ancora.Finding shall own exactly 30 codes, each with a family, a default
+    Ancora.Finding shall own exactly 33 codes, each with a family, a default
     severity, and a message function, and shall be the single source every
-    other module reads. The codes are `derived/drift`, `derived/growth`,
-    `derived/shrink`, `derived/unresolved_calls`, `derived/unparseable_source`,
+    other module reads. The codes are `derived/drift`,
+    `derived/drift_transitive`, `derived/growth`, `derived/shrink`,
+    `derived/unresolved_calls`, `derived/unparseable_source`,
     `derived/unanchored_subject`, `change/uncovered_file`,
     `change/missing_decision`, `tags/new_requirement_untagged`,
+    `tags/tag_borrowed`,
     `tags/parse_error`, `tags/dynamic_value`, `tags/requirement_untagged`,
     `tags/unknown_requirement`, `append/requirement_deleted`,
-    `append/must_downgraded`, `format/retired_construct`, `spec/parse_error`,
+    `append/must_downgraded`, `append/statement_changed`,
+    `format/retired_construct`, `spec/parse_error`,
     `spec/duplicate_id`, `spec/invalid_id`, `spec/missing_field`,
     `spec/unknown_reference`, `spec/requirement_unverified`,
     `adr/parse_error`, `adr/missing_section`, `adr/affects_empty`,
@@ -54,7 +59,8 @@ decisions:
 - id: ancora.findings.registry_defaults
   statement: >-
     Registry defaults shall be: error for `derived/drift`,
-    `derived/unparseable_source`, `append/*`, `spec/parse_error`,
+    `derived/unparseable_source`, `append/requirement_deleted`,
+    `append/must_downgraded`, `spec/parse_error`,
     `spec/duplicate_id`, `spec/invalid_id`, `spec/missing_field`,
     `spec/unknown_reference`, `adr/parse_error`, `adr/missing_section`,
     `adr/affects_unresolved`, `overlap/*`, and `tags/parse_error`; warning
@@ -63,8 +69,9 @@ decisions:
     `tags/new_requirement_untagged`, `tags/unknown_requirement`,
     `format/retired_construct`, `adr/affects_empty`, `config/unknown_key`,
     and `config/invalid_value`; info for `derived/unresolved_calls`,
-    `tags/dynamic_value`, `tags/requirement_untagged`, and
-    `spec/requirement_unverified`.
+    `tags/dynamic_value`, `tags/requirement_untagged`, `tags/tag_borrowed`,
+    `append/statement_changed`, `spec/requirement_unverified`, and
+    `derived/drift_transitive`.
   priority: must
   stability: evolving
 - id: ancora.findings.messages_carry_remedy
@@ -81,17 +88,19 @@ decisions:
     everything; otherwise a `Spec-Ack:` trailer downgrade applies; otherwise
     the config `severities:` value; otherwise the registry default. The
     resolved finding shall carry `severity_source` as one of `:config`,
-    `:trailer`, `:default`. A finding resolved to `off` shall not be emitted
-    or counted.
+    `:trailer`, `:ack`, `:default`. A finding suppressed by subject
+    acknowledgment shall be retained at info with `severity_source: :ack`,
+    not destroyed. A finding resolved to `off` shall not be emitted or counted.
   priority: must
   stability: stable
 - id: ancora.findings.info_visibility
   statement: >-
     Findings at `info` shall be printed only when `--verbose` is passed or
     `ANCORA_SHOW_INFO=1` is set, and shall never affect exit status. The
-    branch summary shall report the hidden count. A preflight environment
-    failure represented as JSON shall keep `all_findings` empty rather than
-    fabricate a finding for the environment error, including a shallow
+    branch summary shall report the hidden count per severity source
+    (`default`, `trailer`, `ack`, and `config`). A preflight environment failure
+    represented as JSON shall keep `all_findings` empty rather than fabricate
+    a finding for the environment error, including a target-read error or shallow
     boundary inside `base..HEAD` whose parent is absent locally.
   priority: must
   stability: stable
@@ -125,13 +134,15 @@ decisions:
   stability: stable
 - id: ancora.findings.per_subject_overrides
   statement: >-
-    Each `overrides:` entry shall accept exactly `subject`, `code`, `severity`,
-    and a required non-empty `reason`. An override shall apply only to findings
-    of that code attributed to that subject. Any other entry key shall produce
-    `config/unknown_key` naming the key and entry, and the entry shall be
-    ignored. An entry naming an unknown subject or code, or missing `reason`,
-    shall produce `config/invalid_value` and be ignored. `spec.status` shall
-    label overridden subjects `acknowledged`.
+    Each `overrides:` entry shall carry `subject`, `code`, `severity`, a
+    required non-empty `reason`, and an optional `requirement:` that narrows
+    the override to findings attributed to that requirement id. An entry
+    without `requirement:` shall apply subject-wide as before. An entry naming
+    an unknown subject, requirement id, or code, or missing `reason`, shall
+    produce `config/invalid_value` and be ignored. `spec.status` shall label
+    overridden subjects `acknowledged`. Any key other than `subject`,
+    `requirement`, `code`, `severity`, and `reason` shall produce
+    `config/unknown_key` naming the key and entry, and the entry shall be ignored.
   priority: must
   stability: evolving
 - id: ancora.findings.config_coversioned_note
@@ -162,7 +173,7 @@ decisions:
   when:
     - the closure test enumerates it
   then:
-    - exactly 30 codes exist
+    - exactly 33 codes exist
     - each has a family, a default, and a message function that returns a non-empty string
   covers:
     - ancora.findings.registry_closed
@@ -241,6 +252,16 @@ decisions:
     - the verdict is `result=pass`
   covers:
     - ancora.findings.info_visibility
+- id: ancora.findings.scenario.config_hidden_is_counted
+  given:
+    - an info finding whose severity comes from `.spec/config.yml`
+  when:
+    - `mix spec.check` runs without `--verbose`
+  then:
+    - the finding is hidden from the default list
+    - the branch summary reports it in the `config` bucket
+  covers:
+    - ancora.findings.info_visibility
 - id: ancora.findings.scenario.shallow_range_env_has_no_findings
   given:
     - a shallow clone with a boundary inside `base..HEAD` whose parent is absent locally
@@ -292,11 +313,11 @@ decisions:
     - ancora.findings.per_subject_overrides
 - id: ancora.findings.scenario.override_unknown_key
   given:
-    - an `overrides:` entry with a `requirement:` key in addition to the four accepted keys
+    - an `overrides:` entry with a `scope:` key in addition to the accepted keys (`subject`, `requirement`, `code`, `severity`, `reason`)
   when:
     - the real `mix spec.check` task loads config during preflight
   then:
-    - `config/unknown_key` fires naming `requirement` and the entry
+    - `config/unknown_key` fires naming `scope` and the entry
     - the override is not applied
   covers:
     - ancora.findings.per_subject_overrides
@@ -309,6 +330,17 @@ decisions:
   then:
     - "A resolves to `info` with `severity_source: :config`"
     - B resolves to `warning`
+  covers:
+    - ancora.findings.per_subject_overrides
+- id: ancora.findings.scenario.override_scoped_to_requirement
+  given:
+    - requirements R1 and R2 of subject A both fire `tags/requirement_untagged`
+    - "an override names subject A, that code, `requirement: R1`, and severity `info`"
+  when:
+    - severities are resolved
+  then:
+    - "R1 resolves to `info` with `severity_source: :config`"
+    - R2 stays at its registry default
   covers:
     - ancora.findings.per_subject_overrides
 - id: ancora.findings.scenario.moduledoc_states_coversioning

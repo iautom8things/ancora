@@ -66,6 +66,20 @@ defmodule Ancora.SeverityTest do
     end
 
     @tag spec: "ancora.findings.severity_precedence"
+    test "ack source stays info unless config turns its code off" do
+      acknowledged =
+        finding("derived/drift", severity: :info, severity_source: :ack)
+
+      assert [%{severity: :info, severity_source: :ack}] =
+               Severity.resolve_all([acknowledged])
+
+      assert [] =
+               Severity.resolve_all([acknowledged],
+                 config_severities: %{"derived/drift" => :off}
+               )
+    end
+
+    @tag spec: "ancora.findings.severity_precedence"
     test "per-subject override is config-layer and does not affect another subject" do
       config = %Config{
         overrides: [

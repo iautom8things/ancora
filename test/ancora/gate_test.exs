@@ -30,6 +30,38 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a missing parsed source is classified at the environment tier" do
+    assert {:env, message} = Gate.gate_error({:parsed_source_missing, "lib/missing.ex"})
+    assert message =~ "parsed source missing"
+    assert message =~ "lib/missing.ex"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a definition index task exit is classified at the environment tier" do
+    assert {:env, message} = Gate.gate_error({:def_index_exit, :killed})
+    assert message =~ "definition index worker exited"
+    assert message =~ ":killed"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a source scan task exit is classified at the environment tier" do
+    assert {:env, message} = Gate.gate_error({:source_scan_exit, :base, :killed})
+    assert message =~ "base source scan worker exited"
+    assert message =~ ":killed"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "a caught worker exception is classified at the environment tier" do
+    exception = %File.Error{reason: :eisdir, action: "read", path: "bad.spec.md"}
+
+    assert {:env, message} =
+             Gate.gate_error({:worker_failure, :spec_parse, "bad.spec.md", exception})
+
+    assert message =~ "spec_parse worker failed for bad.spec.md"
+    assert message =~ "illegal operation on a directory"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
   test "preflight rejects a directory outside git", %{root: root} do
     write_project(root)
 
@@ -275,6 +307,52 @@ defmodule Ancora.GateTest do
            end)
   end
 
+  @tag spec: "ancora.derive.project_info_from_root"
+  @tag spec: "ancora.derive.membership_source_derived"
+  @tag spec: "ancora.derive.subject_footprint"
+  test "tagged source under a trailing-slash lib path stays covered", %{root: root} do
+    # Would fail if a trailing-slash lib_path reached ChangeAnalysis untrimmed:
+    # src/other.ex would silently leave uncovered-file scope. The tagged
+    # src/thing.ex half documents the covered case but does not discriminate the fix.
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/config.yml" => "lib_paths:\n  - src/\n",
+      ".spec/specs/thing.spec.md" => subject_spec("Thing shall return its value.", "thing.value"),
+      "src/other.ex" => "defmodule Other do\n  def value, do: :base\nend\n",
+      "src/thing.ex" => "defmodule Thing do\n  def value, do: :base\nend\n",
+      "test/thing_test.exs" => """
+      defmodule ThingTest do
+        use ExUnit.Case
+        @tag spec: "thing.value.works"
+        test "value", do: assert(Thing.value() in [:base, :changed])
+      end
+      """
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "src/other.ex" => "defmodule Other do\n  def value, do: :changed\nend\n",
+      "src/thing.ex" => "defmodule Thing do\n  def value, do: :changed\nend\n"
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "derived/drift" and finding.subject == "thing.value"
+           end)
+
+    refute Enum.any?(report.all_findings, fn finding ->
+             finding.code == "change/uncovered_file" and finding.file == "src/thing.ex"
+           end)
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "change/uncovered_file" and finding.file == "src/other.ex"
+           end)
+  end
+
   @tag spec: "ancora.gate.change_findings"
   test "changed files outside lib_paths are not reported", %{root: root} do
     # Would fail if uncovered-file analysis treated priv assets as source or matched a
@@ -308,6 +386,175 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.change_findings"
+  test "an existing bidirectional ADR governs repeated subject spec changes", %{root: root} do
+    init_git_repo(root)
+
+    write_governed_subject(
+      root,
+      "The sample shall return the initial value.",
+      "sample.decision.governance",
+      "sample.subject"
+    )
+
+    commit_all(root, "base")
+
+    write_governed_subject(
+      root,
+      "The sample shall return the first changed value.",
+      "sample.decision.governance",
+      "sample.subject"
+    )
+
+    assert {:ok, first_report} = Gate.check(root, base: "HEAD")
+    refute missing_decision?(first_report, ".spec/specs/sample.spec.md")
+
+    commit_all(root, "first governed spec change")
+
+    write_governed_subject(
+      root,
+      "The sample shall return the second changed value.",
+      "sample.decision.governance",
+      "sample.subject"
+    )
+
+    assert {:ok, second_report} = Gate.check(root, base: "HEAD")
+    refute missing_decision?(second_report, ".spec/specs/sample.spec.md")
+  end
+
+  @tag spec: "ancora.gate.change_findings"
+  test "a non-accepted ADR does not govern a subject spec change", %{root: root} do
+    for status <- ["proposed", "superseded"] do
+      File.rm_rf!(root)
+      File.mkdir_p!(root)
+      init_git_repo(root)
+
+      write_governed_subject(
+        root,
+        "The sample shall return the initial value.",
+        "sample.decision.governance",
+        "sample.subject",
+        status
+      )
+
+      commit_all(root, "base")
+
+      write_governed_subject(
+        root,
+        "The sample shall return the changed value.",
+        "sample.decision.governance",
+        "sample.subject",
+        status
+      )
+
+      assert {:ok, report} = Gate.check(root, base: "HEAD")
+      assert missing_decision?(report, ".spec/specs/sample.spec.md")
+    end
+  end
+
+  @tag spec: "ancora.gate.change_findings"
+  test "a one-way subject decision reference does not provide governance", %{root: root} do
+    init_git_repo(root)
+
+    write_governed_subject(
+      root,
+      "The sample shall return the initial value.",
+      "sample.decision.governance",
+      "sample.decision.governance"
+    )
+
+    commit_all(root, "base")
+
+    write_governed_subject(
+      root,
+      "The sample shall return the changed value.",
+      "sample.decision.governance",
+      "sample.decision.governance"
+    )
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "change/missing_decision" and
+               finding.file == ".spec/specs/sample.spec.md" and
+               finding.message =~ "decisions: frontmatter" and
+               finding.message =~ "affects: naming the subject back" and
+               finding.message =~ "add or update an ADR"
+           end)
+  end
+
+  @tag spec: "ancora.gate.change_findings"
+  test "a spec cannot claim governance from an ADR it does not cite", %{root: root} do
+    init_git_repo(root)
+
+    write_governed_subject(
+      root,
+      "The sample shall return the initial value.",
+      "sample.decision.other",
+      "sample.subject"
+    )
+
+    write_files(root, %{
+      ".spec/decisions/other.md" =>
+        governing_decision("sample.decision.other", "sample.decision.other")
+    })
+
+    commit_all(root, "base")
+
+    write_governed_subject(
+      root,
+      "The sample shall return the changed value.",
+      "sample.decision.other",
+      "sample.subject"
+    )
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+    assert missing_decision?(report, ".spec/specs/sample.spec.md")
+  end
+
+  @tag spec: "ancora.gate.change_findings"
+  test "frontmatter-less governance files still require a co-changed ADR", %{root: root} do
+    init_git_repo(root)
+
+    write_governed_subject(
+      root,
+      "The sample shall return the initial value.",
+      "sample.decision.governance",
+      "sample.subject"
+    )
+
+    commit_all(root, "base")
+
+    write_governed_subject(
+      root,
+      "The sample shall return the changed value.",
+      "sample.decision.governance",
+      "sample.subject"
+    )
+
+    write_config(root, "default_base: main\n")
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+    assert missing_decision?(report, ".spec/config.yml")
+    refute missing_decision?(report, ".spec/specs/sample.spec.md")
+  end
+
+  @tag spec: "ancora.gate.change_findings"
+  test "requirement and scenario ADR back-references govern their subject" do
+    change_set = %ChangeSet{
+      entries: [%{path: ".spec/specs/sample.spec.md", status: :modified}]
+    }
+
+    for affected_id <- ["sample.subject.works", "sample.subject.scenario.works"] do
+      current = governed_index(affected_id)
+
+      refute Enum.any?(
+               ChangeAnalysis.findings(change_set, %{}, current, current, %{head: %{}, base: %{}}),
+               &(&1.code == "change/missing_decision")
+             )
+    end
+  end
+
+  @tag spec: "ancora.gate.change_findings"
   test "change analysis is wired to the production change set" do
     change_set = %ChangeSet{entries: [%{path: "lib/new_thing.ex", status: :added}]}
 
@@ -317,7 +564,7 @@ defmodule Ancora.GateTest do
                %{},
                %{"subjects" => []},
                %{"subjects" => []},
-               []
+               %{head: %{}, base: %{}}
              )
   end
 
@@ -566,6 +813,97 @@ defmodule Ancora.GateTest do
              :erlang.trace_info({Ancora.Derive.Extract, :parse, 2}, :call_count)
   end
 
+  @tag spec: "ancora.derive.memo_is_run_scoped"
+  test "gate reuses the module locator AST when building definition indexes", %{root: root} do
+    init_git_repo(root)
+    write_anchored_subject(root, "The sample shall return the current value.")
+    commit_all(root, "base")
+
+    source = "defmodule Sample do\n  def value, do: :current\nend\n"
+    Code.ensure_loaded!(Code)
+    traced = self()
+    tracer = start_trace_forwarder(traced)
+    :erlang.trace(traced, true, [:call, :set_on_spawn, {:tracer, tracer}])
+    :erlang.trace_pattern({Code, :string_to_quoted, 2}, true, [])
+
+    on_exit(fn ->
+      :erlang.trace_pattern({Code, :string_to_quoted, 2}, false, [])
+      send(tracer, :stop)
+    end)
+
+    assert {:ok, _report} = Gate.check(root, base: "HEAD")
+    sync_traces(traced, tracer)
+
+    assert count_source_parses(source, 0) == 1,
+           "Would fail if the DefIndex leg read and parsed a lib file after ModuleLocator had already parsed it"
+  end
+
+  test "definition index workers receive one fetched AST instead of the full AST map" do
+    source = File.read!(Path.expand("../../lib/ancora/gate.ex", __DIR__))
+    [_, def_indexes] = String.split(source, "defp def_indexes", parts: 2)
+
+    [worker_setup, worker_and_reduce] =
+      String.split(def_indexes, "|> Task.async_stream", parts: 2)
+
+    [worker, _rest] = String.split(worker_and_reduce, "|> Enum.reduce_while", parts: 2)
+
+    assert worker_setup =~ "Map.fetch(parsed_sources, path)"
+    refute worker =~ "parsed_sources"
+  end
+
+  @tag spec: "ancora.derive.parse_degrades_to_finding"
+  test "parallel parsing preserves complete finding order across runs", %{root: root} do
+    create_clean_repo(root)
+
+    slow_spec =
+      String.duplicate("Spec parser padding.\n", 20_000) <>
+        subject_spec("Alpha shall work.", "alpha.subject")
+
+    slow_error =
+      "defmodule SlowErrorTest do\n" <>
+        String.duplicate("  @tag :padding\n", 20_000) <>
+        "  test(\nend\n"
+
+    write_files(root, %{
+      ".spec/specs/a_alpha.spec.md" => slow_spec,
+      ".spec/specs/b_beta.spec.md" => subject_spec("Beta shall work.", "beta.subject"),
+      ".spec/specs/c_gamma.spec.md" => subject_spec("Gamma shall work.", "gamma.subject"),
+      ".spec/specs/d_delta.spec.md" => subject_spec("Delta shall work.", "delta.subject"),
+      "lib/alpha.ex" => "defmodule Alpha do\n  def value, do: :alpha\nend\n",
+      "lib/beta.ex" => "defmodule Beta do\n  def value, do: :beta\nend\n",
+      "lib/gamma.ex" => "defmodule Gamma do\n  def value, do: :gamma\nend\n",
+      "test/a_slow_error_test.exs" => slow_error,
+      "test/z_fast_error_test.exs" => "defmodule FastErrorTest do\n  test(\nend\n"
+    })
+
+    finding_lists =
+      for _run <- 1..10 do
+        assert {:ok, report} = Gate.check(root, base: "HEAD")
+        report.all_findings
+      end
+
+    assert Enum.all?(tl(finding_lists), &(&1 == hd(finding_lists)))
+
+    assert finding_lists
+           |> hd()
+           |> Enum.filter(&(&1.code == "tags/requirement_untagged"))
+           |> Enum.map(&{&1.subject, &1.code}) ==
+             [
+               {"alpha.subject", "tags/requirement_untagged"},
+               {"beta.subject", "tags/requirement_untagged"},
+               {"gamma.subject", "tags/requirement_untagged"},
+               {"delta.subject", "tags/requirement_untagged"}
+             ],
+           "Would fail if spec parse results were collected outside path order"
+
+    assert finding_lists
+           |> hd()
+           |> Enum.filter(&(&1.code == "tags/parse_error"))
+           |> Enum.map(& &1.file) ==
+             ["test/a_slow_error_test.exs", "test/z_fast_error_test.exs"],
+           "Would fail if parallel parse results were collected in task completion order"
+  end
+
   @tag spec: "ancora.derive.resolver_is_pure"
   @tag spec: "ancora.gate.no_derived_state"
   test "gate removes its materialized base when an assembly callback raises", %{root: root} do
@@ -603,7 +941,10 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.acknowledgment_clears"
-  test "a substantive spec edit clears drift, growth, and shrink", %{root: root} do
+  @tag spec: "ancora.findings.severity_precedence"
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
+  @tag spec: "ancora.gate.statement_change_disclosed"
+  test "a substantive spec edit acknowledges drift, growth, and shrink at info", %{root: root} do
     init_git_repo(root)
 
     write_files(root, %{
@@ -649,14 +990,275 @@ defmodule Ancora.GateTest do
           assert Sample.replacement() == :replacement
         end
       end
+      """,
+      "test/second_sample_test.exs" => """
+      defmodule SecondSampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "second binding", do: assert(Sample.value() == :changed)
+      end
       """
     })
 
     assert {:ok, report} = Gate.check(root, base: "HEAD")
 
-    for code <- ["derived/drift", "derived/growth", "derived/shrink"] do
-      refute Enum.any?(report.all_findings, &(&1.code == code))
-    end
+    acked =
+      Enum.filter(
+        report.all_findings,
+        &(&1.code in ["derived/drift", "derived/growth", "derived/shrink"])
+      )
+
+    assert Enum.map(acked, & &1.code) |> Enum.sort() ==
+             ["derived/drift", "derived/growth", "derived/shrink"]
+
+    assert Enum.all?(acked, &(&1.severity == :info and &1.severity_source == :ack))
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "append/statement_changed" and
+               finding.requirement == "sample.subject.works"
+           end)
+
+    refute Enum.any?(report.all_findings, &(&1.code == "tags/tag_borrowed"))
+  end
+
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
+  test "a new tag on an unchanged existing requirement is disclosed", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" => subject_spec(),
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert finding =
+             Enum.find(report.all_findings, fn finding ->
+               finding.code == "tags/tag_borrowed" and
+                 finding.file == "test/sample_test.exs" and
+                 finding.requirement == "sample.subject.works" and finding.severity == :info
+             end)
+
+    assert finding.message =~ "test/sample_test.exs"
+    assert finding.message =~ "sample.subject.works"
+  end
+
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
+  @tag spec: "ancora.findings.per_subject_overrides"
+  test "a requirement-scoped override reaches a borrowed tag finding", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" => subject_spec(),
+      ".spec/config.yml" => """
+      overrides:
+        - subject: sample.subject
+          requirement: sample.subject.works
+          code: tags/tag_borrowed
+          severity: warning
+          reason: Review borrowed coverage before merge.
+      """,
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "tags/tag_borrowed" and
+               finding.subject == "sample.subject" and
+               finding.requirement == "sample.subject.works" and
+               finding.severity == :warning and finding.severity_source == :config
+           end)
+  end
+
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
+  @tag spec: "ancora.gate.diff_scoped_versus_repo_state"
+  test "a second tag in the same file is the only borrowed tag", %{root: root} do
+    init_git_repo(root)
+    write_anchored_subject(root, "The sample shall return the current value.")
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() in [:current, :changed])
+
+        @tag spec: "sample.subject.works"
+        test "works twice", do: assert(Sample.value() in [:current, :changed])
+      end
+      """
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert [%{file: "test/sample_test.exs"}] =
+             Enum.filter(report.all_findings, &(&1.code == "tags/tag_borrowed"))
+  end
+
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
+  @tag spec: "ancora.gate.statement_change_disclosed"
+  @tag spec: "ancora.gate.diff_scoped_versus_repo_state"
+  test "an empty diff emits neither disclosure", %{root: root} do
+    init_git_repo(root)
+    write_anchored_subject(root, "The sample shall return the current value.")
+    commit_all(root, "base")
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    refute Enum.any?(report.all_findings, &(&1.code == "tags/tag_borrowed"))
+    refute Enum.any?(report.all_findings, &(&1.code == "append/statement_changed"))
+  end
+
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
+  @tag spec: "ancora.gate.statement_change_disclosed"
+  test "a whitespace-only statement edit keeps a new tag borrowed", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" => subject_spec("The sample shall work."),
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      ".spec/specs/sample.spec.md" => subject_spec("The sample  shall work."),
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "tags/tag_borrowed" and
+               finding.requirement == "sample.subject.works"
+           end)
+
+    refute Enum.any?(report.all_findings, &(&1.code == "append/statement_changed"))
+  end
+
+  @tag spec: "ancora.gate.acknowledgment_clears"
+  test "a substantive spec edit acknowledges transitive drift", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" =>
+        subject_spec("The sample shall return the current value.", "sample.subject", []),
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() in [:current, :changed])
+      end
+      """
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n",
+      ".spec/specs/sample.spec.md" =>
+        subject_spec("The sample shall return the changed value.", "sample.subject", [])
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "derived/drift_transitive" and finding.severity == :info and
+               finding.severity_source == :ack
+           end)
+  end
+
+  @tag spec: "ancora.derive.drift_primary_transitive"
+  @tag spec: "ancora.gate.diff_scoped_versus_repo_state"
+  test "surface fan-out reports exactly K primary and N-K transitive drift", %{root: root} do
+    init_git_repo(root)
+
+    specs =
+      for {name, surface} <- [{"one", ["lib/shared.ex"]}, {"two", []}, {"three", []}],
+          into: %{} do
+        {".spec/specs/#{name}.spec.md", shared_subject_spec(name, surface)}
+      end
+
+    tests =
+      for name <- ["one", "two", "three"], into: %{} do
+        {"test/#{name}_test.exs", shared_test(name)}
+      end
+
+    write_files(
+      root,
+      Map.merge(specs, tests)
+      |> Map.merge(%{
+        "mix.exs" => mix_file("[app: :sample]"),
+        "lib/shared.ex" => "defmodule Shared do\n  def value, do: :base\nend\n"
+      })
+    )
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "lib/shared.ex" => "defmodule Shared do\n  def value, do: :changed\nend\n"
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+    drift = Enum.filter(report.all_findings, &String.starts_with?(&1.code, "derived/drift"))
+
+    assert Enum.count(drift, &(&1.code == "derived/drift")) == 1
+    assert Enum.count(drift, &(&1.code == "derived/drift_transitive")) == 2
   end
 
   @tag spec: "ancora.gate.acknowledgment_clears"
@@ -762,12 +1364,19 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.new_subject_self_clears"
-  test "a new subject clears its own growth", %{root: root} do
+  @tag spec: "ancora.gate.borrowed_tag_disclosed"
+  test "a new subject acknowledges its own growth", %{root: root} do
     create_clean_repo(root)
     write_anchored_subject(root, "The sample shall return the current value.")
 
     assert {:ok, report} = Gate.check(root, base: "HEAD")
-    refute Enum.any?(report.all_findings, &(&1.code == "derived/growth"))
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "derived/growth" and finding.severity == :info and
+               finding.severity_source == :ack
+           end)
+
+    refute Enum.any?(report.all_findings, &(&1.code == "tags/tag_borrowed"))
   end
 
   @tag spec: "ancora.derive.growth_and_shrink"
@@ -871,6 +1480,39 @@ defmodule Ancora.GateTest do
     refute Enum.any?(report.findings, &(&1.subject == "sample.a"))
   end
 
+  @tag spec: "ancora.findings.per_subject_overrides"
+  test "rejects an override for a requirement outside the indexed corpus", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" => subject_spec(),
+      ".spec/config.yml" => """
+      overrides:
+        - subject: sample.subject
+          requirement: sample.subject.missing
+          code: tags/requirement_untagged
+          severity: warning
+          reason: requirement does not exist
+      """
+    })
+
+    commit_all(root, "base")
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "config/invalid_value" and
+               finding.message =~ "sample.subject.missing"
+           end)
+
+    assert Enum.any?(report.all_findings, fn finding ->
+             finding.code == "tags/requirement_untagged" and
+               finding.requirement == "sample.subject.works" and
+               finding.severity == :info and finding.severity_source == :default
+           end)
+  end
+
   @tag spec: "ancora.gate.unanchored_subject"
   test "an unanchored subject fires on every unchanged run with its override remedy", %{
     root: root
@@ -929,6 +1571,51 @@ defmodule Ancora.GateTest do
     })
   end
 
+  defp write_governed_subject(root, statement, decision_id, affected_id, status \\ "accepted") do
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" => governed_subject_spec(statement, decision_id),
+      ".spec/decisions/governance.md" =>
+        governing_decision("sample.decision.governance", affected_id, status),
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() == :current)
+      end
+      """
+    })
+  end
+
+  defp missing_decision?(report, path) do
+    Enum.any?(report.all_findings, fn finding ->
+      finding.code == "change/missing_decision" and finding.file == path
+    end)
+  end
+
+  defp governed_index(affected_id) do
+    %{
+      "subjects" => [
+        %{
+          "file" => ".spec/specs/sample.spec.md",
+          "meta" => %{id: "sample.subject", decisions: ["sample.decision.governance"]},
+          "requirements" => [%{id: "sample.subject.works"}],
+          "scenarios" => [%{id: "sample.subject.scenario.works"}]
+        }
+      ],
+      "decisions" => [
+        %{
+          "meta" => %{
+            "id" => "sample.decision.governance",
+            "status" => "accepted",
+            "affects" => [affected_id]
+          }
+        }
+      ]
+    }
+  end
+
   defp mix_file(project) do
     """
     defmodule Sample.MixProject do
@@ -938,7 +1625,13 @@ defmodule Ancora.GateTest do
     """
   end
 
-  defp subject_spec(statement \\ "The sample shall work.", subject \\ "sample.subject") do
+  defp subject_spec(
+         statement \\ "The sample shall work.",
+         subject \\ "sample.subject",
+         surface \\ nil
+       ) do
+    surface_block = if is_list(surface), do: "surface: #{inspect(surface)}\n", else: ""
+
     """
     # Sample
 
@@ -946,7 +1639,7 @@ defmodule Ancora.GateTest do
     id: #{subject}
     kind: module
     status: draft
-    ```
+    #{surface_block}```
 
     ```yaml spec-requirements
     - id: #{subject}.works
@@ -963,6 +1656,114 @@ defmodule Ancora.GateTest do
       covers:
         - #{subject}.works
     ```
+    """
+  end
+
+  defp governed_subject_spec(statement, decision_id) do
+    """
+    # Sample
+
+    ```yaml spec-meta
+    id: sample.subject
+    kind: module
+    status: draft
+    decisions:
+      - #{decision_id}
+    ```
+
+    ```yaml spec-requirements
+    - id: sample.subject.works
+      statement: #{statement}
+      priority: must
+    ```
+
+    ```yaml spec-scenarios
+    - id: sample.subject.scenario.works
+      given:
+        - a sample
+      when:
+        - its value is read
+      then:
+        - the current value is returned
+      covers:
+        - sample.subject.works
+    ```
+
+    ```yaml spec-verification
+    - kind: tagged_tests
+      covers:
+        - sample.subject.works
+    ```
+    """
+  end
+
+  defp shared_subject_spec(name, surface) do
+    surface_lines = Enum.map_join(surface, "\n", &"  - #{&1}")
+    surface_block = if surface == [], do: "surface: []", else: "surface:\n#{surface_lines}"
+
+    """
+    # #{name}
+
+    ```yaml spec-meta
+    id: shared.#{name}
+    kind: module
+    status: draft
+    #{surface_block}
+    ```
+
+    ```yaml spec-requirements
+    - id: shared.#{name}.works
+      statement: Shared shall return a value for #{name}.
+      priority: must
+    ```
+
+    ```yaml spec-scenarios
+    []
+    ```
+
+    ```yaml spec-verification
+    - kind: tagged_tests
+      covers:
+        - shared.#{name}.works
+    ```
+    """
+  end
+
+  defp shared_test(name) do
+    module = name |> String.capitalize() |> Kernel.<>("Test")
+
+    """
+    defmodule #{module} do
+      use ExUnit.Case
+      @tag spec: "shared.#{name}.works"
+      test "shared value", do: assert(Shared.value() in [:base, :changed])
+    end
+    """
+  end
+
+  defp governing_decision(decision_id, affected_id, status \\ "accepted") do
+    """
+    ---
+    id: #{decision_id}
+    status: #{status}
+    date: 2026-09-03
+    affects:
+      - #{affected_id}
+    ---
+
+    # Sample governance
+
+    ## Context
+
+    The sample contract needs an explicit owner.
+
+    ## Decision
+
+    This ADR governs the sample contract.
+
+    ## Consequences
+
+    Subject changes may cite this ADR.
     """
   end
 
@@ -984,6 +1785,18 @@ defmodule Ancora.GateTest do
     end
   end
 
+  defp count_source_parses(source, count) do
+    receive do
+      {:forwarded_trace, {:trace, _pid, :call, {Code, :string_to_quoted, [^source, _options]}}} ->
+        count_source_parses(source, count + 1)
+
+      {:forwarded_trace, _message} ->
+        count_source_parses(source, count)
+    after
+      0 -> count
+    end
+  end
+
   defp start_trace_forwarder(parent) do
     spawn(fn -> forward_traces(parent) end)
   end
@@ -1000,7 +1813,7 @@ defmodule Ancora.GateTest do
         :ok
 
       {:sync, caller, traced, caller_ref} ->
-        delivery_ref = :erlang.trace_delivered(traced)
+        delivery_ref = :erlang.trace_delivered(:all)
         forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref)
 
       message ->
@@ -1011,7 +1824,7 @@ defmodule Ancora.GateTest do
 
   defp forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref) do
     receive do
-      {:trace_delivered, ^traced, ^delivery_ref} ->
+      {:trace_delivered, :all, ^delivery_ref} ->
         send(caller, {:trace_forwarder_synced, caller_ref})
         forward_traces(parent)
 

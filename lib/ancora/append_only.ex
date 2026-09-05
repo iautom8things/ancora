@@ -1,6 +1,6 @@
 defmodule Ancora.AppendOnly do
   @moduledoc """
-  Diff-time append-only detectors. Exactly two guards:
+  Diff-time append-only detectors and statement-change disclosure. Exactly two guards:
 
     * `append/requirement_deleted` — a requirement id present at base is
       absent on HEAD
@@ -12,6 +12,9 @@ defmodule Ancora.AppendOnly do
   requirement or its subject. Retirement does not authorize a downgrade.
   There is no weakening-class enum and no `change_type` requirement.
 
+  `append/statement_changed` reports normalized statement changes at info.
+  It is a disclosure, not a guard, and an ADR does not suppress it.
+
   `analyze/2` is a total function over `(prior_index, current_index)`.
   Both arguments are index-shaped maps (`"subjects"`, `"decisions"`).
   The module has no Git I/O.
@@ -20,8 +23,8 @@ defmodule Ancora.AppendOnly do
   alias Ancora.{Finding, Index}
 
   @doc """
-  Diffs `prior` against `current` and returns the two append-only
-  findings that are not authorized by a HEAD-side accepted ADR.
+  Diffs `prior` against `current` and returns append-only guard findings plus
+  statement-change disclosures.
   """
   @spec analyze(map(), map()) :: [Finding.t()]
   def analyze(prior, current) when is_map(prior) and is_map(current) do
@@ -30,7 +33,8 @@ defmodule Ancora.AppendOnly do
     decisions = current["decisions"] || []
 
     (detect_requirement_deleted(prior_reqs, current_reqs, decisions) ++
-       detect_must_downgraded(prior_reqs, current_reqs, decisions))
+       detect_must_downgraded(prior_reqs, current_reqs, decisions) ++
+       detect_statement_changed(prior_reqs, current_reqs))
     |> sort_findings()
   end
 
@@ -66,6 +70,18 @@ defmodule Ancora.AppendOnly do
 
   defp must_to_should?(prior, current) do
     prior.priority == "must" and current.priority == "should"
+  end
+
+  defp detect_statement_changed(prior_reqs, current_reqs) do
+    Enum.flat_map(prior_reqs, fn {id, prior} ->
+      case Map.fetch(current_reqs, id) do
+        {:ok, current} when prior.statement != current.statement ->
+          [statement_changed_finding(id, current)]
+
+        _ ->
+          []
+      end
+    end)
   end
 
   defp deletion_authorized?(decisions, requirement_id, subject_id) do
@@ -116,6 +132,16 @@ defmodule Ancora.AppendOnly do
     )
   end
 
+  defp statement_changed_finding(id, current) do
+    Finding.new(
+      code: "append/statement_changed",
+      subject: current.subject_id,
+      requirement: id,
+      severity: Finding.default_severity("append/statement_changed"),
+      severity_source: :default
+    )
+  end
+
   defp requirements_by_id(index) do
     (index["subjects"] || [])
     |> Enum.flat_map(fn subject ->
@@ -134,7 +160,8 @@ defmodule Ancora.AppendOnly do
                %{
                  id: id,
                  subject_id: subject_id,
-                 priority: Index.field(req, "priority")
+                 priority: Index.field(req, "priority"),
+                 statement: normalize_statement(Index.field(req, "statement"))
                }}
             ]
         end
@@ -153,6 +180,14 @@ defmodule Ancora.AppendOnly do
   end
 
   defp id_of(item), do: Index.field(item, "id")
+
+  defp normalize_statement(statement) when is_binary(statement) do
+    statement
+    |> String.split()
+    |> Enum.join(" ")
+  end
+
+  defp normalize_statement(_statement), do: ""
 
   defp sort_findings(findings) do
     Enum.sort_by(findings, fn f ->

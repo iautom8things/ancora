@@ -30,6 +30,7 @@ decisions:
   - ancora.decision.source_derived_membership
   - ancora.decision.generated_bindings_companion
   - ancora.decision.no_execution_no_state
+  - ancora.decision.field_friction_response
   - ancora.decision.no_run_context_memo
 ```
 
@@ -93,6 +94,10 @@ decisions:
     maps once across all subjects and pass them to Ancora.Derive.Compare as
     plain function arguments. Extraction reuse shall not use an in-process
     memo, registry, cache, or new process, and shall not persist to disk.
+    Ancora.Derive.ModuleLocator shall parse path-sorted library files
+    concurrently with ordered collection and pass its per-side AST maps to
+    Ancora.Derive.DefIndex, so that leg parses each file once per side and the
+    first parse error remains the first one in path order.
     Ancora.Derive.RunContext shall contain only the run root, base, and batch
     port state; starting or stopping it shall not create or delete an ETS table.
   priority: must
@@ -109,7 +114,9 @@ decisions:
     `lib_paths` value, including nil, into ProjectInfo so ProjectInfo does not
     read `.spec/config.yml` again on that path. A non-literal `app:` shall
     hard-fail with a message. No module downstream of preflight shall read
-    `Mix.Project` state.
+    `Mix.Project` state. Every `lib_paths` value shall be normalized at
+    resolution — trailing slashes trimmed — so all downstream path comparisons
+    use one canonical form.
   priority: must
   stability: stable
 - id: ancora.derive.membership_source_derived
@@ -119,6 +126,8 @@ decisions:
     under `lib_paths` on side S: HEAD from the working tree, base from the
     same-path base blob and then from the base blobs of change-set files.
     Nested `defmodule` bodies shall be named with their parent prefix.
+    When the change set is empty, ModuleLocator shall scan HEAD once and use
+    the same module map for base instead of parsing every source file twice.
     Membership shall never read `_build`, any `.app` file, or any compiled
     artifact.
   priority: must
@@ -215,6 +224,15 @@ decisions:
     MapSet once in `compute/1`, and every comparison shall reuse that set.
   priority: must
   stability: stable
+- id: ancora.derive.drift_primary_transitive
+  statement: >-
+    A drifted binding whose defining file appears in the subject's authored
+    `surface:` list shall produce `derived/drift`. When the subject has a
+    `surface:` list that omits the defining file, the binding shall produce
+    `derived/drift_transitive` at info. A subject without `surface:` shall
+    keep the prior behavior and report every drift as `derived/drift`.
+  priority: must
+  stability: evolving
 - id: ancora.derive.growth_and_shrink
   statement: >-
     Per subject, `derived/growth` shall fire when the HEAD set minus the base
@@ -399,6 +417,18 @@ decisions:
     - the run hard-fails with `tier=env` and a message naming umbrella roots as unsupported
   covers:
     - ancora.derive.project_info_from_root
+- id: ancora.derive.scenario.trailing_slash_lib_path
+  given:
+    - '`lib_paths: ["src/"]` with `src/legacy.ex` defining `Legacy` at base and deleted on HEAD'
+  when:
+    - membership is computed per side
+  then:
+    - `Legacy` is a member at base and not at HEAD
+    - the change-set file is not dropped from base membership
+  covers:
+    - ancora.derive.project_info_from_root
+    - ancora.derive.membership_source_derived
+    - ancora.derive.subject_footprint
 - id: ancora.derive.scenario.deleted_module_visible_at_base
   given:
     - `lib/legacy.ex` defining `Legacy` exists at base and is deleted on HEAD
@@ -532,6 +562,35 @@ decisions:
     - the defining file is never parsed for extraction
   covers:
     - ancora.derive.drift_scope_and_dedupe
+- id: ancora.derive.scenario.transitive_drift_outside_surface
+  given:
+    - a shared binding drifts and a subject reaches it transitively
+    - the subject's `surface:` list omits the binding's defining file
+  when:
+    - drift is computed
+  then:
+    - `derived/drift_transitive` fires at info
+  covers:
+    - ancora.derive.drift_primary_transitive
+- id: ancora.derive.scenario.primary_drift_inside_surface
+  given:
+    - a shared binding drifts and a subject reaches it
+    - the binding's defining file appears in the subject's `surface:` list
+  when:
+    - drift is computed
+  then:
+    - `derived/drift` fires
+  covers:
+    - ancora.derive.drift_primary_transitive
+- id: ancora.derive.scenario.no_surface_keeps_primary_drift
+  given:
+    - a shared binding drifts and a subject has no `surface:` field
+  when:
+    - drift is computed
+  then:
+    - `derived/drift` fires
+  covers:
+    - ancora.derive.drift_primary_transitive
 - id: ancora.derive.scenario.macro_injected_api_drifts_via_companion
   given:
     - a member module `MyApp.Schema` whose `__using__/1` injects `changeset/2` into `MyApp.User`
@@ -622,6 +681,7 @@ decisions:
     - ancora.derive.clause_extraction
     - ancora.derive.canonical_is_metadata_strip
     - ancora.derive.drift_scope_and_dedupe
+    - ancora.derive.drift_primary_transitive
     - ancora.derive.growth_and_shrink
     - ancora.derive.generated_bindings
     - ancora.derive.acknowledgment_is_substantive

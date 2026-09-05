@@ -29,7 +29,12 @@ defmodule Ancora.Status do
          :ok <- corpus(root, spec_dir),
          {:ok, index} <- build_index(root, index_opts(opts)),
          subject_ids = Enum.map(index["subjects"], &subject_id/1),
-         config = Config.load(root, known_subjects: subject_ids),
+         requirement_ids = requirement_ids(index),
+         config =
+           Config.load(root,
+             known_subjects: subject_ids,
+             known_requirements: requirement_ids
+           ),
          {:ok, project} <- ProjectInfo.load(root, project_opts(config)),
          {:ok, locator} <- ModuleLocator.build(project, %ChangeSet{}),
          {:ok, subject_sets} <- derive_subject_sets(root, config, locator, subject_ids) do
@@ -193,6 +198,15 @@ defmodule Ancora.Status do
   end
 
   defp subject_id(subject), do: Index.subject_id(subject)
+
+  defp requirement_ids(index) do
+    Enum.flat_map(index["subjects"], fn subject ->
+      subject["requirements"]
+      |> List.wrap()
+      |> Enum.map(&(Map.get(&1, :id) || Map.get(&1, "id")))
+      |> Enum.reject(&is_nil/1)
+    end)
+  end
 
   defp project_opts(%Config{lib_paths: nil}), do: []
   defp project_opts(%Config{lib_paths: paths}), do: [lib_paths: paths]

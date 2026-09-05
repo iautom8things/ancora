@@ -33,7 +33,15 @@ defmodule Ancora.Gate do
     findings: [],
     all_findings: [],
     checked: %{subjects: 0, requirements: 0, errors: 0, warnings: 0},
-    branch: %{base: nil, changed_files: 0, findings: 0, errors: 0, warnings: 0, info: 0},
+    branch: %{
+      base: nil,
+      changed_files: 0,
+      findings: 0,
+      errors: 0,
+      warnings: 0,
+      info: 0,
+      hidden: %{default: 0, trailer: 0, ack: 0, config: 0}
+    },
     guidance: %{impacted_subjects: [], next: nil},
     message: nil,
     errors: 0,
@@ -140,6 +148,7 @@ defmodule Ancora.Gate do
                current,
                prior,
                head_tags,
+               base_tags,
                head_sets,
                base_sets,
                base_root,
@@ -160,6 +169,7 @@ defmodule Ancora.Gate do
          current,
          prior,
          head_tags,
+         base_tags,
          head_sets,
          base_sets,
          base_root,
@@ -183,25 +193,21 @@ defmodule Ancora.Gate do
              head = Map.get(head_sets, subject_id, empty_set(subject_id, :head))
              base = Map.get(base_sets, subject_id, empty_set(subject_id, :base))
 
-             findings =
-               Compare.compare(subject_id, base, head,
+             compare_opts =
+               [
                  locator: locator,
                  change_set: change_set,
                  root: preflight.root,
                  parsed_sources: parsed_sources
-               )
+               ]
+               |> maybe_put_surface(subject_surface(subject_id, current))
+
+             findings = Compare.compare(subject_id, base, head, compare_opts)
 
              case acknowledged?(subject_id, current, prior, preflight.root, base_root) do
                {:ok, acknowledged?} ->
                  findings =
-                   if acknowledged? do
-                     Enum.reject(
-                       findings,
-                       &(&1.code in ["derived/drift", "derived/growth", "derived/shrink"])
-                     )
-                   else
-                     findings
-                   end
+                   if acknowledged?, do: Enum.map(findings, &mark_acknowledged/1), else: findings
 
                  {:cont, {:ok, [findings | acc]}}
 
@@ -215,8 +221,6 @@ defmodule Ancora.Gate do
         head_sets
         |> SubjectFiles.build(locator)
         |> Map.put(:__lib_paths__, preflight.project.lib_paths)
-
-      tag_ids = Map.keys(head_tags.tag_map)
 
       findings =
         (pipeline_findings ++
@@ -233,7 +237,10 @@ defmodule Ancora.Gate do
            AppendOnly.analyze(prior, current) ++
            compare ++
            set_visibility_findings(head_sets) ++
-           ChangeAnalysis.findings(change_set, footprints, prior, current, tag_ids))
+           ChangeAnalysis.findings(change_set, footprints, prior, current, %{
+             head: head_tags.tag_map,
+             base: base_tags.tag_map
+           }))
         |> resolve_findings(preflight, ctx)
 
       {:ok, findings}
@@ -263,15 +270,38 @@ defmodule Ancora.Gate do
   end
 
   defp validate_override_subjects(config, index) do
-    known = MapSet.new(subject_ids(index))
-    {valid, unknown} = Enum.split_with(config.overrides, &MapSet.member?(known, &1.subject))
+    known_subjects = MapSet.new(subject_ids(index))
+
+    known_requirements =
+      index["subjects"]
+      |> Enum.flat_map(fn subject ->
+        subject["requirements"]
+        |> List.wrap()
+        |> Enum.map(&(Map.get(&1, :id) || Map.get(&1, "id")))
+        |> Enum.reject(&is_nil/1)
+      end)
+      |> MapSet.new()
+
+    {valid, unknown} =
+      Enum.split_with(config.overrides, fn override ->
+        MapSet.member?(known_subjects, override.subject) and
+          (is_nil(override.requirement) or
+             MapSet.member?(known_requirements, override.requirement))
+      end)
 
     findings =
       Enum.map(unknown, fn override ->
+        detail =
+          if MapSet.member?(known_subjects, override.subject) do
+            "override names unknown requirement #{override.requirement}"
+          else
+            "override names unknown subject #{override.subject}"
+          end
+
         Finding.new(
           code: "config/invalid_value",
           file: ".spec/config.yml",
-          detail: "override names unknown subject #{override.subject}"
+          detail: detail
         )
       end)
 
@@ -292,8 +322,8 @@ defmodule Ancora.Gate do
       base: ModuleLocator.modules(locator, :base)
     }
 
-    with {:ok, head_indexes} <- def_indexes(locator.head, preflight.root),
-         {:ok, base_indexes} <- def_indexes(locator.base, base_root),
+    with {:ok, head_indexes} <- def_indexes(locator.head, locator.head_asts),
+         {:ok, base_indexes} <- def_indexes(locator.base, locator.base_asts),
          {:ok, head_ctx} <- derive_context(opts, membership, :head, head_indexes),
          {:ok, base_ctx} <- derive_context(opts, membership, :base, base_indexes),
          {:ok, head_sources} <- source_map(preflight.root, head_tags.files),
@@ -380,24 +410,43 @@ defmodule Ancora.Gate do
     end)
   end
 
-  defp def_indexes(module_paths, root) do
+  defp def_indexes(module_paths, parsed_sources) do
     module_paths
     |> Enum.group_by(fn {_module, path} -> path end, fn {module, _path} -> module end)
-    |> Enum.reduce_while({:ok, %{}}, fn {path, modules}, {:ok, indexes} ->
-      case File.read(Path.join(root, path)) do
-        {:ok, source} ->
-          case DefIndex.build(source, path) do
-            {:ok, index} ->
-              {:cont, {:ok, Enum.reduce(modules, indexes, &Map.put(&2, &1, index))}}
+    |> Enum.sort_by(fn {path, _modules} -> path end)
+    |> Enum.map(fn {path, modules} -> {path, modules, Map.fetch(parsed_sources, path)} end)
+    |> Task.async_stream(
+      &build_def_index/1,
+      ordered: true,
+      timeout: :infinity
+    )
+    |> Enum.reduce_while({:ok, %{}}, fn
+      {:ok, {:ok, modules, index}}, {:ok, indexes} ->
+        {:cont, {:ok, Enum.reduce(modules, indexes, &Map.put(&2, &1, index))}}
 
-            {:error, reason} ->
-              {:halt, {:error, reason}}
-          end
+      {:ok, {:error, reason}}, _acc ->
+        {:halt, {:error, reason}}
 
-        {:error, reason} ->
-          {:halt, {:error, {:source_read, path, reason}}}
-      end
+      {:exit, reason}, _acc ->
+        {:halt, {:error, {:def_index_exit, reason}}}
     end)
+  end
+
+  defp build_def_index({path, _modules, :error}) do
+    {:error, {:parsed_source_missing, path}}
+  end
+
+  defp build_def_index({path, modules, {:ok, ast}}) do
+    try do
+      case DefIndex.build(ast, path) do
+        {:ok, index} -> {:ok, modules, index}
+        {:error, _reason} = error -> error
+      end
+    rescue
+      exception -> {:error, {:worker_failure, :def_index, path, exception}}
+    catch
+      kind, reason -> {:error, {:worker_failure, :def_index, path, {kind, reason}}}
+    end
   end
 
   defp set_visibility_findings(subject_sets) do
@@ -452,42 +501,87 @@ defmodule Ancora.Gate do
     end
   end
 
-  defp gate_error({:source_read, path, reason}) do
+  defp subject_surface(subject_id, index) do
+    case Enum.find(index["subjects"], &(Index.subject_id(&1) == subject_id)) do
+      nil -> :absent
+      subject -> Map.get(subject["meta"], :surface) || :absent
+    end
+  end
+
+  defp maybe_put_surface(opts, :absent), do: opts
+  defp maybe_put_surface(opts, surface), do: Keyword.put(opts, :surface, surface)
+
+  defp mark_acknowledged(%Finding{code: code} = finding)
+       when code in [
+              "derived/drift",
+              "derived/drift_transitive",
+              "derived/growth",
+              "derived/shrink"
+            ] do
+    %{finding | severity: :info, severity_source: :ack}
+  end
+
+  defp mark_acknowledged(finding), do: finding
+
+  @doc false
+  def gate_error({:source_read, path, reason}) do
     {:env, "cannot read #{path}: #{:file.format_error(reason)}"}
   end
 
-  defp gate_error({:spec_dir, message}), do: {:env, message}
+  def gate_error({:spec_dir, message}), do: {:env, message}
 
-  defp gate_error(reason)
-       when reason in [:git_executable_not_found, :cat_file_batch_timeout, :port_poisoned] do
+  def gate_error({:parsed_source_missing, path}) do
+    {:env, "parsed source missing for #{path} while building definition indexes"}
+  end
+
+  def gate_error({:def_index_exit, reason}) do
+    {:env, "definition index worker exited: #{worker_failure_message(reason)}"}
+  end
+
+  def gate_error({:source_scan_exit, side, reason}) do
+    {:env, "#{side} source scan worker exited: #{worker_failure_message(reason)}"}
+  end
+
+  def gate_error({:worker_failure, stage, path, reason}) do
+    location = if is_binary(path), do: " for #{path}", else: ""
+    {:env, "#{stage} worker failed#{location}: #{worker_failure_message(reason)}"}
+  end
+
+  def gate_error(reason)
+      when reason in [:git_executable_not_found, :cat_file_batch_timeout, :port_poisoned] do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error({:cat_file_batch_exited, _status} = reason) do
+  def gate_error({:cat_file_batch_exited, _status} = reason) do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error({:cat_file_batch_bad_header, _header} = reason) do
+  def gate_error({:cat_file_batch_bad_header, _header} = reason) do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error({:quoted_git_path, _path} = reason) do
+  def gate_error({:quoted_git_path, _path} = reason) do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error({:missing_nul_terminator, _source} = reason) do
+  def gate_error({:missing_nul_terminator, _source} = reason) do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error({:invalid_name_status, _records} = reason) do
+  def gate_error({:invalid_name_status, _records} = reason) do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error({:invalid_porcelain_status, _records} = reason) do
+  def gate_error({:invalid_porcelain_status, _records} = reason) do
     {:env, run_context_error(reason)}
   end
 
-  defp gate_error(reason), do: raise("gate assembly failed: #{inspect(reason)}")
+  def gate_error(reason), do: raise("gate assembly failed: #{inspect(reason)}")
+
+  defp worker_failure_message(%{__exception__: true} = exception),
+    do: Exception.message(exception)
+
+  defp worker_failure_message(reason), do: inspect(reason)
 
   defp run_context_error(:git_executable_not_found) do
     "git executable not found; install git and make it available on PATH"
@@ -545,7 +639,7 @@ defmodule Ancora.Gate do
       case Map.fetch(trailer.non_tip_overrides, finding.code) do
         {:ok, non_tip_severity} ->
           durable_severity =
-            Config.severity_for(config, finding.code, finding.subject) ||
+            Config.severity_for(config, finding.code, finding.subject, finding.requirement) ||
               Finding.default_severity(finding.code)
 
           finding.severity_source == :trailer and finding.severity == non_tip_severity and
@@ -570,9 +664,31 @@ defmodule Ancora.Gate do
   defp report(preflight, change_set, index, subject_sets, findings, opts) do
     {info, non_info} = Enum.split_with(findings, &(&1.severity == :info))
     show_info? = Severity.show_info?(verbose: Keyword.get(opts, :verbose, false))
-    visible = if show_info?, do: findings, else: non_info
+    explain_acks? = Keyword.get(opts, :explain_acks, false)
+
+    visible =
+      cond do
+        explain_acks? ->
+          Enum.filter(findings, &(&1.severity_source in [:config, :trailer, :ack]))
+
+        show_info? ->
+          findings
+
+        true ->
+          non_info
+      end
+
     errors = Enum.count(findings, &(&1.severity == :error))
     warnings = Enum.count(findings, &(&1.severity == :warning))
+    hidden_info = Enum.reject(info, &(&1 in visible))
+
+    hidden_by_source = %{
+      default: Enum.count(hidden_info, &(&1.severity_source == :default)),
+      trailer: Enum.count(hidden_info, &(&1.severity_source == :trailer)),
+      ack: Enum.count(hidden_info, &(&1.severity_source == :ack)),
+      config: Enum.count(hidden_info, &(&1.severity_source == :config))
+    }
+
     info_count = length(info)
 
     report = %{
@@ -590,11 +706,12 @@ defmodule Ancora.Gate do
         findings: length(findings),
         errors: errors,
         warnings: warnings,
-        info: info_count
+        info: info_count,
+        hidden: hidden_by_source
       },
       guidance: %{
         impacted_subjects: Map.keys(subject_sets) |> Enum.sort(),
-        next: "edit the affected spec or production code"
+        next: next_guidance(hidden_by_source)
       },
       errors: errors,
       warnings: warnings,
@@ -604,6 +721,17 @@ defmodule Ancora.Gate do
     }
 
     if Keyword.get(opts, :json, false), do: json_report(report), else: report
+  end
+
+  defp next_guidance(hidden_by_source) do
+    hidden = hidden_by_source |> Map.values() |> Enum.sum()
+
+    if hidden == 0 do
+      "edit the affected spec or production code"
+    else
+      "#{hidden} info findings hidden; run with --verbose to list them or " <>
+        "--explain-acks to list config and acknowledgment sources"
+    end
   end
 
   defp prepare_base_dirs(base_root, head_root, spec_dir) do
@@ -642,7 +770,8 @@ defmodule Ancora.Gate do
 
   defp build_index(root, opts) do
     case Index.build(root, opts) do
-      {:error, message} -> {:error, {:spec_dir, message}}
+      {:error, message} when is_binary(message) -> {:error, {:spec_dir, message}}
+      {:error, _reason} = error -> error
       index -> {:ok, index}
     end
   end

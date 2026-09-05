@@ -5,6 +5,7 @@ defmodule Ancora.FindingTest do
 
   @expected_codes [
     "derived/drift",
+    "derived/drift_transitive",
     "derived/growth",
     "derived/shrink",
     "derived/unresolved_calls",
@@ -13,12 +14,14 @@ defmodule Ancora.FindingTest do
     "change/uncovered_file",
     "change/missing_decision",
     "tags/new_requirement_untagged",
+    "tags/tag_borrowed",
     "tags/parse_error",
     "tags/dynamic_value",
     "tags/requirement_untagged",
     "tags/unknown_requirement",
     "append/requirement_deleted",
     "append/must_downgraded",
+    "append/statement_changed",
     "format/retired_construct",
     "spec/parse_error",
     "spec/duplicate_id",
@@ -38,6 +41,7 @@ defmodule Ancora.FindingTest do
 
   @expected_defaults %{
     "derived/drift" => :error,
+    "derived/drift_transitive" => :info,
     "derived/growth" => :warning,
     "derived/shrink" => :warning,
     "derived/unresolved_calls" => :info,
@@ -46,12 +50,14 @@ defmodule Ancora.FindingTest do
     "change/uncovered_file" => :warning,
     "change/missing_decision" => :warning,
     "tags/new_requirement_untagged" => :warning,
+    "tags/tag_borrowed" => :info,
     "tags/parse_error" => :error,
     "tags/dynamic_value" => :info,
     "tags/requirement_untagged" => :info,
     "tags/unknown_requirement" => :warning,
     "append/requirement_deleted" => :error,
     "append/must_downgraded" => :error,
+    "append/statement_changed" => :info,
     "format/retired_construct" => :warning,
     "spec/parse_error" => :error,
     "spec/duplicate_id" => :error,
@@ -71,12 +77,12 @@ defmodule Ancora.FindingTest do
 
   describe "registry closure" do
     @tag spec: "ancora.findings.registry_closed"
-    test "owns exactly the 30 enumerated codes, each with family, default, and message" do
+    test "owns exactly the 33 enumerated codes, each with family, default, and message" do
       registry = Finding.registry()
       codes = Finding.codes()
 
-      assert length(codes) == 30
-      assert length(Enum.uniq(codes)) == 30
+      assert length(codes) == 33
+      assert length(Enum.uniq(codes)) == 33
       assert codes == @expected_codes
       assert Map.keys(registry) -- @expected_codes == []
       assert @expected_codes -- Map.keys(registry) == []
@@ -116,7 +122,7 @@ defmodule Ancora.FindingTest do
   describe "registry defaults" do
     @tag spec: "ancora.findings.registry_defaults"
     test "each code's default matches the spec table" do
-      assert map_size(@expected_defaults) == 30
+      assert map_size(@expected_defaults) == 33
 
       for {code, expected} <- @expected_defaults do
         assert Finding.default_severity(code) == expected,
@@ -156,6 +162,22 @@ defmodule Ancora.FindingTest do
 
       assert message =~ "atlas.web.sessions"
       assert message =~ "overrides:"
+    end
+
+    @tag spec: "ancora.findings.messages_carry_remedy"
+    test "requirement-scoped messages print each fully qualified id once" do
+      context = %{subject: "billing.core", requirement: "billing.core.charge"}
+
+      for code <- [
+            "append/statement_changed",
+            "tags/requirement_untagged",
+            "tags/new_requirement_untagged",
+            "spec/requirement_unverified"
+          ] do
+        message = Finding.message(code, context)
+        assert String.starts_with?(message, "billing.core.charge:")
+        refute message =~ "billing.core.billing.core.charge"
+      end
     end
   end
 

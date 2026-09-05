@@ -14,6 +14,7 @@ tagged tests.
 | Family | Code | Default |
 |---|---|---|
 | derived | `derived/drift` | error |
+| derived | `derived/drift_transitive` | info |
 | derived | `derived/growth` | warning |
 | derived | `derived/shrink` | warning |
 | derived | `derived/unresolved_calls` | info |
@@ -22,12 +23,14 @@ tagged tests.
 | change | `change/uncovered_file` | warning |
 | change | `change/missing_decision` | warning |
 | tags | `tags/new_requirement_untagged` | warning |
+| tags | `tags/tag_borrowed` | info |
 | tags | `tags/parse_error` | error |
 | tags | `tags/dynamic_value` | info |
 | tags | `tags/requirement_untagged` | info |
 | tags | `tags/unknown_requirement` | warning |
 | append | `append/requirement_deleted` | error |
 | append | `append/must_downgraded` | error |
+| append | `append/statement_changed` | info |
 | format | `format/retired_construct` | warning |
 | spec | `spec/parse_error` | error |
 | spec | `spec/duplicate_id` | error |
@@ -58,12 +61,26 @@ Spec-Ack: <code>=<info|warning>
 The trailer only lowers severity. Reviewers should be able to tell why the
 edit is mechanical from the diff and commit message.
 
+Run `mix spec.check --verbose` to list all info findings. Use
+`--explain-acks` to list findings whose severity came from config, a trailer,
+or an acknowledgment. `derived/drift_transitive` means a changed derived
+binding is outside the subject's declared `surface:`. `tags/tag_borrowed`
+means a new test tag points at an unchanged requirement.
+`append/statement_changed` means requirement text changed.
+
+A subject may declare `surface:` as exact repo-relative source paths. Files
+outside the list produce transitive rather than primary drift. Omit the field
+to keep all derived drift primary. Do not use `surface: []`; its meaning is not
+defined yet.
+
 Use a subject-specific override only when a standing repository constraint
 cannot be expressed through a tagged test. Every override requires a reason.
+An optional `requirement:` line narrows it to one requirement id.
 
 ```yaml
 overrides:
   - subject: project.core
+    # requirement: project.core.invoice_totals
     code: derived/unanchored_subject
     severity: info
     reason: Covered by an external integration suite.

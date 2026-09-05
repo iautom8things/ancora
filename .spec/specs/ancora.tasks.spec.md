@@ -23,6 +23,7 @@ status: active
 summary: The eight spec.* tasks, single-writer stdout, verdict grammar, and per-emission-path output contract.
 decisions:
   - ancora.decision.no_execution_no_state
+  - ancora.decision.field_friction_response
   - ancora.decision.cli_json_contract
 ```
 
@@ -101,11 +102,13 @@ decisions:
     Every finding of every family shall print as `[SEV] <subject> <code>
     <file> :: <message>`, sorted warnings first, then info (when shown), then
     errors last, followed by `branch base=<ref> changed_files=<N>
-    findings=<N> (total error=E warning=W info=I)` where all three severity
-    counts include visible and hidden findings, and guidance lines
-    `branch impacted_subjects=…` and `branch next=…`. The summary line shall
-    be `checked subjects=<N> requirements=<N> errors=<E> warnings=<W>`; no
-    line beginning `validate status=` shall exist.
+    findings=<N> (total error=E warning=W info=I hidden: default=D trailer=T
+    ack=A config=C)` where all three severity counts include visible and hidden findings,
+    followed by guidance lines `branch impacted_subjects=…` and `branch
+    next=…`. When a run hides info findings, `next` shall name their
+    count, `--verbose`, and `--explain-acks`; when nothing is hidden it shall
+    keep the edit guidance. The summary line shall be `checked subjects=<N> requirements=<N>
+    errors=<E> warnings=<W>`; no line beginning `validate status=` shall exist.
   priority: must
   stability: stable
 - id: ancora.tasks.read_protocol_constant
@@ -120,10 +123,13 @@ decisions:
 - id: ancora.tasks.check_flags
   statement: >-
     `mix spec.check` shall accept exactly `--base <ref>`, `--verbose`,
-    `--debug`, `--root <dir>`, `--spec-dir <dir>`, and `--json`. `--spec-dir`
-    shall select the ancora workspace that contains `specs/`, and omitting it
-    shall select `.spec`. With `--json` it shall print the full report map as JSON to stdout with the
-    verdict line still last. `--no-run-commands`, `--min-strength`,
+    `--debug`, `--root <dir>`, `--spec-dir <dir>`, `--json`, and
+    `--explain-acks`. With `--json` it shall print the full report map as JSON
+    to stdout with the verdict line still last. `--explain-acks` shall list
+    only findings whose `severity_source` is `:config`, `:trailer`, or `:ack`, independent
+    of `--verbose` and `ANCORA_SHOW_INFO`. `--spec-dir` shall select the ancora
+    workspace that contains `specs/`, and omitting it shall select `.spec`.
+    `--no-run-commands`, `--min-strength`,
     `--command-timeout-ms`, `--accept-drift`, `--test-tags`, and `--output`
     shall be usage errors.
   priority: must
@@ -143,6 +149,8 @@ decisions:
     `guidance`, `message`, `errors`, `warnings`, `tier`, and `fail`;
     `checked`, `branch`, and `guidance` shall always be maps with the same
     nested keys, while unavailable values shall be null, empty lists, or zero.
+    Each finding object shall have `code`, `subject`, optional `requirement`,
+    `file`, `message`, `severity`, and `severity_source` fields.
     `Ancora.Output.json_payload/1` shall encode through `Ancora.Json.encode!/1`.
     Consumers shall select the last stdout line that parses as JSON. The
     verdict shall follow it as the final stdout line.
@@ -185,8 +193,10 @@ decisions:
     project-macro-generated and `<D>` dep-generated bindings, with an
     `acknowledged` label on subjects carrying an `overrides:` entry. `thin`
     shall be the constant 3, documented as non-configurable. Corpus findings
-    shall not make this report task fail; environment and usage errors shall
-    still exit 1 through `Ancora.Output.gated/2` without a verdict line.
+    shall not make this report task fail. `spec.status` and `spec.check` shall
+    reject an override naming an unknown requirement id with
+    `config/invalid_value` and ignore the entry. Environment and usage errors
+    shall still exit 1 through `Ancora.Output.gated/2` without a verdict line.
   priority: must
   stability: evolving
 - id: ancora.tasks.prime_loop
@@ -194,9 +204,8 @@ decisions:
     `mix spec.prime --base HEAD` shall print a header, the status body, the
     next body, and loop bullets ending with the check command and the
     exact `Ancora.Output.read_protocol/0` sentence, and shall be the documented
-    session-start idiom. Prime shall build status once and pass that report to
-    `Ancora.Next.build/2`; Next shall use the supplied status option instead of
-    deriving it again.
+    session-start idiom. Prime shall build the status derivation once and pass
+    that report to Next; standalone Next runs shall build their own status.
   priority: must
   stability: evolving
 - id: ancora.tasks.mix_bootstrap_posture
@@ -325,6 +334,16 @@ decisions:
   covers:
     - ancora.tasks.check_flags
     - ancora.tasks.json_report
+- id: ancora.tasks.scenario.explain_acks
+  given:
+    - one ack-sourced finding, one trailer-sourced finding, and one default-info finding
+  when:
+    - `mix spec.check --explain-acks` runs without `--verbose`
+  then:
+    - the ack- and trailer-sourced findings are listed
+    - the default-info finding is not listed
+  covers:
+    - ancora.tasks.check_flags
 - id: ancora.tasks.scenario.result_never_leaks
   given:
     - stream_data generated reports, findings, and guidance values containing the substring `result=`
