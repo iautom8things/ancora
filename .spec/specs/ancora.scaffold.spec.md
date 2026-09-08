@@ -19,6 +19,7 @@ kind: module
 status: active
 summary: spec.init and spec.decision.new scaffolds, template content, ancora README commitments, and the migration checklist.
 decisions:
+  - ancora.decision.adopter_attribution
   - ancora.decision.field_friction_response
   - ancora.decision.no_execution_no_state
   - ancora.decision.cli_json_contract
@@ -63,6 +64,10 @@ decisions:
     for clearing drift, growth, and shrink; the `Spec-Ack:` grammar with mass
     mechanical edits as its intended use; and the per-subject `overrides:`
     construct with its required `reason`.
+    Guidance shall explain individual test attribution, reachable helpers,
+    conservative unresolved observations, and exact reasoned infrastructure
+    exceptions. It shall never prescribe cosmetic requirement edits or splitting
+    test files merely to satisfy the gate.
   priority: must
   stability: evolving
 - id: ancora.scaffold.config_template

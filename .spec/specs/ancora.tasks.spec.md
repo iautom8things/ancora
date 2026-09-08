@@ -22,6 +22,7 @@ kind: module
 status: active
 summary: The eight spec.* tasks, single-writer stdout, verdict grammar, and per-emission-path output contract.
 decisions:
+  - ancora.decision.adopter_attribution
   - ancora.decision.no_execution_no_state
   - ancora.decision.field_friction_response
   - ancora.decision.cli_json_contract
@@ -204,6 +205,8 @@ decisions:
     reject an override naming an unknown requirement id with
     `config/invalid_value` and ignore the entry. Environment and usage errors
     shall still exit 1 through `Ancora.Output.gated/2` without a verdict line.
+    Derived counts shall use the same per-carrier ownership and reachable
+    helper attribution as the gate, not complete tagged-file call unions.
   priority: must
   stability: evolving
 - id: ancora.tasks.prime_loop

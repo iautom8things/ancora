@@ -49,7 +49,7 @@ defmodule Ancora.Derive.CompareTest do
     head = "defmodule Billing do\n  def next(x), do: x + 2\nend\n"
 
     assert [%{code: "derived/drift_transitive"}] =
-             compare([binding], [binding], base, head, surface: [])
+             compare([binding], [binding], base, head, surface: ["lib/owned.ex"])
 
     assert [%{code: "derived/drift"}] =
              compare([binding], [binding], base, head, surface: ["lib/billing.ex"])
@@ -389,5 +389,107 @@ defmodule Ancora.Derive.CompareTest do
       end
     end
     """
+  end
+
+  @tag spec: "ancora.derive.drift_primary_transitive"
+  test "ownership applies to growth and shrink and cannot be removed to hide drift" do
+    binding = {Billing, :next, 1}
+    source = "defmodule Billing do def next(x), do: x end"
+
+    assert [%{code: "derived/growth_transitive"}] =
+             compare([], [binding], source, source, surface: ["lib/owned.ex"])
+
+    assert [%{code: "derived/shrink_transitive"}] =
+             compare([binding], [], source, source, surface: ["lib/owned.ex"])
+
+    assert [%{code: "derived/growth"}] =
+             compare([], [binding], source, source, surface: ["lib/billing.ex"])
+
+    changed = "defmodule Billing do def next(x), do: x + 1 end"
+
+    assert [%{code: "derived/drift"}] =
+             compare([binding], [binding], source, changed,
+               surface: ["lib/owned.ex"],
+               base_surface: ["lib/billing.ex"]
+             )
+  end
+
+  @tag spec: "ancora.derive.drift_primary_transitive"
+  test "surface requires a nonempty list of exact paths" do
+    meta = %{id: "billing", status: "active", kind: "module"}
+
+    for surface <- [
+          [],
+          ["lib/*"],
+          ["../lib/billing.ex"],
+          ["/lib/billing.ex"],
+          ["lib//billing.ex"]
+        ] do
+      assert {:error, _} =
+               Zoi.parse(Ancora.Schema.Meta.schema(), Map.put(meta, :surface, surface))
+    end
+
+    assert {:ok, _} =
+             Zoi.parse(
+               Ancora.Schema.Meta.schema(),
+               Map.put(meta, :surface, ["lib/my billing.ex", "lib/café.ex"])
+             )
+
+    assert {:ok, _} = Zoi.parse(Ancora.Schema.Meta.schema(), meta)
+  end
+
+  @tag spec: "ancora.derive.drift_primary_transitive"
+  test "exact path policy distinguishes valid filenames from pattern and traversal syntax" do
+    assert Ancora.ExactPath.valid?("lib/my billing.ex")
+    assert Ancora.ExactPath.valid?("lib/café.ex")
+    refute Ancora.ExactPath.valid?("lib/../billing.ex")
+    refute Ancora.ExactPath.valid?("lib/*.ex")
+    refute Ancora.ExactPath.valid?("lib//billing.ex")
+    refute Ancora.ExactPath.valid?("lib/")
+  end
+
+  @tag spec: "ancora.derive.tagged_test_attribution"
+  test "inserting or moving a carrier cannot turn uncertainty into proven shrink" do
+    binding = {Billing, :next, 1}
+    scope = [defmodule: "BillingTest"]
+
+    origin = %{
+      binding: binding,
+      test_file: "test/old_test.exs",
+      carrier: {scope, 0},
+      test_name: "works"
+    }
+
+    base = %{bindings: MapSet.new([binding]), provenance: [origin]}
+
+    moved = %{
+      file: "test/moved_test.exs",
+      test_file: "test/moved_test.exs",
+      carrier: {scope, 1},
+      test_name: "works"
+    }
+
+    opts = [
+      locator: %ModuleLocator{},
+      change_set: %ChangeSet{},
+      parsed_sources: %{base: %{}, head: %{}}
+    ]
+
+    head = %{bindings: MapSet.new(), carriers: [moved], unresolved: [moved]}
+    assert Compare.compare("billing", base, head, opts) == []
+
+    unrelated = %{moved | carrier: {scope, 2}, test_name: "unrelated"}
+    head = %{head | carriers: [moved, unrelated], unresolved: [unrelated]}
+    assert [%{code: "derived/shrink"}] = Compare.compare("billing", base, head, opts)
+
+    broken = %{bindings: MapSet.new(), carriers: [], unresolved: [], incomplete: true}
+    assert Compare.compare("billing", base, broken, opts) == []
+
+    assert [%{code: "derived/shrink"}] =
+             Compare.compare("billing", base, %{broken | incomplete: false}, opts)
+
+    renamed = %{moved | test_name: "renamed"}
+    head = %{head | carriers: [renamed], unresolved: [renamed]}
+    assert Compare.compare("billing", base, head, opts) == []
   end
 end

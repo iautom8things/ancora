@@ -8,6 +8,8 @@ defmodule Ancora.FindingTest do
     "derived/drift_transitive",
     "derived/growth",
     "derived/shrink",
+    "derived/growth_transitive",
+    "derived/shrink_transitive",
     "derived/unresolved_calls",
     "derived/unparseable_source",
     "derived/unanchored_subject",
@@ -44,6 +46,8 @@ defmodule Ancora.FindingTest do
     "derived/drift_transitive" => :info,
     "derived/growth" => :warning,
     "derived/shrink" => :warning,
+    "derived/growth_transitive" => :info,
+    "derived/shrink_transitive" => :info,
     "derived/unresolved_calls" => :info,
     "derived/unparseable_source" => :error,
     "derived/unanchored_subject" => :warning,
@@ -77,12 +81,12 @@ defmodule Ancora.FindingTest do
 
   describe "registry closure" do
     @tag spec: "ancora.findings.registry_closed"
-    test "owns exactly the 33 enumerated codes, each with family, default, and message" do
+    test "owns exactly the 35 enumerated codes, each with family, default, and message" do
       registry = Finding.registry()
       codes = Finding.codes()
 
-      assert length(codes) == 33
-      assert length(Enum.uniq(codes)) == 33
+      assert length(codes) == 35
+      assert length(Enum.uniq(codes)) == 35
       assert codes == @expected_codes
       assert Map.keys(registry) -- @expected_codes == []
       assert @expected_codes -- Map.keys(registry) == []
@@ -122,7 +126,7 @@ defmodule Ancora.FindingTest do
   describe "registry defaults" do
     @tag spec: "ancora.findings.registry_defaults"
     test "each code's default matches the spec table" do
-      assert map_size(@expected_defaults) == 33
+      assert map_size(@expected_defaults) == 35
 
       for {code, expected} <- @expected_defaults do
         assert Finding.default_severity(code) == expected,

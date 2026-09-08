@@ -353,11 +353,9 @@ defmodule Mix.Tasks.Spec.CheckTest do
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
-  test "a nested __MODULE__ name emits a def_index environment verdict", %{root: root} do
+  test "a valid nested __MODULE__ name does not cause an environment failure", %{root: root} do
     create_project(root)
 
-    # This relies on the pre-existing DefIndex failure for this module shape.
-    # Fixing that behavior is fast-follow work and will require a different fixture.
     write_files(root, %{
       "lib/outer.ex" => """
       defmodule Outer do
@@ -372,12 +370,10 @@ defmodule Mix.Tasks.Spec.CheckTest do
 
     result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
 
-    assert result.status == 1
     refute result.stderr =~ "** (EXIT"
-    assert result.stdout =~ "def_index worker failed for lib/outer.ex"
-
-    assert List.last(lines(result.stdout)) ==
-             "spec.check result=fail tier=env errors=0 warnings=0"
+    refute result.stdout =~ "def_index worker failed"
+    refute result.stdout =~ "tier=env"
+    assert List.last(lines(result.stdout)) =~ "spec.check result="
   end
 
   @tag spec: "ancora.tasks.gated_emission_paths"
@@ -542,17 +538,17 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert result.status == 0
 
     assert result.stdout =~
-             "branch base=HEAD changed_files=0 findings=3 (total error=0 warning=0 info=3 hidden: default=2 trailer=0 ack=0 config=1)"
+             "branch base=HEAD changed_files=0 findings=2 (total error=0 warning=0 info=2 hidden: default=1 trailer=0 ack=0 config=1)"
 
     assert result.stdout =~
-             "branch next=3 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
+             "branch next=2 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
 
     json_result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--json"])
     assert json_result.status == 0
     report = last_parseable_json(json_result.stdout)
 
     assert report["branch"]["hidden"] == %{
-             "default" => 2,
+             "default" => 1,
              "trailer" => 0,
              "ack" => 0,
              "config" => 1
@@ -581,7 +577,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert result.stdout =~ "change/uncovered_file"
 
     assert result.stdout =~
-             "branch next=3 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
+             "branch next=2 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
   end
 
   @tag spec: "ancora.tasks.check_flags"
@@ -1358,7 +1354,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
   end
 
   defp ack_subject_spec(name, value) do
-    surface = if name == "beta", do: "surface: []\n", else: ""
+    surface = if name == "beta", do: "surface: [lib/owned.ex]\n", else: ""
 
     """
     # #{name}

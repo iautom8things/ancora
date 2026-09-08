@@ -46,6 +46,8 @@ defmodule Ancora.Finding do
     {"derived/drift_transitive", :info},
     {"derived/growth", :warning},
     {"derived/shrink", :warning},
+    {"derived/growth_transitive", :info},
+    {"derived/shrink_transitive", :info},
     {"derived/unresolved_calls", :info},
     {"derived/unparseable_source", :error},
     {"derived/unanchored_subject", :warning},
@@ -171,6 +173,11 @@ defmodule Ancora.Finding do
       nil -> default
       value -> to_string(value)
     end
+  end
+
+  defp render(code, ctx)
+       when code in ["derived/growth_transitive", "derived/shrink_transitive"] do
+    "#{s(ctx)}: observed dependency bindings changed outside declared surface: #{d(ctx, "bindings")}; review the dependency change"
   end
 
   defp render("derived/drift", ctx) do

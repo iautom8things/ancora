@@ -146,8 +146,17 @@ defmodule Ancora.Severity do
     default = Finding.default_severity(finding.code)
     opts = put(opts, :subject, finding.subject)
     opts = put(opts, :requirement, finding.requirement)
+    opts = put(opts, :file, finding.file)
     {severity, source} = resolve_finding_source(finding, opts, default)
-    %{finding | severity: severity, severity_source: source}
+    finding = %{finding | severity: severity, severity_source: source}
+
+    case Config.file_override(fetch(opts, :config, nil), finding.code, finding.file) do
+      %Config.Override{reason: reason} when source == :config and severity == :info ->
+        %{finding | message: finding.message <> "; excepted by config: " <> reason}
+
+      _ ->
+        finding
+    end
   end
 
   defp resolve_finding_source(%Finding{severity_source: :ack, code: code}, opts, _default) do
@@ -203,7 +212,12 @@ defmodule Ancora.Severity do
 
     case fetch(opts, :config, nil) do
       %Config{} = config ->
-        Config.severity_for(config, code, subject, requirement)
+        case {Config.severity_for(config, code, subject, requirement),
+              Config.file_override(config, code, fetch(opts, :file, nil))} do
+          {:off, _} -> :off
+          {_, %Config.Override{severity: severity}} -> severity
+          {severity, nil} -> severity
+        end
 
       _ ->
         sanitized(code, fetch(opts, :config_severities, %{}), :config)

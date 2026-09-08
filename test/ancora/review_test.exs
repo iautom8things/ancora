@@ -257,6 +257,22 @@ defmodule Ancora.ReviewTest do
 
     assert test_changes =~ "Added bindings"
     assert test_changes =~ "Billing.void/2"
+
+    spec_path = Path.join(root, ".spec/specs/billing.spec.md")
+
+    File.write!(
+      spec_path,
+      String.replace(
+        File.read!(spec_path),
+        "summary: Billing behavior.",
+        "summary: Billing behavior.\nsurface: [lib/owned.ex]"
+      )
+    )
+
+    assert {:ok, transitive} = Review.build(root, base: "HEAD")
+    assert [subject] = transitive.subjects
+    assert subject.code.added_bindings == ["Billing.void/2"]
+    assert Enum.any?(subject.findings, &(&1.code == "derived/growth_transitive"))
   end
 
   @tag spec: "ancora.review.code_pivot_grouping"
@@ -622,5 +638,95 @@ defmodule Ancora.ReviewTest do
     haystack
     |> :binary.matches(needle)
     |> length()
+  end
+
+  @tag spec: "ancora.review.findings_delta_without_store"
+  test "policy downgrades and off are not described as resolved defects" do
+    raw = Finding.new(code: "overlap/duplicate_covers", subject: "alpha", detail: "duplicate")
+    base = %{raw | severity: :error, severity_source: :default}
+    head = %{raw | severity: :info, severity_source: :config}
+    delta = FindingsDelta.classify([base], [head], [], base_presence: [raw], head_presence: [raw])
+    assert delta.introduced == []
+    assert delta.resolved == []
+    assert delta.pre_existing == [head]
+    assert [%{before: {:error, :default}, after: {:info, :config}}] = delta.policy_changes
+    muted = FindingsDelta.classify([base], [], [], base_presence: [raw], head_presence: [raw])
+    assert muted.resolved == []
+    assert [%{after: {:off, :config}}] = muted.policy_changes
+    removed = FindingsDelta.classify([base], [], [], base_presence: [raw], head_presence: [])
+    assert removed.resolved == [base]
+    assert removed.policy_changes == []
+  end
+
+  @tag spec: "ancora.review.findings_delta_without_store"
+  test "the real review builder shares gate severities and renders policy changes", %{root: root} do
+    write_project(root)
+    path = Path.join(root, ".spec/specs/billing.spec.md")
+    source = File.read!(path)
+
+    source =
+      String.replace(
+        source,
+        "- kind: tagged_tests",
+        "- kind: tagged_tests\n  covers: [billing.next]\n- kind: tagged_tests"
+      )
+
+    write_files(root, %{".spec/specs/billing.spec.md" => source})
+    commit_all(root, "base duplicate")
+    write_config(root, "severities:\n  overlap/duplicate_covers: info\n")
+    assert {:ok, gate} = Ancora.Gate.check(root, base: "HEAD")
+    assert {:ok, built} = Review.build(root, base: "HEAD")
+    gate_overlap = Enum.filter(gate.all_findings, &(&1.code == "overlap/duplicate_covers"))
+
+    review_overlap =
+      Enum.filter(built.findings_delta.pre_existing, &(&1.code == "overlap/duplicate_covers"))
+
+    assert [%{severity: :info}] = gate_overlap
+    assert review_overlap == gate_overlap
+
+    assert Enum.any?(
+             built.findings_delta.policy_changes,
+             &(&1.finding.code == "overlap/duplicate_covers")
+           )
+
+    assert Html.render(built) |> IO.iodata_to_binary() =~ "Policy changes"
+  end
+
+  @tag spec: "ancora.review.findings_delta_without_store"
+  test "existing untagged requirements stay pre-existing and expose policy changes", %{root: root} do
+    write_project(root)
+    path = Path.join(root, "test/billing_test.exs")
+    source = File.read!(path) |> String.replace("@tag spec: \"billing.next\"", "")
+    File.write!(path, source)
+    commit_all(root, "base missing tag")
+    write_config(root, "severities:\n  tags/requirement_untagged: info\n")
+    assert {:ok, built} = Review.build(root, base: "HEAD")
+    assert Enum.any?(built.findings_delta.pre_existing, &(&1.code == "tags/requirement_untagged"))
+    refute Enum.any?(built.findings_delta.introduced, &(&1.code == "tags/requirement_untagged"))
+
+    assert Enum.any?(
+             built.findings_delta.policy_changes,
+             &(&1.finding.code == "tags/requirement_untagged")
+           )
+  end
+
+  @tag spec: "ancora.review.findings_delta_without_store"
+  test "base tag findings use the base configured test paths", %{root: root} do
+    write_project(root)
+    File.rename!(Path.join(root, "test"), Path.join(root, "legacy_tests"))
+    write_config(root, "test_paths: [legacy_tests]\n")
+    commit_all(root, "legacy test path")
+    File.rename!(Path.join(root, "legacy_tests"), Path.join(root, "test"))
+    write_config(root, "test_paths: [test]\n")
+    assert {:ok, built} = Review.build(root, base: "HEAD")
+
+    findings =
+      built.findings_delta.introduced ++
+        built.findings_delta.resolved ++ built.findings_delta.pre_existing
+
+    refute Enum.any?(
+             findings,
+             &(&1.code in ["tags/requirement_untagged", "derived/growth", "derived/shrink"])
+           )
   end
 end

@@ -33,7 +33,7 @@ defmodule Ancora.Derive.Compare do
         prepare_sources([{base, head}], locator, change_set, opts)
       end)
 
-    set_findings(subject_id, base, head) ++
+    set_findings(subject_id, base, head, locator, opts) ++
       transition_findings(subject_id, base, head, locator, change_set, opts) ++
       drift_findings(subject_id, base, head, locator, change_set, parsed_sources, opts)
   end
@@ -82,16 +82,49 @@ defmodule Ancora.Derive.Compare do
     end)
   end
 
-  defp set_findings(subject_id, base, head) do
-    base = comparable_bindings(base)
-    head = comparable_bindings(head)
-    growth = MapSet.difference(head, base)
-    shrink = MapSet.difference(base, head)
+  defp set_findings(subject_id, base, head, locator, opts) do
+    growth = MapSet.difference(comparable_bindings(head), comparable_bindings(base))
+
+    shrink =
+      if Map.get(head, :incomplete, false),
+        do: MapSet.new(),
+        else: MapSet.difference(comparable_bindings(base), comparable_bindings(head))
+
+    unresolved = Map.get(head, :unresolved, [])
+    head_carriers = Map.get(head, :carriers, [])
+
+    shrink =
+      Enum.reject(shrink, fn binding ->
+        origins = Enum.filter(Map.get(base, :provenance, []), &(&1.binding == binding))
+
+        Enum.any?(origins, fn origin ->
+          matching = Enum.filter(head_carriers, &(carrier_key(&1) == carrier_key(origin)))
+
+          cond do
+            matching != [] -> Enum.any?(unresolved, &(carrier_key(&1) == carrier_key(origin)))
+            head_carriers != [] -> unresolved != []
+            true -> Enum.any?(unresolved, &(carrier_key(&1) == carrier_key(origin)))
+          end
+        end)
+      end)
+      |> MapSet.new()
+
+    {growth, growth_transitive} = Enum.split_with(growth, &primary?(&1, locator, opts))
+    {shrink, shrink_transitive} = Enum.split_with(shrink, &primary?(&1, locator, opts))
 
     []
     |> maybe_set_finding("derived/growth", subject_id, growth)
     |> maybe_set_finding("derived/shrink", subject_id, shrink)
+    |> maybe_set_finding("derived/growth_transitive", subject_id, growth_transitive)
+    |> maybe_set_finding("derived/shrink_transitive", subject_id, shrink_transitive)
     |> Enum.reverse()
+  end
+
+  defp carrier_key(entry) do
+    case {Map.get(entry, :test_name), Map.get(entry, :carrier)} do
+      {name, {scope, _ordinal}} when is_binary(name) -> {scope, name}
+      _ -> {Map.get(entry, :test_file, Map.get(entry, :file)), Map.get(entry, :carrier)}
+    end
   end
 
   defp comparable_bindings(subject_set) do
@@ -102,7 +135,7 @@ defmodule Ancora.Derive.Compare do
   end
 
   defp maybe_set_finding(findings, code, subject_id, set) do
-    if MapSet.size(set) == 0 do
+    if Enum.empty?(set) do
       findings
     else
       [Finding.new(code: code, subject: subject_id, detail: binding_list(set)) | findings]
@@ -122,7 +155,7 @@ defmodule Ancora.Derive.Compare do
     |> Enum.uniq_by(fn {module, name, _arity} -> {module, name} end)
     |> Enum.map(fn binding ->
       Finding.new(
-        code: drift_code(defining_file(binding, locator), opts),
+        code: binding_code("derived/drift", binding, locator, opts),
         subject: subject_id,
         file: defining_file(binding, locator),
         message:
@@ -149,11 +182,12 @@ defmodule Ancora.Derive.Compare do
           if MapSet.member?(seen, key) do
             {findings, seen}
           else
-            detail = "#{format_binding(binding)} at line #{line}"
+            detail =
+              "#{format_binding(binding)} at line #{line}" <> provenance_detail(head, binding)
 
             finding =
               Finding.new(
-                code: drift_code(file, opts),
+                code: binding_code("derived/drift", binding, locator, opts),
                 subject: subject_id,
                 file: file,
                 detail: detail
@@ -168,6 +202,25 @@ defmodule Ancora.Derive.Compare do
     end)
     |> elem(0)
     |> Enum.reverse()
+  end
+
+  defp provenance_detail(set, binding) do
+    origins =
+      Map.get(set, :provenance, [])
+      |> Enum.filter(&(&1.binding == binding))
+      |> Enum.uniq_by(&{&1.test_file, &1.carrier})
+
+    case Enum.take(origins, 3) do
+      [] ->
+        ""
+
+      entries ->
+        "; observed by " <>
+          Enum.map_join(entries, ", ", fn origin ->
+            chain = Enum.map_join(origin.chain, " -> ", &"#{&1.file}:#{&1.line}")
+            "#{chain} -> #{origin.file}:#{origin.line}"
+          end)
+    end
   end
 
   defp compare_binding({module, name, _arity} = binding, locator, parsed_sources) do
@@ -226,15 +279,20 @@ defmodule Ancora.Derive.Compare do
     end
   end
 
-  defp drift_code(_file, opts) when not is_list(opts), do: "derived/drift"
+  defp binding_code(code, binding, locator, opts),
+    do: if(primary?(binding, locator, opts), do: code, else: code <> "_transitive")
 
-  defp drift_code(file, opts) do
-    case Keyword.fetch(opts, :surface) do
-      :error ->
-        "derived/drift"
+  defp primary?({module, _, _}, locator, opts) do
+    case Keyword.get(opts, :surface) do
+      surface when is_list(surface) and surface != [] ->
+        base_surface = Keyword.get(opts, :base_surface, [])
+        owned = surface ++ if(is_list(base_surface), do: base_surface, else: [])
+        paths = Enum.map([:base, :head], &ModuleLocator.path_for(locator, &1, module))
+        known = for {:ok, path} <- paths, do: path
+        known == [] or Enum.any?(known, &(&1 in owned))
 
-      {:ok, surface} when is_list(surface) ->
-        if file in surface, do: "derived/drift", else: "derived/drift_transitive"
+      _ ->
+        true
     end
   end
 

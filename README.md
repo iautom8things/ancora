@@ -75,7 +75,7 @@ need an explicit acknowledgment when they change the derived call set.
 when an applied trailer exists only below the branch tip because a squash merge
 will discard it. Before merging, copy that severity into `.spec/config.yml`
 under `severities:` or a subject override, add the reason for an override, and
-commit the config change. Overrides in Ancora 1.x are scoped to one subject and
+commit the config change. Subject overrides are scoped to one subject and
 one finding code, optionally narrowed to one requirement with `requirement:`.
 The warning clears once config supplies the same severity. It remains when
 config is more severe because removing the trailer would still change the gate
@@ -83,12 +83,14 @@ result.
 
 ### Primary and transitive drift
 
-A subject may declare `surface:` in its `spec-meta` block as a list of exact,
-repo-relative source paths. Drift in a listed file is primary
-`derived/drift`; drift in a derived binding defined outside the list is
-`derived/drift_transitive` at info. Omitting `surface:` preserves the existing
-behavior and treats every derived binding as primary. The meaning of
-`surface: []` is not defined yet, so do not use an empty list.
+A subject may declare `surface:` as a nonempty list of exact repo-relative
+source paths. `surface: []`, globs, absolute paths and traversal are rejected.
+Observed drift, additions and removals outside the list produce informational
+`derived/drift_transitive`, `derived/growth_transitive` and
+`derived/shrink_transitive` findings. Omitting the field keeps primary checks.
+When both sides declare ownership, either side can keep a change primary;
+first introduction and later ownership edits appear in review as policy changes.
+Surface never claims coverage or unchanged behavior.
 
 ## Deprecated 1.x grammar
 
@@ -128,3 +130,24 @@ old-to-new finding code map.
 
 MIT. Copyright (c) 2026 Manuel Zubieta. See [LICENSE](LICENSE) and
 [NOTICE](NOTICE).
+
+Ancora attributes calls to each tagged test, its applicable setup and reachable
+test helpers. Neighboring tests and unused helpers do not contribute bindings.
+Inspect the reported callsite chain before editing a contract. An unresolved
+call is an analysis limitation, not evidence that a contract was removed.
+Do not add cosmetic requirements or split tests just to clear a finding.
+
+For infrastructure without a statically observable test call, use an exact,
+reasoned exception. The file remains excepted rather than covered:
+
+```yaml
+overrides:
+  - file: lib/my_app_web/router.ex
+    code: change/uncovered_file
+    severity: info
+    reason: Exercised through the Phoenix request pipeline.
+```
+
+File exceptions accept only `info`, require a reason, and cannot combine with
+`subject:` or `requirement:`. Subject overrides prefer a matching `requirement:`
+over the subject default; duplicate selectors are rejected regardless of order.

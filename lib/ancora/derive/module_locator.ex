@@ -152,7 +152,7 @@ defmodule Ancora.Derive.ModuleLocator do
        when kind in [:defmodule, :defprotocol] and is_list(body) do
     with {:ok, segments, absolute?} <- literal_segments(name_ast),
          {:ok, nested_body} <- Keyword.fetch(body, :do) do
-      full_name = if absolute?, do: segments, else: parent ++ segments
+      full_name = if absolute?, do: segments, else: nested_segments(segments, parent)
       name = Enum.join(full_name, ".")
 
       nested_body
@@ -175,6 +175,16 @@ defmodule Ancora.Derive.ModuleLocator do
   end
 
   defp collect_modules(_ast, _parent, _path, modules), do: modules
+
+  defp nested_segments([{:__MODULE__, _, _} | rest], parent), do: parent ++ rest
+  defp nested_segments(segments, parent), do: parent ++ segments
+
+  defp literal_segments({:__aliases__, _, [{:__MODULE__, _, _} | rest]}),
+    do:
+      if(Enum.all?(rest, &is_atom/1),
+        do: {:ok, [{:__MODULE__, [], nil} | rest], false},
+        else: :dynamic
+      )
 
   defp literal_segments({:__aliases__, _, [:"Elixir" | segments]}) do
     if Enum.all?(segments, &is_atom/1), do: {:ok, segments, true}, else: :dynamic

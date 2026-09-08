@@ -33,7 +33,7 @@ defmodule Ancora.Scaffold.DocsTest do
       applied trailer exists only below the branch tip because a squash merge will discard
       it. Before merging, copy that severity into `.spec/config.yml` under `severities:` or
       a subject override, add the reason for an override, and commit the config change.
-      Overrides in Ancora 1.x are scoped to one subject and one finding code, optionally
+      Subject overrides are scoped to one subject and one finding code, optionally
       narrowed to one requirement with `requirement:`. The warning clears once config
       supplies the same severity. It remains when config is more severe because removing
       the trailer would still change the gate result.
@@ -58,12 +58,12 @@ defmodule Ancora.Scaffold.DocsTest do
       assert content =~ "repo-relative"
       assert content =~ "derived/drift_transitive"
       assert content =~ "`surface: []`"
-      assert content =~ "not defined"
+      assert content =~ "are rejected"
     end
   end
 
   @tag spec: "ancora.scaffold.migration_doc"
-  test "migration map names the complete 33-code registry and its defaults" do
+  test "migration map names the complete 35-code registry and its defaults" do
     content = File.read!(@migration)
 
     [_, code_map] = Regex.run(~r/## Finding code map\n\n(.*?)\n\nThe old trailer/s, content)
@@ -74,7 +74,7 @@ defmodule Ancora.Scaffold.DocsTest do
 
     mapped_codes = Enum.map(mapped_entries, &hd/1)
 
-    assert content =~ "Ancora has 33 finding codes"
+    assert content =~ "Ancora has 35 finding codes"
     assert MapSet.new(mapped_codes) == MapSet.new(Ancora.Finding.codes())
     assert length(mapped_codes) == map_size(Ancora.Finding.registry())
 

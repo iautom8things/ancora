@@ -25,6 +25,7 @@ kind: module
 status: active
 summary: "Spec and ADR block grammar, retired-construct tolerance, structural reference checks, and @tag spec: discovery."
 decisions:
+  - ancora.decision.adopter_attribution
   - ancora.decision.no_execution_no_state
   - ancora.decision.field_friction_response
   - ancora.decision.requirement_scoped_append_authorization
@@ -141,16 +142,16 @@ decisions:
   stability: stable
 - id: ancora.parsing.tag_discovery
   statement: >-
-    Ancora.TagScanner shall discover `@tag spec:`, `@moduletag spec:`, and
-    `@describetag spec:` values in every `**/*_test.exs` under the configured
-    `test_paths`, including tags inside `describe` blocks and
-    for-comprehension bodies, and shall fold requirement ids up to subject ids
-    for the detector. A non-literal tag value shall be recorded as
-    `tags/dynamic_value` and never guessed; a test file that fails to parse
-    shall emit `tags/parse_error`; an unexpected tag scan worker failure shall
-    be reported at the environment tier; a tag naming an id absent from the corpus
-    shall emit `tags/unknown_requirement`; a requirement with no tag anywhere
-    shall emit `tags/requirement_untagged`.
+    Ancora.TagScanner shall discover literal @tag spec:, @moduletag spec: and
+    @describetag spec: values under configured test_paths, including describe and
+    for-comprehension bodies. It shall preserve every static carrier using file,
+    lexical module/describe ancestry and AST occurrence, never display name alone.
+    Requirement ownership shall come from the index's authored requirement lists,
+    not dotted-prefix inference; direct subject tags remain valid. Unknown or
+    ambiguous IDs shall not gain invented ownership. Dynamic values remain
+    tags/dynamic_value; parse errors remain tags/parse_error; unexpected worker
+    failure remains an environment verdict. Missing and unknown tags keep their
+    existing diagnostics. Generators shall never be evaluated.
   priority: must
   stability: stable
 - id: ancora.parsing.overlap_checks
@@ -173,8 +174,9 @@ decisions:
 - id: ancora.parsing.consumer_corpora_parse
   statement: >-
     One real spec file from each consuming repo (Atlas, Engage, Builder,
-    Argos), taken as a fixture, shall parse with no finding other than
-    `format/retired_construct`.
+    Argos), retained as an unmodified archive, shall disclose retired constructs.
+    Archived directory surfaces shall additionally receive `spec/parse_error`
+    under the current exact-file surface contract.
   priority: should
   stability: evolving
 ```

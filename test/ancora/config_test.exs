@@ -402,4 +402,131 @@ defmodule Ancora.ConfigTest do
       assert moduledoc =~ "dependency"
     end
   end
+
+  @tag spec: "ancora.findings.per_subject_overrides"
+  test "requirement specificity is independent of order and duplicates are rejected", %{
+    root: root
+  } do
+    broad = %{
+      "subject" => "alpha",
+      "code" => "derived/drift",
+      "severity" => "error",
+      "reason" => "default"
+    }
+
+    narrow =
+      Map.merge(broad, %{
+        "requirement" => "alpha.value",
+        "severity" => "info",
+        "reason" => "integration"
+      })
+
+    for entries <- [[broad, narrow], [narrow, broad]] do
+      write_config(root, Jason.encode!(%{"overrides" => entries}))
+      config = Config.load(root)
+      assert Config.severity_for(config, "derived/drift", "alpha", "alpha.value") == :info
+      assert Config.severity_for(config, "derived/drift", "alpha", "alpha.other") == :error
+    end
+
+    write_config(
+      root,
+      Jason.encode!(%{"overrides" => [narrow, Map.put(narrow, "severity", "error")]})
+    )
+
+    config = Config.load(root)
+    assert config.overrides == []
+    assert [%{code: "config/invalid_value"}] = config.findings
+  end
+
+  @tag spec: "ancora.findings.file_overrides"
+  test "an exact reasoned file exception leaves other files enforced", %{root: root} do
+    write_config(root, """
+    severities:
+      change/uncovered_file: error
+    overrides:
+      - file: lib/router.ex
+        code: change/uncovered_file
+        severity: info
+        reason: exercised through the request pipeline
+    """)
+
+    config = Config.load(root, known_subjects: ["alpha"])
+    assert config.findings == []
+
+    findings =
+      Enum.map(
+        ["lib/router.ex", "lib/business.ex"],
+        &Finding.new(code: "change/uncovered_file", file: &1)
+      )
+
+    assert [router, business] = Severity.resolve_all(findings, config: config)
+    assert router.severity == :info
+    assert router.severity_source == :config
+    assert router.message =~ "exercised through the request pipeline"
+    assert business.severity == :error
+
+    for path <- ["lib/*", "../router.ex", "/lib/router.ex", "lib/", "lib//router.ex"] do
+      write_config(
+        root,
+        Jason.encode!(%{
+          "overrides" => [
+            %{
+              "file" => path,
+              "code" => "change/uncovered_file",
+              "severity" => "info",
+              "reason" => "pipeline"
+            }
+          ]
+        })
+      )
+
+      assert [%{code: "config/invalid_value"}] = Config.load(root).findings
+    end
+  end
+
+  @tag spec: "ancora.findings.per_subject_overrides"
+  test "specific off and error overrides win in both orders with resolved provenance", %{
+    root: root
+  } do
+    raw = Finding.new(code: "derived/drift", subject: "alpha", requirement: "alpha.value")
+
+    for {broad_severity, narrow_severity} <- [{"error", "off"}, {"off", "error"}],
+        reverse? <- [false, true] do
+      broad = %{
+        "subject" => "alpha",
+        "code" => "derived/drift",
+        "severity" => broad_severity,
+        "reason" => "subject policy"
+      }
+
+      narrow = Map.merge(broad, %{"requirement" => "alpha.value", "severity" => narrow_severity})
+      entries = if reverse?, do: [narrow, broad], else: [broad, narrow]
+      write_config(root, Jason.encode!(%{"overrides" => entries}))
+      result = Severity.resolve_all([raw], config: Config.load(root))
+
+      if narrow_severity == "off",
+        do: assert(result == []),
+        else: assert([%{severity: :error, severity_source: :config}] = result)
+    end
+
+    broad = %{
+      "subject" => "alpha",
+      "code" => "derived/drift",
+      "severity" => "warning",
+      "reason" => "fallback"
+    }
+
+    narrow = Map.merge(broad, %{"requirement" => "alpha.value", "severity" => "off"})
+
+    write_config(
+      root,
+      Jason.encode!(%{"overrides" => [narrow, broad, Map.put(narrow, "severity", "error")]})
+    )
+
+    config = Config.load(root)
+    assert [%{code: "config/invalid_value"}] = config.findings
+
+    assert [%{severity: :warning, severity_source: :config}] =
+             Severity.resolve_all([raw], config: config)
+  end
 end

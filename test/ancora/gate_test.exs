@@ -99,6 +99,15 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
+  test "an injected definition-index worker failure retains the environment verdict" do
+    failure =
+      {:worker_failure, :def_index, "lib/sample.ex", RuntimeError.exception("injected failure")}
+
+    assert {:env, message} = Gate.gate_error(failure)
+    assert message == "def_index worker failed for lib/sample.ex: injected failure"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
   test "preflight rejects a directory outside git", %{root: root} do
     write_project(root)
 
@@ -1233,7 +1242,9 @@ defmodule Ancora.GateTest do
     write_files(root, %{
       "mix.exs" => mix_file("[app: :sample]"),
       ".spec/specs/sample.spec.md" =>
-        subject_spec("The sample shall return the current value.", "sample.subject", []),
+        subject_spec("The sample shall return the current value.", "sample.subject", [
+          "lib/owned.ex"
+        ]),
       "lib/sample.ex" => "defmodule Sample do\n  def value, do: :current\nend\n",
       "test/sample_test.exs" => """
       defmodule SampleTest do
@@ -1249,7 +1260,9 @@ defmodule Ancora.GateTest do
     write_files(root, %{
       "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n",
       ".spec/specs/sample.spec.md" =>
-        subject_spec("The sample shall return the changed value.", "sample.subject", [])
+        subject_spec("The sample shall return the changed value.", "sample.subject", [
+          "lib/owned.ex"
+        ])
     })
 
     assert {:ok, report} = Gate.check(root, base: "HEAD")
@@ -1266,7 +1279,11 @@ defmodule Ancora.GateTest do
     init_git_repo(root)
 
     specs =
-      for {name, surface} <- [{"one", ["lib/shared.ex"]}, {"two", []}, {"three", []}],
+      for {name, surface} <- [
+            {"one", ["lib/shared.ex"]},
+            {"two", ["lib/two.ex"]},
+            {"three", ["lib/three.ex"]}
+          ],
           into: %{} do
         {".spec/specs/#{name}.spec.md", shared_subject_spec(name, surface)}
       end
@@ -1736,7 +1753,9 @@ defmodule Ancora.GateTest do
 
   defp shared_subject_spec(name, surface) do
     surface_lines = Enum.map_join(surface, "\n", &"  - #{&1}")
-    surface_block = if surface == [], do: "surface: []", else: "surface:\n#{surface_lines}"
+
+    surface_block =
+      if surface == [], do: "surface: [lib/owned.ex]", else: "surface:\n#{surface_lines}"
 
     """
     # #{name}
@@ -1869,5 +1888,108 @@ defmodule Ancora.GateTest do
         send(parent, {:forwarded_trace, message})
         forward_until_delivered(parent, caller, caller_ref, traced, delivery_ref)
     end
+  end
+
+  @tag spec: "ancora.derive.tagged_test_attribution"
+  test "the gate isolates sibling subjects and still watches shared setup", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/alpha.spec.md" => subject_spec("Alpha shall return its value.", "alpha"),
+      ".spec/specs/beta.spec.md" => subject_spec("Beta shall return its value.", "beta"),
+      "lib/alpha.ex" => "defmodule Alpha do def value, do: :base end",
+      "lib/beta.ex" => "defmodule Beta do def value, do: :base end",
+      "lib/shared.ex" => "defmodule Shared do def prepare, do: :base end",
+      "test/shared_test.exs" => """
+      defmodule SharedTest do
+        setup do: Shared.prepare()
+        @tag spec: "alpha.works"
+        test "alpha", do: Alpha.value()
+        @tag spec: "beta.works"
+        test "beta", do: Beta.value()
+      end
+      """
+    })
+
+    commit_all(root, "base")
+    write_files(root, %{"lib/beta.ex" => "defmodule Beta do def value, do: :head end"})
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert [%{subject: "beta", message: message}] =
+             Enum.filter(report.all_findings, &(&1.code == "derived/drift"))
+
+    assert message =~ "test/shared_test.exs"
+
+    refute Enum.any?(
+             report.all_findings,
+             &(&1.subject == "alpha" and
+                 &1.code in ["derived/drift", "derived/growth", "derived/shrink"])
+           )
+
+    write_files(root, %{"lib/shared.ex" => "defmodule Shared do def prepare, do: :head end"})
+    assert {:ok, shared} = Gate.check(root, base: "HEAD")
+
+    assert shared.all_findings
+           |> Enum.filter(&(&1.code == "derived/drift" and &1.file == "lib/shared.ex"))
+           |> Enum.map(& &1.subject)
+           |> Enum.sort() == ["alpha", "beta"]
+  end
+
+  @tag spec: "ancora.derive.imports_and_aliases"
+  test "the gate detects drift in a valid nested __MODULE__ definition", %{root: root} do
+    init_git_repo(root)
+    write_anchored_subject(root, "The sample shall return its value.")
+
+    write_files(root, %{
+      "lib/sample.ex" =>
+        "defmodule Outer do defmodule __MODULE__.Inner do def value, do: :base end end",
+      "test/sample_test.exs" => "defmodule SampleTest do
+ @tag spec: \"sample.subject.works\"
+ test \"works\", do: Outer.Inner.value()
+end"
+    })
+
+    commit_all(root, "base")
+
+    write_files(root, %{
+      "lib/sample.ex" =>
+        "defmodule Outer do defmodule __MODULE__.Inner do def value, do: :head end end"
+    })
+
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(
+             report.all_findings,
+             &(&1.code == "derived/drift" and &1.message =~ "Outer.Inner.value/0")
+           )
+  end
+
+  @tag spec: "ancora.gate.change_findings"
+  test "deleted paths use base coverage without masking retained uncovered code", %{root: root} do
+    init_git_repo(root)
+    write_anchored_subject(root, "The sample shall return its value.")
+    write_files(root, %{"lib/never.ex" => "defmodule Never do def value, do: :ok end"})
+    commit_all(root, "base")
+    File.rm!(Path.join(root, "lib/sample.ex"))
+    File.rm!(Path.join(root, "lib/never.ex"))
+    assert {:ok, report} = Gate.check(root, base: "HEAD")
+    uncovered = Enum.filter(report.all_findings, &(&1.code == "change/uncovered_file"))
+    assert Enum.map(uncovered, & &1.file) == ["lib/never.ex"]
+
+    write_files(root, %{
+      "lib/sample.ex" => "defmodule Sample do def value, do: :new end",
+      "test/sample_test.exs" => "defmodule SampleTest do
+ @tag spec: \"sample.subject.works\"
+ test \"works\", do: :ok
+end"
+    })
+
+    assert {:ok, head} = Gate.check(root, base: "HEAD")
+
+    assert Enum.any?(
+             head.all_findings,
+             &(&1.code == "change/uncovered_file" and &1.file == "lib/sample.ex")
+           )
   end
 end

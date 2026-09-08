@@ -38,7 +38,7 @@ defmodule Ancora.Status do
            ),
          {:ok, project} <- ProjectInfo.load(root, project_opts(config)),
          {:ok, locator} <- ModuleLocator.build(project, %ChangeSet{}),
-         {:ok, subject_sets} <- derive_subject_sets(root, config, locator, subject_ids) do
+         {:ok, subject_sets} <- derive_subject_sets(root, config, locator, index) do
       subjects = subject_rows(index, config, locator, subject_sets)
       {:ok, Map.put(report(index, subjects), :index, index)}
     else
@@ -67,28 +67,28 @@ defmodule Ancora.Status do
   @spec thin_threshold() :: pos_integer()
   def thin_threshold, do: @thin_threshold
 
-  defp derive_subject_sets(root, config, locator, subject_ids) do
-    with {:ok, tag_map, _parse_errors, _dynamics} <- scan_tags(root, config.test_paths),
+  defp derive_subject_sets(root, config, locator, index) do
+    with {:ok, tag_map, _parse_errors, _dynamics, scope} <- scan_tags(root, config.test_paths),
          {:ok, indexes} <- def_indexes(locator.head, root),
          membership = %Membership{
            head: ModuleLocator.modules(locator, :head),
            base: ModuleLocator.modules(locator, :head)
          },
          {:ok, context} <- Derive.context({:ok, membership}, :head, indexes) do
-      subject_files = subject_files(tag_map, subject_ids)
+      subject_files = subject_files(tag_map, index)
 
       Derive.run(subject_files,
         side: :head,
         context: context,
-        sources: fn path -> File.read(Path.join(root, path)) end
+        sources: fn path -> File.read(Path.join(root, path)) end,
+        carriers: TagScanner.fold_to_subjects(tag_map, index),
+        scope: scope
       )
     end
   end
 
   defp scan_tags(root, test_paths) do
-    paths = Enum.map(test_paths, &Path.join(root, &1))
-
-    with {:ok, tag_map, parse_errors, dynamics} <- TagScanner.scan(paths),
+    with {:ok, tag_map, parse_errors, dynamics, scope} <- Derive.scan_tests(root, test_paths),
          :ok <- readable_tag_files(parse_errors, root) do
       relative =
         Map.new(tag_map, fn {id, entries} ->
@@ -96,7 +96,7 @@ defmodule Ancora.Status do
            Enum.map(entries, &Map.update!(&1, :file, fn path -> Path.relative_to(path, root) end))}
         end)
 
-      {:ok, relative, parse_errors, dynamics}
+      {:ok, relative, parse_errors, dynamics, scope}
     end
   end
 
@@ -107,10 +107,10 @@ defmodule Ancora.Status do
     end
   end
 
-  defp subject_files(tag_map, subject_ids) do
-    folded = TagScanner.fold_to_subjects(tag_map)
+  defp subject_files(tag_map, index) do
+    folded = TagScanner.fold_to_subjects(tag_map, index)
 
-    Map.new(subject_ids, fn id ->
+    Map.new(Enum.map(index["subjects"], &subject_id/1), fn id ->
       files = folded |> Map.get(id, []) |> Enum.map(& &1.file) |> Enum.uniq()
       {id, files}
     end)

@@ -1,6 +1,6 @@
 # Finding Registry, Severity, Trailer, and Config
 
-The closed 33-code registry, per-finding severity resolution, the `Spec-Ack:`
+The closed 35-code registry, per-finding severity resolution, the `Spec-Ack:`
 trailer, and the `.spec/config.yml` schema with per-subject overrides.
 
 ## Intent
@@ -11,8 +11,8 @@ the review artifact all read. Adding a code is a spec change in this corpus.
 
 Count note: the planning documents say 26 codes. Enumerating the registry
 table after the `spec/prose_too_short` cut gave 30; the 26 was a carried
-miscount. The primary/transitive drift split and two disclosure codes bring
-the registry to 33. The enumerated list below is authoritative.
+miscount. Three transitive finding codes and two disclosure codes bring
+the registry to 35. The enumerated list below is authoritative.
 Severity has one precedence chain, silence lives in the repo where review
 can see it, and the trailer can only lower.
 
@@ -23,8 +23,9 @@ Modules: `Ancora.Finding`, `Ancora.Severity`, `Ancora.Trailer`,
 id: ancora.findings
 kind: module
 status: active
-summary: Closed 33-code finding registry, severity precedence, Spec-Ack trailer grammar, and config.yml schema with per-subject overrides.
+summary: Closed 35-code finding registry, severity precedence, Spec-Ack trailer grammar, and config.yml schema with per-subject overrides.
 decisions:
+  - ancora.decision.adopter_attribution
   - ancora.decision.field_friction_response
   - ancora.decision.slimmed_governance
   - ancora.decision.durable_acknowledgments
@@ -33,12 +34,24 @@ decisions:
 ## Requirements
 
 ```yaml spec-requirements
+- id: ancora.findings.file_overrides
+  statement: >-
+    An overrides entry may instead select one exact canonical project-relative
+    file for change/uncovered_file at info with a nonempty reason. File and subject
+    selectors are mutually exclusive, and requirement is invalid with file. Invalid
+    selectors produce config/invalid_value; unknown keys produce config/unknown_key.
+    A matching exception remains a counted config-sourced informational finding
+    with its reason and shall not label the file covered. Other files and module
+    membership remain unaffected. Explicit global off still absorbs the exception.
+  priority: must
+  stability: evolving
 - id: ancora.findings.registry_closed
   statement: >-
-    Ancora.Finding shall own exactly 33 codes, each with a family, a default
+    Ancora.Finding shall own exactly 35 codes, each with a family, a default
     severity, and a message function, and shall be the single source every
     other module reads. The codes are `derived/drift`,
     `derived/drift_transitive`, `derived/growth`, `derived/shrink`,
+    `derived/growth_transitive`, `derived/shrink_transitive`,
     `derived/unresolved_calls`, `derived/unparseable_source`,
     `derived/unanchored_subject`, `change/uncovered_file`,
     `change/missing_decision`, `tags/new_requirement_untagged`,
@@ -68,7 +81,8 @@ decisions:
     `change/uncovered_file`, `change/missing_decision`,
     `tags/new_requirement_untagged`, `tags/unknown_requirement`,
     `format/retired_construct`, `adr/affects_empty`, `config/unknown_key`,
-    and `config/invalid_value`; info for `derived/unresolved_calls`,
+    and `config/invalid_value`; info for `derived/growth_transitive`, `derived/shrink_transitive`,
+    `derived/unresolved_calls`,
     `tags/dynamic_value`, `tags/requirement_untagged`, `tags/tag_borrowed`,
     `append/statement_changed`, `spec/requirement_unverified`, and
     `derived/drift_transitive`.
@@ -137,15 +151,16 @@ decisions:
   stability: stable
 - id: ancora.findings.per_subject_overrides
   statement: >-
-    Each `overrides:` entry shall carry `subject`, `code`, `severity`, a
-    required non-empty `reason`, and an optional `requirement:` that narrows
-    the override to findings attributed to that requirement id. An entry
-    without `requirement:` shall apply subject-wide as before. An entry naming
-    an unknown subject, requirement id, or code, or missing `reason`, shall
-    produce `config/invalid_value` and be ignored. `spec.status` shall label
-    overridden subjects `acknowledged`. Any key other than `subject`,
-    `requirement`, `code`, `severity`, and `reason` shall produce
-    `config/unknown_key` naming the key and entry, and the entry shall be ignored.
+    Subject overrides shall carry subject, code, severity and a nonempty reason,
+    with optional requirement. Exact subject/requirement/code matches shall precede
+    subject/code defaults independently of YAML order. Equal-specificity duplicate
+    selectors shall produce config/invalid_value and every entry in that ambiguous
+    group shall be ignored. Different requirement selectors remain independent.
+    Unknown subjects, requirements or codes and missing reasons shall invalidate
+    the entry. Unknown keys shall produce config/unknown_key. spec.status retains
+    its acknowledged subject label. File selectors obey the separate file-override
+    contract. Config-off absorption, trailer downgrade and acknowledgment rules
+    apply after determining the most specific config policy.
   priority: must
   stability: evolving
 - id: ancora.findings.config_coversioned_note
@@ -176,7 +191,7 @@ decisions:
   when:
     - the closure test enumerates it
   then:
-    - exactly 33 codes exist
+    - exactly 35 codes exist
     - each has a family, a default, and a message function that returns a non-empty string
   covers:
     - ancora.findings.registry_closed
@@ -372,6 +387,7 @@ decisions:
 ```yaml spec-verification
 - kind: tagged_tests
   covers:
+    - ancora.findings.file_overrides
     - ancora.findings.registry_closed
     - ancora.findings.registry_defaults
     - ancora.findings.messages_carry_remedy

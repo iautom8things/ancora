@@ -64,4 +64,27 @@ defmodule Ancora.Derive.DefIndexTest do
     assert DefIndex.uses(index, MyApp.User) ==
              MapSet.new(["MyApp.Schema", "MyApp.User.Fields"])
   end
+
+  @tag spec: "ancora.derive.clause_extraction"
+  test "nested __MODULE__ names retain definitions and extractable clauses" do
+    source = """
+    defmodule Outer do
+      defmodule __MODULE__.Inner do
+        def value, do: :ok
+        defmodule __MODULE__.Deep do
+          def nested, do: :ok
+        end
+      end
+      def after_nested, do: :ok
+    end
+    """
+
+    assert {:ok, index} = DefIndex.build(source, "lib/outer.ex")
+    assert DefIndex.public?(index, Outer.Inner, :value, 0)
+    assert DefIndex.public?(index, Outer.Inner.Deep, :nested, 0)
+    assert DefIndex.public?(index, Outer, :after_nested, 0)
+
+    assert {:ok, [_clause]} =
+             Ancora.Derive.Extract.clauses(source, "lib/outer.ex", {Outer.Inner, :value, 0})
+  end
 end

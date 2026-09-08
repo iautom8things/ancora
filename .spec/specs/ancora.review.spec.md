@@ -21,6 +21,7 @@ kind: module
 status: active
 summary: The spec.review HTML artifact, derived-set Code grouping, owned markdown transform, and byte-stable meta line.
 decisions:
+  - ancora.decision.adopter_attribution
   - ancora.decision.field_friction_response
   - ancora.decision.review_artifact_contract
 ```
@@ -86,17 +87,14 @@ decisions:
   stability: evolving
 - id: ancora.review.findings_delta_without_store
   statement: >-
-    Ancora.Review.FindingsDelta.classify/2 shall classify base and HEAD
-    repo-state findings with no diff-scoped findings, while classify/3 shall
-    also add its diff-scoped findings to introduced. A finding's identity
-    shall be its code, subject, file, and message: identities on both sides
-    are pre-existing, base-only identities are resolved, and HEAD-only
-    identities are introduced. Introduced findings shall be deduplicated,
-    and the change verdict shall be clean only when that list is empty. The
-    builder shall compute repo-state findings once against the base corpus
-    materialized by Ancora.BaseView and once against HEAD. No evidence store
-    or persisted snapshot shall be read or written. FindingsDelta shall expose
-    no root-reading `compute/3` function or binary-root `classify/3` clause.
+    FindingsDelta shall classify introduced, pre-existing and resolved repository
+    findings plus diff findings without stored state. Review shall reuse Gate's
+    resolved HEAD findings and resolve base repository findings with base config
+    from the selected workspace, without applying HEAD trailers to the base. Finding
+    identity shall exclude severity. Config or trailer changes, including off,
+    shall appear as policy changes rather than repaired defects. Current-state
+    counts, severity sources and verdict shall agree with the gate for the same
+    run. Ownership declaration changes shall be displayed separately.
   priority: must
   stability: stable
 - id: ancora.review.markdown_transform

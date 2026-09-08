@@ -33,7 +33,7 @@ defmodule Ancora.Config do
 
   defmodule Override do
     @moduledoc false
-    defstruct [:subject, :requirement, :code, :severity, :reason]
+    defstruct [:subject, :requirement, :file, :code, :severity, :reason]
 
     @type t :: %__MODULE__{
             subject: String.t(),
@@ -46,7 +46,14 @@ defmodule Ancora.Config do
 
   @config_file Path.join([".spec", "config.yml"])
   @known_keys MapSet.new(["default_base", "test_paths", "lib_paths", "severities", "overrides"])
-  @known_override_keys MapSet.new(["subject", "requirement", "code", "severity", "reason"])
+  @known_override_keys MapSet.new([
+                         "subject",
+                         "requirement",
+                         "file",
+                         "code",
+                         "severity",
+                         "reason"
+                       ])
 
   @severity_tokens %{
     "off" => :off,
@@ -174,12 +181,19 @@ defmodule Ancora.Config do
     if Enum.any?(overrides, &(&1.subject == subject)), do: :acknowledged, else: nil
   end
 
+  @doc false
+  def file_override(%__MODULE__{overrides: overrides}, code, file) when is_binary(file),
+    do: Enum.find(overrides, &(&1.file == file and &1.code == code))
+
+  def file_override(_, _, _), do: nil
+
   defp override_for(_config, _code, nil, _requirement), do: nil
 
   defp override_for(%__MODULE__{overrides: overrides}, code, subject, requirement) do
-    Enum.find(overrides, fn %Override{} = ovr ->
-      ovr.subject == subject and ovr.code == code and ovr.requirement in [nil, requirement]
-    end)
+    eligible = Enum.filter(overrides, &(&1.subject == subject and &1.code == code))
+
+    Enum.find(eligible, &(not is_nil(requirement) and &1.requirement == requirement)) ||
+      Enum.find(eligible, &is_nil(&1.requirement))
   end
 
   defp read_file(path) do
@@ -392,7 +406,26 @@ defmodule Ancora.Config do
             {:error, finding} -> {applied, [finding | diags]}
           end
         end)
-        |> then(fn {applied, diags} -> {Enum.reverse(applied), diags} end)
+        |> then(fn {applied, diags} ->
+          groups = Enum.group_by(applied, &{&1.subject, &1.requirement, &1.file, &1.code})
+
+          {valid, duplicates} =
+            Enum.split_with(groups, fn {_key, entries} -> length(entries) == 1 end)
+
+          diagnostics =
+            Enum.map(duplicates, fn {key, _} ->
+              finding(
+                "config/invalid_value",
+                file,
+                "overrides",
+                "duplicate override selector #{inspect(key)}; all matching entries ignored"
+              )
+            end)
+
+          {valid
+           |> Enum.flat_map(&elem(&1, 1))
+           |> Enum.sort_by(&{&1.subject, &1.requirement, &1.file, &1.code}), diagnostics ++ diags}
+        end)
 
       value ->
         {[],
@@ -405,6 +438,49 @@ defmodule Ancora.Config do
            )
            | findings
          ]}
+    end
+  end
+
+  defp parse_override_entry(%{"file" => path} = entry, config_file, _subjects, _requirements) do
+    unknown = Map.keys(entry) -- ["file", "code", "severity", "reason", "subject", "requirement"]
+
+    cond do
+      unknown != [] ->
+        {:error,
+         finding(
+           "config/unknown_key",
+           config_file,
+           "overrides",
+           "unknown file override keys #{inspect(unknown)}"
+         )}
+
+      Map.has_key?(entry, "subject") or Map.has_key?(entry, "requirement") ->
+        {:error,
+         finding(
+           "config/invalid_value",
+           config_file,
+           "overrides",
+           "file override cannot name a subject or requirement"
+         )}
+
+      not Ancora.ExactPath.valid?(path) or entry["code"] != "change/uncovered_file" or
+        entry["severity"] not in ["info", :info] or not valid_reason?(entry["reason"]) ->
+        {:error,
+         finding(
+           "config/invalid_value",
+           config_file,
+           "overrides",
+           "file override requires an exact path, change/uncovered_file, info severity and a nonempty reason"
+         )}
+
+      true ->
+        {:ok,
+         %Override{
+           file: path,
+           code: entry["code"],
+           severity: :info,
+           reason: String.trim(entry["reason"])
+         }}
     end
   end
 

@@ -192,6 +192,19 @@ defmodule Ancora.Derive.PipelineTest do
                sources: %{"test/sample_test.exs" => source}
              )
 
+    scope = Ancora.Derive.TestScope.build(%{"test/sample_test.exs" => source})
+    [{{file, carrier}, _}] = Map.to_list(scope.tests)
+    entry = %{file: file, carrier: carrier, test_line: 2, test_name: "call"}
+
+    assert {:error, {:resolver_throw, "tagged tests", :throw, :resolver_threw}} =
+             Derive.run(%{"app.subject" => [file]},
+               side: :head,
+               context: ctx,
+               sources: %{file => source},
+               carriers: %{"app.subject" => [entry]},
+               scope: scope
+             )
+
     assert Process.alive?(self())
   end
 

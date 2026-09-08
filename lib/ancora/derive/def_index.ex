@@ -60,7 +60,7 @@ defmodule Ancora.Derive.DefIndex do
        when kind in [:defmodule, :defprotocol] and is_list(body) do
     with {:ok, segments, absolute?} <- literal_segments(name_ast),
          {:ok, nested_body} <- Keyword.fetch(body, :do) do
-      module = if absolute?, do: segments, else: parent ++ segments
+      module = if absolute?, do: segments, else: nested_segments(segments, parent)
       collect(nested_body, module, index)
     else
       _ -> index
@@ -168,6 +168,16 @@ defmodule Ancora.Derive.DefIndex do
        do: current ++ rest
 
   defp relative_segments(segments, _current), do: segments
+
+  defp nested_segments([{:__MODULE__, _, _} | rest], parent), do: parent ++ rest
+  defp nested_segments(segments, parent), do: parent ++ segments
+
+  defp literal_segments({:__aliases__, _, [{:__MODULE__, _, _} | rest]}),
+    do:
+      if(Enum.all?(rest, &is_atom/1),
+        do: {:ok, [{:__MODULE__, [], nil} | rest], false},
+        else: :dynamic
+      )
 
   defp literal_segments({:__aliases__, _, [:"Elixir" | segments]}) do
     if Enum.all?(segments, &is_atom/1), do: {:ok, segments, true}, else: :dynamic
