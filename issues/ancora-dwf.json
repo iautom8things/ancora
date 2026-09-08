@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-08T01:32:46Z",
+  "description": "Advances: ancora.derive, ancora.parsing\n\nReady-for: investigate\n\nSeverity: Medium\n\nSymptom:\nTagScanner collapses two tests named works under different describe blocks when both carry alpha.value, returning one tag entry instead of two. Folding alpha.group.value produces alpha.group.value and alpha.group, but not its actual owning subject alpha. Gate then matches these folded keys to subject ids. Whole-file derivation can mask both losses today; precise test-level attribution must preserve each test and use authored requirement ownership.\n\nEvidence:\nCurrent main 82c2ca8. Reproducible probe and output: /tmp/ancora-friction-probe.exs and /tmp/ancora-friction-probe.log, copied into the agent-adoption-friction investigation under /Users/mz/Documents/my-vault/LLMs/investigations/ancora/2026-09-07-agent-adoption-friction. Measurements duplicate_test_names and nested_requirement_fold. Source: lib/ancora/tag_scanner.ex dedupe_key/1 and parent_id/1; lib/ancora/gate.ex subject_files/2.\n\nWhy now:\nCorrecting false cross-subject drift requires retaining test identity. Reusing the existing lossy tag/file map would exchange false positives for missing bindings. This is a prerequisite of the test-attribution investigation, not a request for adopters to rename tests or flatten requirement ids.\n\nSuspected cause:\nIdentity uses display name rather than lexical test occurrence; ownership is inferred by removing an id segment instead of consulting the parsed subject requirement lists.",
+  "id": "ancora-dwf",
+  "labels": [],
+  "priority": 2,
+  "status": "open",
+  "title": "Preserve distinct tagged tests and resolve requirement ownership from the spec index",
+  "type": "task",
+  "updated_at": "2026-09-08T01:32:46Z"
+}
