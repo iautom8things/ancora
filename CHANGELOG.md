@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+- Align `spec.next` with the gate's source paths and decision rules. Ordinary
+  docs and test edits no longer demand new subjects or unnecessary spec edits.
+- Use the selected `--spec-dir` workspace's configuration across check,
+  validate, status, next, prime, and review. Suggested commands keep the option.
+- Detect changes in nested Mix projects using project-relative paths, and
+  handle files whose names match the comparison ref.
+- Report empty bases and missing validation workspaces without a stack trace.
+- Preserve numeric and boolean-looking decision ids as YAML strings.
+- Diagnose missing or non-string decision ids, and avoid restoring a replaced
+  seed subject when `spec.init` runs again without `--force`.
+- Preserve complete file names in review diffs and disable configured diff
+  drivers and text conversion commands.
+- Explain when to compare with HEAD and when to use the configured branch base.
+
 ## 1.2.0 - 2026-09-05
 
 Field friction: the fixes decided after one day of running 1.0 against a real

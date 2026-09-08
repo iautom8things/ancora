@@ -10,6 +10,33 @@ defmodule Ancora.DecisionParserTest do
 
   describe "parse_file/2" do
     @tag spec: "ancora.parsing.adr_grammar"
+    test "reports missing and non-string decision ids with a quoting remedy", %{root: root} do
+      for field <- ["", "id: null", "id: true", "id: 123", "id: []", "id: \"\""] do
+        path =
+          write_decision(root, "invalid-id", """
+          ---
+          #{field}
+          status: accepted
+          date: 2026-09-07
+          affects: [example.subject]
+          ---
+          # Invalid id
+          ## Context
+          A malformed identifier cannot be referenced.
+          ## Decision
+          Name this decision.
+          ## Consequences
+          Subjects can refer to it.
+          """)
+
+        decision = DecisionParser.parse_file(path, root)
+        assert [%{code: "adr/parse_error", message: message}] = decision["findings"]
+        assert message =~ "id must be a non-empty string"
+        assert message =~ "quote"
+      end
+    end
+
+    @tag spec: "ancora.parsing.adr_grammar"
     test "extracts frontmatter, title, and required sections", %{root: root} do
       path =
         write_decision(root, "governance", """

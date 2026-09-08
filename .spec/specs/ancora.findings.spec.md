@@ -127,8 +127,11 @@ decisions:
     `config/unknown_key`; a bad severity value shall produce
     `config/invalid_value`; both codes shall be non-tunable. Malformed YAML
     shall degrade to defaults with a `[CONFIG]` diagnostic on stderr.
-    Gate preflight shall load configuration once before checking corpus, git,
-    project, and base conditions, then pass that value into gate assembly.
+    Config shall load config.yml from the workspace selected by `--spec-dir`,
+    defaulting to `.spec`. Gate preflight shall resolve git and the workspace,
+    load configuration once before checking corpus, project, and base
+    conditions, then pass that value into gate assembly. Validation, status,
+    and next-step guidance shall use that workspace's configuration too.
     `ANCORA_SHOW_INFO` shall be the only environment variable read.
   priority: must
   stability: stable

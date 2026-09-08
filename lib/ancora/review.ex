@@ -28,7 +28,7 @@ defmodule Ancora.Review do
     with {:ok, preflight} <- Preflight.run(root, opts),
          {:ok, context} <- RunContext.start(preflight.root, preflight.base) do
       try do
-        build_with_context(preflight, context, opts)
+        build_with_context(preflight, context, Keyword.put(opts, :spec_dir, preflight.spec_dir))
       after
         RunContext.stop(context)
       end

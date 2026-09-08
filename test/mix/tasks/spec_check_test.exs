@@ -9,6 +9,21 @@ defmodule Mix.Tasks.Spec.CheckTest do
   @squash_warning "[CONFIG] Spec-Ack: derived/drift=info resolved from a non-tip commit and will be lost by a squash merge; promote it to .spec/config.yml before merging\n"
 
   @tag spec: "ancora.tasks.gated_emission_paths"
+  test "an empty base emits a JSON environment report and final verdict", %{root: root} do
+    create_project(root)
+    result = run_mix_subprocess(["spec.check", "--root", root, "--base", "", "--json"])
+    assert result.status == 1
+    assert result.stdout =~ "base must not be empty"
+
+    assert List.last(lines(result.stdout)) ==
+             "spec.check result=fail tier=env errors=0 warnings=0"
+
+    refute result.stderr =~ "FunctionClauseError"
+    [json, _verdict] = lines(result.stdout)
+    assert Jason.decode!(json)["tier"] == "env"
+  end
+
+  @tag spec: "ancora.tasks.gated_emission_paths"
   @tag spec: "ancora.tasks.verdict_grammar"
   @tag spec: "ancora.tasks.exit_codes"
   test "green subprocess keeps the verdict last on stdout", %{root: root} do

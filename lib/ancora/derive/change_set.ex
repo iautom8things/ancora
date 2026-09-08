@@ -26,9 +26,17 @@ defmodule Ancora.Derive.ChangeSet do
   """
   @spec compute(RunContext.t()) :: {:ok, t()} | {:error, term()}
   def compute(%RunContext{} = ctx) do
-    with {:ok, diff_entries} <- name_status(ctx),
+    with {:ok, prefix} <- Git.run(ctx.root, ["rev-parse", "--show-prefix"]),
+         {:ok, diff_entries} <- name_status(ctx),
          {:ok, status_entries} <- porcelain_status(ctx) do
-      entries = union(diff_entries, status_entries)
+      prefix = String.trim_trailing(prefix, "\n")
+
+      entries =
+        union(diff_entries, status_entries)
+        |> Enum.filter(&String.starts_with?(&1.path, prefix))
+        |> Enum.map(
+          &Map.update!(&1, :path, fn path -> String.replace_prefix(path, prefix, "") end)
+        )
 
       case prefetch(ctx, entries) do
         {:ok, prefetched} ->
@@ -54,13 +62,24 @@ defmodule Ancora.Derive.ChangeSet do
   def changed_path?(%__MODULE__{path_set: path_set}, path), do: MapSet.member?(path_set, path)
 
   defp name_status(%RunContext{root: root, base: base}) do
-    with {:ok, output} <- Git.run(root, ["diff", "--name-status", "--no-renames", "-z", base]) do
+    with {:ok, output} <-
+           Git.run(root, [
+             "diff",
+             "--name-status",
+             "--no-renames",
+             "--no-relative",
+             "-z",
+             base,
+             "--",
+             "."
+           ]) do
       parse_name_status(output)
     end
   end
 
   defp porcelain_status(%RunContext{root: root}) do
-    with {:ok, output} <- Git.run(root, ["status", "--porcelain", "-z", "--untracked-files=all"]) do
+    with {:ok, output} <-
+           Git.run(root, ["status", "--porcelain", "-z", "--untracked-files=all", "--", "."]) do
       parse_porcelain(output)
     end
   end

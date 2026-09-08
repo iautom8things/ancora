@@ -7,11 +7,13 @@ defmodule Ancora.Gate.Preflight do
 
   alias Ancora.Config
   alias Ancora.Git
+  alias Ancora.Index
   alias Ancora.ProjectInfo
 
   @type result :: %{
           root: Path.t(),
           base: String.t(),
+          spec_dir: Path.t(),
           config: Config.t(),
           project: ProjectInfo.t()
         }
@@ -19,14 +21,31 @@ defmodule Ancora.Gate.Preflight do
   @spec run(Path.t(), keyword()) :: {:ok, result()} | {:env, String.t()}
   def run(root, opts \\ []) when is_binary(root) and is_list(opts) do
     root = Path.expand(root)
-    config = Config.load(root)
 
     with :ok <- git_repo(root),
-         :ok <- corpus(root),
+         {:ok, spec_dir} <- workspace(root, opts),
+         config = Config.load(root, spec_dir: spec_dir),
+         :ok <- corpus(root, spec_dir),
          {:ok, project} <- ProjectInfo.load(root, project_opts(config)),
          {:ok, base} <- resolve_base(root, Keyword.get(opts, :base), config.default_base),
          :ok <- complete_range(root, base) do
-      {:ok, %{root: root, base: base, config: config, project: project}}
+      {:ok, %{root: root, base: base, spec_dir: spec_dir, config: config, project: project}}
+    end
+  end
+
+  defp workspace(root, opts) do
+    case Index.resolve_spec_dir(root, opts) do
+      {:ok, spec_dir} ->
+        if Path.type(spec_dir) == :absolute or spec_dir == ".." or
+             String.starts_with?(spec_dir, "../") do
+          {:env,
+           "--spec-dir must select a workspace inside #{root} so it can be compared with git"}
+        else
+          {:ok, spec_dir}
+        end
+
+      {:error, message} ->
+        {:env, message}
     end
   end
 
@@ -55,18 +74,22 @@ defmodule Ancora.Gate.Preflight do
     end
   end
 
-  defp corpus(root) do
-    if File.dir?(Path.join(root, ".spec")) do
-      corpus_files_readable(root)
+  defp corpus(root, spec_dir) do
+    if File.dir?(Path.join(root, spec_dir)) do
+      case Index.detect_authored_dir(root, spec_dir) do
+        {:ok, _authored_dir} -> corpus_files_readable(root, spec_dir)
+        {:error, message} -> {:env, message}
+      end
     else
-      {:env, "no .spec/ directory in #{root}; run mix spec.init"}
+      {:env,
+       "no #{spec_dir}/ directory in #{root}; run mix spec.init or select an existing workspace with --spec-dir"}
     end
   end
 
-  defp corpus_files_readable(root) do
+  defp corpus_files_readable(root, spec_dir) do
     files =
-      Path.wildcard(Path.join([root, ".spec", "specs", "**", "*.spec.md"])) ++
-        Path.wildcard(Path.join([root, ".spec", "decisions", "**", "*.md"]))
+      Path.wildcard(Path.join([root, spec_dir, "specs", "**", "*.spec.md"])) ++
+        Path.wildcard(Path.join([root, spec_dir, "decisions", "**", "*.md"]))
 
     Enum.reduce_while(files, :ok, fn path, :ok ->
       case File.read(path) do
@@ -85,6 +108,11 @@ defmodule Ancora.Gate.Preflight do
       {:ok, _oid} -> {:ok, base}
       {:error, reason} -> {:env, base_failure_message(base, reason)}
     end
+  end
+
+  defp resolve_base(_root, "", _default_base) do
+    {:env,
+     "base must not be empty; pass --base HEAD or another commit ref, or omit --base to use default_base"}
   end
 
   defp resolve_base(root, nil, default_base) do

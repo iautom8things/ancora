@@ -132,10 +132,17 @@ defmodule Ancora.Index do
     join_dir(spec_dir, "decisions")
   end
 
-  defp resolve_spec_dir(root, opts) do
+  @doc false
+  def resolve_spec_dir(root, opts) do
     case Keyword.fetch(opts, :spec_dir) do
-      {:ok, spec_dir} -> {:ok, spec_dir}
-      :error -> detect_spec_dir(root)
+      {:ok, ""} ->
+        {:error, "--spec-dir must not be empty; select the workspace containing specs/"}
+
+      {:ok, spec_dir} ->
+        {:ok, Path.relative_to(Path.expand(spec_dir, root), Path.expand(root))}
+
+      :error ->
+        detect_spec_dir(root)
     end
   end
 

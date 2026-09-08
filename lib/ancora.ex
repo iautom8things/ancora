@@ -29,15 +29,23 @@ defmodule Ancora do
   end
 
   @doc "Validates the current corpus without diff analysis or target compilation. This function is semver-stable."
-  @spec validate(String.t(), keyword()) :: {:ok, map()}
+  @spec validate(String.t(), keyword()) :: {:ok, map()} | {:env, String.t()}
   def validate(root \\ File.cwd!(), opts \\ []) when is_binary(root) and is_list(opts) do
     root = Path.expand(root)
-    config = Config.load(root)
     index_opts = if opts[:spec_dir], do: [spec_dir: opts[:spec_dir]], else: []
-    index = Index.build(root, index_opts)
-    test_paths = Enum.map(config.test_paths, &Path.join(root, &1))
-    {:ok, tag_map, parse_errors, dynamics} = TagScanner.scan(test_paths)
 
+    with %{} = index <- Index.build(root, index_opts),
+         config = Config.load(root, spec_dir: index["spec_dir"]),
+         test_paths = Enum.map(config.test_paths, &Path.join(root, &1)),
+         {:ok, tag_map, parse_errors, dynamics} <- TagScanner.scan(test_paths) do
+      validate_report(index, config, tag_map, parse_errors, dynamics, opts)
+    else
+      {:error, message} when is_binary(message) -> {:env, message}
+      {:error, reason} -> Gate.gate_error(reason)
+    end
+  end
+
+  defp validate_report(index, config, tag_map, parse_errors, dynamics, opts) do
     findings =
       config.findings ++
         index["findings"] ++

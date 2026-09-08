@@ -3,6 +3,15 @@ Code.require_file("support/ancora_case.exs", __DIR__)
 defmodule AncoraTest do
   use Ancora.TestCase
 
+  @tag spec: "ancora.gate.preflight_hard_fails"
+  test "validate returns environment errors for a missing workspace", %{root: root} do
+    assert {:env, missing} = Ancora.validate(root)
+    assert missing =~ "mix spec.init"
+    assert {:env, selected} = Ancora.validate(root, spec_dir: "contracts")
+    assert selected =~ "contracts/specs"
+    assert selected =~ "--spec-dir"
+  end
+
   @tag spec: "ancora.gate.strict_verdict"
   test "validate reports warning counts and applies strict mode", %{root: root} do
     write_files(root, %{".spec/specs/.keep" => ""})

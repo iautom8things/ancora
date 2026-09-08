@@ -53,8 +53,11 @@ defmodule Ancora.Gate do
   @spec check(Path.t(), keyword()) :: {:ok, map()} | {:env, String.t()}
   def check(root, opts \\ []) when is_binary(root) and is_list(opts) do
     case Preflight.run(root, opts) do
-      {:ok, preflight} -> run_after_preflight(preflight, opts)
-      {:env, message} = error -> json_preflight_error(error, message, opts)
+      {:ok, preflight} ->
+        run_after_preflight(preflight, Keyword.put(opts, :spec_dir, preflight.spec_dir))
+
+      {:env, message} = error ->
+        json_preflight_error(error, message, opts)
     end
   end
 
@@ -300,7 +303,7 @@ defmodule Ancora.Gate do
 
         Finding.new(
           code: "config/invalid_value",
-          file: ".spec/config.yml",
+          file: Path.join(Map.get(index, "spec_dir", ".spec"), "config.yml"),
           detail: detail
         )
       end)
@@ -629,11 +632,11 @@ defmodule Ancora.Gate do
         trailer_override: trailer.overrides
       )
 
-    warn_non_tip_acknowledgments(findings, preflight.config, trailer)
+    warn_non_tip_acknowledgments(findings, preflight.config, trailer, preflight.spec_dir)
     findings
   end
 
-  defp warn_non_tip_acknowledgments(findings, config, trailer) do
+  defp warn_non_tip_acknowledgments(findings, config, trailer, spec_dir) do
     findings
     |> Enum.filter(fn finding ->
       case Map.fetch(trailer.non_tip_overrides, finding.code) do
@@ -656,7 +659,7 @@ defmodule Ancora.Gate do
 
       Output.config_diagnostic(
         "Spec-Ack: #{code}=#{severity} resolved from a non-tip commit and will be " <>
-          "lost by a squash merge; promote it to .spec/config.yml before merging"
+          "lost by a squash merge; promote it to #{Path.join(spec_dir, "config.yml")} before merging"
       )
     end)
   end

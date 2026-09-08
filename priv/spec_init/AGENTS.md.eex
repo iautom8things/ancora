@@ -21,6 +21,9 @@ generated gate input.
 Start a session with `mix spec.prime --base HEAD`. Use `--base HEAD` on day one
 and in repositories that do not have a remote. Once the repository has a
 remote, set `default_base` in `.spec/config.yml` and use that branch in CI.
+Use `mix spec.prime`, `mix spec.next`, and `mix spec.check` without `--base`
+for local work against the configured branch. `--base HEAD` compares only
+uncommitted work with the latest commit and excludes committed feature changes.
 
 A fresh scaffold's first `mix spec.check --base HEAD` is expected to fail with
 `derived/unanchored_subject`. Add `@tag spec: "<requirement-id>"` to tests that

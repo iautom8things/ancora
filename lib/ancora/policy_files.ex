@@ -37,9 +37,6 @@ defmodule Ancora.PolicyFiles do
   @lib_prefixes ~w(lib/ skills/)
   @lib_root_files ~w(mix.exs)
   @plan_doc_prefix "docs/plans/"
-  @governance_root_files ~w(.spec/config.yml .spec/AGENTS.md .spec/README.md)
-  @specs_prefix ".spec/specs/"
-  @decisions_prefix ".spec/decisions/"
 
   @doc "Classifies a repo-relative path into a file kind."
   @spec classify(String.t()) :: kind()
@@ -96,14 +93,18 @@ defmodule Ancora.PolicyFiles do
 
   @doc "True when `path` is in the governance-file set."
   @spec governance?(String.t()) :: boolean()
-  def governance?(path) when is_binary(path) do
-    path in @governance_root_files or String.starts_with?(path, @specs_prefix)
+  @spec governance?(String.t(), String.t()) :: boolean()
+  def governance?(path, spec_dir \\ ".spec") when is_binary(path) do
+    path in Enum.map(~w(config.yml AGENTS.md README.md), &workspace_path(spec_dir, &1)) or
+      String.starts_with?(path, workspace_path(spec_dir, "specs") <> "/")
   end
 
   @doc "True when `path` is an ADR under `.spec/decisions/` (not README.md)."
   @spec decision_file?(String.t()) :: boolean()
-  def decision_file?(path) when is_binary(path) do
-    String.starts_with?(path, @decisions_prefix) and Path.basename(path) != "README.md"
+  @spec decision_file?(String.t(), String.t()) :: boolean()
+  def decision_file?(path, spec_dir \\ ".spec") when is_binary(path) do
+    String.starts_with?(path, workspace_path(spec_dir, "decisions") <> "/") and
+      Path.basename(path) != "README.md"
   end
 
   @doc """
@@ -112,9 +113,13 @@ defmodule Ancora.PolicyFiles do
   `change/missing_decision` trigger.
   """
   @spec missing_decision?([String.t()]) :: boolean()
-  def missing_decision?(changed_paths) when is_list(changed_paths) do
-    Enum.any?(changed_paths, &governance?/1) and not Enum.any?(changed_paths, &decision_file?/1)
+  @spec missing_decision?([String.t()], String.t()) :: boolean()
+  def missing_decision?(changed_paths, spec_dir \\ ".spec") when is_list(changed_paths) do
+    Enum.any?(changed_paths, &governance?(&1, spec_dir)) and
+      not Enum.any?(changed_paths, &decision_file?(&1, spec_dir))
   end
 
   defp starts_with_any?(path, prefixes), do: Enum.any?(prefixes, &String.starts_with?(path, &1))
+
+  defp workspace_path(spec_dir, name), do: spec_dir |> Path.join(name) |> Path.relative_to(".")
 end

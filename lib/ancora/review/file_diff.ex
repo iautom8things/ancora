@@ -15,7 +15,7 @@ defmodule Ancora.Review.FileDiff do
     tracked_diffs =
       case tracked do
         [] -> %{}
-        files -> files |> diff(root, base) |> parse()
+        files -> files |> diff(root, base) |> parse(files)
       end
 
     additions = Map.new(untracked, &{&1, untracked_addition(root, &1)})
@@ -23,7 +23,20 @@ defmodule Ancora.Review.FileDiff do
   end
 
   defp diff(paths, root, base) do
-    case Git.run(root, ["diff", "--no-color", base, "--" | paths]) do
+    case Git.run(root, [
+           "-c",
+           "core.quotePath=false",
+           "diff",
+           "--no-color",
+           "--relative",
+           "--no-renames",
+           "--src-prefix=a/",
+           "--dst-prefix=b/",
+           "--no-ext-diff",
+           "--no-textconv",
+           base,
+           "--" | paths
+         ]) do
       {:ok, output} -> sanitize(output)
       {:error, _reason} -> ""
     end
@@ -31,8 +44,8 @@ defmodule Ancora.Review.FileDiff do
 
   defp partition_tracked(root, paths) do
     untracked =
-      case Git.run(root, ["ls-files", "--others", "--exclude-standard", "--" | paths]) do
-        {:ok, output} -> output |> String.split("\n", trim: true) |> MapSet.new()
+      case Git.run(root, ["ls-files", "-z", "--others", "--exclude-standard", "--" | paths]) do
+        {:ok, output} -> output |> String.split(<<0>>, trim: true) |> MapSet.new()
         {:error, _reason} -> MapSet.new()
       end
 
@@ -66,18 +79,53 @@ defmodule Ancora.Review.FileDiff do
     end
   end
 
-  defp parse(""), do: %{}
+  defp parse("", _paths), do: %{}
 
-  defp parse(text) do
+  defp parse(text, paths) do
+    headers =
+      Map.new(paths, fn path ->
+        {"diff --git #{quote_path("a/" <> path)} #{quote_path("b/" <> path)}", path}
+      end)
+
     text
     |> String.split("\n")
-    |> Enum.reduce({nil, %{}, []}, &consume/2)
+    |> Enum.reduce({nil, %{}, []}, fn line, {current, diffs, lines} = state ->
+      case Map.fetch(headers, line) do
+        {:ok, path} -> {path, stash(current, diffs, lines), [{:file_header, line}]}
+        :error -> consume(line, state)
+      end
+    end)
     |> finish()
   end
 
-  defp consume("diff --git a/" <> rest = line, {current, diffs, lines}) do
-    path = rest |> String.split(" ", parts: 2) |> List.first()
-    {path, stash(current, diffs, lines), [{:file_header, line}]}
+  defp quote_path(path) do
+    escapes = %{
+      7 => "\\a",
+      8 => "\\b",
+      9 => "\\t",
+      10 => "\\n",
+      11 => "\\v",
+      12 => "\\f",
+      13 => "\\r",
+      34 => "\\\"",
+      92 => "\\\\"
+    }
+
+    escaped =
+      for <<byte <- path>>, into: "" do
+        cond do
+          Map.has_key?(escapes, byte) ->
+            Map.fetch!(escapes, byte)
+
+          byte < 32 or byte == 127 ->
+            "\\" <> String.pad_leading(Integer.to_string(byte, 8), 3, "0")
+
+          true ->
+            <<byte>>
+        end
+      end
+
+    if escaped == path, do: path, else: "\"" <> escaped <> "\""
   end
 
   defp consume("@@ " <> _rest = line, {path, diffs, lines}),

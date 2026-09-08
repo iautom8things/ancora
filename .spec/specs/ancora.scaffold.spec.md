@@ -36,6 +36,8 @@ decisions:
     GitHub workflow file shall be scaffolded. AGENTS.md.eex shall be the only
     template evaluated by EEx. The other five templates shall have their
     destination `.md` or `.yml` names and be copied byte-for-byte.
+    If the seed is absent and other authored subjects exist, a rerun shall
+    print `skipped` for the seed and leave it absent unless `--force` is set.
   priority: must
   stability: stable
 - id: ancora.scaffold.agents_md_content
@@ -48,6 +50,10 @@ decisions:
     day one and for repos with no remote; and state that the fresh scaffold's
     first `spec.check` is expected to fail with `derived/unanchored_subject`
     and that tagging tests clears it.
+    The guide and workspace README shall explain that HEAD compares
+    uncommitted work and that the configured branch base includes committed
+    feature changes. After remote setup they shall teach omitting `--base`
+    for the local workflow.
   priority: must
   stability: evolving
 - id: ancora.scaffold.skill_md_content
@@ -91,7 +97,9 @@ decisions:
     `.spec/decisions/<id>.md` with frontmatter `id`, `status`, `date`, and
     `affects:` and the three sections Context, Decision, Consequences,
     printing `spec.decision.new wrote <path>`. The template shall not contain
-    `change_type`.
+    `change_type`. Every accepted decision id shall be emitted as a quoted
+    YAML string, including numeric, boolean, null, and date-looking ids, so
+    parsing the generated file preserves the exact id.
   priority: must
   stability: stable
 - id: ancora.scaffold.readme_commitments

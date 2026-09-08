@@ -5,6 +5,8 @@ defmodule Mix.Tasks.Spec.Init do
   @shortdoc "Scaffolds an ancora workspace"
   @moduledoc """
   Scaffolds an ancora workspace without replacing existing files by default.
+  If the project already has subjects and has replaced the seed, it skips the
+  seed unless `--force` is supplied.
 
   A cold checkout may print dependency compilation lines before ancora output.
 

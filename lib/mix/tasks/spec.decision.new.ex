@@ -69,7 +69,7 @@ defmodule Mix.Tasks.Spec.Decision.New do
   defp render(decision_id, title) do
     """
     ---
-    id: #{decision_id}
+    id: "#{decision_id}"
     status: proposed
     date: #{Date.utc_today()}
     affects: []

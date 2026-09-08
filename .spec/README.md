@@ -10,7 +10,7 @@ on, `mix spec.check --base origin/main` runs in CI as a smoke signal.
 - `AGENTS.md` — operating guide for agents working in this repo
 - `config.yml` — ancora v1 config (default_base, test_paths, severities, overrides)
 - `decisions/*.md` — durable cross-cutting ADRs (`<id>.md`, frontmatter id/status/date/affects)
-- `specs/*.spec.md` — one subject per file, seven subjects
+- `specs/*.spec.md` — one subject per file, eight subjects
 
 There is no generated state in this directory. Nothing here is derived;
 every file is authored.
@@ -26,8 +26,9 @@ every file is authored.
 | `ancora.tasks` | the eight tasks, single-writer stdout, verdict grammar, emission paths |
 | `ancora.review` | spec.review artifact, Code grouping, markdown transform, meta line |
 | `ancora.scaffold` | spec.init templates, decision.new, README commitments, migration doc |
+| `ancora.source_scan` | source-scan test helper, non-empty file checks, whole-token matching |
 
 ## Status
 
-All seven subjects are active and anchored by tagged tests. CI runs the
+All eight subjects are active and anchored by tagged tests. CI runs the
 dogfood corpus through `mix spec.check` as a smoke check.

@@ -48,6 +48,10 @@ decisions:
     requested `base..HEAD` range has a parent commit absent locally. Both git
     outputs shall be NUL-delimited so path bytes remain unquoted, and a path
     still wrapped in double quotes shall be rejected rather than stored.
+    When the Mix project is nested inside a git worktree, change-set paths
+    shall be relative to that project and exclude sibling changes. Base
+    prefetch shall read the corresponding project file. Git's diff.relative
+    setting and a file named like the base ref shall not change the result.
   priority: must
   stability: stable
 - id: ancora.derive.base_reads_batched

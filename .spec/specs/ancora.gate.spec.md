@@ -35,7 +35,7 @@ decisions:
 ```yaml spec-requirements
 - id: ancora.gate.preflight_hard_fails
   statement: >-
-    When the target has no `.spec/` corpus, the git executable is missing,
+    When the target has no selected spec corpus, the git executable is missing,
     the requested spec workspace cannot resolve its `specs/` directory, the
     target root is not inside a git repository, a malformed `git cat-file
     --batch` frame is received, a Git change-set path is quoted, a NUL
@@ -49,13 +49,17 @@ decisions:
     conditions shall never be emitted as findings and shall not be
     configurable off. An unresolvable spec workspace shall name the directory
     that was checked and explain that `--spec-dir` selects the workspace, then
-    end with the environment-tier verdict. No preflight check shall inspect `_build` or any
-    `.app` file. Preflight shall load `.spec/config.yml` once and thread the
+    end with the environment-tier verdict. An empty explicit base shall return
+    an environment error naming `--base HEAD` instead of raising. Relative
+    and absolute workspace paths inside the project shall resolve to the same
+    git-backed workspace; a workspace outside the project shall return an
+    environment error. No preflight check shall inspect `_build` or any
+    `.app` file. Preflight shall load the selected workspace's config.yml once and thread the
     resulting config through project identity and gate assembly. It shall pass
     the resolved `lib_paths` value, including nil, into project identity so
     that path does not read the config again. The config
     `lib_paths:` key shall override project identity only when present in
-    `.spec/config.yml`; literal `elixirc_paths:` shall be honored otherwise.
+    that config file; literal `elixirc_paths:` shall be honored otherwise.
     A spec parse, tag scan, source scan, or definition-index worker failure
     shall return tagged error data and end at the environment tier rather than
     exiting the gate process.
@@ -175,7 +179,9 @@ decisions:
     frontmatter at HEAD names an accepted ADR that resolves in the index and whose
     `affects:` names the subject or an id within it; governance files without
     frontmatter (`.spec/config.yml`, `.spec/AGENTS.md`, `.spec/README.md`)
-    shall keep the co-change rule.
+    shall keep the co-change rule. With `--spec-dir`, this governance set and
+    its clearing decision directory shall be relative to the selected
+    workspace. Next-step guidance shall use this same decision rule.
   priority: must
   stability: evolving
 - id: ancora.gate.strict_verdict

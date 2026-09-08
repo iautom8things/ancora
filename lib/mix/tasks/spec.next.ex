@@ -13,13 +13,14 @@ defmodule Mix.Tasks.Spec.Next do
     * `--base REF` selects the git base. Defaults to configured `default_base`.
     * `--since REF` selects the starting revision and overrides `--base`. Defaults to unset.
     * `--verbose` lists changed and policy files. Defaults to false.
+    * `--spec-dir DIR` selects the ancora workspace directory. Defaults to `.spec`.
   """
 
   alias Ancora.Next
   alias Ancora.Output
   alias Ancora.TaskArgs
 
-  @switches [base: :string, since: :string, verbose: :boolean]
+  @switches [base: :string, since: :string, verbose: :boolean, spec_dir: :string]
 
   @impl Mix.Task
   def run(args) do

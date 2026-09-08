@@ -85,6 +85,11 @@ decisions:
     and malformed metadata, a missing directory, and a spec parse worker
     failure without raising; worker failures shall be reported at the
     environment tier.
+    Index assembly shall normalize equivalent relative and absolute workspace
+    paths, and reject an empty workspace argument with a remedy. The public
+    `Ancora.validate/2` API shall return `{:env, message}` for a missing
+    workspace or a failed parsing worker rather than raising while reading
+    the failed index.
   priority: must
   stability: stable
 - id: ancora.parsing.requirement_unverified
@@ -107,6 +112,9 @@ decisions:
     `adr/affects_unresolved`. Index assembly shall build the corpus resolvable-id
     set once and validate every decision against that same set, augmented by
     the decision's retired ids.
+    A missing, empty, or non-string decision id shall emit `adr/parse_error`
+    with a remedy to quote YAML scalar-looking ids. The raw metadata map
+    shall remain available in the parse result.
   priority: must
   stability: stable
 - id: ancora.parsing.append_authorization_is_requirement_scoped
