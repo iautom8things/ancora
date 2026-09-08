@@ -1,6 +1,7 @@
 {
   "assignee": "",
   "blocked_by": [
+    "ancora-8lm.9",
     "ancora-dwf"
   ],
   "blocks": [],
@@ -14,5 +15,5 @@
   "status": "open",
   "title": "spec.check fans drift/growth across unrelated subjects and flags untestable infra files, with no way to scope either",
   "type": "task",
-  "updated_at": "2026-09-08T01:47:06Z"
+  "updated_at": "2026-09-08T01:47:07Z"
 }
