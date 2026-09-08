@@ -11,6 +11,12 @@
   "labels": [
     "phase:investigating"
   ],
+  "comments": [
+    {
+      "text": "Investigated. Choose per-test attribution with preserved setup/helper observations, consistent optional surface classification, and exact reasoned infrastructure exceptions. Six implementation contracts recorded; no source implementation claimed. Historical count corrected to 23 drift, 9 growth, 7 uncovered on Ancora 1.0.0. Report: /Users/mz/Documents/my-vault/LLMs/investigations/ancora/2026-09-07-agent-adoption-friction/04-report.md",
+      "timestamp": "2026-09-08T01:47:07Z"
+    }
+  ],
   "priority": 1,
   "status": "open",
   "title": "spec.check fans drift/growth across unrelated subjects and flags untestable infra files, with no way to scope either",
