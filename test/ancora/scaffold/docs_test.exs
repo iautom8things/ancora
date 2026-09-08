@@ -33,7 +33,7 @@ defmodule Ancora.Scaffold.DocsTest do
       applied trailer exists only below the branch tip because a squash merge will discard
       it. Before merging, copy that severity into `.spec/config.yml` under `severities:` or
       a subject override, add the reason for an override, and commit the config change.
-      Overrides in Ancora 1.x are scoped to one subject and one finding code, optionally
+      Subject overrides are scoped to one subject and one finding code, optionally
       narrowed to one requirement with `requirement:`. The warning clears once config
       supplies the same severity. It remains when config is more severe because removing
       the trailer would still change the gate result.
