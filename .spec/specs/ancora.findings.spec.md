@@ -11,7 +11,7 @@ the review artifact all read. Adding a code is a spec change in this corpus.
 
 Count note: the planning documents say 26 codes. Enumerating the registry
 table after the `spec/prose_too_short` cut gave 30; the 26 was a carried
-miscount. The primary/transitive drift split and two disclosure codes bring
+miscount. Three transitive finding codes and two disclosure codes bring
 the registry to 35. The enumerated list below is authoritative.
 Severity has one precedence chain, silence lives in the repo where review
 can see it, and the trailer can only lower.
@@ -77,8 +77,7 @@ decisions:
     `spec/duplicate_id`, `spec/invalid_id`, `spec/missing_field`,
     `spec/unknown_reference`, `adr/parse_error`, `adr/missing_section`,
     `adr/affects_unresolved`, `overlap/*`, and `tags/parse_error`; warning
-    for `derived/growth`, `derived/shrink`,
-    `derived/growth_transitive`, `derived/shrink_transitive`, `derived/unanchored_subject`,
+    for `derived/growth`, `derived/shrink`, `derived/unanchored_subject`,
     `change/uncovered_file`, `change/missing_decision`,
     `tags/new_requirement_untagged`, `tags/unknown_requirement`,
     `format/retired_construct`, `adr/affects_empty`, `config/unknown_key`,
