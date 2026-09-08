@@ -387,6 +387,7 @@ decisions:
 ```yaml spec-verification
 - kind: tagged_tests
   covers:
+    - ancora.findings.file_overrides
     - ancora.findings.registry_closed
     - ancora.findings.registry_defaults
     - ancora.findings.messages_carry_remedy

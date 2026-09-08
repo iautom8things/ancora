@@ -696,6 +696,7 @@ decisions:
 ```yaml spec-verification
 - kind: tagged_tests
   covers:
+    - ancora.derive.tagged_test_attribution
     - ancora.derive.change_set_union
     - ancora.derive.base_reads_batched
     - ancora.derive.memo_is_run_scoped
