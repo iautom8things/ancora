@@ -441,10 +441,11 @@ decisions:
 - id: ancora.tasks.scenario.next_labels
   given:
     - a diff touching one subject's watched function and its spec
+    - no decision changes and no accepted governing decision covers the spec
   when:
     - `mix spec.next` runs
   then:
-    - the output contains the label `ready for check` and exactly one suggested command
+    - the output contains the label `needs decision update` and exactly one suggested command
   covers:
     - ancora.tasks.next_labels_verbatim
 - id: ancora.tasks.scenario.since_precedes_base

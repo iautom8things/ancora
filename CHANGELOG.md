@@ -2,7 +2,9 @@
 
 All notable changes to this project are documented in this file.
 
-## Unreleased
+## 1.2.1 - 2026-09-07
+
+### Fixed
 
 - Align `spec.next` with the gate's source paths and decision rules. Ordinary
   docs and test edits no longer demand new subjects or unnecessary spec edits.

@@ -159,7 +159,7 @@ defmodule Ancora.Next do
   end
 
   defp shell_argument(value) do
-    if Regex.match?(~r/\A[a-zA-Z0-9_\.\/~^@{}:+-]+\z/, value),
+    if Regex.match?(~r/\A[a-zA-Z0-9_\.\/@:+-]+\z/, value),
       do: value,
       else: "'" <> String.replace(value, "'", "'\\''") <> "'"
   end

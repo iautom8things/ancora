@@ -6,6 +6,23 @@ defmodule Ancora.NextTest do
   alias Ancora.Next
 
   @tag spec: "ancora.tasks.next_labels_verbatim"
+  test "suggested commands preserve literal workspace arguments through the shell" do
+    for workspace <- ["~root", "contracts{1..3}", "contracts' archive"] do
+      check = Next.check_command("HEAD", spec_dir: workspace)
+      next = Next.next_command(spec_dir: workspace)
+
+      for {command, expected} <- [
+            {check, ["spec.check", "--base", "HEAD", "--spec-dir", workspace]},
+            {next, ["spec.next", "--spec-dir", workspace]}
+          ] do
+        script = "mix() { printf '%s\\n' \"$@\"; }; " <> command
+        assert {output, 0} = System.cmd("bash", ["-c", script])
+        assert String.split(output, "\n", trim: true) == expected
+      end
+    end
+  end
+
+  @tag spec: "ancora.tasks.next_labels_verbatim"
   test "prints covered local change and needs subject updates verbatim", %{root: root} do
     create_anchored_project(root)
     commit_all(root, "base")
