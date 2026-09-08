@@ -154,15 +154,15 @@ defmodule Ancora.Derive.Resolver do
     else
       case signature(head) do
         {:ok, name, arities} ->
-          Enum.reduce(arities, state, fn arity, acc ->
-            dispose_qualified(
-              acc,
-              Keyword.get(options, :to),
-              Keyword.get(options, :as, name),
-              arity,
-              line(meta)
-            )
-          end)
+          state = walk_terms(head_expressions(head), state)
+
+          dispose_qualified(
+            state,
+            Keyword.get(options, :to),
+            Keyword.get(options, :as, name),
+            Enum.max(arities),
+            line(meta)
+          )
 
         :error ->
           state

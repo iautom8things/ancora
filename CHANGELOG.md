@@ -26,6 +26,12 @@ All notable changes to this project are documented in this file.
 - Support exact, reasoned infrastructure exceptions for uncovered files at info.
   Assess deleted files against their base coverage.
 
+### Migration
+
+- Replace directory and glob entries in `meta.surface` with exact file paths
+  before upgrading. Invalid surfaces now fail parsing; archived consumer specs
+  are retained in tests to verify that diagnostic.
+
 ## 1.2.1 - 2026-09-07
 
 ### Fixed

@@ -483,4 +483,50 @@ defmodule Ancora.ConfigTest do
       assert [%{code: "config/invalid_value"}] = Config.load(root).findings
     end
   end
+
+  @tag spec: "ancora.findings.per_subject_overrides"
+  test "specific off and error overrides win in both orders with resolved provenance", %{
+    root: root
+  } do
+    raw = Finding.new(code: "derived/drift", subject: "alpha", requirement: "alpha.value")
+
+    for {broad_severity, narrow_severity} <- [{"error", "off"}, {"off", "error"}],
+        reverse? <- [false, true] do
+      broad = %{
+        "subject" => "alpha",
+        "code" => "derived/drift",
+        "severity" => broad_severity,
+        "reason" => "subject policy"
+      }
+
+      narrow = Map.merge(broad, %{"requirement" => "alpha.value", "severity" => narrow_severity})
+      entries = if reverse?, do: [narrow, broad], else: [broad, narrow]
+      write_config(root, Jason.encode!(%{"overrides" => entries}))
+      result = Severity.resolve_all([raw], config: Config.load(root))
+
+      if narrow_severity == "off",
+        do: assert(result == []),
+        else: assert([%{severity: :error, severity_source: :config}] = result)
+    end
+
+    broad = %{
+      "subject" => "alpha",
+      "code" => "derived/drift",
+      "severity" => "warning",
+      "reason" => "fallback"
+    }
+
+    narrow = Map.merge(broad, %{"requirement" => "alpha.value", "severity" => "off"})
+
+    write_config(
+      root,
+      Jason.encode!(%{"overrides" => [narrow, broad, Map.put(narrow, "severity", "error")]})
+    )
+
+    config = Config.load(root)
+    assert [%{code: "config/invalid_value"}] = config.findings
+
+    assert [%{severity: :warning, severity_source: :config}] =
+             Severity.resolve_all([raw], config: config)
+  end
 end

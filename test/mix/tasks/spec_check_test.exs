@@ -538,17 +538,17 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert result.status == 0
 
     assert result.stdout =~
-             "branch base=HEAD changed_files=0 findings=3 (total error=0 warning=0 info=3 hidden: default=2 trailer=0 ack=0 config=1)"
+             "branch base=HEAD changed_files=0 findings=2 (total error=0 warning=0 info=2 hidden: default=1 trailer=0 ack=0 config=1)"
 
     assert result.stdout =~
-             "branch next=3 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
+             "branch next=2 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
 
     json_result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD", "--json"])
     assert json_result.status == 0
     report = last_parseable_json(json_result.stdout)
 
     assert report["branch"]["hidden"] == %{
-             "default" => 2,
+             "default" => 1,
              "trailer" => 0,
              "ack" => 0,
              "config" => 1
@@ -577,7 +577,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
     assert result.stdout =~ "change/uncovered_file"
 
     assert result.stdout =~
-             "branch next=3 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
+             "branch next=2 info findings hidden; run with --verbose to list them or --explain-acks to list config and acknowledgment sources"
   end
 
   @tag spec: "ancora.tasks.check_flags"

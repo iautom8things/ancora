@@ -447,4 +447,49 @@ defmodule Ancora.Derive.CompareTest do
     refute Ancora.ExactPath.valid?("lib//billing.ex")
     refute Ancora.ExactPath.valid?("lib/")
   end
+
+  @tag spec: "ancora.derive.tagged_test_attribution"
+  test "inserting or moving a carrier cannot turn uncertainty into proven shrink" do
+    binding = {Billing, :next, 1}
+    scope = [defmodule: "BillingTest"]
+
+    origin = %{
+      binding: binding,
+      test_file: "test/old_test.exs",
+      carrier: {scope, 0},
+      test_name: "works"
+    }
+
+    base = %{bindings: MapSet.new([binding]), provenance: [origin]}
+
+    moved = %{
+      file: "test/moved_test.exs",
+      test_file: "test/moved_test.exs",
+      carrier: {scope, 1},
+      test_name: "works"
+    }
+
+    opts = [
+      locator: %ModuleLocator{},
+      change_set: %ChangeSet{},
+      parsed_sources: %{base: %{}, head: %{}}
+    ]
+
+    head = %{bindings: MapSet.new(), carriers: [moved], unresolved: [moved]}
+    assert Compare.compare("billing", base, head, opts) == []
+
+    unrelated = %{moved | carrier: {scope, 2}, test_name: "unrelated"}
+    head = %{head | carriers: [moved, unrelated], unresolved: [unrelated]}
+    assert [%{code: "derived/shrink"}] = Compare.compare("billing", base, head, opts)
+
+    broken = %{bindings: MapSet.new(), carriers: [], unresolved: [], incomplete: true}
+    assert Compare.compare("billing", base, broken, opts) == []
+
+    assert [%{code: "derived/shrink"}] =
+             Compare.compare("billing", base, %{broken | incomplete: false}, opts)
+
+    renamed = %{moved | test_name: "renamed"}
+    head = %{head | carriers: [renamed], unresolved: [renamed]}
+    assert Compare.compare("billing", base, head, opts) == []
+  end
 end

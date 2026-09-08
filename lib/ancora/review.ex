@@ -4,11 +4,7 @@ defmodule Ancora.Review do
   alias Ancora.Config
   alias Ancora.Severity
   alias Ancora.BaseView
-  alias Ancora.Derive
   alias Ancora.Derive.ChangeSet
-  alias Ancora.Derive.DefIndex
-  alias Ancora.Derive.Membership
-  alias Ancora.Derive.ModuleLocator
   alias Ancora.Derive.RunContext
   alias Ancora.Finding
   alias Ancora.Gate
@@ -19,8 +15,6 @@ defmodule Ancora.Review do
   alias Ancora.Review.FileDiff
   alias Ancora.Review.FindingsDelta
   alias Ancora.Review.SpecDiff
-  alias Ancora.SubjectFiles
-  alias Ancora.TagScanner
 
   @diff_families ~w(derived change append)
   @drift_codes ["derived/drift", "derived/drift_transitive"]
@@ -71,7 +65,7 @@ defmodule Ancora.Review do
          checked: %{subjects: 0, requirements: 0, errors: 0, warnings: 0}
        }}
     else
-      Gate.check(preflight.root, opts)
+      Gate.check(preflight.root, Keyword.put(opts, :review_data, true))
     end
   end
 
@@ -84,9 +78,19 @@ defmodule Ancora.Review do
     all_findings = gate_report.all_findings
     diff_findings = Enum.filter(all_findings, &diff_scoped?/1)
 
-    base_raw = FindingsDelta.repo_findings(base_index)
-    head_raw = FindingsDelta.repo_findings(head_index)
-    base_config = Config.load(base_root, spec_dir: preflight.spec_dir)
+    data =
+      Map.get(gate_report, :review_data, %{
+        sets: %{},
+        tags: %{},
+        footprints: %{},
+        base_raw: [],
+        head_raw: [],
+        base_config: Config.load(base_root, spec_dir: preflight.spec_dir)
+      })
+
+    base_raw = data.base_raw
+    head_raw = data.head_raw
+    base_config = data.base_config
     base_resolved = Severity.resolve_all(base_raw, config: base_config)
     head_resolved = Enum.reject(all_findings, &diff_scoped?/1)
 
@@ -96,12 +100,9 @@ defmodule Ancora.Review do
         head_presence: head_raw
       )
 
-    {carriers, scope} = tagged_test_carriers(preflight, head_index)
-
-    tags =
-      Map.new(carriers, fn {id, entries} -> {id, Enum.map(entries, & &1.file) |> Enum.uniq()} end)
-
-    {subject_sets, footprints} = derive_subjects(preflight, change_set, tags, carriers, scope)
+    tags = data.tags
+    subject_sets = data.sets
+    footprints = data.footprints
     file_owners = file_owners(footprints)
 
     subjects =
@@ -300,46 +301,6 @@ defmodule Ancora.Review do
     |> Enum.uniq_by(& &1.binding)
   end
 
-  defp derive_subjects(preflight, change_set, tags, carriers, scope) do
-    with {:ok, locator} <- ModuleLocator.build(preflight.project, change_set),
-         {:ok, indexes} <- definition_indexes(preflight.root, locator),
-         membership = %Membership{head: ModuleLocator.modules(locator, :head)},
-         {:ok, context} <- Derive.context({:ok, membership}, :head, indexes),
-         {:ok, sets} <-
-           Derive.run(tags,
-             side: :head,
-             context: context,
-             sources: &File.read(Path.join(preflight.root, &1)),
-             carriers: carriers,
-             scope: scope
-           ) do
-      {sets, SubjectFiles.build(sets, locator)}
-    else
-      _error -> {%{}, %{}}
-    end
-  end
-
-  defp definition_indexes(root, locator) do
-    locator.head
-    |> Map.values()
-    |> Enum.uniq()
-    |> Enum.reduce_while({:ok, %{}}, fn path, {:ok, indexes} ->
-      with {:ok, source} <- File.read(Path.join(root, path)),
-           {:ok, index} <- DefIndex.build(source, path) do
-        {:cont, {:ok, Map.put(indexes, path, index)}}
-      else
-        {:error, reason} -> {:halt, {:error, reason}}
-      end
-    end)
-    |> case do
-      {:ok, by_path} ->
-        {:ok, Map.new(locator.head, fn {module, path} -> {module, Map.fetch!(by_path, path)} end)}
-
-      {:error, _reason} = error ->
-        error
-    end
-  end
-
   defp file_owners(footprints) do
     footprints
     |> Enum.sort_by(&elem(&1, 0))
@@ -397,36 +358,13 @@ defmodule Ancora.Review do
 
   defp binding_delta(findings, code) do
     findings
-    |> Enum.filter(&(&1.code == code))
+    |> Enum.filter(&(&1.code in [code, code <> "_transitive"]))
     |> Enum.flat_map(fn finding ->
       Regex.scan(~r/[A-Z][A-Za-z0-9_.]*\.[a-zA-Z_!?][a-zA-Z0-9_!?]*\/\d+/, finding.message || "")
       |> List.flatten()
     end)
     |> Enum.uniq()
     |> Enum.sort()
-  end
-
-  defp tagged_test_carriers(preflight, index) do
-    case Derive.scan_tests(preflight.root, preflight.config.test_paths) do
-      {:ok, tag_map, _errors, _dynamic, scope} ->
-        carriers =
-          tag_map
-          |> TagScanner.fold_to_subjects(index)
-          |> Map.new(fn {id, entries} ->
-            entries =
-              Enum.map(
-                entries,
-                &Map.update!(&1, :file, fn file -> Path.relative_to(file, preflight.root) end)
-              )
-
-            {id, entries}
-          end)
-
-        {carriers, scope}
-
-      _ ->
-        {%{}, Ancora.Derive.TestScope.build(%{})}
-    end
   end
 
   defp decisions(index, changed_files) do

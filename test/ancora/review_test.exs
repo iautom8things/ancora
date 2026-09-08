@@ -257,6 +257,22 @@ defmodule Ancora.ReviewTest do
 
     assert test_changes =~ "Added bindings"
     assert test_changes =~ "Billing.void/2"
+
+    spec_path = Path.join(root, ".spec/specs/billing.spec.md")
+
+    File.write!(
+      spec_path,
+      String.replace(
+        File.read!(spec_path),
+        "summary: Billing behavior.",
+        "summary: Billing behavior.\nsurface: [lib/owned.ex]"
+      )
+    )
+
+    assert {:ok, transitive} = Review.build(root, base: "HEAD")
+    assert [subject] = transitive.subjects
+    assert subject.code.added_bindings == ["Billing.void/2"]
+    assert Enum.any?(subject.findings, &(&1.code == "derived/growth_transitive"))
   end
 
   @tag spec: "ancora.review.code_pivot_grouping"
@@ -674,5 +690,43 @@ defmodule Ancora.ReviewTest do
            )
 
     assert Html.render(built) |> IO.iodata_to_binary() =~ "Policy changes"
+  end
+
+  @tag spec: "ancora.review.findings_delta_without_store"
+  test "existing untagged requirements stay pre-existing and expose policy changes", %{root: root} do
+    write_project(root)
+    path = Path.join(root, "test/billing_test.exs")
+    source = File.read!(path) |> String.replace("@tag spec: \"billing.next\"", "")
+    File.write!(path, source)
+    commit_all(root, "base missing tag")
+    write_config(root, "severities:\n  tags/requirement_untagged: info\n")
+    assert {:ok, built} = Review.build(root, base: "HEAD")
+    assert Enum.any?(built.findings_delta.pre_existing, &(&1.code == "tags/requirement_untagged"))
+    refute Enum.any?(built.findings_delta.introduced, &(&1.code == "tags/requirement_untagged"))
+
+    assert Enum.any?(
+             built.findings_delta.policy_changes,
+             &(&1.finding.code == "tags/requirement_untagged")
+           )
+  end
+
+  @tag spec: "ancora.review.findings_delta_without_store"
+  test "base tag findings use the base configured test paths", %{root: root} do
+    write_project(root)
+    File.rename!(Path.join(root, "test"), Path.join(root, "legacy_tests"))
+    write_config(root, "test_paths: [legacy_tests]\n")
+    commit_all(root, "legacy test path")
+    File.rename!(Path.join(root, "legacy_tests"), Path.join(root, "test"))
+    write_config(root, "test_paths: [test]\n")
+    assert {:ok, built} = Review.build(root, base: "HEAD")
+
+    findings =
+      built.findings_delta.introduced ++
+        built.findings_delta.resolved ++ built.findings_delta.pre_existing
+
+    refute Enum.any?(
+             findings,
+             &(&1.code in ["tags/requirement_untagged", "derived/growth", "derived/shrink"])
+           )
   end
 end

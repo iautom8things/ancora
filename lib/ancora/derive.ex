@@ -127,6 +127,8 @@ defmodule Ancora.Derive do
              generated: generated,
              dep_generated: dep_generated,
              unresolved: unresolved,
+             incomplete: map_size(scope.errors) > 0,
+             carriers: Map.get(carriers, id, []),
              provenance: results |> Enum.flat_map(& &1.provenance) |> Enum.uniq(),
              findings: results |> Enum.flat_map(& &1.findings) |> Enum.uniq(),
              test_files: files
@@ -137,6 +139,8 @@ defmodule Ancora.Derive do
     end
   rescue
     exception -> {:error, {:resolver_exception, "tagged tests", Exception.message(exception)}}
+  catch
+    kind, reason -> {:error, {:resolver_throw, "tagged tests", kind, reason}}
   end
 
   @doc false
@@ -146,8 +150,16 @@ defmodule Ancora.Derive do
       parsed = Map.new(scope.parsed, fn {file, ast} -> {Path.join(root, file), ast} end)
 
       case Ancora.TagScanner.scan(Enum.map(paths, &Path.join(root, &1)), parsed_sources: parsed) do
-        {:ok, tags, errors, dynamics} -> {:ok, tags, errors, dynamics, scope}
-        error -> error
+        {:ok, tags, errors, dynamics} ->
+          support_errors =
+            Enum.map(scope.errors, fn {file, reason} ->
+              %{file: Path.join(root, file), reason: reason}
+            end)
+
+          {:ok, tags, Enum.uniq_by(errors ++ support_errors, & &1.file), dynamics, scope}
+
+        error ->
+          error
       end
     end
   end

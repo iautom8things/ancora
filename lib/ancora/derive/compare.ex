@@ -84,20 +84,28 @@ defmodule Ancora.Derive.Compare do
 
   defp set_findings(subject_id, base, head, locator, opts) do
     growth = MapSet.difference(comparable_bindings(head), comparable_bindings(base))
-    shrink = MapSet.difference(comparable_bindings(base), comparable_bindings(head))
 
-    uncertain =
-      MapSet.new(
-        Map.get(head, :unresolved, []),
-        &{Map.get(&1, :test_file, &1.file), Map.get(&1, :carrier)}
-      )
+    shrink =
+      if Map.get(head, :incomplete, false),
+        do: MapSet.new(),
+        else: MapSet.difference(comparable_bindings(base), comparable_bindings(head))
+
+    unresolved = Map.get(head, :unresolved, [])
+    head_carriers = Map.get(head, :carriers, [])
 
     shrink =
       Enum.reject(shrink, fn binding ->
         origins = Enum.filter(Map.get(base, :provenance, []), &(&1.binding == binding))
 
-        origins != [] and
-          Enum.all?(origins, &MapSet.member?(uncertain, {&1.test_file, &1.carrier}))
+        Enum.any?(origins, fn origin ->
+          matching = Enum.filter(head_carriers, &(carrier_key(&1) == carrier_key(origin)))
+
+          cond do
+            matching != [] -> Enum.any?(unresolved, &(carrier_key(&1) == carrier_key(origin)))
+            head_carriers != [] -> unresolved != []
+            true -> Enum.any?(unresolved, &(carrier_key(&1) == carrier_key(origin)))
+          end
+        end)
       end)
       |> MapSet.new()
 
@@ -110,6 +118,13 @@ defmodule Ancora.Derive.Compare do
     |> maybe_set_finding("derived/growth_transitive", subject_id, growth_transitive)
     |> maybe_set_finding("derived/shrink_transitive", subject_id, shrink_transitive)
     |> Enum.reverse()
+  end
+
+  defp carrier_key(entry) do
+    case {Map.get(entry, :test_name), Map.get(entry, :carrier)} do
+      {name, {scope, _ordinal}} when is_binary(name) -> {scope, name}
+      _ -> {Map.get(entry, :test_file, Map.get(entry, :file)), Map.get(entry, :carrier)}
+    end
   end
 
   defp comparable_bindings(subject_set) do

@@ -174,8 +174,9 @@ decisions:
 - id: ancora.parsing.consumer_corpora_parse
   statement: >-
     One real spec file from each consuming repo (Atlas, Engage, Builder,
-    Argos), taken as a fixture, shall parse with no finding other than
-    `format/retired_construct`.
+    Argos), retained as an unmodified archive, shall disclose retired constructs.
+    Archived directory surfaces shall additionally receive `spec/parse_error`
+    under the current exact-file surface contract.
   priority: should
   stability: evolving
 ```

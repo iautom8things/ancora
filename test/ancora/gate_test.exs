@@ -99,6 +99,15 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
+  test "an injected definition-index worker failure retains the environment verdict" do
+    failure =
+      {:worker_failure, :def_index, "lib/sample.ex", RuntimeError.exception("injected failure")}
+
+    assert {:env, message} = Gate.gate_error(failure)
+    assert message == "def_index worker failed for lib/sample.ex: injected failure"
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
   test "preflight rejects a directory outside git", %{root: root} do
     write_project(root)
 

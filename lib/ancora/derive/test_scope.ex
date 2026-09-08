@@ -4,6 +4,7 @@ defmodule Ancora.Derive.TestScope do
   alias Ancora.Derive.DefIndex
   alias Ancora.Derive.Resolver
   alias Ancora.TagScanner
+  alias Ancora.Finding
 
   @definitions [:def, :defp, :defmacro, :defmacrop, :defguard, :defguardp, :defdelegate]
 
@@ -34,8 +35,8 @@ defmodule Ancora.Derive.TestScope do
           {:error, reason} ->
             %{acc | errors: Map.put(acc.errors, file, reason)}
 
-          {:exception, _} ->
-            acc
+          {:exception, exception} ->
+            %{acc | errors: Map.put(acc.errors, file, Exception.message(exception))}
         end
       end
     )
@@ -61,33 +62,66 @@ defmodule Ancora.Derive.TestScope do
 
     initial = %{
       calls: MapSet.new(),
-      unresolved: [],
-      findings: [],
+      unresolved:
+        Enum.map(index.errors, fn {file, _} ->
+          %{
+            file: file,
+            line: 0,
+            kind: :unparseable_source,
+            carrier: entry.carrier,
+            test_file: entry.file,
+            test_name: Map.get(entry, :test_name),
+            test_line: entry.test_line
+          }
+        end),
+      findings:
+        Enum.map(index.errors, fn {file, reason} ->
+          Finding.new(
+            code: "derived/unparseable_source",
+            file: file,
+            message:
+              "cannot parse #{file}: #{inspect(reason)}; fix the source before comparing observations"
+          )
+        end),
       provenance: [],
       visited: MapSet.new(),
       cache: cache
     }
 
-    case Map.fetch(index.tests, key) do
-      {:ok, fragments} ->
-        Enum.reduce(fragments, initial, &visit(&1, index, ctx, entry, [], &2))
+    result =
+      case Map.fetch(index.tests, key) do
+        {:ok, fragments} ->
+          Enum.reduce(fragments, initial, &visit(&1, index, ctx, entry, [], &2))
 
-      :error ->
-        %{
-          initial
-          | unresolved: [
-              %{
-                file: entry.file,
-                line: entry.test_line,
-                kind: :unqualified,
-                name: nil,
-                arity: nil,
-                carrier: entry.carrier,
-                test_file: entry.file
-              }
-            ]
-        }
-    end
+        :error ->
+          %{
+            initial
+            | unresolved: [
+                %{
+                  file: entry.file,
+                  line: entry.test_line,
+                  kind: :unqualified,
+                  name: nil,
+                  arity: nil,
+                  carrier: entry.carrier,
+                  test_file: entry.file
+                }
+              ]
+          }
+      end
+
+    %{
+      result
+      | unresolved:
+          Enum.map(
+            result.unresolved,
+            &Map.merge(&1, %{
+              test_file: entry.file,
+              test_name: Map.get(entry, :test_name),
+              test_line: entry.test_line
+            })
+          )
+    }
   end
 
   defp helper_context(ctx, index) do
@@ -136,7 +170,12 @@ defmodule Ancora.Derive.TestScope do
             acc.unresolved ++
               Enum.map(
                 result.unresolved,
-                &Map.merge(&1, %{carrier: entry.carrier, test_file: entry.file})
+                &Map.merge(&1, %{
+                  carrier: entry.carrier,
+                  test_file: entry.file,
+                  test_name: Map.get(entry, :test_name),
+                  test_line: entry.test_line
+                })
               ),
           findings: acc.findings ++ result.findings
       }
@@ -164,7 +203,12 @@ defmodule Ancora.Derive.TestScope do
               }
             else
               provenance =
-                Map.merge(site, %{carrier: entry.carrier, test_file: entry.file, chain: chain})
+                Map.merge(site, %{
+                  carrier: entry.carrier,
+                  test_file: entry.file,
+                  test_name: Map.get(entry, :test_name),
+                  chain: chain
+                })
 
               %{
                 state
@@ -230,7 +274,16 @@ defmodule Ancora.Derive.TestScope do
     {nodes, _env} =
       Enum.map_reduce(forms, inherited_env, fn
         {kind, _, _} = node, env when kind in [:alias, :import, :require, :use] ->
-          {nil, env ++ [node]}
+          {nil, env ++ [freeze_module(node, module)]}
+
+        {:defmodule, meta, [name, _]} = node, env ->
+          next_env =
+            case module_name_ast(name, module) do
+              nil -> env
+              nested -> env ++ [{:alias, meta, [Module.concat([nested])]}]
+            end
+
+          {{node, env}, next_env}
 
         node, env ->
           {{node, env}, env}
@@ -264,16 +317,36 @@ defmodule Ancora.Derive.TestScope do
         modules(node, module, env, file, state)
 
       {{kind, meta, [head | _] = args}, env}, state when kind in @definitions ->
-        fragment = fragment({kind, meta, args}, module, env, stubs, file, meta, kind)
-
         case signature(head) do
           {name, arities} ->
+            max_arity = Enum.max(arities)
+
             Enum.reduce(arities, state, fn arity, s ->
-              %{
+              ast =
+                if arity == max_arity do
+                  if length(args) == 2, do: {kind, meta, [strip_defaults(head), List.last(args)]}
+                else
+                  defaults = head_defaults(head) |> Enum.take(-(max_arity - arity))
+                  {:__block__, meta, defaults ++ [{name, meta, List.duplicate(nil, max_arity)}]}
+                end
+
+              if is_nil(ast) do
                 s
-                | helpers:
-                    Map.update(s.helpers, {module, name, arity}, [fragment], &(&1 ++ [fragment]))
-              }
+              else
+                fragment = fragment(ast, module, env, stubs, file, meta, kind)
+                fragment = %{fragment | identity: {kind, meta, arity}}
+
+                %{
+                  s
+                  | helpers:
+                      Map.update(
+                        s.helpers,
+                        {module, name, arity},
+                        [fragment],
+                        &(&1 ++ [fragment])
+                      )
+                }
+              end
             end)
 
           nil ->
@@ -286,9 +359,7 @@ defmodule Ancora.Derive.TestScope do
   end
 
   defp fragment(ast, module, env, stubs, file, meta, kind) do
-    module_ast =
-      {:__aliases__, [],
-       [:"Elixir" | Enum.map(String.split(module, "."), &String.to_existing_atom/1)]}
+    module_ast = Module.concat([module])
 
     %{
       ast: {:defmodule, [], [module_ast, [do: {:__block__, [], env ++ stubs ++ [ast]}]]},
@@ -299,6 +370,31 @@ defmodule Ancora.Derive.TestScope do
       kind: kind
     }
   end
+
+  defp freeze_module(ast, module) do
+    Macro.prewalk(ast, fn
+      {:__MODULE__, _, _} -> Module.concat([module])
+      node -> node
+    end)
+  end
+
+  defp strip_defaults(head) do
+    Macro.prewalk(head, fn
+      {:\\, _, [pattern, _default]} -> pattern
+      node -> node
+    end)
+  end
+
+  defp head_defaults({:when, _, [head | _]}), do: head_defaults(head)
+
+  defp head_defaults({_, _, args}) when is_list(args) do
+    Enum.flat_map(args, fn
+      {:\\, _, [_, default]} -> [default]
+      _ -> []
+    end)
+  end
+
+  defp head_defaults(_), do: []
 
   defp callback_body(args, meta) do
     case body(args) do
@@ -338,13 +434,17 @@ defmodule Ancora.Derive.TestScope do
 
   defp module_name_ast({:__aliases__, _, [{:__MODULE__, _, _} | rest]}, parent)
        when is_binary(parent),
-       do: Enum.join([parent | rest], ".")
+       do: join_module([parent | rest])
 
-  defp module_name_ast({:__aliases__, _, [:"Elixir" | rest]}, _parent), do: Enum.join(rest, ".")
-  defp module_name_ast({:__aliases__, _, rest}, nil), do: Enum.join(rest, ".")
-  defp module_name_ast({:__aliases__, _, rest}, parent), do: Enum.join([parent | rest], ".")
+  defp module_name_ast({:__aliases__, _, [:"Elixir" | rest]}, _parent), do: join_module(rest)
+  defp module_name_ast({:__aliases__, _, rest}, nil), do: join_module(rest)
+  defp module_name_ast({:__aliases__, _, rest}, parent), do: join_module([parent | rest])
   defp module_name_ast(name, _) when is_atom(name), do: module_name(name)
   defp module_name_ast(_, _), do: nil
+
+  defp join_module(parts) do
+    if Enum.all?(parts, &(is_atom(&1) or is_binary(&1))), do: Enum.join(parts, ".")
+  end
 
   defp module_name(module) when is_atom(module),
     do: module |> Atom.to_string() |> String.trim_leading("Elixir.")

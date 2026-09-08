@@ -101,9 +101,14 @@ defmodule Ancora.Gate do
     spec_dir = Keyword.get(opts, :spec_dir) || ".spec"
 
     with {:ok, change_set} <- ChangeSet.compute(ctx),
+         {:ok, base_test_paths} <- base_test_paths(ctx, spec_dir),
          {:ok, base_root} <-
            BaseView.materialize(ctx, nil,
-             pathspecs: [spec_dir | preflight.config.test_paths ++ preflight.project.lib_paths]
+             pathspecs:
+               Enum.uniq([
+                 spec_dir
+                 | base_test_paths ++ preflight.config.test_paths ++ preflight.project.lib_paths
+               ])
            ) do
       result =
         try do
@@ -122,6 +127,14 @@ defmodule Ancora.Gate do
     end
   end
 
+  defp base_test_paths(ctx, spec_dir) do
+    path = Path.join(spec_dir, "config.yml")
+
+    with {:ok, files} <- BaseView.blobs(ctx, nil, pathspecs: [path]) do
+      {:ok, Config.parse(Map.get(files, path, ""), path: path).test_paths}
+    end
+  end
+
   defp assemble(ctx, preflight, change_set, base_root, opts) do
     prepare_base_dirs(base_root, preflight.root, Keyword.get(opts, :spec_dir) || ".spec")
     index_opts = index_opts(opts)
@@ -131,7 +144,10 @@ defmodule Ancora.Gate do
          preflight = %{preflight | config: validate_override_subjects(preflight.config, current)},
          {:ok, locator, pipeline_findings} <- build_locator(preflight.project, change_set),
          {:ok, head_tags} <- scan_tags(preflight.root, preflight.config.test_paths, current),
-         {:ok, base_tags} <- scan_tags(base_root, preflight.config.test_paths, prior),
+         base_config =
+           Config.load(base_root, spec_dir: preflight.spec_dir)
+           |> validate_override_subjects(prior),
+         {:ok, base_tags} <- scan_tags(base_root, base_config.test_paths, prior),
          {:ok, head_sets, base_sets} <-
            derive_sets(
              preflight,
@@ -157,11 +173,35 @@ defmodule Ancora.Gate do
                base_root,
                pipeline_findings
              ) do
-        {:ok, report(preflight, change_set, current, head_sets, findings, opts)}
+        result = report(preflight, change_set, current, head_sets, findings, opts)
+
+        result =
+          if Keyword.get(opts, :review_data, false) do
+            Map.put(result, :review_data, %{
+              sets: head_sets,
+              footprints: SubjectFiles.build(head_sets, locator),
+              tags: Map.new(head_sets, fn {id, set} -> {id, set.test_files} end),
+              head_raw: repo_findings(current, head_tags, preflight.config),
+              base_raw: repo_findings(prior, base_tags, base_config),
+              base_config: base_config
+            })
+          else
+            result
+          end
+
+        {:ok, result}
       end
     else
       {:error, _reason} = error -> error
     end
+  end
+
+  defp repo_findings(index, tags, config) do
+    config.findings ++
+      index["findings"] ++
+      Verifier.verify(index) ++
+      Overlap.analyze(index["subjects"]) ++
+      TagFindings.findings(index, tags.tag_map, tags.parse_errors, tags.dynamics)
   end
 
   defp all_findings(
@@ -488,7 +528,17 @@ defmodule Ancora.Gate do
     kind = Map.get(entry, :kind, :unqualified)
     file = Map.get(entry, :file, "-")
     line = Map.get(entry, :line, 0)
-    "#{kind} at #{file}:#{line}"
+
+    origin =
+      case Map.get(entry, :test_file) do
+        nil ->
+          ""
+
+        test_file ->
+          " for #{test_file}:#{Map.get(entry, :test_line, 0)} #{Map.get(entry, :test_name) || "tagged test"}"
+      end
+
+    "#{kind} at #{file}:#{line}#{origin}"
   end
 
   defp acknowledged?(subject_id, current, prior, head_root, base_root) do

@@ -119,6 +119,105 @@ defmodule Ancora.Derive.TestScopeTest do
     assert sets["beta"].unresolved == []
   end
 
+  @tag spec: "ancora.derive.tagged_test_attribution"
+  test "explicit helper arguments skip defaults, including separate declarations and delegates",
+       %{root: root} do
+    for definition <- [
+          ~S"defp helper(x \\ Alpha.value()), do: Beta.value()",
+          ~S"defp helper(x \\ Alpha.value()); defp helper(x), do: Beta.value()",
+          ~S"defdelegate helper(x \\ Alpha.value()), to: Helpers"
+        ] do
+      source = """
+      defmodule ScopedTest do
+        @tag spec: "alpha.value"
+        test "default", do: helper()
+        @tag spec: "beta.value"
+        test "explicit", do: helper(:explicit)
+        #{definition}
+        defp unused(x \\\\ Unused.call()), do: x
+      end
+      """
+
+      sets =
+        derive(root, source, %{
+          "test/support/helpers.ex" => "defmodule Helpers do def helper(_), do: Beta.value() end"
+        })
+
+      assert sets["alpha"].bindings == MapSet.new([{Alpha, :value, 0}, {Beta, :value, 0}])
+      assert sets["beta"].bindings == MapSet.new([{Beta, :value, 0}])
+      assert sets["alpha"].unresolved == []
+      assert sets["beta"].unresolved == []
+    end
+  end
+
+  @tag spec: "ancora.derive.tagged_test_attribution"
+  test "nested helper aliases and inherited __MODULE__ aliases retain their definition scope", %{
+    root: root
+  } do
+    source = """
+    defmodule ScopedTest do
+      defmodule Helpers do
+        def call, do: Alpha.value()
+      end
+      @tag spec: "alpha.value"
+      test "outer", do: Helpers.call()
+      alias __MODULE__.Helpers
+      defmodule ChildTest do
+        @tag spec: "beta.value"
+        test "inner", do: Helpers.call()
+      end
+    end
+    """
+
+    sets = derive(root, source)
+    assert sets["alpha"].bindings == MapSet.new([{Alpha, :value, 0}])
+    assert sets["beta"].bindings == MapSet.new([{Alpha, :value, 0}])
+    assert sets["beta"].unresolved == []
+  end
+
+  @tag spec: "ancora.derive.tagged_test_attribution"
+  test "literal module atoms do not require separately interned alias segments", %{root: root} do
+    source = """
+    defmodule :"Elixir.AncoraLiteralOnlySegment972" do
+      @tag spec: "alpha.value"
+      test "literal", do: Alpha.value()
+    end
+    """
+
+    assert derive(root, source)["alpha"].bindings == MapSet.new([{Alpha, :value, 0}])
+  end
+
+  @tag spec: "ancora.derive.tagged_test_attribution"
+  test "malformed support source keeps uncertainty visible beside known calls", %{root: root} do
+    source = """
+    defmodule ScopedTest do
+      @tag spec: "alpha.value"
+      test "known and missing" do
+        Alpha.value()
+        BrokenHelper.call()
+      end
+    end
+    """
+
+    sets =
+      derive(root, source, %{"test/support/broken.ex" => "defmodule BrokenHelper do def call("})
+
+    assert sets["alpha"].bindings == MapSet.new([{Alpha, :value, 0}])
+
+    assert [%{code: "derived/unparseable_source", file: "test/support/broken.ex"}] =
+             sets["alpha"].findings
+
+    assert [%{kind: :unparseable_source, test_name: "known and missing"}] =
+             sets["alpha"].unresolved
+  end
+
+  @tag spec: "ancora.derive.tagged_test_attribution"
+  test "support parse failures remain errors even without tagged carriers", %{root: root} do
+    write_files(root, %{"test/support/broken.ex" => "defmodule Broken do def helper("})
+    assert {:ok, %{}, [%{file: file}], [], _scope} = Derive.scan_tests(root, ["test"])
+    assert file == Path.join(root, "test/support/broken.ex")
+  end
+
   defp derive(root, source, support \\ %{}) do
     path = Path.join(root, "test/scoped_test.exs")
     write_files(root, %{"test/scoped_test.exs" => source})
@@ -186,6 +285,6 @@ defmodule Ancora.Derive.TestScopeTest do
     second = Ancora.Derive.TestScope.resolve(entry, scope, ctx, first.cache)
     assert second.calls == first.calls
     assert map_size(second.cache) == map_size(first.cache)
-    assert map_size(first.cache) == 2
+    assert map_size(first.cache) == 3
   end
 end

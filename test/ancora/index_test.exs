@@ -348,7 +348,7 @@ defmodule Ancora.IndexTest do
 
   describe "consumer fixtures" do
     @tag spec: "ancora.parsing.consumer_corpora_parse"
-    test "one fixture from each consumer parses with only format/retired_construct" do
+    test "consumer archives disclose retired constructs and obsolete directory surfaces" do
       fixtures = [
         Path.join(@fixtures, "atlas/cli.spec.md"),
         Path.join(@fixtures, "engage/admin-recommendations.spec.md"),
@@ -362,13 +362,20 @@ defmodule Ancora.IndexTest do
         spec = Parser.parse_file(path, Path.dirname(path))
         codes = spec["findings"] |> Enum.map(& &1.code) |> Enum.uniq()
 
-        assert codes -- ["format/retired_construct"] == [],
+        expected =
+          if String.contains?(path, "/builder/"),
+            do: ["format/retired_construct", "spec/parse_error"],
+            else: ["format/retired_construct"]
+
+        assert Enum.sort(codes) == Enum.sort(expected),
                "#{path} had unexpected findings: #{inspect(spec["findings"])}"
 
         assert "format/retired_construct" in codes,
                "#{path} expected format/retired_construct, got #{inspect(codes)}"
 
-        assert spec["meta"]
+        if String.contains?(path, "/builder/"),
+          do: assert(spec["meta"] == :rejected),
+          else: assert(is_map(spec["meta"]))
       end
     end
   end
