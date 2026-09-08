@@ -11,9 +11,15 @@
     "phase:implementing",
     "slug:preserve-distinct-tagged-tests"
   ],
+  "comments": [
+    {
+      "text": "Implementation is proposed in https://github.com/iautom8things/ancora/pull/7 at d047eff6717e90e68e44f83098196b85fc1d0fba.\n\nTen-perspective critical review completed, with identified fixes and independent final verification. Full-suite checkpoint passed 554 tests and 3 properties. Final changed-file verification and spec gate passed. The real Review parse trace confirmed one parse per test/support source per side.\n\nHistorical Builder replay evidence is saved under /Users/mz/Documents/my-vault/LLMs/investigations/ancora/2026-09-07-agent-adoption-friction/implementation-replay/. After explicit surface migration it retains one real drift error and five uncovered files; it is not a clean consumer deployment claim.\n\nPR is open and CI is running. No merge, Hex publication, consumer upgrade or post-upgrade verification has occurred. Ticket stays in progress for that release follow-through. Canonical Session/Log marker metadata is unavailable in this launcher; this is an ordinary checkpoint comment, not a fabricated protocol signal.",
+      "timestamp": "2026-09-08T02:52:18Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Preserve distinct tagged tests and resolve requirement ownership from the spec index",
   "type": "task",
-  "updated_at": "2026-09-08T01:52:06Z"
+  "updated_at": "2026-09-08T02:52:18Z"
 }
