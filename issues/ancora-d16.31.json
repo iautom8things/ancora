@@ -7,9 +7,15 @@
   "id": "ancora-d16.31",
   "labels": [],
   "parent": "ancora-d16",
+  "comments": [
+    {
+      "text": "Partial resolution merged in [PR #6](https://github.com/iautom8things/ancora/pull/6) as 82c2ca8, version 1.2.1. Ancora.validate/2 now returns an environment error for missing workspaces and failed indexing instead of subscripting an error tuple; a direct public-API regression covers the missing-workspace case. The separate subject-count coverage concern in this ticket was not addressed. Keeping this ticket open; package publication is also pending.",
+      "timestamp": "2026-09-08T01:17:36Z"
+    }
+  ],
   "priority": 3,
   "status": "open",
   "title": "Ancora.validate/2 raises FunctionClauseError when a library caller passes a bad spec_dir",
   "type": "task",
-  "updated_at": "2026-09-04T13:02:04Z"
+  "updated_at": "2026-09-08T01:17:36Z"
 }
