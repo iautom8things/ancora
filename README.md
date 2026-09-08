@@ -27,6 +27,25 @@ mix spec.prime --base HEAD
 Ancora requires Elixir 1.18 or later. The public parse API below will remain
 stable within the 1.x series.
 
+## Everyday use
+
+After setting `default_base` to your remote branch in `.spec/config.yml`, run:
+
+```bash
+mix spec.next
+mix spec.check
+```
+
+These commands include committed feature changes relative to the configured
+branch's merge base. `--base HEAD` compares only the working tree with the
+latest commit. Use it during setup or to inspect uncommitted changes.
+
+For a workspace with another name, pass `--spec-dir contracts` to check,
+validate, status, next, prime, or review. The directory contains `specs/`,
+`decisions/`, and `config.yml`. Gate and review require it inside the project
+so Git can supply its previous contents. Nested Mix projects use their own
+source paths and exclude changes in sibling projects.
+
 ## Public API
 
 Ancora's semver-stable public API has four functions:

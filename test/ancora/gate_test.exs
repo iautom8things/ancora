@@ -30,6 +30,43 @@ defmodule Ancora.GateTest do
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
+  test "an empty base returns an actionable environment error", %{root: root} do
+    create_clean_repo(root)
+    assert {:env, message} = Gate.check(root, base: "")
+    assert message =~ "base must not be empty"
+    assert message =~ "--base HEAD"
+    assert {:ok, report} = Gate.check(root, base: "", json: true)
+    assert report.tier == :env
+    assert report.fail
+    assert report.message == message
+  end
+
+  @tag spec: "ancora.derive.change_set_union"
+  test "a nested Mix project detects drift in its own production file", %{root: root} do
+    init_git_repo(root)
+    project = Path.join(root, "apps/sample")
+    write_anchored_subject(project, "The sample shall return the current value.")
+    commit_all(root, "base")
+
+    write_files(project, %{
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :changed\nend\n"
+    })
+
+    write_files(root, %{"lib/other.ex" => "defmodule Other, do: nil\n"})
+
+    assert {:ok, report} = Gate.check(project, base: "HEAD")
+    assert report.branch.changed_files == 1
+
+    assert Enum.any?(
+             report.all_findings,
+             &(&1.code == "derived/drift" and &1.file == "lib/sample.ex")
+           )
+
+    refute Enum.any?(report.all_findings, &(&1.code == "change/uncovered_file"))
+    assert report.fail
+  end
+
+  @tag spec: "ancora.gate.preflight_hard_fails"
   test "a missing parsed source is classified at the environment tier" do
     assert {:env, message} = Gate.gate_error({:parsed_source_missing, "lib/missing.ex"})
     assert message =~ "parsed source missing"

@@ -159,7 +159,7 @@ decisions:
 - id: ancora.tasks.report_task_flags
   statement: >-
     `mix spec.prime` shall accept `--base`, `--since`, `--root`, and
-    `--spec-dir`; `mix spec.next` shall accept `--base`, `--since`, and
+    `--spec-dir`; `mix spec.next` shall accept `--base`, `--since`, `--spec-dir`, and
     `--verbose`; `mix spec.status` shall accept `--root` and `--spec-dir`;
     `mix spec.review` shall accept `--root`, `--spec-dir`, `--base`, `--output`
     (default `_build/spec_review.html`), and `--open`, with `-r` and `-o`
@@ -167,7 +167,7 @@ decisions:
     and `-f` aliases; `mix spec.decision.new` shall take a `DECISION_ID`
     argument with `--root`, `--title`, and `--force`, with `-r` and `-f`
     aliases. Every task moduledoc shall have an Options section listing each
-    flag, its argument, aliases, and default. For the five tasks that accept
+    flag, its argument, aliases, and default. For the six tasks that accept
     `--spec-dir`, the flag shall select the ancora workspace that contains
     `specs/` and shall default to `.spec`. `--json` shall be a usage error
     on every task but `spec.check`. `--bugfix`, `--run-commands`, and
@@ -182,6 +182,13 @@ decisions:
     siblings), the impacted subjects with their derived-footprint files, and
     exactly one suggested command. When both are supplied, `--since` shall
     take precedence over `--base`.
+    Only changed files under the configured library paths shall count as
+    uncovered source. Ordinary docs and standalone tests shall not demand a
+    new subject. Changes limited to an existing subject's tests may proceed
+    to check without a blanket demand to edit the subject. Governance changes
+    shall request a decision using the gate's rule, including its exception
+    for a referenced accepted ADR. Suggested commands shall preserve the
+    selected workspace and quote shell arguments when required.
   priority: must
   stability: stable
 - id: ancora.tasks.status_derived_report
@@ -206,6 +213,8 @@ decisions:
     exact `Ancora.Output.read_protocol/0` sentence, and shall be the documented
     session-start idiom. Prime shall build the status derivation once and pass
     that report to Next; standalone Next runs shall build their own status.
+    The status and next reports shall use the selected workspace's config,
+    and both commands in the loop shall preserve `--spec-dir` when supplied.
   priority: must
   stability: evolving
 - id: ancora.tasks.mix_bootstrap_posture
@@ -432,10 +441,11 @@ decisions:
 - id: ancora.tasks.scenario.next_labels
   given:
     - a diff touching one subject's watched function and its spec
+    - no decision changes and no accepted governing decision covers the spec
   when:
     - `mix spec.next` runs
   then:
-    - the output contains the label `ready for check` and exactly one suggested command
+    - the output contains the label `needs decision update` and exactly one suggested command
   covers:
     - ancora.tasks.next_labels_verbatim
 - id: ancora.tasks.scenario.since_precedes_base

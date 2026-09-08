@@ -1,13 +1,14 @@
 defmodule Ancora.Init do
   @moduledoc false
 
+  @seed_template "specs/project.core.spec.md"
   @templates [
     {"AGENTS.md.eex", "AGENTS.md", :eex},
     {"agents/SKILL.md", "agents/SKILL.md", :copy},
     {"README.md", "README.md", :copy},
     {"config.yml", "config.yml", :copy},
     {"decisions/README.md", "decisions/README.md", :copy},
-    {"specs/project.core.spec.md", "specs/project.core.spec.md", :copy}
+    {@seed_template, @seed_template, :copy}
   ]
 
   @spec scaffold(Path.t(), keyword()) :: %{directory: Path.t(), files: [map()]}
@@ -15,10 +16,19 @@ defmodule Ancora.Init do
     directory = Path.join(root, ".spec")
     force? = Keyword.get(opts, :force, false)
 
+    seed_replaced? =
+      not File.exists?(Path.join(directory, @seed_template)) and
+        Path.wildcard(Path.join(directory, "specs/**/*.spec.md")) != []
+
     files =
       Enum.map(@templates, fn {source, destination, mode} ->
         path = Path.join(directory, destination)
-        status = install(source, path, mode, force?)
+
+        status =
+          if destination == @seed_template and seed_replaced? and not force?,
+            do: :skipped,
+            else: install(source, path, mode, force?)
+
         %{path: path, status: status}
       end)
 

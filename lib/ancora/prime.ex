@@ -21,8 +21,8 @@ defmodule Ancora.Prime do
             "Loop",
             "* Read only the subjects named by spec.next or the task's Advances field.",
             "* Make the smallest code, test, and current-truth change that agrees.",
-            "* Run mix spec.next after code, docs, or tests change.",
-            "* When ready, run mix spec.check --base #{next.base}.",
+            "* Run #{Next.next_command(opts)} after code, docs, or tests change.",
+            "* When ready, run #{next.command}.",
             Output.read_protocol()
           ]
 

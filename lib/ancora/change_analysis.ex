@@ -31,22 +31,26 @@ defmodule Ancora.ChangeAnalysis do
     |> Enum.map(&Finding.new(code: "change/uncovered_file", file: &1))
   end
 
-  defp under_lib_path?(path, lib_paths) do
+  @doc false
+  def under_lib_path?(path, lib_paths) do
     Enum.any?(lib_paths, fn lib_path ->
       String.starts_with?(path, lib_path <> "/")
     end)
   end
 
-  defp missing_decision_findings(paths, current) do
-    if PolicyFiles.missing_decision?(paths) do
+  @doc false
+  def missing_decision_findings(paths, current) do
+    spec_dir = Map.get(current, "spec_dir", ".spec")
+
+    if PolicyFiles.missing_decision?(paths, spec_dir) do
       paths
-      |> Enum.filter(&PolicyFiles.governance?/1)
+      |> Enum.filter(&PolicyFiles.governance?(&1, spec_dir))
       |> Enum.reject(&governed_subject_spec?(&1, current))
       |> Enum.map(fn path ->
         Finding.new(
           code: "change/missing_decision",
           file: path,
-          message: missing_decision_message(path)
+          message: missing_decision_message(path, spec_dir)
         )
       end)
     else
@@ -54,15 +58,16 @@ defmodule Ancora.ChangeAnalysis do
     end
   end
 
-  defp missing_decision_message(".spec/specs/" <> _rest = path) do
-    "governance file #{path} changed without a decision update; " <>
-      "reference a governing ADR from the spec's decisions: frontmatter with " <>
-      "affects: naming the subject back, or add or update an ADR in the same diff"
-  end
+  defp missing_decision_message(path, spec_dir) do
+    prefix = "governance file #{path} changed without a decision update; "
 
-  defp missing_decision_message(path) do
-    "governance file #{path} changed without a decision update; " <>
-      "add or update an ADR in the same diff"
+    if String.starts_with?(Path.relative_to(path, spec_dir), "specs/") do
+      prefix <>
+        "reference a governing ADR from the spec's decisions: frontmatter with " <>
+        "affects: naming the subject back, or add or update an ADR in the same diff"
+    else
+      prefix <> "add or update an ADR in the same diff"
+    end
   end
 
   defp governed_subject_spec?(path, current) do

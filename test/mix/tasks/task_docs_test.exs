@@ -5,7 +5,7 @@ defmodule Mix.Tasks.Spec.TaskDocsTest do
     Mix.Tasks.Spec.Check => ~w(--base --verbose --debug --root --spec-dir --json --explain-acks),
     Mix.Tasks.Spec.Validate => ~w(--strict --debug --root --spec-dir),
     Mix.Tasks.Spec.Prime => ~w(--base --since --root --spec-dir),
-    Mix.Tasks.Spec.Next => ~w(--base --since --verbose),
+    Mix.Tasks.Spec.Next => ~w(--base --since --verbose --spec-dir),
     Mix.Tasks.Spec.Status => ~w(--root --spec-dir),
     Mix.Tasks.Spec.Review => ~w(--base --output --open --root --spec-dir -o -r),
     Mix.Tasks.Spec.Init => ~w(--root --force -r -f),
@@ -16,6 +16,7 @@ defmodule Mix.Tasks.Spec.TaskDocsTest do
     Mix.Tasks.Spec.Check,
     Mix.Tasks.Spec.Validate,
     Mix.Tasks.Spec.Prime,
+    Mix.Tasks.Spec.Next,
     Mix.Tasks.Spec.Status,
     Mix.Tasks.Spec.Review
   ]

@@ -90,6 +90,7 @@ defmodule Ancora.Config do
   Options:
 
     * `:path` — override the config file path
+    * `:spec_dir` — select the workspace containing config.yml, defaults to .spec
     * `:known_subjects` — enumerable of subject ids; when given, an
       override naming a subject not in the set fires `config/invalid_value`
       and is ignored. When omitted, subject existence is not checked
@@ -100,7 +101,7 @@ defmodule Ancora.Config do
   """
   @spec load(String.t(), keyword()) :: t()
   def load(root, opts \\ []) when is_binary(root) do
-    path = opts[:path] || Path.join(root, @config_file)
+    path = opts[:path] || Path.join([root, opts[:spec_dir] || ".spec", "config.yml"])
     known_subjects = opts[:known_subjects]
     known_requirements = opts[:known_requirements]
 

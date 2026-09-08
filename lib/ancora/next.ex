@@ -7,6 +7,7 @@ defmodule Ancora.Next do
   """
 
   alias Ancora.Derive.ChangeSet
+  alias Ancora.ChangeAnalysis
   alias Ancora.Derive.RunContext
   alias Ancora.Gate.Preflight
   alias Ancora.PolicyFiles
@@ -18,10 +19,10 @@ defmodule Ancora.Next do
     {status, opts} = Keyword.pop(opts, :status)
     base = Keyword.get(opts, :since) || Keyword.get(opts, :base)
 
-    with {:ok, preflight} <- Preflight.run(root, base: base),
+    with {:ok, preflight} <- Preflight.run(root, Keyword.put(opts, :base, base)),
          {:ok, change_set} <- change_set(preflight.root, preflight.base),
          {:ok, status} <- status(root, opts, status) do
-      {:ok, report(preflight.base, change_set, status.subjects, opts)}
+      {:ok, report(preflight, change_set, status, opts)}
     end
   end
 
@@ -38,21 +39,33 @@ defmodule Ancora.Next do
     end
   end
 
-  defp report(base, change_set, subjects, opts) do
+  defp report(preflight, change_set, status, opts) do
+    base = preflight.base
+    subjects = status.subjects
+    lib_paths = preflight.project.lib_paths
     changed_files = ChangeSet.paths(change_set)
-    policy_files = Enum.filter(changed_files, &PolicyFiles.policy_target?/1)
+
+    policy_files =
+      Enum.filter(changed_files, fn path ->
+        PolicyFiles.policy_target?(path) or ChangeAnalysis.under_lib_path?(path, lib_paths) or
+          PolicyFiles.governance?(path, preflight.spec_dir) or
+          PolicyFiles.decision_file?(path, preflight.spec_dir)
+      end)
+
     changed_subject_ids = changed_subject_ids(subjects, changed_files)
-    impacted = impacted_subjects(subjects, policy_files, changed_subject_ids)
-    uncovered = uncovered_policy_files(policy_files, impacted)
+    impacted = impacted_subjects(subjects, changed_files, changed_subject_ids)
+    uncovered = uncovered_source_files(changed_files, subjects, lib_paths)
     classification = classification(impacted, uncovered)
+    index = Map.get(status, :index, %{"subjects" => [], "decisions" => []})
+    decision_needed? = ChangeAnalysis.missing_decision_findings(changed_files, index) != []
 
     reconciliation =
       reconciliation(
         classification,
         impacted,
         changed_subject_ids,
-        policy_files,
-        changed_files
+        Enum.filter(changed_files, &ChangeAnalysis.under_lib_path?(&1, lib_paths)),
+        decision_needed?
       )
 
     lines =
@@ -65,7 +78,7 @@ defmodule Ancora.Next do
         verbose_lines(Keyword.get(opts, :verbose, false), changed_files, policy_files) ++
         impacted_lines(impacted) ++
         uncovered_lines(uncovered) ++
-        ["commands:", "- mix spec.check --base #{base}"]
+        ["commands:", "- #{check_command(base, opts)}"]
 
     %{
       lines: lines,
@@ -74,7 +87,8 @@ defmodule Ancora.Next do
       policy_files: policy_files,
       classification: classification,
       reconciliation: reconciliation,
-      impacted_subjects: impacted
+      impacted_subjects: impacted,
+      command: check_command(base, opts)
     }
   end
 
@@ -96,13 +110,12 @@ defmodule Ancora.Next do
     end)
   end
 
-  defp uncovered_policy_files(policy_files, impacted) do
-    covered = impacted |> Enum.flat_map(& &1.footprint) |> MapSet.new()
+  defp uncovered_source_files(changed_files, subjects, lib_paths) do
+    covered = subjects |> Enum.flat_map(& &1.footprint) |> MapSet.new()
 
-    Enum.reject(policy_files, fn path ->
-      PolicyFiles.governance?(path) or PolicyFiles.decision_file?(path) or
-        MapSet.member?(covered, path)
-    end)
+    changed_files
+    |> Enum.filter(&ChangeAnalysis.under_lib_path?(&1, lib_paths))
+    |> Enum.reject(&MapSet.member?(covered, &1))
   end
 
   defp classification(_impacted, [_ | _]), do: "uncovered frontier change"
@@ -113,21 +126,42 @@ defmodule Ancora.Next do
   defp reconciliation("uncovered frontier change", _impacted, _changed, _policy, _files),
     do: "needs new subject"
 
-  defp reconciliation("likely non-contract change", _impacted, _changed, _policy, _files),
+  defp reconciliation(_classification, _impacted, _changed, _source_files, true),
+    do: "needs decision update"
+
+  defp reconciliation("likely non-contract change", _impacted, _changed, _policy, false),
     do: "no contract update needed"
 
-  defp reconciliation(_classification, impacted, changed, policy_files, changed_files) do
-    subjects_updated? =
-      impacted != [] and Enum.all?(impacted, &MapSet.member?(changed, &1.id))
+  defp reconciliation(_classification, impacted, changed, source_files, false) do
+    needs_update? =
+      Enum.any?(impacted, fn subject ->
+        not MapSet.member?(changed, subject.id) and
+          Enum.any?(subject.footprint, &(&1 in source_files))
+      end)
 
-    decision_needed? = length(policy_files) > 1 and length(impacted) > 1
-    decision_changed? = Enum.any?(changed_files, &PolicyFiles.decision_file?/1)
+    if needs_update?, do: "needs subject updates", else: "ready for check"
+  end
 
-    cond do
-      not subjects_updated? -> "needs subject updates"
-      decision_needed? and not decision_changed? -> "needs decision update"
-      true -> "ready for check"
-    end
+  @doc false
+  def check_command(base, opts) do
+    args = ["mix", "spec.check", "--base", shell_argument(base)]
+    workspace_command(args, opts)
+  end
+
+  @doc false
+  def next_command(opts), do: workspace_command(["mix", "spec.next"], opts)
+
+  defp workspace_command(args, opts) do
+    args =
+      if opts[:spec_dir], do: args ++ ["--spec-dir", shell_argument(opts[:spec_dir])], else: args
+
+    Enum.join(args, " ")
+  end
+
+  defp shell_argument(value) do
+    if Regex.match?(~r/\A[a-zA-Z0-9_\.\/@:+-]+\z/, value),
+      do: value,
+      else: "'" <> String.replace(value, "'", "'\\''") <> "'"
   end
 
   defp verbose_lines(false, _changed_files, _policy_files), do: []

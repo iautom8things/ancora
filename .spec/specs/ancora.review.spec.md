@@ -50,6 +50,12 @@ decisions:
     acknowledged cards. The builder shall pass its already-parsed base and HEAD subjects to
     `Ancora.Review.SpecDiff.compute/2`; no root-reading `compute/3` entry point
     shall exist.
+    The selected workspace shall use the same normalized path and config as
+    the gate. Diffs for nested Mix projects shall use project-relative file
+    paths. Diff generation shall disable external diff drivers and textconv
+    commands so reviewing a project does not run its configured programs.
+    File diffs shall preserve complete tracked and untracked path identities,
+    including whitespace, Unicode, quotes, backslashes, and control characters.
   priority: must
   stability: evolving
 - id: ancora.review.code_pivot_grouping

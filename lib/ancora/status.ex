@@ -32,6 +32,7 @@ defmodule Ancora.Status do
          requirement_ids = requirement_ids(index),
          config =
            Config.load(root,
+             spec_dir: spec_dir,
              known_subjects: subject_ids,
              known_requirements: requirement_ids
            ),
@@ -39,7 +40,7 @@ defmodule Ancora.Status do
          {:ok, locator} <- ModuleLocator.build(project, %ChangeSet{}),
          {:ok, subject_sets} <- derive_subject_sets(root, config, locator, subject_ids) do
       subjects = subject_rows(index, config, locator, subject_sets)
-      {:ok, report(index, subjects)}
+      {:ok, Map.put(report(index, subjects), :index, index)}
     else
       {:env, message} -> {:env, message}
       {:error, reason} -> {:env, "could not derive status: #{inspect(reason)}"}
@@ -208,7 +209,6 @@ defmodule Ancora.Status do
     end)
   end
 
-  defp project_opts(%Config{lib_paths: nil}), do: []
   defp project_opts(%Config{lib_paths: paths}), do: [lib_paths: paths]
 
   defp index_opts(opts) do
@@ -218,12 +218,7 @@ defmodule Ancora.Status do
     end
   end
 
-  defp spec_dir(root, opts) do
-    case Keyword.fetch(opts, :spec_dir) do
-      {:ok, spec_dir} -> {:ok, spec_dir}
-      :error -> Index.detect_spec_dir(root)
-    end
-  end
+  defp spec_dir(root, opts), do: Index.resolve_spec_dir(root, opts)
 
   defp build_index(root, opts) do
     case Index.build(root, opts) do

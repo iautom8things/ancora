@@ -29,6 +29,24 @@ defmodule Mix.Tasks.Spec.InitTest do
   end
 
   @tag spec: "ancora.scaffold.init_writes_templates"
+  test "rerunning init does not restore the seed after a project replaces it", %{root: root} do
+    capture_io(fn -> Mix.Tasks.Spec.Init.run(["--root", root]) end)
+    seed = Path.join([root, ".spec", "specs", "project.core.spec.md"])
+    renamed = Path.join([root, ".spec", "specs", "sample.core.spec.md"])
+    File.rename!(seed, renamed)
+    content = File.read!(renamed)
+
+    output = capture_io(fn -> Mix.Tasks.Spec.Init.run(["--root", root]) end)
+    refute File.exists?(seed)
+    assert File.read!(renamed) == content
+    assert output =~ "skipped #{seed}"
+
+    capture_io(fn -> Mix.Tasks.Spec.Init.run(["--root", root, "--force"]) end)
+    assert File.regular?(seed)
+    assert File.read!(renamed) == content
+  end
+
+  @tag spec: "ancora.scaffold.init_writes_templates"
   test "keeps an edited file unless force is set", %{root: root} do
     capture_io(fn -> Mix.Tasks.Spec.Init.run(["--root", root]) end)
     agents_path = Path.join([root, ".spec", "AGENTS.md"])

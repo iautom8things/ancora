@@ -100,7 +100,17 @@ defmodule Ancora.DecisionParser do
   defp decode_meta(decision, raw) do
     case decode_yaml(raw) do
       {:ok, meta} when is_map(meta) ->
-        Map.put(decision, "meta", meta)
+        decision = Map.put(decision, "meta", meta)
+        id = Map.get(meta, "id")
+
+        if is_binary(id) and String.trim(id) != "" do
+          decision
+        else
+          push_parse_error(
+            decision,
+            "decision id must be a non-empty string; quote numeric or boolean-looking ids in YAML"
+          )
+        end
 
       {:ok, _invalid_shape} ->
         push_parse_error(decision, "decision frontmatter must decode to a mapping")

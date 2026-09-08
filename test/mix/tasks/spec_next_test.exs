@@ -20,14 +20,30 @@ defmodule Mix.Tasks.Spec.NextTest do
     result = run_mix_subprocess(["run", "-e", script])
 
     assert result.status == 0, result.stdout <> result.stderr
-    assert result.stdout =~ "classification=uncovered frontier change"
-    assert result.stdout =~ "reconciliation=needs new subject"
+    assert result.stdout =~ "classification=likely non-contract change"
+    assert result.stdout =~ "reconciliation=no contract update needed"
     assert result.stdout =~ "changed_files:\n- README.md"
 
     assert Enum.count(output_lines(result.stdout), &String.starts_with?(&1, "- mix spec.check")) ==
              1
 
     refute result.stdout =~ "result="
+  end
+
+  @tag spec: "ancora.tasks.report_task_flags"
+  test "next accepts a custom workspace and preserves it in its suggested command", %{root: root} do
+    create_fixture(root)
+    File.rename!(Path.join(root, ".spec"), Path.join(root, "contracts folder"))
+
+    script = """
+    File.cd!(#{inspect(root)}, fn ->
+      Mix.Tasks.Spec.Next.run(["--base", "HEAD", "--spec-dir", "contracts folder"])
+    end)
+    """
+
+    result = run_mix_subprocess(["run", "-e", script])
+    assert result.status == 0, result.stdout <> result.stderr
+    assert result.stdout =~ "mix spec.check --base HEAD --spec-dir 'contracts folder'"
   end
 
   @tag spec: "ancora.tasks.report_task_flags"

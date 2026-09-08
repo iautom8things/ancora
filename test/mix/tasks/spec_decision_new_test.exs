@@ -4,6 +4,16 @@ defmodule Mix.Tasks.Spec.Decision.NewTest do
   use Ancora.TestCase
 
   @tag spec: "ancora.scaffold.decision_new"
+  test "YAML scalar-looking decision ids round-trip as strings", %{root: root} do
+    for id <- ["123", "1.2", "true", "false", "null", "on", "off", "2026-09-07"] do
+      capture_io(fn -> Mix.Tasks.Spec.Decision.New.run([id, "--root", root]) end)
+      path = Path.join([root, ".spec", "decisions", "#{id}.md"])
+      decision = Ancora.DecisionParser.parse_file(path, root)
+      assert decision["meta"]["id"] == id
+    end
+  end
+
+  @tag spec: "ancora.scaffold.decision_new"
   test "writes the decision shape and force replaces it", %{root: root} do
     id = "myapp.decision.example"
     path = Path.join([root, ".spec", "decisions", "#{id}.md"])
