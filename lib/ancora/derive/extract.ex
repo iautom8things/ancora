@@ -40,7 +40,7 @@ defmodule Ancora.Derive.Extract do
        when kind in [:defmodule, :defprotocol] and is_list(body) do
     with {:ok, segments, absolute?} <- literal_segments(name_ast),
          {:ok, module_body} <- Keyword.fetch(body, :do) do
-      module = if absolute?, do: segments, else: parent ++ segments
+      module = if absolute?, do: segments, else: nested_segments(segments, parent)
 
       if Enum.join(module, ".") == target do
         collect_definitions(module_body, name, arity, clauses)
@@ -105,6 +105,16 @@ defmodule Ancora.Derive.Extract do
 
   defp default_argument?({:\\, _, [_argument, _default]}), do: true
   defp default_argument?(_argument), do: false
+
+  defp nested_segments([{:__MODULE__, _, _} | rest], parent), do: parent ++ rest
+  defp nested_segments(segments, parent), do: parent ++ segments
+
+  defp literal_segments({:__aliases__, _, [{:__MODULE__, _, _} | rest]}),
+    do:
+      if(Enum.all?(rest, &is_atom/1),
+        do: {:ok, [{:__MODULE__, [], nil} | rest], false},
+        else: :dynamic
+      )
 
   defp literal_segments({:__aliases__, _, [:"Elixir" | segments]}) do
     if Enum.all?(segments, &is_atom/1), do: {:ok, segments, true}, else: :dynamic

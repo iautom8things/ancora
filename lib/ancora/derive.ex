@@ -8,6 +8,7 @@ defmodule Ancora.Derive do
 
   alias Ancora.Derive.DefIndex
   alias Ancora.Derive.Membership
+  alias Ancora.Derive.TestScope
   alias Ancora.Derive.Resolver
   alias Ancora.Finding
 
@@ -56,6 +57,13 @@ defmodule Ancora.Derive do
     ctx = Keyword.fetch!(opts, :context)
     sources = Keyword.get(opts, :sources, &File.read/1)
 
+    case Keyword.fetch(opts, :carriers) do
+      {:ok, carriers} -> run_scoped(subject_files, carriers, side, ctx, sources, opts)
+      :error -> run_files(subject_files, side, ctx, sources)
+    end
+  end
+
+  defp run_files(subject_files, side, ctx, sources) do
     subject_files
     |> Map.values()
     |> List.flatten()
@@ -71,6 +79,93 @@ defmodule Ancora.Derive do
       {:ok, resolutions} -> {:ok, build_subject_sets(subject_files, side, ctx, resolutions)}
       {:error, _reason} = error -> error
     end
+  end
+
+  defp run_scoped(subject_files, carriers, side, ctx, sources, opts) do
+    paths = subject_files |> Map.values() |> List.flatten() |> Enum.uniq()
+
+    with {:ok, test_sources} <-
+           Enum.reduce_while(paths, {:ok, %{}}, fn path, {:ok, acc} ->
+             case read_source(sources, path) do
+               {:ok, source} -> {:cont, {:ok, Map.put(acc, path, source)}}
+               error -> {:halt, error}
+             end
+           end) do
+      scope =
+        Keyword.get_lazy(opts, :scope, fn ->
+          TestScope.build(Map.merge(Keyword.get(opts, :support_sources, %{}), test_sources))
+        end)
+
+      scope = TestScope.for_context(scope, ctx)
+
+      {resolved, _cache} =
+        carriers
+        |> Map.values()
+        |> List.flatten()
+        |> Enum.uniq_by(&{&1.file, &1.carrier})
+        |> Enum.map_reduce(%{}, fn entry, cache ->
+          result = TestScope.resolve(entry, scope, ctx, cache)
+          {{{entry.file, entry.carrier}, Map.delete(result, :cache)}, result.cache}
+        end)
+
+      resolved = Map.new(resolved)
+
+      sets =
+        Map.new(subject_files, fn {id, files} ->
+          results =
+            Enum.map(Map.get(carriers, id, []), &Map.fetch!(resolved, {&1.file, &1.carrier}))
+
+          calls = Enum.reduce(results, MapSet.new(), &MapSet.union(&2, &1.calls))
+          {bindings, generated, dep_generated} = classify_calls(calls, ctx)
+          unresolved = results |> Enum.flat_map(& &1.unresolved) |> Enum.uniq()
+
+          {id,
+           %{
+             subject_id: id,
+             side: side,
+             bindings: bindings,
+             generated: generated,
+             dep_generated: dep_generated,
+             unresolved: unresolved,
+             provenance: results |> Enum.flat_map(& &1.provenance) |> Enum.uniq(),
+             findings: results |> Enum.flat_map(& &1.findings) |> Enum.uniq(),
+             test_files: files
+           }}
+        end)
+
+      {:ok, sets}
+    end
+  rescue
+    exception -> {:error, {:resolver_exception, "tagged tests", Exception.message(exception)}}
+  end
+
+  @doc false
+  def scan_tests(root, paths) do
+    with {:ok, sources} <- support_sources(root, paths) do
+      scope = TestScope.build(sources)
+      parsed = Map.new(scope.parsed, fn {file, ast} -> {Path.join(root, file), ast} end)
+
+      case Ancora.TagScanner.scan(Enum.map(paths, &Path.join(root, &1)), parsed_sources: parsed) do
+        {:ok, tags, errors, dynamics} -> {:ok, tags, errors, dynamics, scope}
+        error -> error
+      end
+    end
+  end
+
+  @doc "Reads test and support sources under configured test paths."
+  def support_sources(root, test_paths) do
+    test_paths
+    |> Enum.flat_map(fn path ->
+      path = Path.join(root, path)
+      if File.regular?(path), do: [path], else: Path.wildcard(Path.join(path, "**/*.{ex,exs}"))
+    end)
+    |> Enum.sort()
+    |> Enum.reduce_while({:ok, %{}}, fn path, {:ok, acc} ->
+      case File.read(path) do
+        {:ok, source} -> {:cont, {:ok, Map.put(acc, Path.relative_to(path, root), source)}}
+        {:error, reason} -> {:halt, {:error, {:source_read, path, reason}}}
+      end
+    end)
   end
 
   @doc "Returns the complete derived call set, including generated bindings."

@@ -1,6 +1,8 @@
 defmodule Ancora.Review do
   @moduledoc "Builds the data model for the self-contained spec review artifact."
 
+  alias Ancora.Config
+  alias Ancora.Severity
   alias Ancora.BaseView
   alias Ancora.Derive
   alias Ancora.Derive.ChangeSet
@@ -82,15 +84,24 @@ defmodule Ancora.Review do
     all_findings = gate_report.all_findings
     diff_findings = Enum.filter(all_findings, &diff_scoped?/1)
 
+    base_raw = FindingsDelta.repo_findings(base_index)
+    head_raw = FindingsDelta.repo_findings(head_index)
+    base_config = Config.load(base_root, spec_dir: preflight.spec_dir)
+    base_resolved = Severity.resolve_all(base_raw, config: base_config)
+    head_resolved = Enum.reject(all_findings, &diff_scoped?/1)
+
     findings_delta =
-      FindingsDelta.classify(
-        FindingsDelta.repo_findings(base_index),
-        FindingsDelta.repo_findings(head_index),
-        diff_findings
+      FindingsDelta.classify(base_resolved, head_resolved, diff_findings,
+        base_presence: base_raw,
+        head_presence: head_raw
       )
 
-    tags = tagged_test_files(preflight)
-    {subject_sets, footprints} = derive_subjects(preflight, change_set, tags)
+    {carriers, scope} = tagged_test_carriers(preflight, head_index)
+
+    tags =
+      Map.new(carriers, fn {id, entries} -> {id, Enum.map(entries, & &1.file) |> Enum.uniq()} end)
+
+    {subject_sets, footprints} = derive_subjects(preflight, change_set, tags, carriers, scope)
     file_owners = file_owners(footprints)
 
     subjects =
@@ -119,6 +130,7 @@ defmodule Ancora.Review do
       },
       verdict: if(Verdict.pass?(gate_report), do: :pass, else: :fail),
       findings_delta: findings_delta,
+      ownership_changes: ownership_changes(base_index, head_index),
       triage: Enum.group_by(findings_delta.introduced, &(&1.severity || :info)),
       subjects: subjects,
       decisions_changed: decisions,
@@ -126,6 +138,18 @@ defmodule Ancora.Review do
       all_changes: Enum.map(changed_files, &%{file: &1, lines: Map.get(diffs, &1, [])}),
       spec_health: gate_report.checked
     }
+  end
+
+  defp ownership_changes(base, head) do
+    prior =
+      Map.new(base["subjects"] || [], &{Index.subject_id(&1), Index.field(&1["meta"], "surface")})
+
+    Enum.flat_map(head["subjects"] || [], fn subject ->
+      id = Index.subject_id(subject)
+      before = Map.get(prior, id)
+      current = Index.field(subject["meta"], "surface")
+      if before == current, do: [], else: [%{subject: id, before: before, after: current}]
+    end)
   end
 
   defp subjects(
@@ -276,7 +300,7 @@ defmodule Ancora.Review do
     |> Enum.uniq_by(& &1.binding)
   end
 
-  defp derive_subjects(preflight, change_set, tags) do
+  defp derive_subjects(preflight, change_set, tags, carriers, scope) do
     with {:ok, locator} <- ModuleLocator.build(preflight.project, change_set),
          {:ok, indexes} <- definition_indexes(preflight.root, locator),
          membership = %Membership{head: ModuleLocator.modules(locator, :head)},
@@ -285,7 +309,9 @@ defmodule Ancora.Review do
            Derive.run(tags,
              side: :head,
              context: context,
-             sources: &File.read(Path.join(preflight.root, &1))
+             sources: &File.read(Path.join(preflight.root, &1)),
+             carriers: carriers,
+             scope: scope
            ) do
       {sets, SubjectFiles.build(sets, locator)}
     else
@@ -380,20 +406,26 @@ defmodule Ancora.Review do
     |> Enum.sort()
   end
 
-  defp tagged_test_files(preflight) do
-    paths = Enum.map(preflight.config.test_paths, &Path.join(preflight.root, &1))
+  defp tagged_test_carriers(preflight, index) do
+    case Derive.scan_tests(preflight.root, preflight.config.test_paths) do
+      {:ok, tag_map, _errors, _dynamic, scope} ->
+        carriers =
+          tag_map
+          |> TagScanner.fold_to_subjects(index)
+          |> Map.new(fn {id, entries} ->
+            entries =
+              Enum.map(
+                entries,
+                &Map.update!(&1, :file, fn file -> Path.relative_to(file, preflight.root) end)
+              )
 
-    case TagScanner.scan(paths) do
-      {:ok, tag_map, _errors, _dynamic} ->
-        tag_map
-        |> TagScanner.fold_to_subjects()
-        |> Map.new(fn {id, entries} ->
-          files = entries |> Enum.map(&Path.relative_to(&1.file, preflight.root)) |> Enum.uniq()
-          {id, files}
-        end)
+            {id, entries}
+          end)
+
+        {carriers, scope}
 
       _ ->
-        %{}
+        {%{}, Ancora.Derive.TestScope.build(%{})}
     end
   end
 

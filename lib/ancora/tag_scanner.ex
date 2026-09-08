@@ -4,8 +4,8 @@ defmodule Ancora.TagScanner do
   values in ExUnit files.
 
   Literal ids are recorded. A non-literal value is never guessed: it
-  becomes a dynamic entry instead. `fold_to_subjects/1` lifts requirement
-  ids to their parent subject ids for the detector.
+  becomes a dynamic entry instead. `fold_to_subjects/2` lifts requirement
+  ids to their authored subject ids for the detector.
   """
 
   @type tag_entry :: %{
@@ -13,7 +13,8 @@ defmodule Ancora.TagScanner do
           file: String.t(),
           line: non_neg_integer(),
           test_line: non_neg_integer(),
-          test_name: String.t() | nil
+          test_name: String.t() | nil,
+          carrier: term()
         }
   @type dynamic_entry :: %{file: String.t(), line: non_neg_integer(), test_name: String.t() | nil}
   @type parse_error :: %{file: String.t(), reason: term()}
@@ -50,7 +51,7 @@ defmodule Ancora.TagScanner do
   @spec scan([String.t()], keyword()) ::
           {:ok, %{String.t() => [tag_entry()]}, [parse_error()], [dynamic_entry()]}
           | {:error, term()}
-  def scan(paths, _opts \\ []) do
+  def scan(paths, opts \\ []) do
     test_files =
       paths
       |> List.wrap()
@@ -61,7 +62,7 @@ defmodule Ancora.TagScanner do
     result =
       test_files
       |> Task.async_stream(
-        &scan_worker/1,
+        &scan_worker(&1, opts),
         ordered: true,
         timeout: :infinity
       )
@@ -92,9 +93,17 @@ defmodule Ancora.TagScanner do
     end
   end
 
-  defp scan_worker(path) do
+  defp scan_worker(path, opts) do
     try do
-      {:ok, path, scan_file(path, include_dynamic: true)}
+      result =
+        case Map.fetch(Keyword.get(opts, :parsed_sources, %{}), path) do
+          {:ok, {:ok, ast}} -> extract_result(ast, path, include_dynamic: true)
+          {:ok, {:error, reason}} -> {:error, reason}
+          {:ok, {:exception, exception}} -> raise exception
+          :error -> scan_file(path, include_dynamic: true)
+        end
+
+      {:ok, path, result}
     rescue
       exception -> {:error, {:worker_failure, :tag_scan, path, exception}}
     catch
@@ -102,44 +111,56 @@ defmodule Ancora.TagScanner do
     end
   end
 
-  @doc """
-  Folds requirement-id tags up to parent subject ids.
-
-  A tag `ancora.parsing.tag_discovery` also attributes its file to
-  `ancora.parsing`. The detector uses the folded entries to attribute
-  test files to subjects. Non-literal tags never enter this list.
-  """
-  @spec fold_to_subjects([tag_entry()]) :: [tag_entry()]
-  def fold_to_subjects(tags) when is_list(tags) do
-    extras =
-      Enum.flat_map(tags, fn %{id: id} = tag ->
-        case parent_id(id) do
-          nil -> []
-          parent -> [%{tag | id: parent}]
-        end
+  @doc "Folds tags using the corpus's authored requirement ownership."
+  def fold_to_subjects(tag_map, index) when is_map(tag_map) do
+    owners =
+      index
+      |> Map.get("subjects", [])
+      |> Enum.flat_map(fn subject ->
+        id = Ancora.Index.subject_id(subject)
+        requirements = Ancora.Index.field(subject, "requirements") || []
+        [{id, id} | Enum.map(requirements, &{Ancora.Index.field(&1, "id"), id})]
       end)
+      |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
 
-    dedupe(tags ++ extras)
-  end
-
-  @spec fold_to_subjects(%{String.t() => [tag_entry()]}) :: %{String.t() => [tag_entry()]}
-  def fold_to_subjects(tag_map) when is_map(tag_map) do
-    tag_map
-    |> Map.values()
-    |> List.flatten()
-    |> fold_to_subjects()
-    |> Enum.reduce(%{}, fn %{id: id} = entry, acc ->
-      Map.update(acc, id, [entry], fn existing ->
-        Enum.uniq_by([entry | existing], &dedupe_key/1)
-      end)
+    Enum.reduce(tag_map, %{}, fn {id, entries}, acc ->
+      case Map.get(owners, id, []) |> Enum.uniq() do
+        [owner] -> Map.update(acc, owner, entries, &dedupe(&1 ++ entries))
+        _ -> acc
+      end
     end)
   end
 
-  defp parent_id(id) when is_binary(id) do
-    case String.split(id, ".") do
-      parts when length(parts) >= 2 -> Enum.join(Enum.drop(parts, -1), ".")
-      _ -> nil
-    end
+  @doc "Annotates static test occurrences without evaluating generated tests."
+  def annotate(ast) do
+    {ast, _} =
+      Macro.traverse(
+        ast,
+        %{scopes: [], next: 0},
+        fn
+          {kind, meta, [name | _] = args}, state when kind in [:defmodule, :describe] ->
+            {{kind, meta, args},
+             %{state | scopes: [{kind, Macro.to_string(name)} | state.scopes]}}
+
+          {kind, meta, args}, state when kind in [:test, :property] ->
+            carrier = {Enum.reverse(state.scopes), state.next}
+
+            {{kind, Keyword.put(meta, :ancora_carrier, carrier), args},
+             %{state | next: state.next + 1}}
+
+          node, state ->
+            {node, state}
+        end,
+        fn
+          {kind, _, _} = node, state when kind in [:defmodule, :describe] ->
+            {node, %{state | scopes: tl(state.scopes)}}
+
+          node, state ->
+            {node, state}
+        end
+      )
+
+    ast
   end
 
   defp expand_test_files(path) do
@@ -153,18 +174,17 @@ defmodule Ancora.TagScanner do
   defp parse_and_extract(path, source, opts) do
     case Code.string_to_quoted(source, columns: true) do
       {:ok, ast} ->
-        {tags, dynamics} = extract(ast, path)
-        tags = dedupe(tags)
-
-        if Keyword.get(opts, :include_dynamic, false) do
-          {:ok, tags, dynamics}
-        else
-          {:ok, tags}
-        end
+        extract_result(ast, path, opts)
 
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  defp extract_result(ast, path, opts) do
+    {tags, dynamics} = extract(annotate(ast), path)
+    tags = dedupe(tags)
+    if Keyword.get(opts, :include_dynamic, false), do: {:ok, tags, dynamics}, else: {:ok, tags}
   end
 
   # Walk the AST collecting (tags, dynamics). We traverse modules and their
@@ -180,7 +200,7 @@ defmodule Ancora.TagScanner do
     end)
   end
 
-  defp collect_modules({:defmodule, _, [_name, [do: body]]}), do: [body]
+  defp collect_modules({:defmodule, _, [_name, [do: body]]}), do: [body] ++ collect_modules(body)
 
   defp collect_modules({:__block__, _, items}),
     do: Enum.flat_map(items, &collect_modules/1)
@@ -246,17 +266,36 @@ defmodule Ancora.TagScanner do
 
     module_entries =
       Enum.map(moduletag_ids, fn id ->
-        %{id: id, file: file, line: line, test_line: line, test_name: test_name}
+        %{
+          id: id,
+          file: file,
+          line: line,
+          test_line: line,
+          test_name: test_name,
+          carrier: Keyword.fetch!(meta, :ancora_carrier)
+        }
       end)
 
     pending_entries =
       Enum.map(pending, fn {id, tag_line} ->
-        %{id: id, file: file, line: tag_line, test_line: line, test_name: test_name}
+        %{
+          id: id,
+          file: file,
+          line: tag_line,
+          test_line: line,
+          test_name: test_name,
+          carrier: Keyword.fetch!(meta, :ancora_carrier)
+        }
       end)
 
     dyn_entries =
       Enum.map(pending_dyn, fn tag_line ->
-        %{file: file, line: tag_line, test_name: test_name}
+        %{
+          file: file,
+          line: tag_line,
+          test_name: test_name,
+          carrier: Keyword.fetch!(meta, :ancora_carrier)
+        }
       end)
 
     {[], [], tags ++ module_entries ++ pending_entries, dynamics ++ dyn_entries}
@@ -400,5 +439,5 @@ defmodule Ancora.TagScanner do
     end)
   end
 
-  defp dedupe_key(%{id: id, file: file, test_name: test_name}), do: {id, file, test_name}
+  defp dedupe_key(entry), do: {entry.id, entry.file, Map.get(entry, :carrier, entry.test_line)}
 end

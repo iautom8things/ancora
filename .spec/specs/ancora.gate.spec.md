@@ -22,6 +22,7 @@ kind: workflow
 status: active
 summary: spec.check orchestration, hard-fail preflight, diff scoping, acknowledgment clearing, and the two append-only guards.
 decisions:
+  - ancora.decision.adopter_attribution
   - ancora.decision.no_execution_no_state
   - ancora.decision.slimmed_governance
   - ancora.decision.field_friction_response
@@ -182,6 +183,9 @@ decisions:
     shall keep the co-change rule. With `--spec-dir`, this governance set and
     its clearing decision directory shall be relative to the selected
     workspace. Next-step guidance shall use this same decision rule.
+    Deleted source paths shall use base footprints for uncovered-file analysis;
+    every remaining path shall require HEAD coverage. Exact configured file
+    exceptions remain findings with reasons rather than fabricated coverage.
   priority: must
   stability: evolving
 - id: ancora.gate.strict_verdict

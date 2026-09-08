@@ -2,6 +2,30 @@
 
 All notable changes to this project are documented in this file.
 
+## 1.3.0 - 2026-09-07
+
+### Fixed
+
+- Attribute production calls to individual tagged tests, applicable setup and
+  reachable test helpers. Neighboring tests and unused helpers no longer make
+  unrelated subjects demand spec edits. [False cross-subject findings and uncovered infrastructure](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-tcq.json)
+- Preserve distinct tests with repeated names and resolve requirement ownership
+  from the authored index. [Tagged-test identity and requirement ownership](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-dwf.json)
+- Make requirement overrides win over subject defaults regardless of order,
+  rejecting duplicate selectors. [Override precedence](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-8lm.1.json)
+- Resolve valid nested `__MODULE__` names throughout source indexing and clause
+  extraction. [Valid nested module names](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-8lm.8.json)
+- Use gate-resolved severities in review, showing policy changes separately from
+  repaired findings. [Review severity disagreement](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-d16.26.json)
+
+### Added
+
+- Apply optional ownership declarations to growth and shrink through informational
+  transitive finding codes. Reject empty surfaces and ambiguous path syntax.
+  [Surface semantics](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-8lm.9.json)
+- Support exact, reasoned infrastructure exceptions for uncovered files at info.
+  Assess deleted files against their base coverage.
+
 ## 1.2.1 - 2026-09-07
 
 ### Fixed

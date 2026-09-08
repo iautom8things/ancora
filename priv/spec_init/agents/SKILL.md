@@ -17,6 +17,8 @@ tagged tests.
 | derived | `derived/drift_transitive` | info |
 | derived | `derived/growth` | warning |
 | derived | `derived/shrink` | warning |
+| derived | `derived/growth_transitive` | info |
+| derived | `derived/shrink_transitive` | info |
 | derived | `derived/unresolved_calls` | info |
 | derived | `derived/unparseable_source` | error |
 | derived | `derived/unanchored_subject` | warning |
@@ -68,10 +70,14 @@ binding is outside the subject's declared `surface:`. `tags/tag_borrowed`
 means a new test tag points at an unchanged requirement.
 `append/statement_changed` means requirement text changed.
 
-A subject may declare `surface:` as exact repo-relative source paths. Files
-outside the list produce transitive rather than primary drift. Omit the field
-to keep all derived drift primary. Do not use `surface: []`; its meaning is not
-defined yet.
+A subject may declare `surface:` as a nonempty list of exact repo-relative
+source paths. `surface: []`, globs, absolute paths and traversal are rejected.
+Observed drift, additions and removals outside the list produce informational
+`derived/drift_transitive`, `derived/growth_transitive` and
+`derived/shrink_transitive` findings. Omitting the field keeps primary checks.
+When both sides declare ownership, either side can keep a change primary;
+first introduction and later ownership edits appear in review as policy changes.
+Surface never claims coverage or unchanged behavior.
 
 Use a subject-specific override only when a standing repository constraint
 cannot be expressed through a tagged test. Every override requires a reason.
@@ -85,3 +91,24 @@ overrides:
     severity: info
     reason: Covered by an external integration suite.
 ```
+
+Ancora attributes calls to each tagged test, its applicable setup and reachable
+test helpers. Neighboring tests and unused helpers do not contribute bindings.
+Inspect the reported callsite chain before editing a contract. An unresolved
+call is an analysis limitation, not evidence that a contract was removed.
+Do not add cosmetic requirements or split tests just to clear a finding.
+
+For infrastructure without a statically observable test call, use an exact,
+reasoned exception. The file remains excepted rather than covered:
+
+```yaml
+overrides:
+  - file: lib/my_app_web/router.ex
+    code: change/uncovered_file
+    severity: info
+    reason: Exercised through the Phoenix request pipeline.
+```
+
+File exceptions accept only `info`, require a reason, and cannot combine with
+`subject:` or `requirement:`. Subject overrides prefer a matching `requirement:`
+over the subject default; duplicate selectors are rejected regardless of order.

@@ -353,11 +353,9 @@ defmodule Mix.Tasks.Spec.CheckTest do
   end
 
   @tag spec: "ancora.gate.preflight_hard_fails"
-  test "a nested __MODULE__ name emits a def_index environment verdict", %{root: root} do
+  test "a valid nested __MODULE__ name does not cause an environment failure", %{root: root} do
     create_project(root)
 
-    # This relies on the pre-existing DefIndex failure for this module shape.
-    # Fixing that behavior is fast-follow work and will require a different fixture.
     write_files(root, %{
       "lib/outer.ex" => """
       defmodule Outer do
@@ -372,12 +370,10 @@ defmodule Mix.Tasks.Spec.CheckTest do
 
     result = run_mix_subprocess(["spec.check", "--root", root, "--base", "HEAD"])
 
-    assert result.status == 1
     refute result.stderr =~ "** (EXIT"
-    assert result.stdout =~ "def_index worker failed for lib/outer.ex"
-
-    assert List.last(lines(result.stdout)) ==
-             "spec.check result=fail tier=env errors=0 warnings=0"
+    refute result.stdout =~ "def_index worker failed"
+    refute result.stdout =~ "tier=env"
+    assert List.last(lines(result.stdout)) =~ "spec.check result="
   end
 
   @tag spec: "ancora.tasks.gated_emission_paths"
@@ -1358,7 +1354,7 @@ defmodule Mix.Tasks.Spec.CheckTest do
   end
 
   defp ack_subject_spec(name, value) do
-    surface = if name == "beta", do: "surface: []\n", else: ""
+    surface = if name == "beta", do: "surface: [lib/owned.ex]\n", else: ""
 
     """
     # #{name}

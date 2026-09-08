@@ -623,4 +623,56 @@ defmodule Ancora.ReviewTest do
     |> :binary.matches(needle)
     |> length()
   end
+
+  @tag spec: "ancora.review.findings_delta_without_store"
+  test "policy downgrades and off are not described as resolved defects" do
+    raw = Finding.new(code: "overlap/duplicate_covers", subject: "alpha", detail: "duplicate")
+    base = %{raw | severity: :error, severity_source: :default}
+    head = %{raw | severity: :info, severity_source: :config}
+    delta = FindingsDelta.classify([base], [head], [], base_presence: [raw], head_presence: [raw])
+    assert delta.introduced == []
+    assert delta.resolved == []
+    assert delta.pre_existing == [head]
+    assert [%{before: {:error, :default}, after: {:info, :config}}] = delta.policy_changes
+    muted = FindingsDelta.classify([base], [], [], base_presence: [raw], head_presence: [raw])
+    assert muted.resolved == []
+    assert [%{after: {:off, :config}}] = muted.policy_changes
+    removed = FindingsDelta.classify([base], [], [], base_presence: [raw], head_presence: [])
+    assert removed.resolved == [base]
+    assert removed.policy_changes == []
+  end
+
+  @tag spec: "ancora.review.findings_delta_without_store"
+  test "the real review builder shares gate severities and renders policy changes", %{root: root} do
+    write_project(root)
+    path = Path.join(root, ".spec/specs/billing.spec.md")
+    source = File.read!(path)
+
+    source =
+      String.replace(
+        source,
+        "- kind: tagged_tests",
+        "- kind: tagged_tests\n  covers: [billing.next]\n- kind: tagged_tests"
+      )
+
+    write_files(root, %{".spec/specs/billing.spec.md" => source})
+    commit_all(root, "base duplicate")
+    write_config(root, "severities:\n  overlap/duplicate_covers: info\n")
+    assert {:ok, gate} = Ancora.Gate.check(root, base: "HEAD")
+    assert {:ok, built} = Review.build(root, base: "HEAD")
+    gate_overlap = Enum.filter(gate.all_findings, &(&1.code == "overlap/duplicate_covers"))
+
+    review_overlap =
+      Enum.filter(built.findings_delta.pre_existing, &(&1.code == "overlap/duplicate_covers"))
+
+    assert [%{severity: :info}] = gate_overlap
+    assert review_overlap == gate_overlap
+
+    assert Enum.any?(
+             built.findings_delta.policy_changes,
+             &(&1.finding.code == "overlap/duplicate_covers")
+           )
+
+    assert Html.render(built) |> IO.iodata_to_binary() =~ "Policy changes"
+  end
 end

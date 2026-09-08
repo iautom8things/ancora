@@ -15,19 +15,24 @@ defmodule Ancora.ChangeAnalysis do
     head_tags = Map.fetch!(tag_maps, :head)
     base_tags = Map.fetch!(tag_maps, :base)
 
-    uncovered_findings(paths, footprints) ++
+    uncovered_findings(paths, footprints, change_set) ++
       missing_decision_findings(paths, current) ++
       new_requirement_findings(prior, current, Map.keys(head_tags)) ++
       borrowed_tag_findings(prior, current, head_tags, base_tags)
   end
 
-  defp uncovered_findings(paths, footprints) do
+  defp uncovered_findings(paths, footprints, change_set) do
     {lib_paths, footprints} = Map.pop(footprints, :__lib_paths__, ["lib"])
+    {base, footprints} = Map.pop(footprints, :__base_footprints__, %{})
+    base_covered = base |> Map.values() |> Enum.reduce(MapSet.new(), &MapSet.union/2)
+    deleted = change_set.entries |> Enum.filter(&(&1.status == :deleted)) |> MapSet.new(& &1.path)
     covered = footprints |> Map.values() |> Enum.reduce(MapSet.new(), &MapSet.union/2)
 
     paths
     |> Enum.filter(&under_lib_path?(&1, lib_paths))
-    |> Enum.reject(&MapSet.member?(covered, &1))
+    |> Enum.reject(fn path ->
+      MapSet.member?(if(MapSet.member?(deleted, path), do: base_covered, else: covered), path)
+    end)
     |> Enum.map(&Finding.new(code: "change/uncovered_file", file: &1))
   end
 

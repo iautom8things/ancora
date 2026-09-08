@@ -27,6 +27,7 @@ kind: module
 status: active
 summary: Source-derived, diff-symmetric detection of what tagged tests call and whether those definitions changed.
 decisions:
+  - ancora.decision.adopter_attribution
   - ancora.decision.source_derived_membership
   - ancora.decision.generated_bindings_companion
   - ancora.decision.no_execution_no_state
@@ -37,6 +38,21 @@ decisions:
 ## Requirements
 
 ```yaml spec-requirements
+- id: ancora.derive.tagged_test_attribution
+  statement: >-
+    The detector shall resolve each tagged static test carrier's body, applicable
+    module and describe setup/setup_all callbacks, and statically reachable local
+    or imported test helpers under configured test paths. It shall omit sibling
+    test bodies and unreachable helper bodies, retain source callsite and callback
+    or helper-chain provenance, and stop traversal at production bindings. Test
+    and support sources shall be parsed once per diff side and shared with tag
+    scanning; fragment resolutions shall be reused within the run. Recursive
+    helper visits shall terminate. Dynamic helper dispatch and unexpanded use
+    injection shall remain scoped unresolved-call disclosures at configured
+    severity. Missing observations from an incomplete carrier shall not establish
+    shrink or HEAD coverage. No target test, generator or macro shall be executed.
+  priority: must
+  stability: evolving
 - id: ancora.derive.change_set_union
   statement: >-
     The change set shall be the union of `git diff --name-status --no-renames
@@ -150,14 +166,13 @@ decisions:
   stability: stable
 - id: ancora.derive.unqualified_ladder
   statement: >-
-    An unqualified call `f(args)` shall be disposed in order: present in the
-    file's own defs (after default expansion) means silently local; otherwise
-    for each import in source order whose `only:`/`except:` admits it, a
-    member import target consults that module's DefIndex and a hit resolves
-    the binding, while a non-member target is dropped when the tool VM
-    exports it; otherwise an export of `Kernel`, `Kernel.SpecialForms`, or
-    `ExUnit.{Case,Assertions,Callbacks,DocTest}` is dropped; otherwise the
-    call is recorded as unresolved kind `:unqualified`.
+    For a scoped carrier, an unqualified call defined in its lexical test module
+    shall visit its helper's clauses at all matching default arities. An admitted
+    lexical import shall resolve a public definition from test support or project
+    membership; support definitions are traversed, production definitions become
+    bindings. Unreachable helpers are not visited. Non-member tool-VM exports and
+    ambient Kernel and ExUnit forms are dropped; other calls remain unresolved.
+    Standalone file resolution retains its existing local-call suppression.
   priority: must
   stability: stable
 - id: ancora.derive.dynamic_calls_unresolved
@@ -182,12 +197,13 @@ decisions:
   stability: stable
 - id: ancora.derive.imports_and_aliases
   statement: >-
-    Pass A shall collect `import` forms at any depth, including inside
-    `setup`, `describe`, and `test` bodies, and apply them module-wide. Pass B
-    shall maintain a lexical alias stack handling `alias Foo.Bar`,
-    `alias Foo.{Bar, Baz}`, `alias Foo.Bar, as: B`, `alias __MODULE__.Sub`,
-    and `require Foo, as: F`, resolving nested segments through the stack
-    and then `Module.concat`.
+    Scoped carrier resolution shall keep imports, aliases and require aliases
+    lexical, including declarations inside tests and describe bodies. A declaration
+    inside one test shall not affect its sibling. Alias forms include grouped
+    aliases, as:, and __MODULE__ segments. Standalone file resolution retains its
+    module-wide import pass for compatibility. DefIndex, ModuleLocator and Extract
+    shall resolve valid nested defmodule __MODULE__.Inner names against their
+    lexical parent, retain deeper nesting, and restore the parent scope afterward.
   priority: must
   stability: stable
 - id: ancora.derive.parse_degrades_to_finding
@@ -230,19 +246,28 @@ decisions:
   stability: stable
 - id: ancora.derive.drift_primary_transitive
   statement: >-
-    A drifted binding whose defining file appears in the subject's authored
-    `surface:` list shall produce `derived/drift`. When the subject has a
-    `surface:` list that omits the defining file, the binding shall produce
-    `derived/drift_transitive` at info. A subject without `surface:` shall
-    keep the prior behavior and report every drift as `derived/drift`.
+    A subject may declare a nonempty surface list of exact canonical project-relative
+    file paths. Empty lists, absolute paths, traversal, dot or empty components and
+    glob syntax shall produce a spec parse finding. Spaces and Unicode are valid;
+    paths need not exist on HEAD. Surface absence keeps all observed changes
+    primary. When both sides declare surface, a binding owned on either side stays
+    primary for this diff; first introduction uses HEAD ownership and is disclosed
+    in review. Removing surface restores primary classification. Bindings outside
+    the applicable declaration produce informational derived/drift_transitive,
+    derived/growth_transitive or derived/shrink_transitive findings. Unknown defining
+    locations stay primary. Ownership shall neither delete bindings nor establish
+    coverage or semantic equivalence.
   priority: must
   stability: evolving
 - id: ancora.derive.growth_and_shrink
   statement: >-
-    Per subject, `derived/growth` shall fire when the HEAD set minus the base
-    set is nonempty and `derived/shrink` when the base set minus the HEAD set
-    is nonempty, each message listing the bindings (capped at 10 with a
-    `+N more` suffix). A binding present on HEAD only has no drift.
+    Per subject, HEAD-only comparable bindings shall produce derived/growth and
+    base-only bindings shall produce derived/shrink, partitioned by authored
+    ownership into primary and transitive findings. Each message lists bindings,
+    capped at ten with a +N more suffix. A HEAD-only binding has no drift. A base
+    binding whose every known carrier remains incomplete on HEAD shall not be
+    reported as proven shrink. Known shared bindings remain eligible for drift;
+    retained base observations do not contribute to HEAD coverage.
   priority: must
   stability: stable
 - id: ancora.derive.generated_bindings

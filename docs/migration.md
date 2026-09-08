@@ -44,20 +44,15 @@ result.
 
 ## Declaring a subject surface
 
-Use `surface:` in a subject's `spec-meta` block only when the subject has a
-known primary source boundary. Each entry is an exact repo-relative path:
+A subject may declare `surface:` as a nonempty list of exact repo-relative
+source paths. `surface: []`, globs, absolute paths and traversal are rejected.
+Observed drift, additions and removals outside the list produce informational
+`derived/drift_transitive`, `derived/growth_transitive` and
+`derived/shrink_transitive` findings. Omitting the field keeps primary checks.
+When both sides declare ownership, either side can keep a change primary;
+first introduction and later ownership edits appear in review as policy changes.
+Surface never claims coverage or unchanged behavior.
 
-```yaml
-surface:
-  - lib/my_app/accounts.ex
-  - lib/my_app/accounts/user.ex
-```
-
-A changed derived binding in one of those files produces primary
-`derived/drift`. A changed derived binding defined outside the list produces
-info-tier `derived/drift_transitive`. Omit `surface:` to preserve the prior
-behavior where every derived binding is primary. Do not use `surface: []`;
-its meaning is not defined yet.
 
 `spec-exceptions` blocks and the `"exceptions"` key returned by
 `Ancora.Parser.parse_file/2` are deprecated. Ancora 1.x still parses and returns
@@ -106,7 +101,7 @@ end
 
 ## Finding code map
 
-Ancora has 33 finding codes. The middle column is the closed registry. Several
+Ancora has 35 finding codes. The middle column is the closed registry. Several
 old checks converge on one current code, while some current codes have no
 direct predecessor.
 
@@ -116,6 +111,8 @@ direct predecessor.
 | no direct predecessor | `derived/drift_transitive` | `info` |
 | no direct predecessor | `derived/growth` | `warning` |
 | no direct predecessor | `derived/shrink` | `warning` |
+| no direct predecessor | `derived/growth_transitive` | `info` |
+| no direct predecessor | `derived/shrink_transitive` | `info` |
 | `detector_unavailable` | `derived/unresolved_calls` | `info` |
 | `detector_unavailable` | `derived/unparseable_source` | `error` |
 | `branch_guard_dangling_binding` | `derived/unanchored_subject` | `warning` |
@@ -153,3 +150,24 @@ The old trailer and environment settings map as follows:
 | `Spec-Drift:` | `Spec-Ack: <code>=<info\|warning>` |
 | `SPECLED_SHOW_INFO` | `ANCORA_SHOW_INFO` |
 | `SPECLED_COMMAND_OUTPUT_DIR`, `SPECLED_DISABLE_TRACER` | removed |
+
+Ancora attributes calls to each tagged test, its applicable setup and reachable
+test helpers. Neighboring tests and unused helpers do not contribute bindings.
+Inspect the reported callsite chain before editing a contract. An unresolved
+call is an analysis limitation, not evidence that a contract was removed.
+Do not add cosmetic requirements or split tests just to clear a finding.
+
+For infrastructure without a statically observable test call, use an exact,
+reasoned exception. The file remains excepted rather than covered:
+
+```yaml
+overrides:
+  - file: lib/my_app_web/router.ex
+    code: change/uncovered_file
+    severity: info
+    reason: Exercised through the Phoenix request pipeline.
+```
+
+File exceptions accept only `info`, require a reason, and cannot combine with
+`subject:` or `requirement:`. Subject overrides prefer a matching `requirement:`
+over the subject default; duplicate selectors are rejected regardless of order.

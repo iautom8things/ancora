@@ -33,27 +33,7 @@ defmodule Ancora.Derive.Resolver do
   def resolve(source, path, ctx) when is_binary(source) and is_binary(path) and is_map(ctx) do
     case Code.string_to_quoted(source, file: path, emit_warnings: false) do
       {:ok, ast} ->
-        pass_a = index(ast)
-
-        state = %{
-          aliases: [%{}],
-          calls: MapSet.new(),
-          ctx: ctx,
-          file: path,
-          imports: pass_a.imports,
-          local_defs: pass_a.local_defs,
-          module: nil,
-          unresolved: []
-        }
-
-        state = walk(ast, state)
-
-        {:ok,
-         %{
-           calls: state.calls,
-           unresolved: Enum.reverse(state.unresolved),
-           findings: Map.get(ctx, :findings, [])
-         }}
+        resolve_ast(ast, path, ctx)
 
       {:error, reason} ->
         side = Map.get(ctx, :side, :head)
@@ -74,6 +54,33 @@ defmodule Ancora.Derive.Resolver do
            findings: [finding | Map.get(ctx, :findings, [])]
          }}
     end
+  end
+
+  @doc "Resolves an already parsed fragment; scoped contexts retain test-helper calls."
+  def resolve_ast(ast, path, ctx) do
+    pass_a = index(ast)
+
+    state = %{
+      aliases: [%{}],
+      calls: MapSet.new(),
+      ctx: ctx,
+      file: path,
+      imports: if(Map.get(ctx, :scoped, false), do: [], else: pass_a.imports),
+      local_defs: pass_a.local_defs,
+      module: nil,
+      unresolved: [],
+      call_sites: []
+    }
+
+    state = walk(ast, state)
+
+    {:ok,
+     %{
+       calls: state.calls,
+       unresolved: Enum.reverse(state.unresolved),
+       findings: Map.get(ctx, :findings, []),
+       call_sites: Enum.reverse(state.call_sites)
+     }}
   end
 
   defp index(ast) do
@@ -141,9 +148,42 @@ defmodule Ancora.Derive.Resolver do
     merge_results(state, scoped)
   end
 
-  defp walk({kind, _, [_head, body]}, state) when kind in @definition_kinds do
-    scoped = walk(keyword_body(body), push_alias_frame(state))
-    merge_results(state, scoped)
+  defp walk({:defdelegate, meta, [head, options]}, state) do
+    if Keyword.get(meta, :ancora_stub, false) do
+      state
+    else
+      case signature(head) do
+        {:ok, name, arities} ->
+          Enum.reduce(arities, state, fn arity, acc ->
+            dispose_qualified(
+              acc,
+              Keyword.get(options, :to),
+              Keyword.get(options, :as, name),
+              arity,
+              line(meta)
+            )
+          end)
+
+        :error ->
+          state
+      end
+    end
+  end
+
+  defp walk({kind, meta, [head, body]}, state) when kind in @definition_kinds do
+    if Keyword.get(meta, :ancora_stub, false) do
+      state
+    else
+      scoped = push_alias_frame(state)
+
+      scoped =
+        if Map.get(state.ctx, :scoped, false),
+          do: walk_terms(head_expressions(head), scoped),
+          else: scoped
+
+      scoped = walk(keyword_body(body), scoped)
+      merge_results(state, scoped)
+    end
   end
 
   defp walk({kind, _, args}, state) when kind in [:alias, :require] do
@@ -157,8 +197,31 @@ defmodule Ancora.Derive.Resolver do
     }
   end
 
-  defp walk({:import, _, _args}, state), do: state
-  defp walk({:use, _, _args}, state), do: state
+  defp walk({:import, _, [target | options]}, state) do
+    if Map.get(state.ctx, :scoped, false) do
+      case resolve_module(target, state.aliases, state.module) do
+        {:ok, module} ->
+          %{state | imports: state.imports ++ [import_entry(module, List.first(options) || [])]}
+
+        :dynamic ->
+          state
+      end
+    else
+      state
+    end
+  end
+
+  defp walk({:use, meta, [target | _]}, state) do
+    if Map.get(state.ctx, :scoped, false) do
+      case resolve_module(target, state.aliases, state.module) do
+        {:ok, module} when module in [ExUnit.Case, ExUnitProperties] -> state
+        {:ok, _module} -> add_unresolved(state, :dynamic_module, :__using__, 1, line(meta))
+        :dynamic -> add_unresolved(state, :dynamic_module, :__using__, 1, line(meta))
+      end
+    else
+      state
+    end
+  end
 
   defp walk({:quote, _, args}, state) when is_list(args), do: walk_call_arguments(args, state)
 
@@ -296,7 +359,7 @@ defmodule Ancora.Derive.Resolver do
     case resolve_module(target, state.aliases, state.module) do
       {:ok, module} ->
         if member?(state.ctx, module) do
-          %{state | calls: MapSet.put(state.calls, {module, name, arity})}
+          add_call(state, {module, name, arity}, line)
         else
           state
         end
@@ -311,7 +374,11 @@ defmodule Ancora.Derive.Resolver do
 
     cond do
       MapSet.member?(state.local_defs, signature) ->
-        state
+        if Map.get(state.ctx, :scoped, false) and state.module do
+          add_call(state, {state.module, name, arity}, line)
+        else
+          state
+        end
 
       true ->
         dispose_imports(state, name, arity, line)
@@ -345,7 +412,7 @@ defmodule Ancora.Derive.Resolver do
 
     case disposition do
       {:call, module} ->
-        %{state | calls: MapSet.put(state.calls, {module, name, arity})}
+        add_call(state, {module, name, arity}, line)
 
       :drop ->
         state
@@ -364,6 +431,14 @@ defmodule Ancora.Derive.Resolver do
       {:ok, index} -> DefIndex.public?(index, module, name, arity)
       :unknown -> false
     end
+  end
+
+  defp add_call(state, binding, line) do
+    %{
+      state
+      | calls: MapSet.put(state.calls, binding),
+        call_sites: [%{binding: binding, file: state.file, line: line} | state.call_sites]
+    }
   end
 
   defp add_unresolved(state, kind, name, arity, line) do
@@ -395,6 +470,17 @@ defmodule Ancora.Derive.Resolver do
   defp import_admits?(%{only: only, except: except}, signature) do
     (is_nil(only) or MapSet.member?(only, signature)) and not MapSet.member?(except, signature)
   end
+
+  defp head_expressions({:when, _, [head | guards]}), do: head_expressions(head) ++ guards
+
+  defp head_expressions({_name, _, args}) when is_list(args) do
+    Enum.flat_map(args, fn
+      {:\\, _, [_pattern, default]} -> [default]
+      _ -> []
+    end)
+  end
+
+  defp head_expressions(_), do: []
 
   defp signature({:when, _, [head | _guards]}), do: signature(head)
 
@@ -531,7 +617,12 @@ defmodule Ancora.Derive.Resolver do
   end
 
   defp merge_results(original, scoped) do
-    %{original | calls: scoped.calls, unresolved: scoped.unresolved}
+    %{
+      original
+      | calls: scoped.calls,
+        unresolved: scoped.unresolved,
+        call_sites: scoped.call_sites
+    }
   end
 
   defp result_module({:ok, module}, _fallback), do: module

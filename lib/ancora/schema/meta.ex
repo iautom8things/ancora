@@ -8,7 +8,10 @@ defmodule Ancora.Schema.Meta do
               kind: Zoi.string(),
               status: Zoi.string(),
               summary: Zoi.string() |> Zoi.optional(),
-              surface: Zoi.list(Zoi.string()) |> Zoi.optional(),
+              surface:
+                Zoi.list(Zoi.string() |> Zoi.refine({Ancora.ExactPath, :check, []}))
+                |> Zoi.min(1)
+                |> Zoi.optional(),
               decisions: Zoi.list(Ancora.Schema.Id.id()) |> Zoi.optional(),
               verification_minimum_strength: Zoi.string() |> Zoi.optional(),
               realized_by: Zoi.any() |> Zoi.optional()

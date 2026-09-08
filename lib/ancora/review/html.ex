@@ -61,6 +61,7 @@ defmodule Ancora.Review.Html do
       view.meta.generated_at |> DateTime.to_iso8601() |> escape(),
       "</p>",
       delta(view.findings_delta),
+      ownership_changes(Map.get(view, :ownership_changes, [])),
       triage(view.triage),
       outside(view.outside_changes),
       spec_health(view.spec_health),
@@ -74,7 +75,50 @@ defmodule Ancora.Review.Html do
       delta_group("Introduced", delta.introduced),
       delta_group("Pre-existing", delta.pre_existing),
       delta_group("Resolved", delta.resolved),
+      policy_changes(Map.get(delta, :policy_changes, [])),
       "</div>"
+    ]
+  end
+
+  defp policy_changes([]), do: []
+
+  defp policy_changes(changes) do
+    [
+      "<div class=\"panel\"><h3>Policy changes</h3><ul>",
+      Enum.map(changes, fn change ->
+        [
+          "<li>",
+          escape(change.finding.code),
+          " ",
+          escape(change.finding.subject || change.finding.file || "repository"),
+          ": ",
+          escape(inspect(change.before)),
+          " to ",
+          escape(inspect(change.after)),
+          "</li>"
+        ]
+      end),
+      "</ul></div>"
+    ]
+  end
+
+  defp ownership_changes([]), do: []
+
+  defp ownership_changes(changes) do
+    [
+      "<div class=\"panel\"><h3>Ownership policy changes</h3><ul>",
+      Enum.map(changes, fn change ->
+        [
+          "<li>",
+          escape(change.subject),
+          ": ",
+          escape(inspect(change.before)),
+          " to ",
+          escape(inspect(change.after)),
+          "</li>"
+        ]
+      end),
+      "</ul></div>"
     ]
   end
 

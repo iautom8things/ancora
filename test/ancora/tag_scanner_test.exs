@@ -219,10 +219,19 @@ defmodule Ancora.TagScannerTest do
              end),
              "Would fail if TagScanner omitted the {:for, ...} process_statement head and skipped tags inside for-comprehension bodies"
 
-      folded = TagScanner.fold_to_subjects(tags)
+      index = %{
+        "subjects" => [
+          %{
+            "id" => "ancora.parsing",
+            "requirements" => [%{"id" => "ancora.parsing.tag_discovery"}]
+          }
+        ]
+      }
+
+      folded = TagScanner.fold_to_subjects(Enum.group_by(tags, & &1.id), index)["ancora.parsing"]
 
       assert Enum.any?(folded, fn tag ->
-               tag.id == "ancora.parsing" and tag.file == path
+               tag.file == path
              end),
              "Would fail if TagScanner did not fold requirement ids up to subject ids for the detector"
     end
@@ -432,5 +441,34 @@ defmodule Ancora.TagScannerTest do
       assert [%{file: ^broken_path, reason: _}] = parse_errors
       assert dynamic == []
     end
+  end
+
+  @tag spec: "ancora.parsing.tag_discovery"
+  test "distinct carriers survive repeated names and authored ownership", %{root: root} do
+    path =
+      write_test_file(root, "test/repeated_test.exs", """
+      defmodule RepeatedTest do
+        describe "one" do
+          @tag spec: "alpha.group.value"
+          test "works", do: Alpha.one()
+        end
+        describe "two" do
+          @tag spec: "alpha.group.value"
+          test "works", do: Alpha.two()
+        end
+      end
+      """)
+
+    assert {:ok, [first, second] = tags} = TagScanner.scan_file(path)
+    assert first.carrier != second.carrier
+
+    index = %{
+      "subjects" => [%{"id" => "alpha", "requirements" => [%{"id" => "alpha.group.value"}]}]
+    }
+
+    assert %{"alpha" => [^first, ^second]} =
+             TagScanner.fold_to_subjects(Enum.group_by(tags, & &1.id), index)
+
+    assert %{} = TagScanner.fold_to_subjects(%{"unknown" => tags}, index)
   end
 end
