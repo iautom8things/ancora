@@ -15,11 +15,15 @@
     {
       "text": "Investigated. Choose per-test attribution with preserved setup/helper observations, consistent optional surface classification, and exact reasoned infrastructure exceptions. Six implementation contracts recorded; no source implementation claimed. Historical count corrected to 23 drift, 9 growth, 7 uncovered on Ancora 1.0.0. Report: /Users/mz/Documents/my-vault/LLMs/investigations/ancora/2026-09-07-agent-adoption-friction/04-report.md",
       "timestamp": "2026-09-08T01:47:07Z"
+    },
+    {
+      "text": "Implementation is proposed in https://github.com/iautom8things/ancora/pull/7 at d047eff6717e90e68e44f83098196b85fc1d0fba.\n\nTen-perspective critical review completed, with identified fixes and independent final verification. Full-suite checkpoint passed 554 tests and 3 properties. Final changed-file verification and spec gate passed. The real Review parse trace confirmed one parse per test/support source per side.\n\nHistorical Builder replay evidence is saved under /Users/mz/Documents/my-vault/LLMs/investigations/ancora/2026-09-07-agent-adoption-friction/implementation-replay/. After explicit surface migration it retains one real drift error and five uncovered files; it is not a clean consumer deployment claim.\n\nPR is open and CI is running. No merge, Hex publication, consumer upgrade or post-upgrade verification has occurred. Ticket stays in progress for that release follow-through. Canonical Session/Log marker metadata is unavailable in this launcher; this is an ordinary checkpoint comment, not a fabricated protocol signal.",
+      "timestamp": "2026-09-08T02:52:18Z"
     }
   ],
   "priority": 1,
   "status": "in_progress",
   "title": "spec.check fans drift/growth across unrelated subjects and flags untestable infra files, with no way to scope either",
   "type": "task",
-  "updated_at": "2026-09-08T02:48:14Z"
+  "updated_at": "2026-09-08T02:52:18Z"
 }
