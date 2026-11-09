@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-11-09T21:11:02Z",
+  "description": "Advances: ancora.derive\n\nReady-for: investigate\n\nSymptom:\nA change to a private function that a watched public function calls passes `mix spec.check` with no finding. Probes on ChapterSpot/tsql_parser with Ancora 1.3.0, each one edit followed by `mix spec.check --base HEAD` and a revert:\n\n| Edit | Result |\n|---|---|\n| `defp verdict([])` in lib/tsql_parser.ex returns `:read` instead of `:unknown` (an empty batch now reads as safe). `TsqlParser.analyze/2`, which calls it, is a binding. | pass, no finding |\n| The lexer's private `lex/4` stops reversing its token list. `Lexer.tokenize/1` is a binding. | pass, no finding |\n| The public `TsqlParser.references/1` body changes | derived/drift error |\n\nEvidence:\n- Ancora.Derive.Compare.compare_binding/3 compares only `Extract.clauses(ast, binding)` (lib/ancora/derive/compare.ex:226-263).\n- Extract collects only def, defmacro, defguard and defdelegate clauses with the binding's name and arity (lib/ancora/derive/extract.ex:9, 70-71).\n- Both match the current contract, ancora.derive.clause_extraction. No spec or decision declines watching private helpers.\n\nWhy now:\ntsql_parser adopted Ancora 1.3 (ChapterSpot/tsql_parser#5) and had to document this gap in its CONTRIBUTING and spec_led ADR. A library that keeps logic behind a thin public module holds most behavior in private helpers, so real regressions there pass the gate.\n\nSuspected cause (hypothesis):\nExtend extraction to the private functions (defp, defmacrop) reachable through local calls from the bound function, inside the same module. A private function cannot be called from outside, so it is part of the watched function's body. Bindings, footprints and the rule that drift needs the defining file in the change set stay unchanged. Questions for /investigate:\n- amending ancora.derive.clause_extraction (must, stable) needs an ADR;\n- drift fan-out when one helper serves bound functions in several subjects (surface: already demotes non-owners to transitive);\n- local captures, dynamic local calls, recursion;\n- public same-module functions called locally should stay excluded, or this becomes a call graph.\n\nFollowing calls into other production modules is not proposed. It contradicts ancora.derive.tagged_test_attribution and ancora.derive.subject_footprint, multiplies drift fan-out, and would pull internal files into footprints so change/uncovered_file stops firing on them.",
+  "id": "ancora-num",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Private helpers of a watched function change without drift",
+  "type": "task",
+  "updated_at": "2026-11-09T21:11:02Z"
+}
