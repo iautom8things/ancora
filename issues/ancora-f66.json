@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-11-09T21:11:10Z",
+  "description": "Advances: ancora.derive\n\nReady-for: investigate\n\nSymptom:\n`mix spec.status` on ChapterSpot/tsql_parser main (0542f06, Ancora 1.3.0) reports 172 unresolved calls for tsql_parser.rendering and 94 for tsql_parser.parsing. 126 of rendering's sit in test/support/gen_expr.ex, which does `import StreamData` and calls bind/2, member_of/1, map/2 and list_of/2. MIX_ENV=test gives the same counts. Compare.set_findings skips shrink for carriers with unresolved calls, so a test there that stops calling a production function reports no shrink.\n\nEvidence:\n- `mix spec.check --base HEAD --verbose | grep unresolved_calls` on that commit lists 279 `unqualified at` entries across the four subjects.\n- Ancora.Derive.context/4 accepts `external_modules:`, and Resolver.dispose_imports/4 has a `:drop` branch for calls a non-member import exports (lib/ancora/derive/resolver.ex:388-426).\n- Gate (lib/ancora/gate.ex:400) and Status (lib/ancora/status.ex:77) never pass `external_modules:`, so external_exports is always empty and every call through a dependency import lands in unresolved.\n\nWhy now:\nProperty-test generators commonly `import StreamData`, so adopters see large unresolved counts and lose shrink detection on exactly the carriers that exercise the most code.\n\nSuspected cause (hypothesis):\nWiring `external_modules:` means loading the target's dependency bytecode, which can run @on_load hooks. ancora.decision.no_execution_no_state allows export lookups only in Ancora's own dependencies, so that route conflicts with the charter. A source-only rule may be enough: membership is derived from source, so when every admitted import that could supply f/a is a non-member module, the call cannot be a project binding and can be dropped. Unexpanded `use` injection stays unresolved, per ancora.derive.unqualified_ladder. Untested. /investigate should check soundness when a member import is also admitted and its module has macro-generated functions.",
+  "id": "ancora-f66",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Calls through imported dependencies are always unresolved",
+  "type": "task",
+  "updated_at": "2026-11-09T21:11:10Z"
+}
