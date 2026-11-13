@@ -169,6 +169,18 @@ decisions:
     subjects.
   priority: must
   stability: stable
+- id: ancora.gate.unresolved_calls_summarized
+  statement: >-
+    A subject with unresolved entries shall produce one
+    `derived/unresolved_calls` finding that summarizes them by call site (kind,
+    called function, file and line). Its message shall name the number of call
+    sites per kind and the number of distinct tagged tests that reach them,
+    then list at most 10 sites, most-reached first, each with its test count,
+    and end with the number of sites left out. It shall name no test, so its
+    size does not grow with the tests that reach a site. The unresolved
+    entries themselves are unchanged.
+  priority: must
+  stability: evolving
 - id: ancora.gate.change_findings
   statement: >-
     A changed file under `lib_paths` that lies in no subject's footprint
@@ -472,6 +484,17 @@ decisions:
     - the message mentions the `overrides:` config construct
   covers:
     - ancora.gate.unanchored_subject
+- id: ancora.gate.scenario.unresolved_calls_summarized
+  given:
+    - a subject whose 25 tagged tests each make their own `apply/3` call and all call one helper that makes another
+  when:
+    - the gate runs against a base without those tests
+  then:
+    - one `derived/unresolved_calls` finding names 26 call sites and 25 tagged tests
+    - the helper's call site comes first with 25 tests
+    - the message lists 10 sites, says 16 more were left out, and names no test
+  covers:
+    - ancora.gate.unresolved_calls_summarized
 - id: ancora.gate.scenario.override_silences_one_subject
   given:
     - two unanchored subjects A and B
@@ -668,6 +691,7 @@ decisions:
     - ancora.gate.borrowed_tag_disclosed
     - ancora.gate.statement_change_disclosed
     - ancora.gate.unanchored_subject
+    - ancora.gate.unresolved_calls_summarized
     - ancora.gate.change_findings
     - ancora.gate.strict_verdict
     - ancora.gate.only_git_is_spawned
