@@ -6,9 +6,15 @@
   "description": "Advances: ancora.review\nReady-for: implement\n\nProblem: on PRs the shared Elixir workflow runs `mix spec.check --base origin/\u003cbase\u003e` and then `mix spec.review` with the same base, in a separate VM. `Ancora.Review.gate_report/3` calls `Gate.check(root, review_data: true)`, so the second task redoes the full gate. On Argos with ancora 1.3.1 (4 schedulers) that is about 19 s of the review's 24 s, roughly a minute per PR in CI.\n\nRuling (Manuel, 2026-11-13): the no-derived-state rule in ancora.decision.no_execution_no_state was overstated. Its intent was no maintained state checked into VCS. Local uncommitted state that speeds up CI is acceptable, and the spec can be amended.\n\nContract:\n- spec.check writes its gate core (all_findings, checked, review_data) to `_build/ancora/gate.etf`, only when git ignores that path. The write never changes spec.check's output or exit status, and a failed write is silent.\n- The file carries a key: ancora module md5s and dep versions, Elixir and OTP versions, root, spec dir, base and HEAD commit ids, and a fingerprint of every dirty, untracked or (inside the scanned paths) ignored file. spec.check computes the key before and after the run and writes only if both match.\n- spec.review uses the file only on an exact key match. A missing, stale, truncated or malformed file recomputes the gate as today.\n- spec.check never reads the file, so the gate verdict cannot come from it.\n- Amend ancora.gate.no_derived_state and the ADR, and record the ruling in a new ADR.\n\nProves: the review view is identical with the file absent, warm and corrupted; a warm file is really read; any key input change misses; spec.check output is byte-identical with a stale or corrupt file present; nothing is written when `_build` is not ignored. Measure Argos `spec.review` before and after.",
   "id": "ancora-9pq",
   "labels": [],
+  "comments": [
+    {
+      "text": "Delivered. PR #10 merged as 099c61b and was published to Hex as ancora 1.3.2 on 2026-11-13. Consumers merged and deployed on 1.3.2: argos #270, atlas #377, builder #485, engage #65, workforce_service #54, voyd_config #29 (released 46.0.1) and forge #504 (via the release-owned CI image process). The CI spec.review step went from 39 to 4 s on Argos, 47 to 7 s on builder and 64 to 8 s on atlas. tsql_parser stays on 1.3.1 because its CI never runs spec.review.",
+      "timestamp": "2026-11-13T18:46:17Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "spec.review reruns the whole gate that spec.check just ran",
   "type": "task",
-  "updated_at": "2026-11-13T13:22:06Z"
+  "updated_at": "2026-11-13T18:46:17Z"
 }
