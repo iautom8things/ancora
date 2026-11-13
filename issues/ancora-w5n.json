@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-11-13T19:03:57Z",
+  "description": "Advances: ancora.derive\nReady-for: investigate\n\nSymptom: derived/unresolved_calls is dominated by Kernel.SpecialForms and other syntax the reader cannot \"resolve\". On Argos aa8f738f7 (base aa8f738f7~10), the top sites for console.admin after the ancora-cmj summary are `unqualified \u003c\u003c\u003e\u003e/3`, `unqualified \u003c-/2`, `unqualified for/2` and `unqualified \u003c\u003c\u003e\u003e/2`, each reached by 447 to 595 tests. In ancora itself, `unqualified \u003c\u003c\u003e\u003e/5 at test/ancora/derive/resolver_test.exs:441` tops ancora.derive.\n\nEvidence:\n- Ancora.Derive @ambient_modules includes Kernel.SpecialForms, which exports `\u003c\u003c\u003e\u003e/1` and `for/1` (one list argument). The resolver uses the AST argument count as the arity, so `\u003c\u003ca, b, c\u003e\u003e` looks up `\u003c\u003c\u003e\u003e/3` and misses.\n- `\u003c-` is not a function at all; it is clause syntax inside `for` and `with`, so it should never be recorded.\n- Ecto.Query macros such as `from/2` and `type/2` show up as unqualified when imported in test support files.\n- console.admin reports 8,397 unresolved call sites. The share caused by these forms is not measured yet.\n\nWhy now: since ancora-cmj the message lists the 10 most-reached sites. When those are special forms the finding stops being actionable, and every such entry also marks a carrier as incomplete for Compare (missing observations do not prove removal), which may hide real shrink.\n\nQuestion for investigate: treat variadic special forms by name regardless of arity and skip `\u003c-`, or normalize their arity before the ambient lookup? Measure the unresolved count on Argos and ancora before and after.",
+  "id": "ancora-w5n",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Resolver records variadic special forms as unresolved unqualified calls",
+  "type": "bug",
+  "updated_at": "2026-11-13T19:03:57Z"
+}
