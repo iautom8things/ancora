@@ -201,7 +201,7 @@ defmodule Ancora.Finding do
   end
 
   defp render("derived/unresolved_calls", ctx) do
-    "#{s(ctx)}: calls not statically resolvable (#{f(ctx)} #{d(ctx, "calls")}); " <>
+    "#{s(ctx)}: calls not statically resolvable (#{d(ctx, "calls")}); " <>
       "resolve the calls or leave this as visibility"
   end
 

@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## 1.3.3 - 2026-11-13
+
+### Fixed
+
+- Summarize each `derived/unresolved_calls` finding by call site. The message
+  listed every pair of unresolved call and tagged test, with the test's full
+  name, so one helper call reached from 595 tests repeated 595 times. It now
+  counts call sites per kind and the tagged tests that reach them, and lists
+  the 10 most-reached sites with their test counts. On Argos (297 changed
+  files) the `spec.review` artifact drops from 64.5 MB to 3.4 MB, `spec.check
+  --verbose` stdout from 30.7 MB to 198 KB, and the handoff file from 31.6 MB
+  to 1.1 MB. The message also no longer reads "unknown file". [derived/unresolved_calls messages make the Argos review artifact 64 MB](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-cmj.json)
+
 ## 1.3.2 - 2026-11-13
 
 ### Changed

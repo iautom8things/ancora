@@ -759,6 +759,70 @@ defmodule Ancora.GateTest do
            end)
   end
 
+  @tag spec: "ancora.gate.unresolved_calls_summarized"
+  test "unresolved calls are summarized by call site, not listed per test", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => mix_file("[app: :sample]"),
+      ".spec/specs/sample.spec.md" => subject_spec(),
+      "lib/sample.ex" => "defmodule Sample do\n  def value, do: :ok\nend\n",
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+        @tag spec: "sample.subject.works"
+        test "works", do: assert(Sample.value() == :ok)
+      end
+      """
+    })
+
+    commit_all(root, "base")
+    base = root |> git!(["rev-parse", "HEAD"]) |> String.trim()
+
+    tests =
+      Enum.map_join(1..25, "\n", fn n ->
+        """
+          @tag spec: "sample.subject.works"
+          test "case #{n}" do
+            helper()
+            apply(Sample, :value, [])
+            assert Sample.value() == :ok
+          end
+        """
+      end)
+
+    write_files(root, %{
+      "test/sample_test.exs" => """
+      defmodule SampleTest do
+        use ExUnit.Case
+
+        defp helper, do: apply(Sample, :value, [])
+
+      #{tests}
+      end
+      """
+    })
+
+    assert {:ok, report} = Gate.check(root, base: base)
+
+    assert [finding] =
+             Enum.filter(report.all_findings, &(&1.code == "derived/unresolved_calls"))
+
+    assert finding.subject == "sample.subject"
+
+    assert finding.message =~
+             "sample.subject: calls not statically resolvable (26 call sites (26 apply) " <>
+               "reached by 25 tagged tests, most reached first: " <>
+               "apply/3 at test/sample_test.exs:4 (25 tests), apply/3 at test/sample_test.exs:"
+
+    assert finding.message =~
+             ", and 16 more; affected test attribution is incomplete; " <>
+               "missing observations do not prove removal); resolve the calls"
+
+    assert length(Regex.scan(~r/\(1 test\)/, finding.message)) == 9
+    refute finding.message =~ "case 1"
+  end
+
   @tag spec: "ancora.derive.base_reads_batched"
   test "change-set prefetch resolves a spaced path to its base OID", %{root: root} do
     init_git_repo(root)

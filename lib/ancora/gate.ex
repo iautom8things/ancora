@@ -28,6 +28,7 @@ defmodule Ancora.Gate do
   alias Ancora.Trailer
   alias Ancora.Verifier
 
+  @unresolved_site_sample 10
   @json_version 1
   @json_report %{
     version: @json_version,
@@ -524,11 +525,13 @@ defmodule Ancora.Gate do
         if unresolved == [] do
           []
         else
-          details =
-            Enum.map_join(unresolved, ", ", &unresolved_label/1) <>
-              "; affected test attribution is incomplete; missing observations do not prove removal"
-
-          [Finding.new(code: "derived/unresolved_calls", subject: subject_id, detail: details)]
+          [
+            Finding.new(
+              code: "derived/unresolved_calls",
+              subject: subject_id,
+              detail: unresolved_summary(unresolved)
+            )
+          ]
         end
 
       unanchored =
@@ -542,22 +545,53 @@ defmodule Ancora.Gate do
     end)
   end
 
-  defp unresolved_label(entry) do
-    kind = Map.get(entry, :kind, :unqualified)
-    file = Map.get(entry, :file, "-")
-    line = Map.get(entry, :line, 0)
+  # One helper call reached from hundreds of tests is one call site, so the
+  # message counts tests per site instead of listing every pair.
+  defp unresolved_summary(unresolved) do
+    sites =
+      unresolved
+      |> Enum.group_by(&unresolved_site/1, &unresolved_test/1)
+      |> Enum.map(fn {site, tests} -> {site, tests |> Enum.uniq() |> length()} end)
+      |> Enum.sort_by(fn {{kind, name, arity, file, line}, tests} ->
+        {-tests, file, line, kind, name, arity}
+      end)
 
-    origin =
-      case Map.get(entry, :test_file) do
-        nil ->
-          ""
+    tests = unresolved |> Enum.uniq_by(&unresolved_test/1) |> length()
 
-        test_file ->
-          " for #{test_file}:#{Map.get(entry, :test_line, 0)} #{Map.get(entry, :test_name) || "tagged test"}"
-      end
+    kinds =
+      sites
+      |> Enum.frequencies_by(fn {{kind, _name, _arity, _file, _line}, _tests} -> kind end)
+      |> Enum.sort_by(fn {kind, count} -> {-count, kind} end)
+      |> Enum.map_join(", ", fn {kind, count} -> "#{count} #{kind}" end)
 
-    "#{kind} at #{file}:#{line}#{origin}"
+    {shown, rest} = Enum.split(sites, @unresolved_site_sample)
+
+    more = if rest == [], do: "", else: ", and #{length(rest)} more"
+
+    "#{plural(length(sites), "call site")} (#{kinds}) reached by " <>
+      "#{plural(tests, "tagged test")}, most reached first: " <>
+      Enum.map_join(shown, ", ", &unresolved_site_label/1) <>
+      more <>
+      "; affected test attribution is incomplete; missing observations do not prove removal"
   end
+
+  defp unresolved_site(entry) do
+    {Map.get(entry, :kind, :unqualified), Map.get(entry, :name), Map.get(entry, :arity),
+     Map.get(entry, :file, "-"), Map.get(entry, :line, 0)}
+  end
+
+  defp unresolved_test(entry), do: {Map.get(entry, :test_file), Map.get(entry, :test_line)}
+
+  defp unresolved_site_label({{kind, name, arity, file, line}, tests}) do
+    "#{unresolved_call(kind, name, arity)} at #{file}:#{line} (#{plural(tests, "test")})"
+  end
+
+  defp unresolved_call(kind, nil, _arity), do: "#{kind}"
+  defp unresolved_call(:apply, :apply, arity), do: "apply/#{arity}"
+  defp unresolved_call(kind, name, arity), do: "#{kind} #{name}/#{arity}"
+
+  defp plural(1, noun), do: "1 #{noun}"
+  defp plural(count, noun), do: "#{count} #{noun}s"
 
   defp acknowledged?(subject_id, current, prior, head_root, base_root) do
     with {:ok, head} <- subject_source(subject_id, current, head_root),
