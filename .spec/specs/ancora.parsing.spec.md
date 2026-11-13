@@ -394,6 +394,17 @@ decisions:
     - no subject gains the file from that tag
   covers:
     - ancora.parsing.tag_discovery
+- id: ancora.parsing.scenario.pre_parsed_scan_matches_disk
+  given:
+    - several test files with literal, list, describe, dynamic and for-comprehension tags, plus one unparseable file
+  when:
+    - Ancora.Derive.scan_tests/2 passes its parsed sources to Ancora.TagScanner.scan/2
+    - Ancora.TagScanner.scan/2 also reads the same files from disk
+  then:
+    - both scans return the same tag map, dynamic entries and parse-error files
+    - each scan worker receives only its own file's parse result, never the whole map
+  covers:
+    - ancora.parsing.tag_discovery
 - id: ancora.parsing.scenario.duplicate_covers
   given:
     - two verification entries in different subjects with identical `covers:` lists

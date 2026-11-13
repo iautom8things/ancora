@@ -52,20 +52,18 @@ defmodule Ancora.TagScanner do
           {:ok, %{String.t() => [tag_entry()]}, [parse_error()], [dynamic_entry()]}
           | {:error, term()}
   def scan(paths, opts \\ []) do
-    test_files =
+    parsed_sources = Keyword.get(opts, :parsed_sources, %{})
+
+    # Each worker gets only its own file's parse result. Capturing the whole
+    # map copied every AST in the suite into every task.
+    result =
       paths
       |> List.wrap()
       |> Enum.flat_map(&expand_test_files/1)
       |> Enum.uniq()
       |> Enum.sort()
-
-    result =
-      test_files
-      |> Task.async_stream(
-        &scan_worker(&1, opts),
-        ordered: true,
-        timeout: :infinity
-      )
+      |> Enum.map(&{&1, Map.fetch(parsed_sources, &1)})
+      |> Task.async_stream(&scan_worker/1, ordered: true, timeout: :infinity)
       |> Enum.reduce_while({:ok, {%{}, [], []}}, fn
         {:ok, {:ok, path, result}}, {:ok, {tm, pes, dyns}} ->
           case result do
@@ -93,10 +91,10 @@ defmodule Ancora.TagScanner do
     end
   end
 
-  defp scan_worker(path, opts) do
+  defp scan_worker({path, parsed}) do
     try do
       result =
-        case Map.fetch(Keyword.get(opts, :parsed_sources, %{}), path) do
+        case parsed do
           {:ok, {:ok, ast}} -> extract_result(ast, path, include_dynamic: true)
           {:ok, {:error, reason}} -> {:error, reason}
           {:ok, {:exception, exception}} -> raise exception
