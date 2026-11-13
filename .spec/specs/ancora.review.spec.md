@@ -13,7 +13,8 @@ rendering is owned code over earmark_parser's AST so the package has zero
 native dependencies and the escape posture is testable directly.
 
 Modules: `Ancora.Review`, `Ancora.Review.Html`, `Ancora.Review.FileDiff`,
-`Ancora.Review.SpecDiff`, `Ancora.Review.FindingsDelta`, `Ancora.Markdown`.
+`Ancora.Review.SpecDiff`, `Ancora.Review.FindingsDelta`,
+`Ancora.Review.GateCache`, `Ancora.Markdown`.
 
 ```yaml spec-meta
 id: ancora.review
@@ -24,6 +25,7 @@ decisions:
   - ancora.decision.adopter_attribution
   - ancora.decision.field_friction_response
   - ancora.decision.review_artifact_contract
+  - ancora.decision.local_review_handoff
 ```
 
 ## Requirements
@@ -97,6 +99,23 @@ decisions:
     run. Ownership declaration changes shall be displayed separately.
   priority: must
   stability: stable
+- id: ancora.review.reuses_check_result
+  statement: >-
+    `mix spec.check` shall store the gate fields review reads (all findings,
+    checked counts, errors, warnings, fail and review data) at
+    `_build/ancora/gate.etf` through Ancora.Review.GateCache, and only when git
+    ignores that path. The stored key shall cover ancora's module checksums and
+    dependency versions, the Elixir and OTP versions, the root, the spec
+    directory, the base and HEAD commit ids, and the content of every dirty or
+    untracked file and of every ignored file under the spec, test and library
+    paths. Check shall compute the key before and after its gate run and store
+    nothing when they differ. `mix spec.review` shall use the stored fields only
+    on an exact key match and shall rerun the gate on any miss, including a
+    missing, truncated or malformed file. Check shall never read the file, a
+    failed write shall not change its output or exit status, and its returned
+    report shall carry no review data.
+  priority: must
+  stability: evolving
 - id: ancora.review.markdown_transform
   statement: >-
     Ancora.Markdown.render/1 shall render ADR and spec prose by transforming
@@ -339,6 +358,45 @@ decisions:
     - the artifact is smaller than 1 MB
   covers:
     - ancora.review.artifact_size
+- id: ancora.review.scenario.check_handoff_is_transparent
+  given:
+    - a repository that ignores `_build` with a drifted binding
+  when:
+    - Ancora.Review.build/2 runs with no handoff file, after `Ancora.check/2` stored one through its `review_cache` option, after the file is truncated, and after it is overwritten with garbage
+  then:
+    - all four views are equal apart from their generation time, including the failing verdict
+    - a stored file whose findings were emptied under the matching key yields a view with no findings, so the warm path reads the file
+  covers:
+    - ancora.review.reuses_check_result
+- id: ancora.review.scenario.check_handoff_key_moves
+  given:
+    - a repository that ignores `_build` and `test/scratch_*`
+  when:
+    - a build artifact or the handoff file appears under `_build`, then a tracked file changes, an untracked file appears, an ignored file appears under a test path, and HEAD moves
+  then:
+    - the build output leaves the key unchanged and every later step yields a new key
+  covers:
+    - ancora.review.reuses_check_result
+- id: ancora.review.scenario.check_never_reads_handoff
+  given:
+    - a repository with a drifted binding and a stored handoff file
+  when:
+    - `mix spec.check` runs as a subprocess with the file warm, with its findings emptied under the matching key, and with the file corrupted
+  then:
+    - every run prints the same stdout and exits with the same status
+    - `Ancora.check/2` returns the same report with and without its `review_cache` option, in plain and JSON mode
+  covers:
+    - ancora.review.reuses_check_result
+- id: ancora.review.scenario.check_handoff_needs_ignored_build
+  given:
+    - a repository whose tree moved after the key was taken, and a repository whose `.gitignore` un-ignores `_build`
+  when:
+    - Ancora.Review.GateCache.store/3 runs with the old key, and `Ancora.check/2` runs with its `review_cache` option
+  then:
+    - no handoff file is written in either case and `git status` stays clean
+  covers:
+    - ancora.review.reuses_check_result
+    - ancora.gate.no_derived_state
 - id: ancora.review.scenario.output_path
   given:
     - Mix.Tasks.Spec.Review.run/1 receives `--output tmp/r.html`
@@ -366,4 +424,5 @@ decisions:
     - ancora.review.size_budget
     - ancora.review.artifact_size
     - ancora.review.output_flag
+    - ancora.review.reuses_check_result
 ```

@@ -14,6 +14,7 @@ defmodule Ancora.Review do
   alias Ancora.Output.Verdict
   alias Ancora.Review.FileDiff
   alias Ancora.Review.FindingsDelta
+  alias Ancora.Review.GateCache
   alias Ancora.Review.SpecDiff
 
   @diff_families ~w(derived change append)
@@ -65,7 +66,10 @@ defmodule Ancora.Review do
          checked: %{subjects: 0, requirements: 0, errors: 0, warnings: 0}
        }}
     else
-      Gate.check(preflight.root, Keyword.put(opts, :review_data, true))
+      case GateCache.fetch(preflight) do
+        {:ok, report} -> {:ok, report}
+        :miss -> Gate.check(preflight.root, Keyword.put(opts, :review_data, true))
+      end
     end
   end
 
@@ -80,7 +84,6 @@ defmodule Ancora.Review do
 
     data =
       Map.get(gate_report, :review_data, %{
-        sets: %{},
         tags: %{},
         footprints: %{},
         base_raw: [],
@@ -101,7 +104,6 @@ defmodule Ancora.Review do
       )
 
     tags = data.tags
-    subject_sets = data.sets
     footprints = data.footprints
     file_owners = file_owners(footprints)
 
@@ -113,7 +115,6 @@ defmodule Ancora.Review do
         changed_files,
         diffs,
         tags,
-        subject_sets,
         footprints,
         file_owners,
         all_findings
@@ -160,7 +161,6 @@ defmodule Ancora.Review do
          changed_files,
          diffs,
          tags,
-         _subject_sets,
          footprints,
          file_owners,
          findings

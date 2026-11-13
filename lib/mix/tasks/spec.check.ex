@@ -40,7 +40,7 @@ defmodule Mix.Tasks.Spec.Check do
       {opts, rest, invalid} = OptionParser.parse(args, strict: @switches)
 
       case TaskArgs.validate("spec.check", rest, invalid) do
-        :ok -> Ancora.check(opts[:root] || File.cwd!(), opts)
+        :ok -> Ancora.check(opts[:root] || File.cwd!(), Keyword.put(opts, :review_cache, true))
         {:error, message} -> {:usage, message}
       end
     end)

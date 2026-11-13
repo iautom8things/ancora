@@ -132,7 +132,10 @@ decisions:
     workspace that contains `specs/`, and omitting it shall select `.spec`.
     `--no-run-commands`, `--min-strength`,
     `--command-timeout-ms`, `--accept-drift`, `--test-tags`, and `--output`
-    shall be usage errors.
+    shall be usage errors. Every run shall pass `review_cache: true` to
+    `Ancora.check/2`, so a later `mix spec.review` of the same tree can reuse
+    its gate result under `ancora.review.reuses_check_result`; no flag turns
+    this on or off.
   priority: must
   stability: stable
 - id: ancora.tasks.validate_flags
