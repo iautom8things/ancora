@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-11-13T08:41:11Z",
+  "description": "No spec subject\n\nReady-for: investigate\n\nSymptom: while timing PR 8 (the tag-scan fix) against Argos at aa8f738f7, the PR-style mix spec.review run over 297 changed files wrote a 64 MB HTML report. The review spec keeps a 200-file test case under 1 MB, so the size grows far faster than the file count suggests.\n\nEvidence: reported by the ancora-spec-check-perf agent (herdr w2H:pJ) on 2026-11-13, in its final report for PR 8. The run was local, with the same inputs as the timing table in that PR. Not reproduced since.\n\nStart by rerunning spec.review on Argos with a 297-file change set and measuring which section of the HTML dominates the size.",
+  "id": "ancora-w1k",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "spec.review HTML is 64 MB for a 297-file PR change set",
+  "type": "bug",
+  "updated_at": "2026-11-13T08:41:11Z"
+}
