@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-11-13T08:04:41Z",
+  "description": "Advances: ancora.parsing\nReady-for: implement\n\nSymptom: `mix spec.check` is the slowest CI job on Argos (Spec Check, about 514 to 572 s on push and about 1,000 s on PRs, where `spec.review` runs the gate a second time). It slows Atlas PRs too.\n\nEvidence: profiling ancora 1.3.0 against Argos's 741 test files put about 86% of a run in `Ancora.TagScanner.scan/2`. `Derive.scan_tests/2` passes the per-side parsed AST map (about 86 MB) as `parsed_sources:`, and `scan/2` captured `opts` in the `Task.async_stream` closure, so every one of the 741 tasks received a copy of the whole map. The gate scans twice per run (HEAD and base). A probe that handed each task only its own file's AST cut the scan from 137 s to 0.3 s with the same tag counts. This is the same defect ancora-gg8.9 fixed for the definition-index workers.\n\nDeliverable: `TagScanner.scan/2` pairs each test file with `Map.fetch(parsed_sources, path)` before `Task.async_stream`, and the worker closure captures nothing else. Release 1.3.1 (mix.exs, CHANGELOG).\n\nVerification:\n- A test proves the pre-parsed path (`Derive.scan_tests/2`) returns the same tag map, dynamic entries and parse-error files as the disk path over several files.\n- A source-boundary test, mirroring the def-index one in gate_test.exs, fails if the worker closure captures `opts` or `parsed_sources` again.\n- Before and after timings of `mix spec.check` (push-style and PR-style) and `mix spec.review` on an Argos checkout, with byte-identical `--json` output.\n- mix compile --warnings-as-errors, mix test, mix format --check-formatted, mix deps.unlock --check-unused, mix spec.check --base origin/main.\n\nOut of Scope: reusing the gate result across `spec.check` and `spec.review` (derived state under ancora.decision.no_execution_no_state; see ancora-u38); the Argos CI workflow; Hex publish; consumer dependency bumps.",
+  "id": "ancora-z19",
+  "labels": [],
+  "priority": 1,
+  "status": "open",
+  "title": "Tag scan copies every parsed AST into every worker",
+  "type": "bug",
+  "updated_at": "2026-11-13T08:04:41Z"
+}
