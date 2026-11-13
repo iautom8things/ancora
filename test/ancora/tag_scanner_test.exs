@@ -441,6 +441,59 @@ defmodule Ancora.TagScannerTest do
       assert [%{file: ^broken_path, reason: _}] = parse_errors
       assert dynamic == []
     end
+
+    @tag spec: "ancora.parsing.tag_discovery"
+    test "pre-parsed sources yield the same scan as reading each file", %{root: root} do
+      for n <- 1..6 do
+        write_test_file(root, "test/area_#{n}/case_#{n}_test.exs", """
+        defmodule Area#{n}Test do
+          use ExUnit.Case
+          @moduletag spec: "area.#{n}"
+
+          describe "group" do
+            @describetag spec: "area.#{n}.group"
+
+            @tag spec: ["area.#{n}.one", "area.#{n}.two"]
+            test "literal", do: assert(true)
+
+            @tag spec: @prefix <> ".dynamic"
+            test "dynamic", do: assert(true)
+          end
+
+          for name <- ~w(a b) do
+            @tag spec: "area.#{n}.generated"
+            test name, do: assert(true)
+          end
+        end
+        """)
+      end
+
+      broken_path = write_test_file(root, "test/broken_test.exs", "defmodule do do\n")
+
+      assert {:ok, from_disk, disk_errors, disk_dynamics} =
+               TagScanner.scan([Path.join(root, "test")])
+
+      assert {:ok, from_parsed, parsed_errors, parsed_dynamics, _scope} =
+               Ancora.Derive.scan_tests(root, ["test"])
+
+      assert map_size(from_disk) == 6 * 5
+      assert from_parsed == from_disk
+      assert parsed_dynamics == disk_dynamics
+      assert length(disk_dynamics) == 6
+      assert Enum.map(parsed_errors, & &1.file) == [broken_path]
+      assert Enum.map(disk_errors, & &1.file) == [broken_path]
+    end
+
+    test "scan workers receive one fetched AST instead of the full AST map" do
+      source = File.read!(Path.expand("../../lib/ancora/tag_scanner.ex", __DIR__))
+      [_, scan] = String.split(source, "def scan(paths", parts: 2)
+      [worker_setup, worker_and_reduce] = String.split(scan, "|> Task.async_stream", parts: 2)
+      [worker, _rest] = String.split(worker_and_reduce, "|> Enum.reduce_while", parts: 2)
+
+      assert worker_setup =~ "Map.fetch(parsed_sources, &1)"
+      refute worker =~ "opts"
+      refute worker =~ "parsed_sources"
+    end
   end
 
   @tag spec: "ancora.parsing.tag_discovery"
