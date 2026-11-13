@@ -19,11 +19,15 @@
     {
       "text": "Bench-condition update from the ancora-gg8 investigation (2026-09-03, findings-DE on that epic): the phase decomposition shows xla.3's fixes live entirely in the gate path — after xla.3 alone, spec.validate is untouched, status/next/prime barely move, and check likely lands mid-20s, so four of five budgets would still be missed and the deferral bench would be measuring the wrong residual. The 2026-10-01 revisit bench should run after ancora-xla.3 AND the gg8 perf tickets (ancora-gg8.4 waste fixes, ancora-gg8.7 parallel parsing). The deferral ruling itself stands: merely-over-budget argues a budget change, not a cache. Also recorded there: the blocked-by edge to xla.3 is measurement sequencing, not a technical dependency.",
       "timestamp": "2026-09-03T22:03:54Z"
+    },
+    {
+      "text": "Ruling (Manuel, 2026-11-13, in session): \"I think that spec that says don't wait to disk was over stated and could be amended to help ci speed up. It just didn't want to have a maintained state checked into vcs.\"\n\nSo local, uncommitted, disposable on-disk state is acceptable, and committed state stays out. ancora-9pq applies this ruling to a narrower cache: spec.check hands its gate result to spec.review.",
+      "timestamp": "2026-11-13T13:22:04Z"
     }
   ],
   "priority": 2,
   "status": "deferred",
   "title": "On-disk OID cache for gate performance (Atlas re-entry)",
   "type": "task",
-  "updated_at": "2026-09-03T22:03:54Z"
+  "updated_at": "2026-11-13T13:22:04Z"
 }
