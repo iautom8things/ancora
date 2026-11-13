@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-11-13T08:04:48Z",
+  "description": "Advances: ancora.parsing\nReady-for: investigate\n\nSymptom: with zoi 0.19.0 resolved, every ancora task that parses specs crashes. `mix spec.check` on Argos ended with `** (Mix) spec_parse worker failed for .spec/specs/access-obo-tokens.spec.md: key :prefix_items not found in: %{meta: %{...}}` and a stack through `Zoi.Inspect.build/3`.\n\nEvidence: ancora's mix.exs requires `{:zoi, \"~\u003e 0.17\"}`, which admits every 0.x release from 0.17.0. ancora's own mix.lock pins zoi 0.18.7, and so does Argos's. Switching Argos's ancora dep from Hex to a path dep unlocked ancora's children, `mix deps.get` resolved zoi 0.19.0 (and decimal 3.2.0), and the gate crashed on the first spec. Pinning zoi 0.18.7 back made it pass. Seen 2026-11-13 while measuring ancora-z19.\n\nWhy now: Argos and Atlas pin `{:ancora, \"~\u003e 1.3.0\"}` and lock zoi 0.18.7. Their next `mix deps.update --all`, or any update that unlocks zoi, pulls 0.19 and breaks Spec Check in CI. Either cap the requirement below 0.19 in a 1.3.x release or make ancora's schemas work on 0.19.",
+  "id": "ancora-vyv",
+  "labels": [],
+  "priority": 1,
+  "status": "open",
+  "title": "zoi 0.19.0 breaks spec parsing, and the ~\u003e 0.17 requirement admits it",
+  "type": "bug",
+  "updated_at": "2026-11-13T08:04:48Z"
+}
