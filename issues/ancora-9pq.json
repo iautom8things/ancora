@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Manuel Zubieta",
   "blocked_by": [],
   "blocks": [],
   "created": "2026-11-13T13:21:57Z",
@@ -7,8 +7,8 @@
   "id": "ancora-9pq",
   "labels": [],
   "priority": 1,
-  "status": "open",
+  "status": "in_progress",
   "title": "spec.review reruns the whole gate that spec.check just ran",
   "type": "task",
-  "updated_at": "2026-11-13T13:21:57Z"
+  "updated_at": "2026-11-13T13:22:06Z"
 }
