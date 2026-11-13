@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Manuel Zubieta",
   "blocked_by": [],
   "blocks": [],
   "created": "2026-11-13T08:04:41Z",
@@ -7,8 +7,8 @@
   "id": "ancora-z19",
   "labels": [],
   "priority": 1,
-  "status": "open",
+  "status": "in_progress",
   "title": "Tag scan copies every parsed AST into every worker",
   "type": "bug",
-  "updated_at": "2026-11-13T08:04:41Z"
+  "updated_at": "2026-11-13T08:04:48Z"
 }
