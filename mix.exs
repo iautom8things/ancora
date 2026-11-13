@@ -35,7 +35,7 @@ defmodule Ancora.MixProject do
   defp deps do
     [
       {:yaml_elixir, "~> 2.11"},
-      {:zoi, "~> 0.17"},
+      {:zoi, ">= 0.17.0 and < 0.19.0"},
       {:jason, "~> 1.4"},
       {:earmark_parser, "~> 1.4"},
       {:stream_data, "~> 1.0", only: [:dev, :test]},
