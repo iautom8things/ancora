@@ -20,6 +20,7 @@ defmodule Ancora.Gate do
   alias Ancora.Index
   alias Ancora.Overlap
   alias Ancora.Output
+  alias Ancora.Review.GateCache
   alias Ancora.Severity
   alias Ancora.SubjectFiles
   alias Ancora.TagFindings
@@ -97,7 +98,25 @@ defmodule Ancora.Gate do
     end
   end
 
+  # `review_cache: true` (set by `mix spec.check`) also stores the review fields
+  # for a later `spec.review`; the returned report is unchanged.
   defp run(ctx, preflight, opts) do
+    if Keyword.get(opts, :review_cache, false) do
+      key = GateCache.key(preflight)
+
+      with {:ok, report} <- assemble_run(ctx, preflight, Keyword.put(opts, :review_data, true)) do
+        GateCache.store(preflight, key, report)
+
+        if Keyword.get(opts, :review_data, false),
+          do: {:ok, report},
+          else: {:ok, Map.delete(report, :review_data)}
+      end
+    else
+      assemble_run(ctx, preflight, opts)
+    end
+  end
+
+  defp assemble_run(ctx, preflight, opts) do
     spec_dir = Keyword.get(opts, :spec_dir) || ".spec"
 
     with {:ok, change_set} <- ChangeSet.compute(ctx),
@@ -178,7 +197,6 @@ defmodule Ancora.Gate do
         result =
           if Keyword.get(opts, :review_data, false) do
             Map.put(result, :review_data, %{
-              sets: head_sets,
               footprints: SubjectFiles.build(head_sets, locator),
               tags: Map.new(head_sets, fn {id, set} -> {id, set.test_files} end),
               head_raw: repo_findings(current, head_tags, preflight.config),

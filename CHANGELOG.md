@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file.
 
+## 1.3.2 - 2026-11-13
+
+### Changed
+
+- `spec.review` reuses the gate result of a `spec.check` run on the same tree
+  instead of running the gate again. `spec.check` stores the fields review
+  reads at `_build/ancora/gate.etf`, only when git ignores that path, under a
+  key that covers ancora's code, the toolchain, the base and HEAD commits and
+  every dirty, untracked or scanned ignored file. Review uses the file only on
+  an exact key match and recomputes on any miss. `spec.check` never reads it,
+  so no gate verdict comes from it. On Argos with four schedulers, a PR's
+  `spec.review` drops from about 24 s to 4 s, and `spec.check` takes the same
+  time as before. [spec.review reruns the whole gate that spec.check just ran](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-9pq.json)
+- Drop the unused derived-set map from the review data the gate builds.
+
 ## 1.3.1 - 2026-11-13
 
 ### Fixed

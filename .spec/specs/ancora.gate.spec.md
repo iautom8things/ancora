@@ -210,9 +210,12 @@ decisions:
   stability: stable
 - id: ancora.gate.no_derived_state
   statement: >-
-    No task shall write derived state to the repository: there shall be no
-    `state.json`, no hash baseline, and no `--output` flag on `spec.check` or
-    `spec.validate`. Every gate input shall be the working tree plus git
+    No task shall write derived state that git tracks or that a gate verdict
+    reads: there shall be no `state.json`, no hash baseline, and no `--output`
+    flag on `spec.check` or `spec.validate`. The one local file is the review
+    handoff in `ancora.review.reuses_check_result`, which `spec.check` writes
+    only under a git-ignored `_build` path and never reads. Every gate input
+    shall be the working tree plus git
     objects reachable from `--base`. The temporary base view shall contain
     only the configured spec directory, configured test paths, and project
     library paths, and the gate shall remove it after assembly returns or

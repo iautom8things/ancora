@@ -98,10 +98,12 @@ names all three as charter constraints.
   declare exactly `deps.loadpaths`. The subprocess and stdout guards also
   require a non-empty `lib/` candidate set and prove their detectors against
   known allowed calls before applying their allowlists.
-- No derived state is written: no `state.json`, no hash baseline, no
-  `--output` on gate tasks. `spec.review --output` writes a render target,
-  which is not gate input. Every gate input is the working tree plus git
-  objects reachable from `--base`.
+- No derived state is committed or read by a gate verdict: no `state.json`,
+  no hash baseline, no `--output` on gate tasks. `spec.review --output` writes
+  a render target, which is not gate input. Every gate input is the working
+  tree plus git objects reachable from `--base`. Local git-ignored state that
+  no verdict reads is allowed; `ancora.decision.local_review_handoff` is the
+  one such file.
 - Repeated extraction work is removed with plain parsed-source maps built once
   per diff side and passed through the comparison call chain. Those maps are
   neither stored in a process nor retained after the gate returns.
@@ -140,8 +142,10 @@ Positive: the gate is pure-source plus git, byte-identical across machines,
 trustworthy when it is green, and honest when it cannot answer. Diff-scoped
 findings need no baseline file to compare against.
 
-Negative: AST work outside extraction still repeats within a gate run, and all
-AST work repeats across separate invocations. The deferred on-disk OID cache
-remains a possible re-entry after post-merge measurement. Adopters with no
+Negative: AST work outside extraction still repeats within a gate run, and AST
+work repeats across separate invocations, except that `spec.review` reuses the
+result of a `spec.check` on the same tree. The deferred on-disk OID cache
+remains a possible re-entry after post-merge measurement, and Manuel's
+2026-11-13 ruling allows it as local, git-ignored state. Adopters with no
 remote must learn `--base HEAD` or set `default_base` on day one; the scaffold
 teaches both.
