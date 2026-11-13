@@ -10,11 +10,15 @@
     {
       "text": "Measured on Argos aa8f738f7 against aa8f738f7~10 (ancora 1.3.2, warm handoff).\n\nByte breakdown of the 64,465,148-byte artifact: unresolved_calls messages 30.59 MB in the Introduced panel plus 30.59 MB in subject cards (37 findings, rendered twice). requirement_unverified 0.27 MB x2, other findings 0.03 MB. Subject spec text and markup 1.25 MB. Diffs 1.37 MB (0.38 MB in subjects, 1.0 MB in All files); 259 diff bodies render twice and 38 once, none more. Assets 0.04 MB. The triage panel renders counts only.\n\nShape: console.admin had 8,397 distinct calls at 6,586 file:line sites reached by 788 tests; 4,310 sites are reached by one test, the top one by 595. So deduping by site alone still leaves hundreds of KB; it needs a cap.\n\nDecision: bound at the source (Gate builds the message), not at render time. The same text went to spec.check --verbose (30.7 MB stdout), --json and the 31.6 MB handoff file, so a render-time cap would fix one of four outputs. The message now groups by call site (kind, name/arity, file, line), counts tests per site and per kind, and lists the 10 most-reached sites plus the number left out. Unresolved entries are unchanged, so Compare is unaffected. Spec: ancora.gate.unresolved_calls_summarized plus a scenario and tagged test.\n\nAfter: artifact 3,379,626 bytes, check --verbose stdout 197,625 bytes, gate.etf 1,112,245 bytes. Non-message check output is byte-identical. Review CPU 8.3-8.6 s before vs 8.5-8.7 s after; wall time is load-bound (13-26 s at load 37 on both sides), so the render was never the slow part.\n\nFollow-up filed: ancora-w5n (special forms such as \u003c\u003c\u003e\u003e/3, for/2 and \u003c-/2 dominate the top sites).",
       "timestamp": "2026-11-13T19:10:01Z"
+    },
+    {
+      "text": "Delivered. PR #11 merged as 9f0e1bd and was published to Hex as ancora 1.3.3 on 2026-11-13. All eight consumers merged and shipped or released on 1.3.3: argos #272 (0.87.1), atlas #385 (0.144.2), builder #486 (1.166.3), engage #66 (0.24.6), workforce_service #55 (0.23.13), forge #509 (0.34.11, via the CI image process), voyd_config #30 (46.0.2) and tsql_parser #8 (0.3.3). In CI the review artifact went from 63.0 to 1.9 MB on Argos, 62.9 to 4.9 MB on atlas and 37.3 to 2.5 MB on builder, where the VPN publish step dropped from 16 to 5 s. Follow-up: ancora-w5n (special forms recorded as unresolved calls).",
+      "timestamp": "2026-11-13T22:10:30Z"
     }
   ],
   "priority": 2,
   "status": "in_progress",
   "title": "derived/unresolved_calls messages make the Argos review artifact 64 MB",
   "type": "bug",
-  "updated_at": "2026-11-13T19:10:01Z"
+  "updated_at": "2026-11-13T22:10:30Z"
 }
