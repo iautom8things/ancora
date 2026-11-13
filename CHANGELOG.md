@@ -11,9 +11,6 @@ All notable changes to this project are documented in this file.
   parsed test file, twice per gate run. On Argos (741 test files) `spec.check`
   drops from 170 s to 17 s and `spec.review` from 162 s to 23 s, with
   byte-identical `--json` output. [Tag scan copies every parsed AST into every worker](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-z19.json)
-- Require zoi below 0.19. zoi 0.19.0 crashes spec parsing with
-  `key :prefix_items not found`, and the old `~> 0.17` requirement let
-  `mix deps.update` resolve it. [zoi 0.19.0 breaks spec parsing](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-vyv.json)
 
 ## 1.3.0 - 2026-09-07
 
