@@ -6,9 +6,15 @@
   "description": "Advances: ancora.review\nReady-for: investigate\n\nSymptom: `mix spec.review --base origin/main~10` on Argos aa8f738f7 (297 changed files) writes a 64,465,082-byte HTML artifact. ancora.review.artifact_size budgets a 200-file fixture under 1 MB.\n\nEvidence (ancora 1.3.1 plus the gate handoff, from the stored gate result):\n- 767 findings carry 29.9 MB of message text. Codes: 692 spec/requirement_unverified, 37 derived/unresolved_calls, 36 tags/requirement_untagged, 2 tags/tag_borrowed.\n- Nearly all of it is the 37 derived/unresolved_calls messages. The largest, for console.admin, is 4,770,329 bytes: 30,725 comma-separated items (20,352 unique), each naming the call kind, file and line, plus the full test name. Example item: \"unqualified at test/argos_web/live/clients/client_environments_test.exs:25 for test/argos_web/live/clients/client_environments_test.exs:458 a retire made while another live environment has an open request and no guardian is refused\".\n- These are info findings, hidden by spec.check, but review renders each message in full.\n\nQuestion for investigate: should the finding carry counts plus a bounded sample (and dedupe items), or should review truncate the rendered message? Either way, measure the Argos artifact before and after.",
   "id": "ancora-cmj",
   "labels": [],
+  "comments": [
+    {
+      "text": "Measured on Argos aa8f738f7 against aa8f738f7~10 (ancora 1.3.2, warm handoff).\n\nByte breakdown of the 64,465,148-byte artifact: unresolved_calls messages 30.59 MB in the Introduced panel plus 30.59 MB in subject cards (37 findings, rendered twice). requirement_unverified 0.27 MB x2, other findings 0.03 MB. Subject spec text and markup 1.25 MB. Diffs 1.37 MB (0.38 MB in subjects, 1.0 MB in All files); 259 diff bodies render twice and 38 once, none more. Assets 0.04 MB. The triage panel renders counts only.\n\nShape: console.admin had 8,397 distinct calls at 6,586 file:line sites reached by 788 tests; 4,310 sites are reached by one test, the top one by 595. So deduping by site alone still leaves hundreds of KB; it needs a cap.\n\nDecision: bound at the source (Gate builds the message), not at render time. The same text went to spec.check --verbose (30.7 MB stdout), --json and the 31.6 MB handoff file, so a render-time cap would fix one of four outputs. The message now groups by call site (kind, name/arity, file, line), counts tests per site and per kind, and lists the 10 most-reached sites plus the number left out. Unresolved entries are unchanged, so Compare is unaffected. Spec: ancora.gate.unresolved_calls_summarized plus a scenario and tagged test.\n\nAfter: artifact 3,379,626 bytes, check --verbose stdout 197,625 bytes, gate.etf 1,112,245 bytes. Non-message check output is byte-identical. Review CPU 8.3-8.6 s before vs 8.5-8.7 s after; wall time is load-bound (13-26 s at load 37 on both sides), so the render was never the slow part.\n\nFollow-up filed: ancora-w5n (special forms such as \u003c\u003c\u003e\u003e/3, for/2 and \u003c-/2 dominate the top sites).",
+      "timestamp": "2026-11-13T19:10:01Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "derived/unresolved_calls messages make the Argos review artifact 64 MB",
   "type": "bug",
-  "updated_at": "2026-11-13T18:47:27Z"
+  "updated_at": "2026-11-13T19:10:01Z"
 }
