@@ -173,6 +173,12 @@ decisions:
     bindings. Unreachable helpers are not visited. Non-member tool-VM exports and
     ambient Kernel and ExUnit forms are dropped; other calls remain unresolved.
     Standalone file resolution retains its existing local-call suppression.
+    Syntax is never a call: a form `Macro.special_form?/2` accepts at its AST
+    arity, such as `<<>>`, `for`, `fn`, `with` or `|`, the generator `<-`, the
+    guard `when`, the anonymous call `fun.(args)` and bitstring modifier names
+    shall produce no binding and no unresolved entry. This check precedes local
+    definitions and imports, since Elixir never lets them shadow a special
+    form. Operands are still walked, including `size` and `unit` expressions.
   priority: must
   stability: stable
 - id: ancora.derive.dynamic_calls_unresolved
@@ -494,6 +500,18 @@ decisions:
     - ancora.derive.qualified_call_disposition
     - ancora.derive.unqualified_ladder
     - ancora.derive.dynamic_calls_unresolved
+- id: ancora.derive.scenario.syntax_is_not_a_call
+  given:
+    - "a test body using `<<a, b, c>>`, string interpolation, a two-generator `for`, `with` and `<-`, a two-clause `fn`, `[h | t]`, a map update, a guarded `case` clause, `fun.(x)` and `<<x::binary-size(n)>>`, each wrapping a member call"
+    - "a scoped test module that defines `for/2` and calls `for(x <- [1], do: x)`"
+  when:
+    - each source is resolved with a fixed data-only ctx
+  then:
+    - every wrapped member call is a binding
+    - no unresolved entry names `<<>>`, `for`, `<-`, `with`, `fn`, `|`, `when`, `.`, `size` or `unit`
+    - the local `for/2` is neither a binding nor visited
+  covers:
+    - ancora.derive.unqualified_ladder
 - id: ancora.derive.scenario.import_inside_test_block
   given:
     - a test file whose only `import MyApp.Helpers` sits inside a `test` body and a later test calls `helper/1` unqualified

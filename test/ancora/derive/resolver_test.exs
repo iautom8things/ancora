@@ -238,6 +238,63 @@ defmodule Ancora.Derive.ResolverTest do
   end
 
   @tag spec: "ancora.derive.unqualified_ladder"
+  test "special forms at any arity are syntax whose operands are still walked", %{ctx: ctx} do
+    source = ~S"""
+    <<Foo.Bar.run(), 1, 2>>
+    "#{Foo.Baz.run()} and #{value}"
+    for x <- Foo.Qux.run(), y <- [1, 2], x > y, into: %{}, do: {x, y}
+    with {:ok, a} <- MyApp.Accounts.list(:all), b = a, do: b
+    fn :a -> Outer.Sub.run(); _ -> nil end
+    [head | tail]
+    %{map | key: Required.Module.run()}
+    """
+
+    result = resolve!(source, ctx)
+
+    assert result.calls ==
+             MapSet.new([
+               {Foo.Bar, :run, 0},
+               {Foo.Baz, :run, 0},
+               {Foo.Qux, :run, 0},
+               {MyApp.Accounts, :list, 1},
+               {Outer.Sub, :run, 0},
+               {Required.Module, :run, 0}
+             ])
+
+    assert result.unresolved == []
+  end
+
+  @tag spec: "ancora.derive.unqualified_ladder"
+  test "guards, anonymous calls, and bitstring modifiers are not calls", %{ctx: ctx} do
+    source = ~S"""
+    case value do
+      n when is_integer(n) and n > 0 -> fun.(Foo.Bar.run())
+    end
+
+    for <<pair::binary-size(2) <- hex>>, do: pair
+    <<value::size(Foo.Baz.run())-unit(8), rest::binary>>
+    """
+
+    result = resolve!(source, ctx)
+    assert result.calls == MapSet.new([{Foo.Bar, :run, 0}, {Foo.Baz, :run, 0}])
+    assert result.unresolved == []
+  end
+
+  @tag spec: "ancora.derive.unqualified_ladder"
+  test "a local definition named like a special form does not shadow it", %{ctx: ctx} do
+    source = """
+    defmodule Sample do
+      def for(left, right), do: {left, right}
+      def run, do: for(x <- [1], do: x)
+    end
+    """
+
+    result = resolve!(source, Map.put(ctx, :scoped, true))
+    assert result.calls == MapSet.new()
+    assert result.unresolved == []
+  end
+
+  @tag spec: "ancora.derive.unqualified_ladder"
   test "unknown unqualified calls retain source location", %{ctx: ctx} do
     result = resolve!("\nunknown_helper(:value)", ctx, "test/sample_test.exs")
 

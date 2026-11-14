@@ -13,6 +13,9 @@ defmodule Ancora.Derive.Resolver do
 
   @definition_kinds [:def, :defp, :defmacro, :defmacrop, :defguard, :defguardp, :defdelegate]
   @ignored_forms [:alias, :import, :require, :use]
+  # Syntax that `Macro.special_form?/2` does not list: generators, guards and
+  # the anonymous call `fun.(args)`.
+  @clause_syntax [:<-, :when, :.]
 
   @type unresolved_kind :: :unqualified | :dynamic_module | :apply
   @type unresolved :: %{
@@ -236,6 +239,9 @@ defmodule Ancora.Derive.Resolver do
 
   defp walk({:{}, _, elements}, state), do: walk_terms(elements, state)
 
+  defp walk({:<<>>, _, segments}, state) when is_list(segments),
+    do: Enum.reduce(segments, state, &walk_segment/2)
+
   defp walk({:|>, _, [left, right]}, state) do
     state = walk(left, state)
     walk_pipe_right(right, state)
@@ -324,6 +330,23 @@ defmodule Ancora.Derive.Resolver do
     end)
   end
 
+  defp walk_segment({:<-, _, [segment, enumerable]}, state),
+    do: walk_segment(segment, walk(enumerable, state))
+
+  defp walk_segment({:"::", _, [value, type]}, state),
+    do: walk_modifiers(type, walk(value, state))
+
+  defp walk_segment(segment, state), do: walk(segment, state)
+
+  # Size and unit take expressions; the modifier names themselves are not calls.
+  defp walk_modifiers({:-, _, [left, right]}, state),
+    do: walk_modifiers(right, walk_modifiers(left, state))
+
+  defp walk_modifiers({modifier, _, [argument]}, state) when modifier in [:size, :unit],
+    do: walk(argument, state)
+
+  defp walk_modifiers(type, state), do: walk(type, state)
+
   defp walk_pipe_right({{:., _, [target, name]}, meta, args}, state)
        when is_atom(name) and is_list(args) do
     state
@@ -373,6 +396,11 @@ defmodule Ancora.Derive.Resolver do
     signature = {name, arity}
 
     cond do
+      # Elixir resolves special forms before locals and imports, so no
+      # definition can shadow them. `<<>>`, `for`, `fn` and `with` take any arity.
+      Macro.special_form?(name, arity) or name in @clause_syntax ->
+        state
+
       MapSet.member?(state.local_defs, signature) ->
         if Map.get(state.ctx, :scoped, false) and state.module do
           add_call(state, {state.module, name, arity}, line)
