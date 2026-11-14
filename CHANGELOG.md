@@ -2,6 +2,30 @@
 
 All notable changes to this project are documented in this file.
 
+## 1.3.4 - 2026-11-14
+
+### Fixed
+
+- Stop recording syntax as unresolved calls in `derived/unresolved_calls`. The
+  resolver used the AST argument count as the arity, so `<<a, b, c>>` looked
+  up `<<>>/3` and `for x <- xs, do: x` looked up `for/2`, while
+  Kernel.SpecialForms exports `<<>>/1` and `for/1`. Generators (`<-`), guards
+  (`when`), list cons (`|`), anonymous calls (`fun.(x)`) and bitstring
+  modifiers such as `size(2)` were recorded too. The resolver now asks
+  `Macro.special_form?/2`, which accepts `<<>>`, `for`, `fn` and `with` at any
+  arity, before it checks local definitions and imports, and it skips `<-`,
+  `when`, `fun.(...)` and modifier names. It still walks their operands, and
+  the derived bindings are unchanged on both corpora below. On Argos the
+  unresolved call sites drop from 26,817 to 16,044, and tagged tests marked
+  incomplete drop from 6,792 to 6,064 of 11,047. console.admin drops from
+  8,397 sites to 5,648. In ancora the sites drop from 1,185 to 836.
+  [Resolver records variadic special forms as unresolved unqualified calls](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-w5n.json)
+- No `spec.check` verdict changed on Argos at aa8f738f7, with an empty diff or
+  against 10 or 100 commits back. A later diff can still surface a new
+  `derived/shrink` warning: Compare skips shrink for a tagged test with an
+  unresolved call, and 728 Argos tests are now complete, so a binding one of
+  them stops calling is reported as removed.
+
 ## 1.3.3 - 2026-11-13
 
 ### Fixed
