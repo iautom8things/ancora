@@ -729,4 +729,88 @@ defmodule Ancora.ReviewTest do
              &(&1.code in ["tags/requirement_untagged", "derived/growth", "derived/shrink"])
            )
   end
+
+  @tag spec: "ancora.review.view_model_builder"
+  test "renders all HEAD subjects as new when the base predates the spec workspace", %{root: root} do
+    init_git_repo(root)
+
+    write_files(root, %{
+      "mix.exs" => """
+      defmodule Fixture.MixProject do
+        use Mix.Project
+        def project, do: [app: :fixture]
+      end
+      """,
+      "lib/billing.ex" => "defmodule Billing do\n  def next(value), do: value\nend\n"
+    })
+
+    commit_all(root, "base without spec workspace")
+    {base_sha, 0} = System.cmd("git", ["rev-parse", "HEAD"], cd: root)
+    base_sha = String.trim(base_sha)
+
+    write_files(root, %{
+      ".spec/specs/billing.spec.md" => """
+      # Billing
+
+      ```yaml spec-meta
+      id: billing
+      kind: module
+      status: draft
+      summary: Billing behavior.
+      ```
+
+      ```yaml spec-requirements
+      - id: billing.next
+        statement: Billing shall return the next value.
+        priority: must
+      ```
+
+      ```yaml spec-scenarios
+      []
+      ```
+
+      ```yaml spec-verification
+      - kind: tagged_tests
+        covers:
+          - billing.next
+      ```
+      """,
+      "test/billing_test.exs" => """
+      defmodule BillingTest do
+        use ExUnit.Case
+        @tag spec: "billing.next"
+        test "next" do
+          assert Billing.next(1) in [1, 2]
+        end
+      end
+      """
+    })
+
+    commit_all(root, "add first spec subject")
+
+    assert {:ok, gate_report} = Ancora.Gate.check(root, base: base_sha)
+    expected_verdict = if(Ancora.Output.Verdict.pass?(gate_report), do: :pass, else: :fail)
+
+    assert {:ok, view} = Review.build(root, base: base_sha)
+    assert view.verdict == expected_verdict
+    assert [subject] = view.subjects
+    assert subject.id == "billing"
+    assert subject.spec_diff.base_existed? == false
+    assert Enum.map(subject.spec_diff.requirements.added, & &1.id) == ["billing.next"]
+
+    html = view |> Html.render() |> IO.iodata_to_binary()
+    assert html =~ "class=\"chip #{expected_verdict}\""
+    assert html =~ "billing.next"
+
+    output = Path.join(root, "tmp/missing_base_review.html")
+
+    stdout =
+      ExUnit.CaptureIO.capture_io(fn ->
+        Mix.Tasks.Spec.Review.run(["--root", root, "--base", base_sha, "--output", output])
+      end)
+
+    assert stdout =~ "spec.review wrote tmp/missing_base_review.html"
+    assert File.regular?(output)
+    assert File.read!(output) =~ "billing.next"
+  end
 end

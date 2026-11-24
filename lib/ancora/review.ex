@@ -74,6 +74,7 @@ defmodule Ancora.Review do
   end
 
   defp assemble(preflight, change_set, base_root, gate_report, opts) do
+    prepare_base_dirs(base_root, preflight.root, preflight.spec_dir)
     index_opts = index_opts(opts)
     head_index = Index.build(preflight.root, index_opts)
     base_index = Index.build(base_root, index_opts)
@@ -414,6 +415,14 @@ defmodule Ancora.Review do
     case Git.run(root, ["rev-parse", "HEAD"]) do
       {:ok, oid} -> String.trim(oid)
       {:error, _reason} -> "HEAD"
+    end
+  end
+
+  defp prepare_base_dirs(base_root, head_root, spec_dir) do
+    File.mkdir_p!(Path.join([base_root, spec_dir, "specs"]))
+
+    if File.dir?(Path.join([head_root, spec_dir, "decisions"])) do
+      File.mkdir_p!(Path.join([base_root, spec_dir, "decisions"]))
     end
   end
 

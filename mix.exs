@@ -1,7 +1,7 @@
 defmodule Ancora.MixProject do
   use Mix.Project
 
-  @version "1.3.4"
+  @version "1.3.5"
   @source_url "https://github.com/iautom8things/ancora"
 
   def project do
