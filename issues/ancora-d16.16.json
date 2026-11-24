@@ -7,9 +7,15 @@
   "id": "ancora-d16.16",
   "labels": [],
   "parent": "ancora-d16",
+  "comments": [
+    {
+      "text": "Review.prepare_base_dirs/3 is now a copy of the Gate helper, added by ancora-qc3 because gate.ex was out of scope.",
+      "timestamp": "2026-11-24T11:34:49Z"
+    }
+  ],
   "priority": 3,
   "status": "open",
   "title": "Four helper bodies duplicated across Gate, Preflight, Status and Review",
   "type": "task",
-  "updated_at": "2026-09-04T11:04:29Z"
+  "updated_at": "2026-11-24T11:34:49Z"
 }
