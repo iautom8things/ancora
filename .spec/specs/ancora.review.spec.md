@@ -406,6 +406,16 @@ decisions:
     - `tmp/r.html` exists and the meta line names it
   covers:
     - ancora.review.output_flag
+- id: ancora.review.scenario.base_without_workspace
+  given:
+    - a git repository whose base commit has no `.spec/` directory and whose HEAD adds a subject with a tagged test
+  when:
+    - Ancora.Review.build/2 runs against that base ref
+  then:
+    - it returns `{:ok, view}` with the same verdict as `Ancora.Gate.check/2`
+    - every HEAD subject appears with base_existed? set to false and its requirements listed as added
+  covers:
+    - ancora.review.view_model_builder
 ```
 
 ## Verification

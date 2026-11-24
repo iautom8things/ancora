@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented in this file.
 
+## 1.3.5 - 2026-11-24
+
+### Fixed
+
+- Stop crashing `mix spec.review` when the base ref predates the spec
+  workspace. `Ancora.Review.assemble/5` called `Ancora.Index.build/2` directly
+  on the materialized base tree, which returned an error tuple when the base
+  commit had no `.spec/specs` directory, and `subjects/9` then raised
+  `FunctionClauseError` in `Access.get/3`. `Ancora.Review.assemble/5` now
+  prepares the empty `<spec_dir>/specs` (and `decisions` when present at HEAD)
+  directories in the materialized base root before calling `Index.build/2`,
+  matching `Ancora.Gate.prepare_base_dirs/3`. Every HEAD subject renders as
+  new with the same verdict as `mix spec.check`, while a base whose workspace
+  already exists keeps its current parse handling.
+  [ancora-qc3](https://github.com/iautom8things/ancora/blob/beadwork/issues/ancora-qc3.json)
+
 ## 1.3.4 - 2026-11-14
 
 ### Fixed
