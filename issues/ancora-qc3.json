@@ -7,8 +7,8 @@
   "id": "ancora-qc3",
   "labels": [],
   "priority": 3,
-  "status": "open",
+  "status": "in_progress",
   "title": "[BUG] spec.review crashes when the base predates the spec workspace",
   "type": "task",
-  "updated_at": "2026-11-09T21:10:52Z"
+  "updated_at": "2026-11-24T11:20:46Z"
 }
